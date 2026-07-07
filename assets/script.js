@@ -310,6 +310,43 @@ function initDemo() {
     resetDemo();
     runDemo();
   });
+
+  return { run: runDemo };
+}
+
+// ===========================================================
+// Language gate — full-screen prompt shown on page load.
+// Once a language is picked, the page loads in that language,
+// scrolls to the live demo, and starts it automatically.
+// ===========================================================
+function initLangGate(demo) {
+  const gate = document.getElementById("langGate");
+  if (!gate) return;
+
+  document.body.style.overflow = "hidden";
+
+  gate.querySelectorAll(".lang-gate-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const lang = btn.getAttribute("data-lang");
+      localStorage.setItem(I18N_STORAGE_KEY, lang);
+      applyTranslations(lang);
+
+      const switcher = document.getElementById("langSwitch");
+      if (switcher) switcher.value = lang;
+
+      gate.classList.add("hidden");
+      document.body.style.overflow = "";
+
+      setTimeout(() => {
+        const demoSection = document.getElementById("demo");
+        if (demoSection) {
+          demoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          demoSection.classList.add("demo-autofocus");
+        }
+        setTimeout(() => demo && demo.run(), 700);
+      }, 450);
+    });
+  });
 }
 
 // ===========================================================
@@ -326,6 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNav();
   initStatCounters();
   initFaq();
-  initDemo();
+  const demo = initDemo();
   initFooterYear();
+  initLangGate(demo);
 });
