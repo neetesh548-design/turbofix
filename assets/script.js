@@ -159,9 +159,22 @@ function initDemo() {
   const kpiHealth = document.getElementById("kpiHealth");
   const kpiAvg = document.getElementById("kpiAvg");
 
+  const stepEls = document.querySelectorAll(".demo-step");
+  const stepDesc = document.getElementById("demoStepDesc");
+
   const INITIAL_KPI = { open: 2, down: 1, health: 86, avg: "4.2h" };
+  const AUTO_REPLAY_DELAY = 4000;
   let playing = false;
   let timers = [];
+
+  function setStep(n) {
+    stepEls.forEach((el) => {
+      const s = Number(el.dataset.step);
+      el.classList.toggle("done", s < n);
+      el.classList.toggle("active", s === n);
+    });
+    if (stepDesc) stepDesc.textContent = t(`demo.step${n}Desc`);
+  }
 
   function schedule(fn, delay) {
     const id = setTimeout(fn, delay);
@@ -232,6 +245,7 @@ function initDemo() {
     replayBtn.textContent = t("demo.playBtn");
     replayBtn.disabled = false;
     playing = false;
+    setStep(0);
   }
 
   function runDemo() {
@@ -243,10 +257,12 @@ function initDemo() {
     replayBtn.disabled = true;
 
     schedule(() => {
+      setStep(1);
       addSystemNote(t("demo.qrScanned"));
     }, 200);
 
     schedule(() => {
+      setStep(2);
       addBubble(t("demo.issueBubble"), "bubble-out");
     }, 900);
 
@@ -269,7 +285,10 @@ function initDemo() {
       flashKpi(kpiDown);
     }, 3000);
 
-    schedule(() => addTyping(), 3700);
+    schedule(() => {
+      setStep(3);
+      addTyping();
+    }, 3700);
 
     schedule(() => {
       removeTyping();
@@ -281,6 +300,7 @@ function initDemo() {
     }, 5300);
 
     schedule(() => {
+      setStep(4);
       addBubble(t("demo.notifiedBubble"), "bubble-in");
     }, 6600);
 
@@ -291,6 +311,7 @@ function initDemo() {
     }, 6700);
 
     schedule(() => {
+      setStep(5);
       addBubble(t("demo.techReply"), "bubble-in");
       demoStatus.textContent = t("demo.ticketAssigned");
     }, 8000);
@@ -303,6 +324,13 @@ function initDemo() {
       replayBtn.disabled = false;
       playing = false;
     }, 8600);
+
+    // Automation: keep the demo looping on its own so a visitor never
+    // has to lift a finger to see the full flow at least once.
+    schedule(() => {
+      resetDemo();
+      runDemo();
+    }, 8600 + AUTO_REPLAY_DELAY);
   }
 
   qrTap.addEventListener("click", runDemo);
@@ -324,27 +352,58 @@ function initLangGate(demo) {
   if (!gate) return;
 
   document.body.style.overflow = "hidden";
+  const buttons = gate.querySelectorAll(".lang-gate-btn");
+  let chosen = false;
 
-  gate.querySelectorAll(".lang-gate-btn").forEach((btn) => {
+  buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (chosen) return;
+      chosen = true;
       const lang = btn.getAttribute("data-lang");
+
+      // Instant feedback: highlight the chosen card, fade the rest.
+      // (Note: don't use the `disabled` attribute here — disabling the
+      // focused button makes the browser shift focus and auto-scroll,
+      // which fights with the intentional scroll-to-demo below.)
+      gate.style.pointerEvents = "none";
+      buttons.forEach((b) => {
+        b.classList.toggle("selected", b === btn);
+        b.classList.toggle("fade-out", b !== btn);
+      });
+
       localStorage.setItem(I18N_STORAGE_KEY, lang);
       applyTranslations(lang);
 
       const switcher = document.getElementById("langSwitch");
       if (switcher) switcher.value = lang;
 
-      gate.classList.add("hidden");
-      document.body.style.overflow = "";
-
       setTimeout(() => {
-        const demoSection = document.getElementById("demo");
-        if (demoSection) {
+        gate.classList.add("hidden");
+        document.body.style.overflow = "";
+
+        setTimeout(() => {
+          const demoSection = document.getElementById("demo");
+          if (!demoSection) {
+            demo && demo.run();
+            return;
+          }
           demoSection.scrollIntoView({ behavior: "smooth", block: "start" });
           demoSection.classList.add("demo-autofocus");
-        }
-        setTimeout(() => demo && demo.run(), 700);
-      }, 450);
+
+          // Wait for the smooth scroll to actually finish before the demo
+          // starts mutating the chat/dashboard — starting too early makes
+          // the in-flight scroll animation get cut short by the reflow.
+          let started = false;
+          const start = () => {
+            if (started) return;
+            started = true;
+            window.removeEventListener("scrollend", start);
+            demo && demo.run();
+          };
+          window.addEventListener("scrollend", start, { once: true });
+          setTimeout(start, 1300); // fallback for browsers without scrollend
+        }, 450);
+      }, 380);
     });
   });
 }
