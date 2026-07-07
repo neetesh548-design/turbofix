@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboFix — Machines Fixed at Turbo Speed</title>
+<meta name="description" content="AI-powered, WhatsApp-native maintenance ticketing for factories. No app to install — scan a QR tag, speak the issue, and the right technician gets notified while your dashboard updates itself.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="nav-inner container">
+    <a href="#top" class="brand">
+      <span class="brand-mark">⚡</span>
+      <span class="brand-name">TurboFix</span>
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+      <a href="#how">How it works</a>
+      <a href="#demo">Live demo</a>
+      <a href="#trial">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a class="btn btn-whatsapp btn-sm" data-wa="trial" target="_blank" rel="noopener">
+        <span class="ico">💬</span> Start Free Trial
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">🏭 Built for Pune MIDC factories</p>
+        <h1>Machines fixed at <span class="accent">turbo speed.</span></h1>
+        <p class="lede">
+          No app to install. No IT project. A worker scans a QR tag on a machine, speaks
+          what's wrong into WhatsApp, and AI instantly briefs the right technician —
+          while your dashboard updates itself in real time.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-whatsapp btn-lg" data-wa="trial" target="_blank" rel="noopener">
+            <span class="ico">💬</span> Start Your Free 1-Month Trial
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#demo">▶ Watch Live Demo</a>
+        </div>
+        <p class="hero-fineprint">No credit card. No app installs. Cancel anytime.</p>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num" data-count="0.53" data-prefix="₹" data-decimals="2">₹0.00</span>
+            <span class="stat-label">per ticket, all-in</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="5" data-suffix=" min">0 min</span>
+            <span class="stat-label">setup per machine</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="0">0</span>
+            <span class="stat-label">apps for workers to install</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone-frame phone-frame--hero">
+          <div class="phone-notch"></div>
+          <div class="chat-header">
+            <span class="chat-avatar">🏭</span>
+            <div>
+              <div class="chat-title">TurboFix</div>
+              <div class="chat-sub">business account</div>
+            </div>
+          </div>
+          <div class="chat-body chat-body--static">
+            <div class="bubble bubble-out">Issue with TF-ACME3-M001: <br>spindle making a loud noise 🔊</div>
+            <div class="bubble bubble-in">
+              <strong>Ticket #T-2481 logged ✅</strong><br>
+              Likely cause: worn spindle bearing<br>
+              Urgency: <span class="badge badge-high">High</span><br>
+              Notifying Ramesh (Technician)…
+            </div>
+          </div>
+        </div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROBLEM ============ -->
+  <section class="section problem">
+    <div class="container">
+      <h2 class="section-title">Three silent leaks draining your factory every month</h2>
+      <p class="section-sub">They never show up as a single line item — which is exactly why they never get fixed.</p>
+      <div class="grid grid-3">
+        <div class="card leak-card">
+          <div class="leak-ico">⏱️</div>
+          <h3>Downtime search cost</h3>
+          <p>Hours lost between "something's wrong" and "the right technician knows about it" — not fixing it, just <em>finding out</em>.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">⚡</div>
+          <h3>Ghost power</h3>
+          <p>Machines idling, leaking air, or running inefficiently for days because nobody logged the small issue before it became a big one.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">📦</div>
+          <h3>Dead stock</h3>
+          <p>Emergency spare-part orders at premium prices because failures were never tracked long enough to see the pattern coming.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="section how" id="how">
+    <div class="container">
+      <h2 class="section-title">From "it's broken" to "it's assigned" in under a minute</h2>
+      <p class="section-sub">Four steps. Zero new habits for your shop-floor team.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-ico">📱</div>
+          <h3>Scan the QR tag</h3>
+          <p>Every machine has a printed tag. Scanning it opens WhatsApp with the machine's ID already filled in.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-ico">🎙️</div>
+          <h3>Speak the issue</h3>
+          <p>The worker just talks — in whatever language is natural. No forms, no typing, no app to learn.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-ico">🤖</div>
+          <h3>AI triages instantly</h3>
+          <p>Voice is transcribed and summarised into likely cause, urgency, and a suggested first action.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-ico">✅</div>
+          <h3>Right people notified</h3>
+          <p>The assigned technician and anyone who needs to know get pinged on WhatsApp. Your dashboard updates itself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE DEMO ============ -->
+  <section class="section demo-section" id="demo">
+    <div class="container">
+      <h2 class="section-title">See TurboFix in action</h2>
+      <p class="section-sub">This is a simulated walkthrough — no sign-up needed. Tap play to watch a real ticket flow through the system, end to end.</p>
+
+      <div class="demo-grid">
+        <!-- Phone / chat simulation -->
+        <div class="demo-phone-wrap">
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="chat-header">
+              <span class="chat-avatar">🏭</span>
+              <div>
+                <div class="chat-title">TurboFix</div>
+                <div class="chat-sub" id="demoStatus">tap play to start</div>
+              </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+              <div class="chat-placeholder" id="chatPlaceholder">
+                <div class="qr-tap" id="qrTap">
+                  <div class="qr-icon">▦</div>
+                  <p>Tap the QR to simulate a worker scanning it</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-replay" id="replayBtn">▶ Play Demo</button>
+        </div>
+
+        <!-- Dashboard simulation -->
+        <div class="demo-dashboard">
+          <div class="dash-card">
+            <div class="dash-head">
+              <h3>Live Dashboard</h3>
+              <span class="dash-live">● live</span>
+            </div>
+            <div class="dash-kpis">
+              <div class="kpi">
+                <span class="kpi-num" id="kpiOpen">2</span>
+                <span class="kpi-label">Open Tickets</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiDown">1</span>
+                <span class="kpi-label">Machines Down</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiHealth">86%</span>
+                <span class="kpi-label">Plant Health</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiAvg">4.2h</span>
+                <span class="kpi-label">Avg. Time to Fix</span>
+              </div>
+            </div>
+            <div class="dash-feed" id="dashFeed">
+              <p class="dash-feed-empty">Activity will appear here once the demo starts…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRIAL / PRICING ============ -->
+  <section class="section trial-section" id="trial">
+    <div class="container trial-inner">
+      <div class="trial-copy">
+        <p class="eyebrow eyebrow-light">🎁 Zero-risk pilot</p>
+        <h2>Try TurboFix free for a full month</h2>
+        <p class="lede-light">
+          Bring your own machines, your own team, your own WhatsApp number. We'll help you
+          tag your first machines and get your first tickets flowing — free for 30 days.
+        </p>
+        <ul class="check-list">
+          <li>Unlimited tickets for up to 20 machines</li>
+          <li>AI voice-note transcription &amp; triage included</li>
+          <li>Live dashboard for your whole team</li>
+          <li>WhatsApp setup support, not a support ticket queue</li>
+          <li>No credit card required to start</li>
+        </ul>
+        <a class="btn btn-whatsapp btn-lg" data-wa="trial" target="_blank" rel="noopener">
+          <span class="ico">💬</span> Claim Your Free Trial on WhatsApp
+        </a>
+        <p class="hero-fineprint hero-fineprint-light">We'll reply on WhatsApp within one business day.</p>
+      </div>
+      <div class="trial-price-card">
+        <div class="price-card">
+          <span class="price-badge">Pilot pricing</span>
+          <div class="price-amount">₹0<span class="price-period">/month for 30 days</span></div>
+          <p class="price-note">After your trial, pricing scales with tickets — not per-seat licenses. Typical factories run at roughly <strong>₹0.53 per ticket</strong>, all-in.</p>
+          <div class="price-divider"></div>
+          <p class="price-note price-note-small">Estimated cost at 1,000 machines / ~3,000 tickets a month: <strong>₹760–₹1,580</strong> variable cost, plus optional platform/hosting fees.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section class="section why">
+    <div class="container">
+      <h2 class="section-title">Why factories switch to TurboFix</h2>
+      <div class="grid grid-3">
+        <div class="card why-card">
+          <div class="why-ico">🚫📲</div>
+          <h3>No app, ever</h3>
+          <p>Workers already know how to use WhatsApp. That's the entire training required.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🤖</div>
+          <h3>AI-powered triage</h3>
+          <p>Every voice note becomes a structured brief: likely cause, urgency, suggested first action.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🏢</div>
+          <h3>Multi-tenant &amp; secure</h3>
+          <p>Every machine ID is scoped to your company code — your tickets never mix with anyone else's.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">📊</div>
+          <h3>Live dashboard</h3>
+          <p>Open tickets, machines down, plant health — updated the moment a ticket is logged, not at end of shift.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">⚡</div>
+          <h3>Same-day setup</h3>
+          <p>Print QR tags, stick them on, done. Most pilots go live the same day they sign up.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">💰</div>
+          <h3>Pay for tickets, not seats</h3>
+          <p>No per-user licensing. Cost scales with how much your team actually reports, not headcount.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section faq-section" id="faq">
+    <div class="container">
+      <h2 class="section-title">Frequently asked questions</h2>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item">
+          <button class="faq-q">Do workers need to install anything? <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p>No. Everything runs over WhatsApp, which almost every worker already has and uses daily. There is nothing to download or log into.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">What happens after the free trial ends? <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p>We'll check in with you on WhatsApp before it ends. If TurboFix is working for you, you move to pay-per-ticket pricing — no auto-billing surprises, no lock-in contract.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Can workers speak in their own language? <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p>Yes — workers just speak naturally into a voice note. Our AI layer transcribes and summarises it into a clear brief for the technician.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Is our data isolated from other companies? <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p>Yes. Every machine ID is scoped to your unique company code, and every ticket, dashboard view, and notification is filtered to your company only.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">What if we have more than 20 machines? <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p>No problem — the 20-machine cap only applies to the free trial. Message us on WhatsApp and we'll size a plan for your full factory floor.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a href="#top" class="brand">
+        <span class="brand-mark">⚡</span>
+        <span class="brand-name">TurboFix</span>
+      </a>
+      <p>Machines fixed at turbo speed. AI-powered, WhatsApp-native maintenance ticketing for factories.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Product</h4>
+      <a href="#how">How it works</a>
+      <a href="#demo">Live demo</a>
+      <a href="#trial">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-links">
+      <h4>Get in touch</h4>
+      <a data-wa="general" target="_blank" rel="noopener">💬 Chat on WhatsApp</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p>&copy; <span id="year"></span> TurboFix. Built for the Pune MIDC industrial belt — and beyond.</p>
+  </div>
+</footer>
+
+<script src="assets/script.js"></script>
+</body>
+</html>
