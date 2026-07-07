@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurboFix — Dashboard</title>
+  <link rel="stylesheet" href="assets/vault-dashboard.css">
+</head>
+<body>
+<div class="container">
+  <!-- Login screen -->
+  <div id="loginScreen" class="screen">
+    <div class="login-card">
+      <h1>TurboFix Dashboard</h1>
+      <p class="subtitle">Staff Login</p>
+
+      <div class="form-group">
+        <label for="identifier">Email or Phone</label>
+        <input type="text" id="identifier" placeholder="your@email.com or +91 phone">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+
+      <button id="loginBtn" class="btn-primary">Sign In</button>
+      <div id="loginError" class="error-msg"></div>
+
+      <div class="footer-link">
+        <a href="vault.html">Document Vault →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard screen -->
+  <div id="dashScreen" class="screen" style="display:none;">
+    <div class="dash-header">
+      <div>
+        <h1 id="companyName">Loading...</h1>
+        <p id="userRole" class="user-role"></p>
+      </div>
+      <button id="logoutBtn" class="btn-secondary">Sign Out</button>
+    </div>
+
+    <div class="kpis-grid">
+      <div class="kpi-card">
+        <div class="kpi-number" id="openTickets">—</div>
+        <div class="kpi-label">Open Tickets</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number" id="machinesDown">—</div>
+        <div class="kpi-label">Machines Down</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number" id="closedToday">—</div>
+        <div class="kpi-label">Closed Today</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number" id="totalTickets">—</div>
+        <div class="kpi-label">Total Tickets</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number" id="avgHours">—</div>
+        <div class="kpi-label">Avg Hours to Fix</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number" id="plantHealth">—</div>
+        <div class="kpi-label">Plant Health</div>
+      </div>
+    </div>
+
+    <div class="activity-section">
+      <h2>Recent Tickets</h2>
+      <div id="activityList" class="activity-list">
+        <p class="placeholder">No recent tickets</p>
+      </div>
+    </div>
+
+    <div class="footer-link">
+      <a href="vault.html">Manage Documents & Spare Parts →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("dashboardBackend") || "http://localhost:8000";
+
+function setBackendUrl() {
+  const url = prompt("Backend URL (e.g. http://localhost:8000 or https://turbofix.myhost.com):", BACKEND_URL);
+  if (url) {
+    localStorage.setItem("dashboardBackend", url);
+    location.reload();
+  }
+}
+
+async function login() {
+  const identifier = document.getElementById("identifier").value;
+  const password = document.getElementById("password").value;
+  const errorDiv = document.getElementById("loginError");
+
+  if (!identifier || !password) {
+    errorDiv.textContent = "Enter email/phone and password.";
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${BACKEND_URL}/auth/login`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({identifier, password}),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      errorDiv.textContent = "Invalid credentials.";
+      return;
+    }
+
+    localStorage.setItem("dashToken", data.access_token);
+    localStorage.setItem("dashUser", JSON.stringify(data.user));
+    showDashboard();
+  } catch (e) {
+    errorDiv.textContent = "Error: " + e.message + " (check backend URL)";
+  }
+}
+
+async function loadDashboard() {
+  const token = localStorage.getItem("dashToken");
+  if (!token) return;
+
+  try {
+    const resp = await fetch(`${BACKEND_URL}/vault/dashboard`, {
+      headers: {"Authorization": `Bearer ${token}`},
+    });
+
+    if (!resp.ok) {
+      localStorage.removeItem("dashToken");
+      showLogin();
+      return;
+    }
+
+    const data = await resp.json();
+    document.getElementById("companyName").textContent = data.company_name;
+
+    const user = JSON.parse(localStorage.getItem("dashUser") || "{}");
+    const roleText = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
+    document.getElementById("userRole").textContent = `${user.name} (${roleText})`;
+
+    document.getElementById("openTickets").textContent = data.kpis.open_tickets;
+    document.getElementById("machinesDown").textContent = data.kpis.machines_down;
+    document.getElementById("closedToday").textContent = data.kpis.closed_today;
+    document.getElementById("totalTickets").textContent = data.kpis.total_tickets;
+    document.getElementById("avgHours").textContent = data.kpis.avg_hours_to_fix;
+    document.getElementById("plantHealth").textContent = data.kpis.plant_health_pct + "%";
+
+    const list = document.getElementById("activityList");
+    if (data.recent_activity.length === 0) {
+      list.innerHTML = `<p class="placeholder">No recent tickets</p>`;
+    } else {
+      list.innerHTML = data.recent_activity.map(r => `
+        <div class="activity-row">
+          <div class="activity-main">
+            <div class="ticket-id">${r.ticket_id}</div>
+            <div class="ticket-machine">${r.machine_name}</div>
+          </div>
+          <div class="activity-status">
+            <span class="status-badge status-${r.status.toLowerCase()}">${r.status}</span>
+            <span class="urgency-${r.urgency ? r.urgency.toLowerCase() : ""}">${r.urgency || "—"}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+  } catch (e) {
+    console.error("Dashboard fetch error:", e);
+  }
+}
+
+function showDashboard() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("dashScreen").style.display = "block";
+  loadDashboard();
+  setInterval(loadDashboard, 5000);
+}
+
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "block";
+  document.getElementById("dashScreen").style.display = "none";
+}
+
+document.getElementById("loginBtn").addEventListener("click", login);
+document.getElementById("password").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") login();
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("dashToken");
+  localStorage.removeItem("dashUser");
+  showLogin();
+});
+
+// Check for saved token on load
+if (localStorage.getItem("dashToken")) {
+  showDashboard();
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>
