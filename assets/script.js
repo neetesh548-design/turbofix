@@ -15,6 +15,41 @@ const CONFIG = {
 };
 
 // ===========================================================
+// i18n — English / Hindi / Marathi, persisted in localStorage
+// ===========================================================
+const I18N_STORAGE_KEY = "turbofix_lang";
+
+function getCurrentLang() {
+  return localStorage.getItem(I18N_STORAGE_KEY) || "en";
+}
+
+function t(key) {
+  const lang = getCurrentLang();
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  return dict[key] || TRANSLATIONS.en[key] || "";
+}
+
+function applyTranslations(lang) {
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) el.innerHTML = dict[key];
+  });
+  document.documentElement.setAttribute("lang", lang);
+}
+
+function initI18n() {
+  const switcher = document.getElementById("langSwitch");
+  const lang = getCurrentLang();
+  switcher.value = lang;
+  applyTranslations(lang);
+  switcher.addEventListener("change", () => {
+    localStorage.setItem(I18N_STORAGE_KEY, switcher.value);
+    applyTranslations(switcher.value);
+  });
+}
+
+// ===========================================================
 // Wire up every WhatsApp CTA from CONFIG (single source of truth)
 // ===========================================================
 function wireWhatsAppLinks() {
@@ -188,13 +223,13 @@ function initDemo() {
     clearTimers();
     chatBody.innerHTML = "";
     chatBody.appendChild(chatPlaceholder);
-    demoStatus.textContent = "tap play to start";
-    dashFeed.innerHTML = '<p class="dash-feed-empty">Activity will appear here once the demo starts…</p>';
+    demoStatus.textContent = t("demo.tapToStart");
+    dashFeed.innerHTML = `<p class="dash-feed-empty">${t("demo.feedEmpty")}</p>`;
     kpiOpen.textContent = INITIAL_KPI.open;
     kpiDown.textContent = INITIAL_KPI.down;
     kpiHealth.textContent = `${INITIAL_KPI.health}%`;
     kpiAvg.textContent = INITIAL_KPI.avg;
-    replayBtn.textContent = "▶ Play Demo";
+    replayBtn.textContent = t("demo.playBtn");
     replayBtn.disabled = false;
     playing = false;
   }
@@ -203,16 +238,16 @@ function initDemo() {
     if (playing) return;
     playing = true;
     chatBody.innerHTML = "";
-    demoStatus.textContent = "live simulation";
-    replayBtn.textContent = "Playing…";
+    demoStatus.textContent = t("demo.liveSimulation");
+    replayBtn.textContent = t("demo.playingBtn");
     replayBtn.disabled = true;
 
     schedule(() => {
-      addSystemNote("📷 QR scanned — TF-ACME3-M001 · Hydraulic Press #2");
+      addSystemNote(t("demo.qrScanned"));
     }, 200);
 
     schedule(() => {
-      addBubble("Issue with TF-ACME3-M001:", "bubble-out");
+      addBubble(t("demo.issueBubble"), "bubble-out");
     }, 900);
 
     schedule(() => {
@@ -223,11 +258,11 @@ function initDemo() {
     }, 1900);
 
     schedule(() => {
-      addBubble("Ticket <strong>#T-2481</strong> logged. Notifying the right people now…", "bubble-in");
+      addBubble(t("demo.ticketLogged"), "bubble-in");
     }, 2900);
 
     schedule(() => {
-      addFeedItem("🎫", "Ticket #T-2481 opened for Hydraulic Press #2", "just now");
+      addFeedItem("🎫", t("demo.feedTicketOpened"), t("demo.justNow"));
       kpiOpen.textContent = String(INITIAL_KPI.open + 1);
       flashKpi(kpiOpen);
       kpiDown.textContent = String(INITIAL_KPI.down + 1);
@@ -238,40 +273,33 @@ function initDemo() {
 
     schedule(() => {
       removeTyping();
-      addBubble(
-        `🤖 <strong>AI Brief</strong><br>
-         Transcript: "spindle making a loud grinding noise since morning shift"<br>
-         Likely cause: worn spindle bearing<br>
-         Urgency: <span class="badge badge-high">High</span><br>
-         Suggested action: stop the machine and inspect the bearing housing`,
-        "bubble-in"
-      );
+      addBubble(t("demo.aiBrief"), "bubble-in");
     }, 5200);
 
     schedule(() => {
-      addFeedItem("🤖", "AI triage complete — urgency set to High", "2s ago");
+      addFeedItem("🤖", t("demo.feedAiTriage"), t("demo.secAgo2"));
     }, 5300);
 
     schedule(() => {
-      addBubble("🔧 <strong>Ramesh (Technician)</strong> has been notified on WhatsApp.<br>👤 Plant Owner is CC'd as an informed user.", "bubble-in");
+      addBubble(t("demo.notifiedBubble"), "bubble-in");
     }, 6600);
 
     schedule(() => {
-      addFeedItem("🔔", "Ramesh notified · Plant Owner informed", "3s ago");
+      addFeedItem("🔔", t("demo.feedNotified"), t("demo.secAgo3"));
       kpiHealth.textContent = `${INITIAL_KPI.health - 6}%`;
       flashKpi(kpiHealth);
     }, 6700);
 
     schedule(() => {
-      addBubble("Ramesh: on it, reached the machine 👍", "bubble-in");
-      demoStatus.textContent = "ticket assigned ✅";
+      addBubble(t("demo.techReply"), "bubble-in");
+      demoStatus.textContent = t("demo.ticketAssigned");
     }, 8000);
 
     schedule(() => {
-      addFeedItem("✅", "Ramesh acknowledged — repair in progress", "just now");
+      addFeedItem("✅", t("demo.feedAck"), t("demo.justNow"));
       kpiAvg.textContent = "3.9h";
       flashKpi(kpiAvg);
-      replayBtn.textContent = "↻ Replay Demo";
+      replayBtn.textContent = t("demo.replayBtn");
       replayBtn.disabled = false;
       playing = false;
     }, 8600);
@@ -293,6 +321,7 @@ function initFooterYear() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initI18n();
   wireWhatsAppLinks();
   initNav();
   initStatCounters();
