@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Vault — TurboFix Staff Portal</title>
+<meta name="description" content="TurboFix Document Vault — manuals, circuit/hydraulic diagrams, BOM and consumables, for owner/supervisor/maintenance head only.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/vault.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+<body class="vault-body">
+
+<div class="vault-topbar">
+  <a href="#top" class="brand"><span class="brand-mark">⚡</span><span class="brand-name">TurboFix</span> Document Vault</a>
+  <a class="back-link" href="index.html">← Back to site</a>
+</div>
+
+<div class="vault-wrap">
+
+  <!-- ============ LOGIN SCREEN ============ -->
+  <div class="vault-login-card" id="loginCard">
+    <h1>Staff sign-in</h1>
+    <p class="sub">Manuals, circuit/hydraulic diagrams, spare parts (BOM) and consumables — for owner, supervisor, and maintenance head accounts only.</p>
+
+    <div class="vault-error" id="loginError"></div>
+
+    <form id="loginForm">
+      <div class="vault-field">
+        <label for="loginIdentifier">Phone or email</label>
+        <input type="text" id="loginIdentifier" autocomplete="username" required>
+      </div>
+      <div class="vault-field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="vault-btn vault-btn-primary" id="loginSubmit">Log in</button>
+    </form>
+
+    <details class="vault-advanced">
+      <summary>Advanced: backend URL</summary>
+      <div class="vault-field" style="margin-top:10px">
+        <label for="apiBaseInput">API base URL</label>
+        <input type="text" id="apiBaseInput" placeholder="http://localhost:8000">
+      </div>
+      <p style="color:var(--slate-light)">This page talks directly to your TurboFix backend — it needs to be running and reachable at this address. Nothing is stored except in this browser tab.</p>
+    </details>
+  </div>
+
+  <!-- ============ AUTHENTICATED SHELL ============ -->
+  <div id="vaultShell" style="display:none">
+
+    <div class="vault-userbar">
+      <div class="who">
+        <b id="whoName">—</b>
+        <span id="whoCompany"></span>
+        <span class="vault-role-badge" id="whoRole"></span>
+      </div>
+      <button class="vault-btn vault-btn-ghost" id="logoutBtn">Log out</button>
+    </div>
+
+    <div class="vault-error" id="vaultError"></div>
+
+    <div class="vault-upload-toggle" id="addMachineToggleWrap" style="display:none">
+      <button class="vault-btn vault-btn-ghost" id="addMachineToggleBtn">+ Add machine</button>
+    </div>
+
+    <div class="vault-card" id="addMachineCard" style="display:none">
+      <form id="addMachineForm">
+        <div class="vault-form-grid">
+          <div class="vault-field" style="grid-column: span 2">
+            <label for="newMachineName">Machine name</label>
+            <input type="text" id="newMachineName" placeholder="e.g. Milling Machine 2" required>
+          </div>
+          <div class="vault-field"><label for="newMachineLocation">Location</label><input type="text" id="newMachineLocation" placeholder="e.g. Shop Floor A"></div>
+          <div class="vault-field"><label for="newMachineTechPhone">Assigned technician phone</label><input type="text" id="newMachineTechPhone" placeholder="+91..." required></div>
+          <div class="vault-field"><label for="newMachineInformed1">Informed phone (optional)</label><input type="text" id="newMachineInformed1" placeholder="+91..."></div>
+        </div>
+        <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Create machine + generate QR tag</button>
+      </form>
+    </div>
+
+    <div class="vault-card" id="newMachineResult" style="display:none">
+      <div class="vault-doc-title" id="newMachineTitle"></div>
+      <div class="vault-doc-meta" id="newMachineMeta"></div>
+      <div id="qrCanvas" style="margin:14px 0"></div>
+      <div class="vault-doc-actions">
+        <button class="vault-btn vault-btn-primary" id="printTagBtn">Print Tag</button>
+        <button class="vault-btn vault-btn-ghost" id="dismissNewMachineBtn">Done</button>
+      </div>
+    </div>
+
+    <div class="vault-picker-row">
+      <div class="vault-field">
+        <label for="machinePicker">Machine</label>
+        <select id="machinePicker"></select>
+      </div>
+    </div>
+
+    <div class="vault-tabs">
+      <div class="vault-tab active" data-panel="documents">Documents</div>
+      <div class="vault-tab" data-panel="spare-parts">Spare Parts (BOM)</div>
+      <div class="vault-tab" data-panel="consumables">Consumables</div>
+    </div>
+
+    <!-- ---------- Documents panel ---------- -->
+    <div class="vault-panel active" id="panel-documents">
+      <div class="vault-upload-toggle" id="uploadToggleWrap" style="display:none">
+        <button class="vault-btn vault-btn-ghost" id="uploadToggleBtn">+ Upload document</button>
+      </div>
+
+      <div class="vault-card" id="uploadCard" style="display:none">
+        <form id="uploadForm">
+          <div class="vault-form-grid">
+            <div class="vault-field">
+              <label for="uploadCategory">Category</label>
+              <select id="uploadCategory">
+                <option value="manual">Manual</option>
+                <option value="circuit_diagram">Circuit diagram</option>
+                <option value="hydraulic_diagram">Hydraulic diagram</option>
+                <option value="spare_parts_catalog">Spare parts catalog</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="vault-field" style="grid-column: span 2">
+              <label for="uploadTitle">Title</label>
+              <input type="text" id="uploadTitle" placeholder="e.g. CNC Lathe 1 — Operation Manual" required>
+            </div>
+            <div class="vault-field" style="grid-column: span 2">
+              <label for="uploadFile">File (PDF, image, DWG/DXF, XLSX, CSV — max 25MB)</label>
+              <input type="file" id="uploadFile" required>
+            </div>
+          </div>
+          <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Upload</button>
+        </form>
+      </div>
+
+      <div id="documentsList"></div>
+    </div>
+
+    <!-- ---------- Spare parts panel ---------- -->
+    <div class="vault-panel" id="panel-spare-parts">
+      <div class="vault-upload-toggle" id="addPartToggleWrap" style="display:none">
+        <button class="vault-btn vault-btn-ghost" id="addPartToggleBtn">+ Add spare part</button>
+      </div>
+      <div class="vault-card" id="addPartCard" style="display:none">
+        <form id="addPartForm">
+          <div class="vault-form-grid">
+            <div class="vault-field"><label>Part name</label><input type="text" id="partName" required></div>
+            <div class="vault-field"><label>Part number</label><input type="text" id="partNumber"></div>
+            <div class="vault-field"><label>Qty on hand</label><input type="number" id="partQty" value="0"></div>
+            <div class="vault-field"><label>Unit</label><input type="text" id="partUnit" placeholder="pcs"></div>
+            <div class="vault-field"><label>Reorder level</label><input type="number" id="partReorder" value="0"></div>
+            <div class="vault-field"><label>Supplier</label><input type="text" id="partSupplier"></div>
+          </div>
+          <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Add part</button>
+        </form>
+      </div>
+      <div class="vault-card">
+        <table class="vault-table" id="partsTable">
+          <thead><tr><th>Part</th><th>Number</th><th>Qty</th><th>Reorder at</th><th>Supplier</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="vault-empty" id="partsEmpty" style="display:none">No spare parts logged for this machine yet.</div>
+      </div>
+    </div>
+
+    <!-- ---------- Consumables panel ---------- -->
+    <div class="vault-panel" id="panel-consumables">
+      <div class="vault-upload-toggle" id="addConsToggleWrap" style="display:none">
+        <button class="vault-btn vault-btn-ghost" id="addConsToggleBtn">+ Add consumable</button>
+      </div>
+      <div class="vault-card" id="addConsCard" style="display:none">
+        <form id="addConsForm">
+          <div class="vault-form-grid">
+            <div class="vault-field"><label>Name</label><input type="text" id="consName" required></div>
+            <div class="vault-field"><label>Qty on hand</label><input type="number" id="consQty" value="0"></div>
+            <div class="vault-field"><label>Unit</label><input type="text" id="consUnit" placeholder="litres"></div>
+            <div class="vault-field"><label>Reorder level</label><input type="number" id="consReorder" value="0"></div>
+          </div>
+          <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Add consumable</button>
+        </form>
+      </div>
+      <div class="vault-card">
+        <table class="vault-table" id="consTable">
+          <thead><tr><th>Name</th><th>Qty</th><th>Reorder at</th><th>Notes</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="vault-empty" id="consEmpty" style="display:none">No consumables logged for this machine yet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="printTag" class="print-only"></div>
+
+<script src="assets/vault.js"></script>
+</body>
+</html>
