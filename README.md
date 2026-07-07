@@ -1,10 +1,17 @@
 # TurboFix — Website
 
+**Live at https://neetesh548-design.github.io/turbofix/**
+
 A single, self-contained static site: marketing landing page + a fully simulated,
 client-side "live demo" of the TurboFix ticket flow (QR scan → WhatsApp voice note →
 AI triage → technician notified → dashboard updates). No backend, no build step —
 just `index.html` + `assets/style.css` + `assets/script.js`. Built to be deployed
 directly on GitHub Pages.
+
+On load, a full-screen gate asks the visitor to pick English/Hindi/Marathi before
+showing anything else; once chosen, the page translates instantly and auto-scrolls
+to the Live Demo section, which plays itself (and loops automatically) — no clicks
+required beyond the language choice.
 
 **The "live demo" is a scripted animation, not a connection to the real backend.**
 There's no publicly hosted TurboFix backend yet (see the main project's

@@ -50,6 +50,48 @@
       </div>
       <p style="color:var(--slate-light)">This page talks directly to your TurboFix backend — it needs to be running and reachable at this address. Nothing is stored except in this browser tab.</p>
     </details>
+
+    <div style="text-align:center; margin-top:14px">
+      <button type="button" class="vault-btn vault-btn-ghost" id="showSignupBtn" style="width:100%">New here? Sign up as supervisor</button>
+    </div>
+  </div>
+
+  <!-- ============ SIGN-UP SCREEN (supervisor / read-only accounts only) ============ -->
+  <div class="vault-login-card" id="signupCard" style="display:none">
+    <h1>Supervisor sign-up</h1>
+    <p class="sub">Creates a read-only account for your company. For full manage access (owner or maintenance head), ask your company admin to create your login instead.</p>
+
+    <div class="vault-error" id="signupError"></div>
+
+    <form id="signupForm">
+      <div class="vault-field">
+        <label for="signupCompanyCode">Company code</label>
+        <input type="text" id="signupCompanyCode" placeholder="e.g. ACME3" required>
+      </div>
+      <div class="vault-field">
+        <label for="signupAdminPhone">Company admin contact phone</label>
+        <input type="text" id="signupAdminPhone" placeholder="+91..." required>
+      </div>
+      <div class="vault-field">
+        <label for="signupName">Your name</label>
+        <input type="text" id="signupName" required>
+      </div>
+      <div class="vault-field">
+        <label for="signupPhone">Your phone</label>
+        <input type="text" id="signupPhone" placeholder="+91...">
+      </div>
+      <div class="vault-field">
+        <label for="signupEmail">Your email</label>
+        <input type="email" id="signupEmail">
+      </div>
+      <div class="vault-field">
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" autocomplete="new-password" minlength="8" required>
+      </div>
+      <button type="submit" class="vault-btn vault-btn-primary" id="signupSubmit">Create account</button>
+    </form>
+
+    <button type="button" class="vault-btn vault-btn-ghost" id="backToLoginBtn" style="width:100%; margin-top:10px">Back to sign in</button>
   </div>
 
   <!-- ============ AUTHENTICATED SHELL ============ -->

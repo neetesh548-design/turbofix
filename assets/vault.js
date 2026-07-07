@@ -67,6 +67,13 @@ function logout() {
   $("loginCard").style.display = "block";
 }
 
+function setSession(body) {
+  state.token = body.access_token;
+  state.user = body.user;
+  sessionStorage.setItem("tf_vault_token", state.token);
+  sessionStorage.setItem("tf_vault_user", JSON.stringify(state.user));
+}
+
 async function login(identifier, password) {
   const resp = await fetch(apiUrl("/auth/login"), {
     method: "POST",
@@ -78,11 +85,21 @@ async function login(identifier, password) {
     try { detail = (await resp.json()).detail || detail; } catch (_) {}
     throw new Error(detail);
   }
-  const body = await resp.json();
-  state.token = body.access_token;
-  state.user = body.user;
-  sessionStorage.setItem("tf_vault_token", state.token);
-  sessionStorage.setItem("tf_vault_user", JSON.stringify(state.user));
+  setSession(await resp.json());
+}
+
+async function signup(payload) {
+  const resp = await fetch(apiUrl("/auth/signup"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) {
+    let detail = "Sign up failed.";
+    try { detail = (await resp.json()).detail || detail; } catch (_) {}
+    throw new Error(detail);
+  }
+  setSession(await resp.json());
 }
 
 function renderUserBar() {
@@ -342,6 +359,41 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   $("logoutBtn").addEventListener("click", logout);
+
+  $("showSignupBtn").addEventListener("click", () => {
+    $("loginCard").style.display = "none";
+    $("signupCard").style.display = "block";
+  });
+  $("backToLoginBtn").addEventListener("click", () => {
+    $("signupCard").style.display = "none";
+    $("loginCard").style.display = "block";
+  });
+  $("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = $("signupError");
+    clearError(errEl);
+    if (!$("signupPhone").value.trim() && !$("signupEmail").value.trim()) {
+      showError(errEl, "Enter a phone or email so you can log in afterward.");
+      return;
+    }
+    const btn = $("signupSubmit");
+    btn.disabled = true;
+    try {
+      await signup({
+        company_code: $("signupCompanyCode").value.trim(),
+        admin_contact_phone: $("signupAdminPhone").value.trim(),
+        name: $("signupName").value.trim(),
+        phone: $("signupPhone").value.trim(),
+        email: $("signupEmail").value.trim(),
+        password: $("signupPassword").value,
+      });
+      await enterVault();
+    } catch (err) {
+      showError(errEl, err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   $("machinePicker").addEventListener("change", async (e) => {
     state.currentMachineId = e.target.value;
