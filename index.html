@@ -64,6 +64,7 @@
       <a href="#how" data-i18n="nav.how">How it works</a>
       <a href="#trial" data-i18n="nav.trial">Free Trial</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#contact" data-i18n="nav.contact">Get Started</a>
       <a href="vault.html" title="Owner / Supervisor / Maintenance Head sign-in">Staff Login</a>
     </nav>
 
@@ -511,7 +512,66 @@
     </div>
   </section>
 
+  <!-- ============ LEAD CAPTURE ============ -->
+  <section class="section lead-section" id="contact">
+    <div class="container lead-inner">
+      <div class="lead-copy">
+        <p class="eyebrow" data-i18n="lead.eyebrow">📞 Get started</p>
+        <h2 class="lead-title" data-i18n="lead.title">Ready to stop losing hours to breakdowns?</h2>
+        <p class="lead-sub" data-i18n="lead.sub">
+          Leave your details and we'll message you on WhatsApp within one business day to set up
+          your free 1-month pilot — QR tags, dashboard, everything.
+        </p>
+        <div class="lead-alt">
+          <p data-i18n="lead.or">Prefer to talk right away?</p>
+          <a class="btn btn-ghost" data-wa="general" target="_blank" rel="noopener">
+            <span class="ico">💬</span> <span data-i18n="lead.chatNow">Chat with us now</span>
+          </a>
+        </div>
+      </div>
+
+      <form class="lead-form" id="leadForm" novalidate>
+        <div class="lead-field">
+          <label for="leadName" data-i18n="lead.name">Your name</label>
+          <input type="text" id="leadName" name="name" autocomplete="name" required>
+        </div>
+        <div class="lead-field">
+          <label for="leadCompany" data-i18n="lead.company">Factory / company name</label>
+          <input type="text" id="leadCompany" name="company" autocomplete="organization" required>
+        </div>
+        <div class="lead-row">
+          <div class="lead-field">
+            <label for="leadCity" data-i18n="lead.city">City</label>
+            <input type="text" id="leadCity" name="city" autocomplete="address-level2">
+          </div>
+          <div class="lead-field">
+            <label for="leadMachines" data-i18n="lead.machines">Machines (approx.)</label>
+            <input type="number" id="leadMachines" name="machines" min="1" inputmode="numeric">
+          </div>
+        </div>
+        <div class="lead-field">
+          <label for="leadPhone" data-i18n="lead.phone">Your WhatsApp number</label>
+          <input type="tel" id="leadPhone" name="phone" autocomplete="tel" inputmode="tel" required>
+        </div>
+        <button type="submit" class="btn btn-whatsapp btn-lg lead-submit">
+          <span class="ico">📩</span> <span data-i18n="lead.submit">Send my details on WhatsApp</span>
+        </button>
+        <p class="lead-note" data-i18n="lead.note">
+          The button opens WhatsApp with your details pre-filled — you just press send.
+          Nothing is stored on this website.
+        </p>
+        <p class="lead-error" id="leadError" hidden data-i18n="lead.error">Please fill in your name, company, and WhatsApp number.</p>
+      </form>
+    </div>
+  </section>
+
 </main>
+
+<!-- ============ FLOATING WHATSAPP BUTTON ============ -->
+<a class="float-wa" data-wa="trial" target="_blank" rel="noopener" aria-label="Chat with TurboFix on WhatsApp">
+  <span class="float-wa-ico">💬</span>
+  <span class="float-wa-label" data-i18n="float.label">Chat on WhatsApp</span>
+</a>
 
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
@@ -533,6 +593,7 @@
     <div class="footer-links">
       <h4 data-i18n="footer.contact">Get in touch</h4>
       <a data-wa="general" target="_blank" rel="noopener"><span data-i18n="footer.chat">💬 Chat on WhatsApp</span></a>
+      <a href="#contact"><span data-i18n="footer.callback">📩 Request a callback</span></a>
     </div>
   </div>
   <div class="container footer-bottom">

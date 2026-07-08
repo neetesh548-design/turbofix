@@ -1247,3 +1247,107 @@ p { margin: 0; }
   30% { box-shadow: inset 0 0 0 4px rgba(37, 211, 102, .25); }
   100% { box-shadow: inset 0 0 0 0 rgba(37, 211, 102, 0); }
 }
+
+/* ===========================================================
+   Lead capture section
+   =========================================================== */
+.lead-section { background: var(--card); border-top: 1px solid var(--border); }
+.lead-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+  align-items: start;
+}
+.lead-title { font-size: clamp(1.7rem, 3.2vw, 2.6rem); }
+.lead-sub {
+  color: var(--slate);
+  margin-top: 18px;
+  font-size: 1.08rem;
+  max-width: 460px;
+}
+.lead-alt { margin-top: 36px; }
+.lead-alt p { color: var(--slate); font-size: .95rem; margin-bottom: 12px; }
+.lead-alt .btn { padding: 12px 24px; }
+
+.lead-form {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  box-shadow: var(--shadow-md);
+}
+.lead-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.lead-field { margin-bottom: 18px; }
+.lead-field label {
+  display: block;
+  font-weight: 600;
+  font-size: .88rem;
+  margin-bottom: 7px;
+}
+.lead-field input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font: inherit;
+  font-size: .98rem;
+  color: var(--ink);
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.lead-field input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, .18);
+}
+.lead-submit { width: 100%; margin-top: 6px; }
+.lead-note {
+  margin-top: 16px;
+  font-size: .8rem;
+  color: var(--slate-light);
+  text-align: center;
+}
+.lead-error {
+  margin-top: 12px;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--red);
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .lead-inner { grid-template-columns: 1fr; gap: 44px; }
+  .lead-form { padding: 26px 20px; }
+}
+
+/* ===========================================================
+   Floating WhatsApp button
+   =========================================================== */
+.float-wa {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+  font-size: .95rem;
+  padding: 14px 22px;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(37, 211, 102, .45);
+  transition: transform .25s var(--ease), background .25s var(--ease);
+  animation: floatWaPulse 2.6s ease-in-out infinite;
+}
+.float-wa:hover { background: var(--green-dark); transform: translateY(-2px); }
+.float-wa-ico { font-size: 1.25rem; line-height: 1; }
+@keyframes floatWaPulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(37, 211, 102, .45), 0 0 0 0 rgba(37, 211, 102, .45); }
+  50% { box-shadow: 0 10px 30px rgba(37, 211, 102, .45), 0 0 0 12px rgba(37, 211, 102, 0); }
+}
+@media (max-width: 640px) {
+  .float-wa { right: 14px; bottom: 14px; padding: 13px 16px; }
+  .float-wa-label { display: none; }
+  .float-wa-ico { font-size: 1.5rem; }
+}

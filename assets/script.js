@@ -409,6 +409,44 @@ function initLangGate(demo) {
 }
 
 // ===========================================================
+// Lead form — builds a pre-filled WhatsApp message from the
+// visitor's details and opens wa.me. No backend, nothing stored.
+// ===========================================================
+function initLeadForm() {
+  const form = document.getElementById("leadForm");
+  if (!form) return;
+  const error = document.getElementById("leadError");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const val = (id) => document.getElementById(id).value.trim();
+    const name = val("leadName");
+    const company = val("leadCompany");
+    const city = val("leadCity");
+    const machines = val("leadMachines");
+    const phone = val("leadPhone");
+
+    if (!name || !company || !phone) {
+      error.hidden = false;
+      return;
+    }
+    error.hidden = true;
+
+    const lines = [
+      "Hi TurboFix! I want to start the FREE 1-month pilot.",
+      `Name: ${name}`,
+      `Company: ${company}`,
+      city ? `City: ${city}` : null,
+      machines ? `Machines: ${machines}` : null,
+      `WhatsApp: ${phone}`,
+    ].filter(Boolean);
+
+    const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
+    window.open(url, "_blank", "noopener");
+  });
+}
+
+// ===========================================================
 // Footer year
 // ===========================================================
 function initFooterYear() {
@@ -422,6 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNav();
   initStatCounters();
   initFaq();
+  initLeadForm();
   const demo = initDemo();
   initFooterYear();
   initLangGate(demo);
