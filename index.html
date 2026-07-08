@@ -246,76 +246,117 @@
     </div>
   </section>
 
-  <!-- ============ REALITY ============ -->
-  <section class="section reality">
+  <!-- ============ BEFORE/AFTER COMPARISON ============ -->
+  <section class="section comparison">
     <div class="container">
-      <h2 class="section-title" data-i18n="reality.title">The Reality on Most Factory Floors Today</h2>
-      <p class="section-sub" data-i18n="reality.sub">When a machine breaks down, the problem isn't just the machine—it's the communication around it.</p>
+      <h2 class="section-title" data-i18n="comparison.title">Right Now vs. With TurboFix</h2>
+      <p class="section-sub" data-i18n="comparison.sub">See the difference a 30-second fix makes to your bottom line.</p>
 
-      <div class="reality-grid">
-        <div class="reality-item">
-          <span class="reality-icon">🚶</span>
-          <p data-i18n="reality.point1">A supervisor has to physically walk to the machine to understand the issue.</p>
+      <div class="comparison-container">
+        <!-- LEFT SIDE: WITHOUT TURBOFIX (PAIN) -->
+        <div class="comparison-side before">
+          <div class="side-header without-turbofix">
+            <span class="side-icon">😓</span>
+            <h3 data-i18n="comparison.beforeTitle">Without TurboFix</h3>
+            <p class="side-subtitle" data-i18n="comparison.beforeSub">Every breakdown costs you</p>
+          </div>
+
+          <div class="pain-list">
+            <div class="pain-item">
+              <span class="pain-time">⏱️ 5-15 mins</span>
+              <p data-i18n="comparison.painTime">Supervisor walks floor, finds machine, tries to understand what's wrong</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-time">📞 5-10 mins</span>
+              <p data-i18n="comparison.painComm">Multiple calls/WhatsApp to reach the right technician</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-time">🤔 3-5 mins</span>
+              <p data-i18n="comparison.painConfusion">Confusion — technician has to call back for clarification</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-time">🛠️ 2-3 mins</span>
+              <p data-i18n="comparison.painTravel">Technician travels to the machine</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-time">📋 Later</span>
+              <p data-i18n="comparison.painManual">Manual record entry, spreadsheet updates — happens after shift</p>
+            </div>
+          </div>
+
+          <div class="total-damage">
+            <p class="damage-label" data-i18n="comparison.totalTime">Total Time to Fix</p>
+            <p class="damage-value">20-40 minutes</p>
+            <p class="damage-cost" data-i18n="comparison.costLabel">That's ₹5,000–₹15,000+ in lost production per breakdown</p>
+          </div>
         </div>
-        <div class="reality-item">
-          <span class="reality-icon">📞</span>
-          <p data-i18n="reality.point2">Multiple phone calls and WhatsApp messages are exchanged to find the right technician.</p>
+
+        <!-- DIVIDER -->
+        <div class="comparison-divider">
+          <span data-i18n="comparison.vsText">vs.</span>
         </div>
-        <div class="reality-item">
-          <span class="reality-icon">😕</span>
-          <p data-i18n="reality.point3">The problem is often described differently by different people, creating confusion.</p>
-        </div>
-        <div class="reality-item">
-          <span class="reality-icon">⏳</span>
-          <p data-i18n="reality.point4">Critical production time is lost while teams try to understand, assign, and act.</p>
-        </div>
-        <div class="reality-item">
-          <span class="reality-icon">📋</span>
-          <p data-i18n="reality.point5">Breakdown records and reports are updated manually, often after the fact.</p>
-        </div>
-        <div class="reality-item">
-          <span class="reality-icon">💸</span>
-          <p data-i18n="reality.point6">The longer it takes to respond, the more production and revenue are lost.</p>
+
+        <!-- RIGHT SIDE: WITH TURBOFIX (RELIEF) -->
+        <div class="comparison-side after">
+          <div class="side-header with-turbofix">
+            <span class="side-icon">✨</span>
+            <h3 data-i18n="comparison.afterTitle">With TurboFix</h3>
+            <p class="side-subtitle" data-i18n="comparison.afterSub">Breaks are handled instantly</p>
+          </div>
+
+          <div class="relief-list">
+            <div class="relief-item">
+              <span class="relief-time">📱 10 secs</span>
+              <p data-i18n="comparison.reliefScan">Worker scans QR, WhatsApp opens with machine ID filled in</p>
+            </div>
+            <div class="relief-item">
+              <span class="relief-time">🎙️ 15 secs</span>
+              <p data-i18n="comparison.reliefSpeak">Worker describes the issue in one quick voice note</p>
+            </div>
+            <div class="relief-item">
+              <span class="relief-time">🤖 5 secs</span>
+              <p data-i18n="comparison.reliefAI">AI transcribes, analyzes, and sends a clear brief to the tech</p>
+            </div>
+            <div class="relief-item">
+              <span class="relief-time">🔔 Instant</span>
+              <p data-i18n="comparison.reliefNotify">Right technician gets notified automatically + you see it on dashboard</p>
+            </div>
+            <div class="relief-item">
+              <span class="relief-time">📊 Real-time</span>
+              <p data-i18n="comparison.reliefAuto">Everything logged automatically — no manual data entry</p>
+            </div>
+          </div>
+
+          <div class="total-saved">
+            <p class="saved-label" data-i18n="comparison.totalTimeWith">Total Time to Fix</p>
+            <p class="saved-value">Under 60 seconds</p>
+            <p class="saved-gain" data-i18n="comparison.savingsLabel">You save 20–40 minutes and ₹5,000–₹15,000+ per breakdown</p>
+          </div>
         </div>
       </div>
 
-      <div class="reality-bottom">
-        <p class="reality-result" data-i18n="reality.result">The result? <strong>Delayed response, poor visibility, and costly downtime.</strong></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ SOLUTION ============ -->
-  <section class="section solution">
-    <div class="container">
-      <h2 class="section-title" data-i18n="solution.title">How TurboFix Solves It</h2>
-      <p class="section-sub" data-i18n="solution.sub">TurboFix transforms machine breakdown reporting into a simple 30-second process.</p>
-
-      <div class="solution-grid">
-        <div class="solution-item">
-          <span class="solution-num">1</span>
-          <p data-i18n="solution.point1">📲 Scan the machine's QR code</p>
+      <!-- BUSINESS IMPACT AT BOTTOM -->
+      <div class="impact-box">
+        <div class="impact-stat">
+          <span class="impact-icon">⚡</span>
+          <p class="impact-label" data-i18n="comparison.responseTime">Faster Response</p>
+          <p class="impact-value" data-i18n="comparison.responseValue">60 sec vs 30+ min</p>
         </div>
-        <div class="solution-item">
-          <span class="solution-num">2</span>
-          <p data-i18n="solution.point2">🎙️ Describe the problem via WhatsApp</p>
+        <div class="impact-stat">
+          <span class="impact-icon">💰</span>
+          <p class="impact-label" data-i18n="comparison.savingsPerBreak">Savings Per Breakdown</p>
+          <p class="impact-value" data-i18n="comparison.savingsValue">₹5K–₹15K+</p>
         </div>
-        <div class="solution-item">
-          <span class="solution-num">3</span>
-          <p data-i18n="solution.point3">🤖 AI instantly identifies the likely issue, urgency, and recommended next action</p>
+        <div class="impact-stat">
+          <span class="impact-icon">📈</span>
+          <p class="impact-label" data-i18n="comparison.monthlyImpact">At 10 breakdowns/month</p>
+          <p class="impact-value" data-i18n="comparison.monthlyValue">₹50K–₹150K saved</p>
         </div>
-        <div class="solution-item">
-          <span class="solution-num">4</span>
-          <p data-i18n="solution.point4">🛠️ The right technician is notified automatically</p>
+        <div class="impact-stat">
+          <span class="impact-icon">😌</span>
+          <p class="impact-label" data-i18n="comparison.peace">Peace of Mind</p>
+          <p class="impact-value" data-i18n="comparison.peaceValue">100% visibility, 0 surprises</p>
         </div>
-        <div class="solution-item">
-          <span class="solution-num">5</span>
-          <p data-i18n="solution.point5">📊 Management gets real-time visibility through a live dashboard</p>
-        </div>
-      </div>
-
-      <div class="solution-bottom">
-        <p class="solution-highlight" data-i18n="solution.highlight">No apps. No training. No complex IT projects.</p>
       </div>
     </div>
   </section>
