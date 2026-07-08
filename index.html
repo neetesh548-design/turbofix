@@ -249,113 +249,110 @@
   <!-- ============ BEFORE/AFTER COMPARISON ============ -->
   <section class="section comparison">
     <div class="container">
-      <h2 class="section-title" data-i18n="comparison.title">Right Now vs. With TurboFix</h2>
-      <p class="section-sub" data-i18n="comparison.sub">See the difference a 30-second fix makes to your bottom line.</p>
+      <h2 class="section-title" data-i18n="comparison.title">The Real Difference</h2>
+      <p class="section-sub" data-i18n="comparison.sub">Your break-down story changes completely.</p>
 
-      <div class="comparison-container">
-        <!-- LEFT SIDE: WITHOUT TURBOFIX (PAIN) -->
-        <div class="comparison-side before">
-          <div class="side-header without-turbofix">
-            <span class="side-icon">😓</span>
-            <h3 data-i18n="comparison.beforeTitle">Without TurboFix</h3>
-            <p class="side-subtitle" data-i18n="comparison.beforeSub">Every breakdown costs you</p>
+      <div class="comparison-visual">
+        <!-- LEFT: WITHOUT TURBOFIX -->
+        <div class="side-card without">
+          <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
+          <div class="big-emoji">😓</div>
+
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🚶</span>
+              <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
+              <span class="t-timer">+5 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📞</span>
+              <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
+              <span class="t-timer">+10 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤔</span>
+              <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
+              <span class="t-timer">+8 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🛠️</span>
+              <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
+              <span class="t-timer">+7 min</span>
+            </div>
           </div>
 
-          <div class="pain-list">
-            <div class="pain-item">
-              <span class="pain-time">⏱️ 5-15 mins</span>
-              <p data-i18n="comparison.painTime">Supervisor walks floor, finds machine, tries to understand what's wrong</p>
-            </div>
-            <div class="pain-item">
-              <span class="pain-time">📞 5-10 mins</span>
-              <p data-i18n="comparison.painComm">Multiple calls/WhatsApp to reach the right technician</p>
-            </div>
-            <div class="pain-item">
-              <span class="pain-time">🤔 3-5 mins</span>
-              <p data-i18n="comparison.painConfusion">Confusion — technician has to call back for clarification</p>
-            </div>
-            <div class="pain-item">
-              <span class="pain-time">🛠️ 2-3 mins</span>
-              <p data-i18n="comparison.painTravel">Technician travels to the machine</p>
-            </div>
-            <div class="pain-item">
-              <span class="pain-time">📋 Later</span>
-              <p data-i18n="comparison.painManual">Manual record entry, spreadsheet updates — happens after shift</p>
-            </div>
-          </div>
-
-          <div class="total-damage">
-            <p class="damage-label" data-i18n="comparison.totalTime">Total Time to Fix</p>
-            <p class="damage-value">20-40 minutes</p>
-            <p class="damage-cost" data-i18n="comparison.costLabel">That's ₹5,000–₹15,000+ in lost production per breakdown</p>
+          <div class="bottom-result bad">
+            <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
+            <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
           </div>
         </div>
 
-        <!-- DIVIDER -->
-        <div class="comparison-divider">
-          <span data-i18n="comparison.vsText">vs.</span>
-        </div>
+        <!-- RIGHT: WITH TURBOFIX -->
+        <div class="side-card with">
+          <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
+          <div class="big-emoji">⚡</div>
 
-        <!-- RIGHT SIDE: WITH TURBOFIX (RELIEF) -->
-        <div class="comparison-side after">
-          <div class="side-header with-turbofix">
-            <span class="side-icon">✨</span>
-            <h3 data-i18n="comparison.afterTitle">With TurboFix</h3>
-            <p class="side-subtitle" data-i18n="comparison.afterSub">Breaks are handled instantly</p>
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📱</span>
+              <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
+              <span class="t-timer">10 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🎙️</span>
+              <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
+              <span class="t-timer">20 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤖</span>
+              <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
+              <span class="t-timer">10 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item highlight-item">
+              <span class="t-icon">✅</span>
+              <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
+              <span class="t-timer">Instant</span>
+            </div>
           </div>
 
-          <div class="relief-list">
-            <div class="relief-item">
-              <span class="relief-time">📱 10 secs</span>
-              <p data-i18n="comparison.reliefScan">Worker scans QR, WhatsApp opens with machine ID filled in</p>
-            </div>
-            <div class="relief-item">
-              <span class="relief-time">🎙️ 15 secs</span>
-              <p data-i18n="comparison.reliefSpeak">Worker describes the issue in one quick voice note</p>
-            </div>
-            <div class="relief-item">
-              <span class="relief-time">🤖 5 secs</span>
-              <p data-i18n="comparison.reliefAI">AI transcribes, analyzes, and sends a clear brief to the tech</p>
-            </div>
-            <div class="relief-item">
-              <span class="relief-time">🔔 Instant</span>
-              <p data-i18n="comparison.reliefNotify">Right technician gets notified automatically + you see it on dashboard</p>
-            </div>
-            <div class="relief-item">
-              <span class="relief-time">📊 Real-time</span>
-              <p data-i18n="comparison.reliefAuto">Everything logged automatically — no manual data entry</p>
-            </div>
-          </div>
-
-          <div class="total-saved">
-            <p class="saved-label" data-i18n="comparison.totalTimeWith">Total Time to Fix</p>
-            <p class="saved-value">Under 60 seconds</p>
-            <p class="saved-gain" data-i18n="comparison.savingsLabel">You save 20–40 minutes and ₹5,000–₹15,000+ per breakdown</p>
+          <div class="bottom-result good">
+            <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
+            <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
           </div>
         </div>
       </div>
 
-      <!-- BUSINESS IMPACT AT BOTTOM -->
-      <div class="impact-box">
-        <div class="impact-stat">
-          <span class="impact-icon">⚡</span>
-          <p class="impact-label" data-i18n="comparison.responseTime">Faster Response</p>
-          <p class="impact-value" data-i18n="comparison.responseValue">60 sec vs 30+ min</p>
+      <!-- BOTTOM: THE PAYOFF -->
+      <div class="comparison-payoff">
+        <div class="payoff-item">
+          <p class="payoff-label" data-i18n="comparison.payoff1Label">Per breakdown</p>
+          <p class="payoff-value" data-i18n="comparison.payoff1Value">Save 30 min + ₹10K</p>
         </div>
-        <div class="impact-stat">
-          <span class="impact-icon">💰</span>
-          <p class="impact-label" data-i18n="comparison.savingsPerBreak">Savings Per Breakdown</p>
-          <p class="impact-value" data-i18n="comparison.savingsValue">₹5K–₹15K+</p>
+        <div class="payoff-spacer">→</div>
+        <div class="payoff-item highlight">
+          <p class="payoff-label" data-i18n="comparison.payoff2Label">10 breakdowns/month</p>
+          <p class="payoff-value" data-i18n="comparison.payoff2Value">₹100,000+ per month</p>
         </div>
-        <div class="impact-stat">
-          <span class="impact-icon">📈</span>
-          <p class="impact-label" data-i18n="comparison.monthlyImpact">At 10 breakdowns/month</p>
-          <p class="impact-value" data-i18n="comparison.monthlyValue">₹50K–₹150K saved</p>
-        </div>
-        <div class="impact-stat">
-          <span class="impact-icon">😌</span>
-          <p class="impact-label" data-i18n="comparison.peace">Peace of Mind</p>
-          <p class="impact-value" data-i18n="comparison.peaceValue">100% visibility, 0 surprises</p>
+        <div class="payoff-spacer">→</div>
+        <div class="payoff-item">
+          <p class="payoff-label" data-i18n="comparison.payoff3Label">The real win</p>
+          <p class="payoff-value" data-i18n="comparison.payoff3Value">You're in control 😌</p>
         </div>
       </div>
     </div>
