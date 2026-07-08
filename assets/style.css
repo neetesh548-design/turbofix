@@ -1452,3 +1452,11 @@ h1, h2, h3, .brand-name, .stat-num, .big-number, .payoff-value, .kpi-num {
 .dash-live { text-shadow: 0 0 12px rgba(52, 211, 153, 0.8); }
 .brand-mark { box-shadow: 0 0 18px rgba(37, 211, 102, 0.35); }
 .lead-field input { background: rgba(5, 7, 15, 0.6); }
+
+/* Lead form glow when a trial CTA lands the visitor here */
+.lead-form.flash { animation: leadFormFlash 1.6s var(--ease); }
+@keyframes leadFormFlash {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+  30% { box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.55), 0 0 44px rgba(37, 211, 102, 0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}

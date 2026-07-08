@@ -409,9 +409,70 @@ function initLangGate(demo) {
 }
 
 // ===========================================================
-// Lead form — builds a pre-filled WhatsApp message from the
-// visitor's details and opens wa.me. No backend, nothing stored.
+// In-page anchor scrolling, driven manually frame-by-frame.
+// Native smooth scrolls get silently aborted by the demo loop's
+// programmatic chat scrolling (the browser cancels an in-flight
+// document smooth scroll whenever any element is scrolled), so
+// once the demo starts looping, plain anchor links stop moving
+// the page. A rAF-driven scroll is immune to that.
 // ===========================================================
+function smoothScrollTo(targetY) {
+  const startY = window.scrollY;
+  const dist = targetY - startY;
+  if (Math.abs(dist) < 2) return;
+  const duration = Math.min(1100, 350 + Math.abs(dist) * 0.12);
+  const start = performance.now();
+  let cancelled = false;
+  const cancel = () => { cancelled = true; };
+  window.addEventListener("wheel", cancel, { once: true, passive: true });
+  window.addEventListener("touchstart", cancel, { once: true, passive: true });
+  function tick(now) {
+    if (cancelled) return;
+    const p = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, startY + dist * eased);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function initAnchorScroll() {
+  const nav = document.getElementById("nav");
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href").slice(1);
+      const target = id ? document.getElementById(id) : null;
+      if (!target) return;
+      e.preventDefault();
+      const offset = (nav ? nav.offsetHeight : 0) + 12;
+      const y = id === "top" ? 0 : target.getBoundingClientRect().top + window.scrollY - offset;
+      smoothScrollTo(Math.max(0, y));
+      history.replaceState(null, "", "#" + id);
+    });
+  });
+}
+
+// ===========================================================
+// Every trial CTA links to the lead form (#contact); on arrival
+// the form glows and the first field is focused so the visitor
+// starts typing immediately.
+// ===========================================================
+function initTrialRedirect() {
+  const form = document.getElementById("leadForm");
+  if (!form) return;
+  document.querySelectorAll('a[href="#contact"]').forEach((a) => {
+    a.addEventListener("click", () => {
+      form.classList.remove("flash");
+      // restart the animation even on repeat clicks
+      void form.offsetWidth;
+      form.classList.add("flash");
+      setTimeout(() => {
+        document.getElementById("leadName").focus({ preventScroll: true });
+      }, 1200);
+    });
+  });
+}
+
 function initLeadForm() {
   const form = document.getElementById("leadForm");
   if (!form) return;
@@ -461,6 +522,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initStatCounters();
   initFaq();
   initLeadForm();
+  initAnchorScroll();
+  initTrialRedirect();
   const demo = initDemo();
   initFooterYear();
   initLangGate(demo);
