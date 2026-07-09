@@ -67,6 +67,7 @@
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
       <a href="#contact" data-i18n="nav.contact">Get Started</a>
       <a href="vault.html" title="Owner / Supervisor / Maintenance Head sign-in">Staff Login</a>
+      <a href="#" id="teamAdminLink" class="nav-team" title="TurboFix team — approve owners and set machine quotas">🛡️ TurboFix Team</a>
     </nav>
 
     <div class="nav-cta">
@@ -604,5 +605,28 @@
 
 <script src="assets/i18n.js"></script>
 <script src="assets/script.js"></script>
+<script>
+  // "TurboFix Team" opens the admin approval console, which is served by the backend
+  // at <backend>/admin (not by this static site). Resolve the backend URL the same way
+  // dashboard.html does — ?backend= override, else a stored value, else prompt once —
+  // so it works in local dev and against the deployed backend without a rebuild.
+  (function () {
+    var link = document.getElementById("teamAdminLink");
+    if (!link) return;
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      var base = new URLSearchParams(location.search).get("backend")
+        || localStorage.getItem("dashboardBackend")
+        || localStorage.getItem("tf_vault_api_base")
+        || "";
+      if (!base) {
+        base = prompt("TurboFix backend URL (e.g. http://localhost:8000 or your deployed backend):", "http://localhost:8000");
+        if (!base) return;
+        localStorage.setItem("dashboardBackend", base);
+      }
+      window.open(base.replace(/\/+$/, "") + "/admin", "_blank", "noopener");
+    });
+  })();
+</script>
 </body>
 </html>

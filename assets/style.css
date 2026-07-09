@@ -165,6 +165,14 @@ p { margin: 0; }
   white-space: nowrap;
 }
 .nav-links a:hover { color: var(--ink); }
+/* Internal TurboFix-team access point — set apart from the customer nav items */
+.nav-team {
+  color: var(--amber);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.nav-team:hover { color: var(--navy); background: var(--amber); }
 .nav-cta { display: flex; align-items: center; gap: 14px; }
 .lang-switch {
   font-family: inherit;
