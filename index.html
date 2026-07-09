@@ -619,7 +619,7 @@
         || localStorage.getItem("tf_vault_api_base")
         || "";
       if (!base) {
-        base = prompt("TurboFix backend URL (e.g. http://localhost:8000 or your deployed backend):", "http://localhost:8000");
+        base = prompt("TurboFix backend URL (e.g. https://turbofix-backend.onrender.com or your deployed backend):", "https://turbofix-backend.onrender.com");
         if (!base) return;
         localStorage.setItem("dashboardBackend", base);
       }
