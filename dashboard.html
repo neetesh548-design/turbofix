@@ -103,10 +103,10 @@
 </div>
 
 <script>
-const BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("dashboardBackend") || "https://turbofix-backend.onrender.com";
+const BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("dashboardBackend") || "https://turbofix-backend-ehxb.onrender.com";
 
 function setBackendUrl() {
-  const url = prompt("Backend URL (e.g. https://turbofix-backend.onrender.com or your deployed backend):", BACKEND_URL);
+  const url = prompt("Backend URL (e.g. https://turbofix-backend-ehxb.onrender.com or your deployed backend):", BACKEND_URL);
   if (url) {
     localStorage.setItem("dashboardBackend", url);
     location.reload();

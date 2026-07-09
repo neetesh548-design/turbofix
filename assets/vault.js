@@ -6,7 +6,7 @@
    the rest of demo-site.
    =========================================================== */
 
-const DEFAULT_API_BASE = "https://turbofix-backend.onrender.com";
+const DEFAULT_API_BASE = "https://turbofix-backend-ehxb.onrender.com";
 
 const state = {
   apiBase: sessionStorage.getItem("tf_vault_api_base") || DEFAULT_API_BASE,
