@@ -6,15 +6,30 @@
    the rest of demo-site.
    =========================================================== */
 
-const DEFAULT_API_BASE = "https://turbofix-backend-ehxb.onrender.com";
+const storedApiBase = sessionStorage.getItem("tf_vault_api_base");
+let defaultApiBase = "https://turbofix-backend-ehxb.onrender.com";
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
+if (isLocal) {
+  defaultApiBase = "http://127.0.0.1:8000";
+}
+const DEFAULT_API_BASE = defaultApiBase;
 
 const state = {
-  apiBase: sessionStorage.getItem("tf_vault_api_base") || DEFAULT_API_BASE,
+  apiBase: (isLocal && storedApiBase === "https://turbofix-backend-ehxb.onrender.com") ? defaultApiBase : (storedApiBase || defaultApiBase),
   token: sessionStorage.getItem("tf_vault_token") || null,
   user: JSON.parse(sessionStorage.getItem("tf_vault_user") || "null"),
   machines: [],
   currentMachineId: null,
 };
+
+async function safeFetch(url, options) {
+  try {
+    return await fetch(url, options);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    throw new Error("Connection failed. Please verify that your backend server is running and reachable.");
+  }
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -25,7 +40,7 @@ function apiUrl(path) {
 async function apiFetch(path, options = {}) {
   const headers = options.headers || {};
   if (state.token) headers["Authorization"] = "Bearer " + state.token;
-  const resp = await fetch(apiUrl(path), { ...options, headers });
+  const resp = await safeFetch(apiUrl(path), { ...options, headers });
   if (resp.status === 401) {
     logout();
     throw new Error("Session expired — please log in again.");
@@ -75,7 +90,7 @@ function setSession(body) {
 }
 
 async function login(identifier, password) {
-  const resp = await fetch(apiUrl("/auth/login"), {
+  const resp = await safeFetch(apiUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier, password }),
@@ -89,7 +104,7 @@ async function login(identifier, password) {
 }
 
 async function signup(payload) {
-  const resp = await fetch(apiUrl("/auth/signup"), {
+  const resp = await safeFetch(apiUrl("/auth/signup"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -325,6 +340,7 @@ async function refreshActivePanel() {
 
 async function enterVault() {
   $("loginCard").style.display = "none";
+  $("signupCard").style.display = "none";
   $("vaultShell").style.display = "block";
   renderUserBar();
   try {
