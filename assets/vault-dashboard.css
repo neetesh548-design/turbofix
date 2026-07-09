@@ -281,6 +281,52 @@ body {
   font-size: 14px;
 }
 
+/* Owner view: alert states on KPI numbers */
+.kpi-number.kpi-danger { color: var(--danger); }
+.kpi-number.kpi-warning { color: var(--warning); }
+
+/* Owner view: needs-attention rows tinted by urgency */
+.activity-row.attention-high { border-left-color: var(--danger); background: #fef2f2; }
+.activity-row.attention-medium { border-left-color: var(--warning); }
+.activity-row.attention-low { border-left-color: #cbd5e1; }
+
+/* Owner view: breakdowns-per-week mini bar chart */
+.trend-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  height: 140px;
+}
+
+.trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 56px;
+  min-height: 2px;
+  background: var(--brand);
+  border-radius: 4px 4px 0 0;
+}
+
+.trend-week {
+  font-size: 11px;
+  color: var(--slate);
+  white-space: nowrap;
+}
+
 .footer-link {
   text-align: center;
   margin-top: 24px;
