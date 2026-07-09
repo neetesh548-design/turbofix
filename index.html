@@ -619,10 +619,8 @@
         || localStorage.getItem("dashboardBackend")
         || localStorage.getItem("tf_vault_api_base")
         || "";
-      if (!base) {
-        base = prompt("TurboFix backend URL (e.g. https://turbofix-backend.onrender.com or your deployed backend):", "https://turbofix-backend.onrender.com");
-        if (!base) return;
-        localStorage.setItem("dashboardBackend", base);
+      if (!base || base.indexOf("localhost") !== -1) {
+        base = "https://turbofix-backend.onrender.com";
       }
       window.open(base.replace(/\/+$/, "") + "/admin", "_blank", "noopener");
     });
