@@ -165,15 +165,18 @@ p { margin: 0; }
   white-space: nowrap;
 }
 .nav-links a:hover { color: var(--ink); }
-/* Internal TurboFix-team access point — set apart from the customer nav items */
-.nav-team {
-  color: var(--amber);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  border-radius: 999px;
-  padding: 5px 12px;
-}
-.nav-team:hover { color: var(--navy); background: var(--amber); }
 .nav-cta { display: flex; align-items: center; gap: 14px; }
+/* Internal TurboFix-team access — a tiny, low-contrast link at the very bottom of
+   the page: findable by the team who know to look, easy for visitors to miss. */
+.team-admin-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--slate-light);
+  opacity: 0.45;
+}
+.team-admin-link:hover { opacity: 1; color: var(--amber); }
 .lang-switch {
   font-family: inherit;
   font-weight: 600;
