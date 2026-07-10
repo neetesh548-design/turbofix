@@ -164,21 +164,116 @@
 }
 
 /* ---------- Printable QR tag ---------- */
+/* ---------- Printable QR tag ---------- */
 .print-only { display: none; }
 
 @media print {
-  body * { visibility: hidden; }
-  #printTag, #printTag * { visibility: visible; }
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+  
+  body > .wrap {
+    display: none !important;
+  }
+  
   #printTag {
-    display: block;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    text-align: center;
-    padding: 40px 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: #ffffff;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  #printTag .print-tag-name { font-size: 1.4rem; font-weight: 700; margin-top: 16px; }
-  #printTag .print-tag-id { font-size: 1.1rem; color: var(--slate); margin-top: 4px; }
-  #printTag .print-tag-location { font-size: 0.9rem; color: var(--slate); margin-top: 2px; }
+  
+  #printTag .print-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 3px solid #22a35a;
+    border-radius: 16px;
+    padding: 24px;
+    background: #ffffff;
+    width: 320px;
+    box-sizing: border-box;
+  }
+  
+  #printQr {
+    margin-bottom: 16px;
+  }
+  
+  #printTag .print-tag-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #22a35a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  
+  #printTag .print-tag-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  
+  #printTag .print-tag-id {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+  
+  #printTag .print-tag-location {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 16px;
+  }
+  
+  #printTag .print-tag-footer {
+    border-top: 1px solid #e2e8f0;
+    width: 100%;
+    padding-top: 14px;
+    margin-top: 6px;
+  }
+  
+  #printTag .print-tag-action {
+    font-size: 11px;
+    font-weight: 700;
+    color: #22a35a;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  
+  #printTag .print-tag-subaction {
+    font-size: 10px;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+  
+  #printTag .print-tag-contact {
+    font-size: 10px;
+    font-weight: 700;
+    color: #0f172a;
+    background: #f1f5f9;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  
+  #printTag .print-tag-powered {
+    font-size: 8px;
+    color: #94a3b8;
+    margin-top: 6px;
+  }
 }

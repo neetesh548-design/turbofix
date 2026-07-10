@@ -215,19 +215,20 @@ function showNewMachineResult(machine) {
 
   // Print tag HTML layout including marketing / support details
   $("printTag").innerHTML = `
-    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px solid #22a35a; border-radius: 12px; padding: 20px; background: #fff; width: 280px; margin: 0 auto; box-sizing: border-box;">
-      <div id="printQr" style="margin-bottom: 12px;"></div>
-      <div class="print-tag-name" style="font-size: 18px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">${escapeHtml(machine.machine_name)}</div>
-      <div class="print-tag-id" style="font-size: 14px; font-weight: bold; color: #555; margin-bottom: 2px;">ID: ${escapeHtml(machine.machine_id)}</div>
-      ${machine.location ? `<div class="print-tag-location" style="font-size: 12px; color: #777; margin-bottom: 12px;">Loc: ${escapeHtml(machine.location)}</div>` : `<div style="margin-bottom: 12px;"></div>`}
+    <div class="print-card">
+      <div id="printQr"></div>
+      <div class="print-tag-title">TurboFix QR Tag</div>
+      <div class="print-tag-name">${escapeHtml(machine.machine_name)}</div>
+      <div class="print-tag-id">Machine ID: ${escapeHtml(machine.machine_id)}</div>
+      ${machine.location ? `<div class="print-tag-location">Location: ${escapeHtml(machine.location)}</div>` : ""}
       
-      <div style="border-top: 1px solid #e2e8f0; width: 100%; padding-top: 10px; margin-top: 10px; font-family: sans-serif;">
-        <div style="font-size: 10px; font-weight: 600; color: #22a35a; text-transform: uppercase; margin-bottom: 4px;">Report machine issues in 2 minutes!</div>
-        <div style="font-size: 10px; color: #475569; margin-bottom: 6px;">Scan to open WhatsApp and report a fault</div>
-        <div style="font-size: 10px; font-weight: bold; color: #1e293b; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; margin: 6px 0;">
+      <div class="print-tag-footer">
+        <div class="print-tag-action">Report machine issues in 2 minutes!</div>
+        <div class="print-tag-subaction">Scan to open WhatsApp and report a fault</div>
+        <div class="print-tag-contact">
           Need support? Call TurboFix: +91-9876543210
         </div>
-        <div style="font-size: 8px; color: #94a3b8; margin-top: 8px;">Powered by TurboFix — Smart Maintenance Assistant</div>
+        <div class="print-tag-powered">Powered by TurboFix — Smart Maintenance Assistant</div>
       </div>
     </div>
   `;
