@@ -70,7 +70,7 @@ function clearError(el) {
 // ---------------------------------------------------------------
 
 function canWrite() {
-  return state.user && (state.user.role === "owner" || state.user.role === "maintenance_head");
+  return state.user && (state.user.role === "owner" || state.user.role === "maintenance_head" || state.user.role === "supervisor");
 }
 
 function logout() {
