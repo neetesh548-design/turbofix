@@ -160,10 +160,36 @@ async function loadMachines() {
 
 function renderQrInto(container, text) {
   container.innerHTML = "";
-  const qr = qrcode(0, "M");
+  container.style.position = "relative";
+  container.style.display = "inline-block";
+
+  const qr = qrcode(0, "H"); // Use Level H to tolerate up to 30% coverage
   qr.addData(text);
   qr.make();
-  container.innerHTML = qr.createSvgTag({ cellSize: 5, margin: 4 });
+
+  const qrSvg = qr.createSvgTag({ cellSize: 5, margin: 4 });
+  
+  // Center logo overlay
+  const logoHtml = `
+    <div class="qr-brand-overlay" style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #22a35a;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #125c31;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      user-select: none;
+      white-space: nowrap;
+    ">TurboFix</div>
+  `;
+  container.innerHTML = qrSvg + logoHtml;
 }
 
 async function createMachine(body) {
@@ -187,11 +213,23 @@ function showNewMachineResult(machine) {
     showError($("vaultError"), "WhatsApp number isn't configured on the backend (WHATSAPP_DISPLAY_NUMBER) — the QR link won't include a destination number until it's set.");
   }
 
+  // Print tag HTML layout including marketing / support details
   $("printTag").innerHTML = `
-    <div id="printQr"></div>
-    <div class="print-tag-name">${escapeHtml(machine.machine_name)}</div>
-    <div class="print-tag-id">${escapeHtml(machine.machine_id)}</div>
-    ${machine.location ? `<div class="print-tag-location">${escapeHtml(machine.location)}</div>` : ""}
+    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px solid #22a35a; border-radius: 12px; padding: 20px; background: #fff; width: 280px; margin: 0 auto; box-sizing: border-box;">
+      <div id="printQr" style="margin-bottom: 12px;"></div>
+      <div class="print-tag-name" style="font-size: 18px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">${escapeHtml(machine.machine_name)}</div>
+      <div class="print-tag-id" style="font-size: 14px; font-weight: bold; color: #555; margin-bottom: 2px;">ID: ${escapeHtml(machine.machine_id)}</div>
+      ${machine.location ? `<div class="print-tag-location" style="font-size: 12px; color: #777; margin-bottom: 12px;">Loc: ${escapeHtml(machine.location)}</div>` : `<div style="margin-bottom: 12px;"></div>`}
+      
+      <div style="border-top: 1px solid #e2e8f0; width: 100%; padding-top: 10px; margin-top: 10px; font-family: sans-serif;">
+        <div style="font-size: 10px; font-weight: 600; color: #22a35a; text-transform: uppercase; margin-bottom: 4px;">Report machine issues in 2 minutes!</div>
+        <div style="font-size: 10px; color: #475569; margin-bottom: 6px;">Scan to open WhatsApp and report a fault</div>
+        <div style="font-size: 10px; font-weight: bold; color: #1e293b; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; margin: 6px 0;">
+          Need support? Call TurboFix: +91-9876543210
+        </div>
+        <div style="font-size: 8px; color: #94a3b8; margin-top: 8px;">Powered by TurboFix — Smart Maintenance Assistant</div>
+      </div>
+    </div>
   `;
   renderQrInto($("printQr"), qrText);
 
@@ -544,6 +582,14 @@ document.addEventListener("DOMContentLoaded", () => {
   $("printTagBtn").addEventListener("click", () => window.print());
   $("dismissNewMachineBtn").addEventListener("click", () => {
     $("newMachineResult").style.display = "none";
+  });
+
+  $("printExistingTagBtn").addEventListener("click", () => {
+    clearError($("vaultError"));
+    const machine = state.machines.find(m => m.machine_id === state.currentMachineId);
+    if (machine) {
+      showNewMachineResult(machine);
+    }
   });
 
   // Already-logged-in (token still in this tab's sessionStorage) — skip the login screen.
