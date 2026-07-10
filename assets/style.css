@@ -238,7 +238,7 @@ p { margin: 0; }
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 56px;
-  align-items: center;
+  align-items: stretch;
 }
 .hero h1 { font-size: clamp(2.6rem, 4.8vw, 4rem); letter-spacing: -0.035em; }
 .accent { color: var(--green-dark); }
@@ -273,7 +273,7 @@ p { margin: 0; }
 .stat-num { font-size: 1.7rem; font-weight: 800; color: var(--ink); }
 .stat-label { font-size: 0.82rem; color: var(--slate); margin-top: 2px; }
 
-.hero-visual { position: relative; display: flex; justify-content: center; align-items: flex-start; }
+.hero-visual { position: relative; display: flex; justify-content: center; align-items: stretch; }
 
 /* ===========================================================
    Hero Comparison — unified dark-premium theme
@@ -284,6 +284,7 @@ p { margin: 0; }
   gap: 14px;
   width: 100%;
   align-items: stretch;
+  height: 100%;
 }
 
 .hero-comparison .side-card {
@@ -295,6 +296,9 @@ p { margin: 0; }
   background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
   border: 1.5px solid rgba(148, 163, 184, 0.12);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .hero-comparison .side-card.without {
@@ -313,12 +317,12 @@ p { margin: 0; }
 .hero-comparison .side-label {
   display: inline-block;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 4px 10px;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
   border-radius: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   text-transform: uppercase;
 }
 
@@ -335,30 +339,31 @@ p { margin: 0; }
 .hero-comparison .timeline-slim {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   margin-bottom: 0;
 }
 
 .hero-comparison .timeline-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
+  gap: 10px;
+  font-size: 0.95rem;
   color: var(--slate);
   font-weight: 500;
 }
 
 .hero-comparison .timeline-item.highlight-item {
   background: rgba(245, 158, 11, 0.08);
-  padding: 6px 10px;
-  border-radius: 6px;
-  border-left: 2px solid #f59e0b;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #f59e0b;
   color: #f59e0b;
   font-weight: 700;
+  font-size: 1rem;
 }
 
 .hero-comparison .t-icon {
-  font-size: 1rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
 }
 
@@ -371,9 +376,9 @@ p { margin: 0; }
 }
 
 .hero-comparison .bottom-result {
-  margin-top: 14px;
-  padding: 12px 10px;
-  border-radius: 8px;
+  margin-top: 18px;
+  padding: 16px 12px;
+  border-radius: 10px;
   text-align: center;
   border: none;
   border-top: 1px dashed rgba(148, 163, 184, 0.1);
@@ -388,9 +393,9 @@ p { margin: 0; }
 }
 
 .hero-comparison .bottom-result .big-number {
-  font-size: 1rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  margin: 0 0 2px;
+  margin: 0 0 4px;
 }
 
 .hero-comparison .bottom-result.bad .big-number {
@@ -403,7 +408,7 @@ p { margin: 0; }
 }
 
 .hero-comparison .bottom-result .small-text {
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   color: var(--slate-light);
   margin: 0;
 }
