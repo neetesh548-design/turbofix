@@ -11,8 +11,28 @@
   <!-- Login screen -->
   <div id="loginScreen" class="screen">
     <div class="login-card">
-      <h1>TurboFix Dashboard</h1>
-      <p class="subtitle">Staff Login</p>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; justify-content: center;">
+        <svg class="brand-logo-svg" viewBox="0 0 100 100" width="36" height="36" style="vertical-align: middle;">
+          <path d="M 50 10 C 50 10, 85 20, 85 50 C 85 75, 50 90, 50 90 C 50 90, 15 75, 15 50 C 15 20, 50 10, 50 10 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 50 15 C 50 15, 80 24, 80 50 C 80 72, 50 85, 50 85 C 50 85, 20 72, 20 50 C 20 24, 50 15, 50 15 Z" fill="#0f172a" />
+          <g transform="translate(50,50)" fill="#475569">
+            <circle cx="0" cy="0" r="18" fill="none" stroke="#475569" stroke-width="4" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
+          </g>
+          <circle cx="50" cy="50" r="12" fill="#0f172a" />
+          <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
+        </svg>
+        <span style="font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;"><span style="color: #ffffff;">TURBO</span><span style="color: #f59e0b;">FIX</span></span>
+      </div>
+      <h1 style="display: none;">TurboFix Dashboard</h1>
+      <p class="subtitle" style="text-align: center; margin-bottom: 24px;">Staff Dashboard Login</p>
 
       <div class="form-group">
         <label for="identifier">Email or Phone</label>
@@ -38,10 +58,29 @@
 
   <!-- Dashboard screen -->
   <div id="dashScreen" class="screen" style="display:none;">
-    <div class="dash-header">
-      <div>
-        <h1 id="companyName">Loading...</h1>
-        <p id="userRole" class="user-role"></p>
+    <div class="dash-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <svg class="brand-logo-svg" viewBox="0 0 100 100" width="40" height="40" style="vertical-align: middle;">
+          <path d="M 50 10 C 50 10, 85 20, 85 50 C 85 75, 50 90, 50 90 C 50 90, 15 75, 15 50 C 15 20, 50 10, 50 10 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 50 15 C 50 15, 80 24, 80 50 C 80 72, 50 85, 50 85 C 50 85, 20 72, 20 50 C 20 24, 50 15, 50 15 Z" fill="#0f172a" />
+          <g transform="translate(50,50)" fill="#475569">
+            <circle cx="0" cy="0" r="18" fill="none" stroke="#475569" stroke-width="4" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
+            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
+          </g>
+          <circle cx="50" cy="50" r="12" fill="#0f172a" />
+          <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
+        </svg>
+        <div>
+          <h1 id="companyName" style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 26px; text-transform: uppercase; color: white; margin: 0;">Loading...</h1>
+          <p id="userRole" class="user-role" style="margin: 4px 0 0;"></p>
+        </div>
       </div>
       <button id="logoutBtn" class="btn-secondary">Sign Out</button>
     </div>

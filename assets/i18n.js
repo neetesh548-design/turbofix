@@ -13,8 +13,8 @@ const TRANSLATIONS = {
     "nav.cta": "Start Free Trial",
 
     "hero.eyebrow": "🏭 Built for Pune MIDC factories",
-    "hero.title": 'Machines fixed at <span class="accent">turbo speed.</span>',
-    "hero.lede": "Right now, a breakdown means someone walking the floor, guessing what's wrong, and hoping the right technician hears about it before the shift is lost. TurboFix closes that gap: a worker scans the QR tag already on the machine, speaks the issue into WhatsApp, and AI instantly turns it into a clear brief — likely cause, urgency, first action — for the right technician. No app to install, no IT project, and your dashboard updates itself the moment it happens, so you're never the last to know what's broken on your own floor.",
+    "hero.title": 'ZERO UNPLANNED DOWNTIME',
+    "hero.lede": "Monitor every machine, predict every fault, and dispatch maintenance before it becomes failure.",
     "hero.reliefBefore": "😩 Right now: minutes lost walking the floor, more lost guessing which technician to call.",
     "hero.reliefAfter": "⚡ With TurboFix: technician notified in under 60 seconds — straight from a voice note, automatically.",
     "hero.ctaTrial": "Start Your Free 1-Month Trial",
@@ -184,8 +184,8 @@ const TRANSLATIONS = {
     "nav.cta": "मुफ़्त ट्रायल शुरू करें",
 
     "hero.eyebrow": "🏭 पुणे MIDC फ़ैक्ट्रियों के लिए बनाया गया",
-    "hero.title": 'मशीनें ठीक हों <span class="accent">टर्बो स्पीड से।</span>',
-    "hero.lede": "अभी, कोई खराबी होने का मतलब है किसी का शॉप फ़्लोर पर घूमना, अंदाज़ा लगाना कि क्या ख़राब है, और उम्मीद करना कि शिफ्ट बर्बाद होने से पहले सही तकनीशियन को पता चल जाए। TurboFix इस अंतर को खत्म कर देता है: एक कर्मचारी मशीन पर पहले से लगे QR टैग को स्कैन करता है, WhatsApp पर बोलकर समस्या बताता है, और AI तुरंत उसे एक स्पष्ट ब्रीफ में बदल देता है — संभावित कारण, अत्यावश्यकता, पहली कार्रवाई — सही तकनीशियन के लिए। कोई ऐप इंस्टॉल नहीं, कोई IT प्रोजेक्ट नहीं, और आपका डैशबोर्ड उसी पल खुद-ब-खुद अपडेट हो जाता है — ताकि आप अपनी ही फ़ैक्ट्री में सबसे आख़िर में जानने वाले न रहें।",
+    "hero.title": 'जीरो अनप्लांड डाउनटाइम',
+    "hero.lede": "हर मशीन की निगरानी करें, हर खराबी का पहले ही पता लगाएं, और खराबी आने से पहले ही मेंटेनेंस शुरू करें।",
     "hero.reliefBefore": "😩 अभी: फ़्लोर पर घूमने में मिनट बर्बाद, फिर यह अंदाज़ा लगाने में और मिनट बर्बाद कि किस तकनीशियन को बुलाएं।",
     "hero.reliefAfter": "⚡ TurboFix के साथ: एक वॉइस नोट से सीधे, 60 सेकंड से भी कम समय में तकनीशियन को सूचना — अपने आप।",
     "hero.ctaTrial": "अपना मुफ़्त 1-महीने का ट्रायल शुरू करें",
@@ -382,8 +382,8 @@ const TRANSLATIONS = {
     "nav.cta": "मोफत ट्रायल सुरू करा",
 
     "hero.eyebrow": "🏭 पुणे MIDC कारखान्यांसाठी खास बनवलेले",
-    "hero.title": 'मशीन्स दुरुस्त व्हा <span class="accent">टर्बो स्पीडने.</span>',
-    "hero.lede": "सध्या, एखादी बिघाड म्हणजे कोणीतरी शॉप फ्लोअरवर फिरणे, काय बिघडले याचा अंदाज बांधणे, आणि शिफ्ट वाया जाण्याआधी योग्य तंत्रज्ञाला कळेल अशी आशा करणे. TurboFix ही दरी भरून काढते: एक कामगार मशीनवर आधीच लावलेला QR टॅग स्कॅन करतो, WhatsApp वर बोलून समस्या सांगतो, आणि AI लगेच त्याचे रूपांतर एका स्पष्ट ब्रीफमध्ये करते — संभाव्य कारण, तातडी, पहिली कृती — योग्य तंत्रज्ञासाठी. कोणतेही अ‍ॅप इन्स्टॉल नाही, कोणताही IT प्रोजेक्ट नाही, आणि तुमचा डॅशबोर्ड घडते त्याच क्षणी आपोआप अपडेट होतो — त्यामुळे तुमच्याच कारखान्यात तुम्हीच शेवटी कळणारे राहत नाही.",
+    "hero.title": 'झिरो अनप्लांड डाउनटाइम',
+    "hero.lede": "प्रत्येक मशीनचे निरीक्षण करा, प्रत्येक बिघाडाचा आधीच अंदाज घ्या आणि बिघाड होण्यापूर्वी मेंटेनन्स सुरू करा.",
     "hero.reliefBefore": "😩 सध्या: फ्लोअरवर फिरण्यात मिनिटे वाया, आणि कोणत्या तंत्रज्ञाला बोलवायचे याचा अंदाज बांधण्यात आणखी मिनिटे वाया.",
     "hero.reliefAfter": "⚡ TurboFix सोबत: एका व्हॉइस नोटवरून थेट, ६० सेकंदांपेक्षा कमी वेळात तंत्रज्ञाला सूचना — आपोआप.",
     "hero.ctaTrial": "तुमची मोफत १ महिन्याची ट्रायल सुरू करा",
