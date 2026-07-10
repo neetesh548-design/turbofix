@@ -115,7 +115,7 @@
         <p class="eyebrow" data-i18n="hero.eyebrow">🏭 Built for Pune MIDC factories</p>
         <h1 data-i18n="hero.title">ZERO UNPLANNED DOWNTIME</h1>
         <p class="lede" data-i18n="hero.lede">
-          Monitor every machine, predict every fault, and dispatch maintenance before it becomes failure.
+          Adjust the sliders below to calculate your factory's exact downtime leak and annual savings with TurboFix.
         </p>
 
         <div class="card roi-card" style="margin: 24px 0; padding: 24px; border: 1.5px solid rgba(245, 158, 11, 0.25); border-radius: 12px; background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); box-shadow: 0 12px 32px rgba(0,0,0,0.4); text-align: left;">
@@ -137,13 +137,8 @@
             <input type="range" id="breakdownsSlider" min="1" max="10" value="3" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
           </div>
 
-          <!-- Advanced Parameters Toggle -->
-          <div style="text-align: right; margin-bottom: 16px;">
-            <button id="toggleAdvanced" style="background: none; border: none; color: #f59e0b; font-family: 'Rajdhani', sans-serif; font-size: 0.76rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; padding: 0; outline: none;">⚙️ Customize Rates & Hours</button>
-          </div>
-
-          <!-- Advanced Parameters Section (Hidden by default) -->
-          <div id="advancedParams" style="display: none; border-top: 1px dashed rgba(148, 163, 184, 0.12); padding-top: 16px; margin-bottom: 20px;">
+          <!-- Advanced Parameters Section (Always visible) -->
+          <div id="advancedParams" style="display: block; border-top: 1px dashed rgba(148, 163, 184, 0.12); padding-top: 16px; margin-bottom: 20px; margin-top: 16px;">
             <div class="slider-group" style="margin-bottom: 16px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
                 <span>Downtime Cost (Per Hour):</span>
@@ -203,20 +198,7 @@
             var tradHoursLabel = document.getElementById('tradHoursLabel');
             var downtimeRateLabel = document.getElementById('downtimeRateLabel');
 
-            var toggleBtn = document.getElementById('toggleAdvanced');
             var advancedParams = document.getElementById('advancedParams');
-
-            // Handle panel toggle
-            toggleBtn.addEventListener('click', function(e) {
-              e.preventDefault();
-              if (advancedParams.style.display === 'none') {
-                advancedParams.style.display = 'block';
-                toggleBtn.textContent = '▲ Hide Custom Parameters';
-              } else {
-                advancedParams.style.display = 'none';
-                toggleBtn.textContent = '⚙️ Customize Rates & Hours';
-              }
-            });
 
             function updateROI() {
               var machines = parseInt(machinesSlider.value);
@@ -284,28 +266,82 @@
         </div>
       </div>
 
-      <div class="hero-visual" aria-hidden="true">
-        <div class="phone-frame phone-frame--hero">
-          <div class="phone-notch"></div>
-          <div class="chat-header">
-            <span class="chat-avatar">🏭</span>
-            <div>
-              <div class="chat-title">TurboFix</div>
-              <div class="chat-sub" data-i18n="hero.chatSub">business account</div>
+      <div class="hero-visual" aria-hidden="true" style="padding-top: 10px;">
+        <div class="comparison-visual" style="display: flex; gap: 16px; width: 100%; justify-content: center; align-items: stretch; margin-top: 0;">
+          <!-- LEFT: WITHOUT TURBOFIX -->
+          <div class="side-card without" style="flex: 1; min-width: 0; padding: 18px; border-radius: 12px; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-top: 4px solid var(--red);">
+            <div class="side-label" data-i18n="comparison.withoutLabel" style="font-size: 0.72rem; font-weight: 700; color: var(--red); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase;">WITHOUT TURBOFIX</div>
+            
+            <div class="timeline-slim" style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🚨</span>
+                <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🚶</span>
+                <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">📞</span>
+                <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🤔</span>
+                <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🛠️</span>
+                <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
+              </div>
+            </div>
+
+            <div class="bottom-result bad" style="margin-top: 16px; border-top: 1px dashed rgba(248, 113, 113, 0.16); padding-top: 12px; text-align: center;">
+              <p class="big-number" data-i18n="comparison.withoutTime" style="font-size: 1.1rem; font-weight: 700; color: var(--red); margin: 0;">30+ minutes</p>
+              <p class="small-text" data-i18n="comparison.withoutCost" style="font-size: 0.72rem; color: var(--slate-light); margin: 2px 0 0;">₹10,000+ lost</p>
             </div>
           </div>
-          <div class="chat-body chat-body--static">
-            <div class="bubble bubble-out" data-i18n="hero.bubbleOut">Issue with TF-ACME3-M001: <br>spindle making a loud noise 🔊</div>
-            <div class="bubble bubble-in" data-i18n="hero.bubbleIn">
-              <strong>Ticket #T-2481 logged ✅</strong><br>
-              Likely cause: worn spindle bearing<br>
-              Urgency: <span class="badge badge-high">High</span><br>
-              Notifying Ramesh (Technician)…
+
+          <!-- RIGHT: WITH TURBOFIX -->
+          <div class="side-card with" style="flex: 1; min-width: 0; padding: 18px; border-radius: 12px; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-top: 4px solid var(--green); border-left: 1.5px solid rgba(245, 158, 11, 0.25);">
+            <div class="side-label" data-i18n="comparison.withLabel" style="font-size: 0.72rem; font-weight: 700; color: var(--green); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase;">WITH TURBOFIX</div>
+            
+            <div class="timeline-slim" style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🚨</span>
+                <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">📱</span>
+                <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🎙️</span>
+                <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                <span class="t-icon">🤖</span>
+                <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
+              </div>
+              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
+              <div class="timeline-item highlight-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--green); font-weight: 700;">
+                <span class="t-icon">✅</span>
+                <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
+              </div>
+            </div>
+
+            <div class="bottom-result good" style="margin-top: 16px; border-top: 1px dashed rgba(34, 197, 94, 0.16); padding-top: 12px; text-align: center;">
+              <p class="big-number" data-i18n="comparison.withTime" style="font-size: 1.1rem; font-weight: 800; color: var(--green); margin: 0; text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);">60 seconds</p>
+              <p class="small-text" data-i18n="comparison.withSave" style="font-size: 0.72rem; color: var(--slate-light); margin: 2px 0 0;">Save ₹10,000+</p>
             </div>
           </div>
         </div>
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
       </div>
     </div>
   </section>
@@ -400,113 +436,6 @@
     </div>
   </section>
 
-  <!-- ============ BEFORE/AFTER COMPARISON ============ -->
-  <section class="section comparison">
-    <div class="container">
-      <h2 class="section-title" data-i18n="comparison.title">The Real Difference</h2>
-      <p class="section-sub" data-i18n="comparison.sub">Your break-down story changes completely.</p>
-
-      <div class="comparison-visual">
-        <!-- LEFT: WITHOUT TURBOFIX -->
-        <div class="side-card without">
-          <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
-          <div class="big-emoji">😓</div>
-
-          <div class="timeline-slim">
-            <div class="timeline-item">
-              <span class="t-icon">🚨</span>
-              <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">🚶</span>
-              <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
-              <span class="t-timer">+5 min</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">📞</span>
-              <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
-              <span class="t-timer">+10 min</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">🤔</span>
-              <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
-              <span class="t-timer">+8 min</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">🛠️</span>
-              <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
-              <span class="t-timer">+7 min</span>
-            </div>
-          </div>
-
-          <div class="bottom-result bad">
-            <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
-            <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
-          </div>
-        </div>
-
-        <!-- RIGHT: WITH TURBOFIX -->
-        <div class="side-card with">
-          <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
-          <div class="big-emoji">⚡</div>
-
-          <div class="timeline-slim">
-            <div class="timeline-item">
-              <span class="t-icon">🚨</span>
-              <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">📱</span>
-              <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
-              <span class="t-timer">10 sec</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">🎙️</span>
-              <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
-              <span class="t-timer">20 sec</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item">
-              <span class="t-icon">🤖</span>
-              <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
-              <span class="t-timer">10 sec</span>
-            </div>
-            <div class="timeline-arrow">↓</div>
-            <div class="timeline-item highlight-item">
-              <span class="t-icon">✅</span>
-              <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
-              <span class="t-timer">Instant</span>
-            </div>
-          </div>
-
-          <div class="bottom-result good">
-            <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
-            <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOTTOM: THE PAYOFF -->
-      <div class="comparison-payoff">
-        <div class="payoff-item">
-          <p class="payoff-label" data-i18n="comparison.payoff1Label">Per breakdown</p>
-          <p class="payoff-value" data-i18n="comparison.payoff1Value">Save 30 min + ₹10K</p>
-        </div>
-        <div class="payoff-spacer">→</div>
-        <div class="payoff-item highlight">
-          <p class="payoff-label" data-i18n="comparison.payoff2Label">10 breakdowns/month</p>
-          <p class="payoff-value" data-i18n="comparison.payoff2Value">₹100,000+ per month</p>
-        </div>
-        <div class="payoff-spacer">→</div>
-        <div class="payoff-item">
-          <p class="payoff-label" data-i18n="comparison.payoff3Label">The real win</p>
-          <p class="payoff-value" data-i18n="comparison.payoff3Value">You're in control 😌</p>
         </div>
       </div>
     </div>

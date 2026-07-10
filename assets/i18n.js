@@ -14,7 +14,7 @@ const TRANSLATIONS = {
 
     "hero.eyebrow": "🏭 Built for Pune MIDC factories",
     "hero.title": 'ZERO UNPLANNED DOWNTIME',
-    "hero.lede": "Monitor every machine, predict every fault, and dispatch maintenance before it becomes failure.",
+    "hero.lede": "Adjust the sliders below to calculate your factory's exact downtime leak and annual savings with TurboFix.",
     "hero.reliefBefore": "😩 Right now: minutes lost walking the floor, more lost guessing which technician to call.",
     "hero.reliefAfter": "⚡ With TurboFix: technician notified in under 60 seconds — straight from a voice note, automatically.",
     "hero.ctaTrial": "Start Your Free 1-Month Trial",
@@ -200,7 +200,7 @@ const TRANSLATIONS = {
 
     "hero.eyebrow": "🏭 पुणे MIDC फ़ैक्ट्रियों के लिए बनाया गया",
     "hero.title": 'जीरो अनप्लांड डाउनटाइम',
-    "hero.lede": "हर मशीन की निगरानी करें, हर खराबी का पहले ही पता लगाएं, और खराबी आने से पहले ही मेंटेनेंस शुरू करें।",
+    "hero.lede": "नीचे दिए गए स्लाइडर्स को समायोजित करें और टर्बोफिक्स के साथ अपने कारखाने के सटीक डाउनटाइम लीक और वार्षिक बचत की गणना करें।",
     "hero.reliefBefore": "😩 अभी: फ़्लोर पर घूमने में मिनट बर्बाद, फिर यह अंदाज़ा लगाने में और मिनट बर्बाद कि किस तकनीशियन को बुलाएं।",
     "hero.reliefAfter": "⚡ TurboFix के साथ: एक वॉइस नोट से सीधे, 60 सेकंड से भी कम समय में तकनीशियन को सूचना — अपने आप।",
     "hero.ctaTrial": "अपना मुफ़्त 1-महीने का ट्रायल शुरू करें",
@@ -413,7 +413,7 @@ const TRANSLATIONS = {
 
     "hero.eyebrow": "🏭 पुणे MIDC कारखान्यांसाठी खास बनवलेले",
     "hero.title": 'झिरो अनप्लांड डाउनटाइम',
-    "hero.lede": "प्रत्येक मशीनचे निरीक्षण करा, प्रत्येक बिघाडाचा आधीच अंदाज घ्या आणि बिघाड होण्यापूर्वी मेंटेनन्स सुरू करा.",
+    "hero.lede": "खालील स्लाइडर्स अ‍ॅडजस्ट करा आणि टर्बोफिक्समुळे तुमच्या कारखान्याचे होणारे अचूक डाउनटाइम नुकसान आणि वार्षिक बचत मोजा।",
     "hero.reliefBefore": "😩 सध्या: फ्लोअरवर फिरण्यात मिनिटे वाया, आणि कोणत्या तंत्रज्ञाला बोलवायचे याचा अंदाज बांधण्यात आणखी मिनिटे वाया.",
     "hero.reliefAfter": "⚡ TurboFix सोबत: एका व्हॉइस नोटवरून थेट, ६० सेकंदांपेक्षा कमी वेळात तंत्रज्ञाला सूचना — आपोआप.",
     "hero.ctaTrial": "तुमची मोफत १ महिन्याची ट्रायल सुरू करा",
