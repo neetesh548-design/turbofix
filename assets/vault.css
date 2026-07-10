@@ -300,7 +300,7 @@
   .vault-picker-row .vault-field { min-width: 100%; }
 
   .vault-tabs { gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .vault-tab { padding: 12px 14px; font-size: 0.82rem; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
+  .vault-tab { padding: 14px 18px; font-size: 0.9rem; white-space: nowrap; min-height: 48px; display: flex; align-items: center; justify-content: center; }
 
   .vault-form-grid { grid-template-columns: 1fr !important; }
   .vault-form-grid .vault-field[style*="grid-column: span 2"] { grid-column: span 1 !important; }
