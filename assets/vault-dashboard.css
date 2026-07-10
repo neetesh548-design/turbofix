@@ -697,6 +697,22 @@ body {
   background: rgba(239, 68, 68, 0.1);
 }
 
+/* Spinner for loading states */
+.dash-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: dash-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes dash-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Dark theme adjustments */
 #dashScreen {
   background: var(--charcoal);
@@ -800,4 +816,15 @@ body {
 .status-indicator.down {
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
+}
+
+/* Supervisor grid layout */
+.supervisor-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .supervisor-list-grid { grid-template-columns: 1fr; }
 }

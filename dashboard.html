@@ -229,9 +229,19 @@ function requireAuth() {
   return true;
 }
 
+let dashFirstLoad = true;
+
 async function loadDashboard() {
   const token = localStorage.getItem("tf_token");
   if (!token) { requireAuth(); return; }
+
+  if (dashFirstLoad) {
+    document.querySelectorAll(".kpi-number").forEach(el => {
+      if (el.textContent === "—") el.innerHTML = '<span class="dash-spinner"></span>';
+    });
+    const attList = document.getElementById("attentionList");
+    if (attList) attList.innerHTML = '<p class="placeholder"><span class="dash-spinner"></span> Loading dashboard…</p>';
+  }
 
   try {
     const resp = await fetch(`${BACKEND_URL}/vault/dashboard`, {
@@ -281,6 +291,7 @@ async function loadDashboard() {
       staleEl.classList.toggle("kpi-warning", stale > 0);
     }
 
+    dashFirstLoad = false;
     renderAutoInsights(data.auto_insights || {});
     renderCustomKpis(data.custom_kpis || []);
 
@@ -295,18 +306,23 @@ async function loadDashboard() {
       list.innerHTML = data.recent_activity.map(r => `
         <div class="activity-row">
           <div class="activity-main">
-            <div class="ticket-id">${r.ticket_id}</div>
-            <div class="ticket-machine">${r.machine_name}</div>
+            <div class="ticket-id">${escapeHtml(r.ticket_id)}</div>
+            <div class="ticket-machine">${escapeHtml(r.machine_name)}</div>
           </div>
           <div class="activity-status">
-            <span class="status-badge status-${r.status.toLowerCase()}">${r.status}</span>
-            <span class="urgency-${r.urgency ? r.urgency.toLowerCase() : ""}">${r.urgency || "—"}</span>
+            <span class="status-badge status-${escapeHtml(r.status || '').toLowerCase()}">${escapeHtml(r.status)}</span>
+            <span class="urgency-${r.urgency ? escapeHtml(r.urgency).toLowerCase() : ""}">${escapeHtml(r.urgency || "—")}</span>
           </div>
         </div>
       `).join("");
     }
   } catch (e) {
     console.error("Dashboard fetch error:", e);
+    if (dashFirstLoad) {
+      const attList = document.getElementById("attentionList");
+      if (attList) attList.innerHTML = '<p class="placeholder" style="color:#ef4444;">Failed to connect — the server may be starting up. Retrying…</p>';
+    }
+    throw e;
   }
 }
 
@@ -363,7 +379,35 @@ function renderTrend(weeks) {
 function showDashboard() {
   document.getElementById("dashScreen").style.display = "block";
   loadDashboard();
-  setInterval(loadDashboard, 5000);
+
+  let pollInterval = 5000;
+  let pollTimer = null;
+  let failures = 0;
+
+  function schedulePoll() {
+    pollTimer = setTimeout(async () => {
+      if (document.hidden) { schedulePoll(); return; }
+      try {
+        await loadDashboard();
+        failures = 0;
+        pollInterval = 5000;
+      } catch (e) {
+        failures++;
+        pollInterval = Math.min(5000 * Math.pow(2, failures), 60000);
+      }
+      schedulePoll();
+    }, pollInterval);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && pollTimer) {
+      clearTimeout(pollTimer);
+      loadDashboard();
+      schedulePoll();
+    }
+  });
+
+  schedulePoll();
 }
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
@@ -539,15 +583,6 @@ async function deleteKpi(kpiId) {
     loadKpiConfigs();
     loadDashboard();
   } catch(e) { console.error("Delete KPI error:", e); }
-}
-
-function isOwner() {
-  const user = JSON.parse(localStorage.getItem("tf_user") || "{}");
-  return user && user.role === "owner";
-}
-
-function escapeHtml(s) {
-  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
 function renderSupervisorGrid(data) {

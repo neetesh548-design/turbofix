@@ -41,6 +41,12 @@ async function safeFetch(url, options, _retried = false) {
 
 const $ = (id) => document.getElementById(id);
 
+function showLoading(container, message = "Loading…") {
+  if (typeof container === "string") container = $(container);
+  if (!container) return;
+  container.innerHTML = `<div class="vault-loading"><span class="vault-spinner"></span> ${message}</div>`;
+}
+
 function apiUrl(path) {
   return state.apiBase.replace(/\/$/, "") + path;
 }
@@ -326,9 +332,10 @@ const CATEGORY_LABELS = {
 };
 
 async function loadDocuments() {
+  const list = $("documentsList");
+  showLoading(list, "Loading documents…");
   const resp = await apiFetch(`/vault/documents?machine_id=${encodeURIComponent(state.currentMachineId)}`);
   const docs = await resp.json();
-  const list = $("documentsList");
   list.innerHTML = "";
   if (docs.length === 0) {
     list.innerHTML = '<div class="vault-empty">No documents uploaded for this machine yet.</div>';
@@ -383,8 +390,42 @@ async function deleteDocument(documentId) {
 }
 
 async function uploadDocument(formData) {
-  await apiFetch("/vault/documents", { method: "POST", body: formData });
-  await loadDocuments();
+  const progressWrap = document.createElement("div");
+  progressWrap.className = "vault-upload-progress";
+  progressWrap.innerHTML = `<div class="vault-progress-bar"><div class="vault-progress-fill" id="uploadProgressFill"></div></div><span class="vault-progress-text" id="uploadProgressText">Uploading… 0%</span>`;
+  $("uploadCard").appendChild(progressWrap);
+
+  try {
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl("/vault/documents"));
+      if (state.token) xhr.setRequestHeader("Authorization", "Bearer " + state.token);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          const fill = document.getElementById("uploadProgressFill");
+          const text = document.getElementById("uploadProgressText");
+          if (fill) fill.style.width = pct + "%";
+          if (text) text.textContent = `Uploading… ${pct}%`;
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status === 401) { logout(); reject(new Error("Session expired")); return; }
+        if (xhr.status >= 400) {
+          let detail = xhr.statusText;
+          try { detail = JSON.parse(xhr.responseText).detail || detail; } catch (_) {}
+          reject(new Error(detail));
+          return;
+        }
+        resolve();
+      };
+      xhr.onerror = () => reject(new Error("Upload failed — check your connection."));
+      xhr.send(formData);
+    });
+    await loadDocuments();
+  } finally {
+    progressWrap.remove();
+  }
 }
 
 // ---------------------------------------------------------------
@@ -392,9 +433,10 @@ async function uploadDocument(formData) {
 // ---------------------------------------------------------------
 
 async function loadParts(kindPath, tbodySelector, emptyId, rowRenderer) {
+  const tbody = document.querySelector(tbodySelector);
+  tbody.innerHTML = `<tr><td colspan="6" class="vault-loading"><span class="vault-spinner"></span> Loading…</td></tr>`;
   const resp = await apiFetch(`/vault/${kindPath}?machine_id=${encodeURIComponent(state.currentMachineId)}`);
   const items = await resp.json();
-  const tbody = document.querySelector(tbodySelector);
   tbody.innerHTML = "";
   $(emptyId).style.display = items.length === 0 ? "block" : "none";
   for (const item of items) {
@@ -458,6 +500,7 @@ async function enterVault() {
   $("registerCard").style.display = "none";
   $("vaultShell").style.display = "block";
   renderUserBar();
+  showLoading("documentsList", "Loading machines & documents…");
   try {
     await loadMachines();
     await refreshActivePanel();

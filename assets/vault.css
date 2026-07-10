@@ -163,9 +163,90 @@
 
 .vault-upload-toggle { margin-bottom: 14px; }
 
+/* ---------- Loading & progress ---------- */
+.vault-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 20px;
+  color: var(--slate);
+  font-size: 0.9rem;
+}
+
+.vault-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: vault-spin 0.7s linear infinite;
+}
+
+@keyframes vault-spin {
+  to { transform: rotate(360deg); }
+}
+
+.vault-upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 0;
+}
+
+.vault-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vault-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.vault-progress-text {
+  font-size: 0.8rem;
+  color: var(--slate);
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+/* ---------- Mobile responsiveness ---------- */
 @media (max-width: 640px) {
-  .vault-doc-row { flex-direction: column; align-items: flex-start; }
+  .vault-topbar { flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+  .vault-topbar .brand { font-size: 1.2rem; }
+  .vault-topbar a.back-link { font-size: 0.75rem; }
+
+  .vault-wrap { padding: 20px 14px 80px; }
+
+  .vault-login-card { padding: 24px 18px; margin: 30px auto; }
+
+  .vault-userbar { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 16px; }
+
+  .vault-picker-row { flex-direction: column; gap: 8px; }
+  .vault-picker-row .vault-field { min-width: 100%; }
+
+  .vault-tabs { gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .vault-tab { padding: 12px 14px; font-size: 0.82rem; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
+
+  .vault-form-grid { grid-template-columns: 1fr !important; }
+  .vault-form-grid .vault-field[style*="grid-column: span 2"] { grid-column: span 1 !important; }
+
+  .vault-doc-row { flex-direction: column; align-items: flex-start; gap: 10px; }
   .vault-doc-actions { width: 100%; }
+
+  /* Tables: horizontal scroll wrapper */
+  .vault-card:has(.vault-table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .vault-table { min-width: 500px; }
+  .vault-table th, .vault-table td { padding: 8px 8px; font-size: 0.8rem; }
 }
 
 /* ---------- Printable QR tag ---------- */
