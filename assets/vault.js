@@ -25,18 +25,22 @@ const state = {
 
 async function safeFetch(url, options, _retried = false) {
   try {
-    return await fetch(url, options);
+    const resp = await fetch(url, options);
+    return resp;
   } catch (err) {
-    console.error("Fetch error:", err);
+    console.error("safeFetch error:", err.name, err.message, "url:", url, "retried:", _retried);
     if (!_retried) {
       console.log("First request failed — waking backend and retrying…");
       try {
-        await fetch(state.apiBase.replace(/\/$/, "") + "/health");
-      } catch (_) { /* ignore */ }
-      await new Promise(r => setTimeout(r, 2000));
+        const wake = await fetch(state.apiBase.replace(/\/$/, "") + "/health");
+        console.log("Health ping status:", wake.status);
+      } catch (wakeErr) {
+        console.error("Health ping also failed:", wakeErr.name, wakeErr.message);
+      }
+      await new Promise(r => setTimeout(r, 3000));
       return safeFetch(url, options, true);
     }
-    throw new Error("Connection failed — the backend may be starting up. Please wait a moment and try again.");
+    throw new Error("Upload failed: " + err.message + ". Check browser console (F12) for details.");
   }
 }
 
