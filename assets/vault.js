@@ -23,12 +23,20 @@ const state = {
   currentMachineId: null,
 };
 
-async function safeFetch(url, options) {
+async function safeFetch(url, options, _retried = false) {
   try {
     return await fetch(url, options);
   } catch (err) {
     console.error("Fetch error:", err);
-    throw new Error("Connection failed. Please verify that your backend server is running and reachable.");
+    if (!_retried) {
+      console.log("First request failed — waking backend and retrying…");
+      try {
+        await fetch(state.apiBase.replace(/\/$/, "") + "/health");
+      } catch (_) { /* ignore */ }
+      await new Promise(r => setTimeout(r, 2000));
+      return safeFetch(url, options, true);
+    }
+    throw new Error("Connection failed — the backend may be starting up. Please wait a moment and try again.");
   }
 }
 
