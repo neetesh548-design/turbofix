@@ -23,17 +23,38 @@ const state = {
   currentMachineId: null,
 };
 
+function showConnecting(show) {
+  let overlay = document.getElementById("connectingOverlay");
+  if (show && !overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "connectingOverlay";
+    overlay.className = "vault-connecting-overlay";
+    overlay.innerHTML = '<div class="vault-connecting-card"><span class="vault-spinner"></span><div><strong>Connecting to server…</strong><br><span style="font-size:0.82rem;color:var(--slate)">The backend may be waking up. This usually takes 15–30 seconds.</span></div></div>';
+    document.body.appendChild(overlay);
+  } else if (!show && overlay) {
+    overlay.remove();
+  }
+}
+
 async function safeFetch(url, options, _retried = false) {
   try {
     return await fetch(url, options);
   } catch (err) {
     console.error("Fetch error:", err);
     if (!_retried) {
+      showConnecting(true);
       try {
         await fetch(state.apiBase.replace(/\/$/, "") + "/health");
       } catch (_) { /* ignore */ }
       await new Promise(r => setTimeout(r, 3000));
-      return safeFetch(url, options, true);
+      try {
+        const result = await safeFetch(url, options, true);
+        showConnecting(false);
+        return result;
+      } catch (e) {
+        showConnecting(false);
+        throw e;
+      }
     }
     throw new Error("Connection failed — the backend may be starting up. Please wait a moment and try again.");
   }
@@ -52,6 +73,10 @@ function apiUrl(path) {
 }
 
 async function apiFetch(path, options = {}) {
+  if (isTokenExpired(state.token)) {
+    logout();
+    throw new Error("Your session has expired — please sign in again.");
+  }
   const headers = options.headers || {};
   if (state.token) headers["Authorization"] = "Bearer " + state.token;
   const resp = await safeFetch(apiUrl(path), { ...options, headers });
@@ -79,9 +104,39 @@ function clearError(el) {
   el.classList.remove("show");
 }
 
+function showToast(message, type = "success") {
+  let container = document.getElementById("vaultToastContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "vaultToastContainer";
+    container.className = "vault-toast-container";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.className = "vault-toast vault-toast-" + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // ---------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------
+
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (!payload.exp) return false;
+    return Date.now() >= payload.exp * 1000;
+  } catch (_) {
+    return false;
+  }
+}
 
 function canWrite() {
   return state.user && (state.user.role === "owner" || state.user.role === "maintenance_head" || state.user.role === "supervisor");
@@ -765,6 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await uploadDocument(formData);
       e.target.reset();
       $("uploadCard").style.display = "none";
+      showToast("Document uploaded successfully.");
     } catch (err) {
       showError($("vaultError"), err.message);
     }
@@ -795,6 +851,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.reset();
       $("addPartCard").style.display = "none";
       await loadSpareParts();
+      showToast("Spare part added.");
     } catch (err) {
       showError($("vaultError"), err.message);
     }
@@ -823,6 +880,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.reset();
       $("addConsCard").style.display = "none";
       await loadConsumables();
+      showToast("Consumable added.");
     } catch (err) {
       showError($("vaultError"), err.message);
     }
@@ -853,6 +911,7 @@ document.addEventListener("DOMContentLoaded", () => {
       $("machinePicker").value = machine.machine_id;
       await refreshActivePanel();
       showNewMachineResult(machine);
+      showToast("Machine created — print the QR tag below.");
     } catch (err) {
       showError($("vaultError"), err.message);
     }
@@ -930,8 +989,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Already-logged-in (token still in this tab's sessionStorage) — skip the login screen.
   if (state.token && state.user) {
-    enterVault();
+    if (isTokenExpired(state.token)) {
+      logout();
+      showError($("loginError"), "Your session has expired — please sign in again.");
+    } else {
+      enterVault();
+    }
   }
 });

@@ -163,6 +163,71 @@
 
 .vault-upload-toggle { margin-bottom: 14px; }
 
+/* ---------- Connecting overlay (Render cold start) ---------- */
+.vault-connecting-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 15, 29, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vault-connecting-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 32px;
+  box-shadow: var(--shadow-md);
+  max-width: 400px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* ---------- Toast notifications ---------- */
+.vault-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.vault-toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+}
+
+.vault-toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.vault-toast-success {
+  background: #065f46;
+  border-left: 3px solid #22c55e;
+}
+
+.vault-toast-error {
+  background: #7f1d1d;
+  border-left: 3px solid #ef4444;
+}
+
 /* ---------- Loading & progress ---------- */
 .vault-loading {
   display: flex;

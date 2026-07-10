@@ -221,8 +221,20 @@ function isOwner() {
   return u && u.role === "owner";
 }
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (!payload.exp) return false;
+    return Date.now() >= payload.exp * 1000;
+  } catch (_) { return false; }
+}
+
 function requireAuth() {
-  if (!localStorage.getItem("tf_token")) {
+  const token = localStorage.getItem("tf_token");
+  if (!token || isTokenExpired(token)) {
+    localStorage.removeItem("tf_token");
+    localStorage.removeItem("tf_user");
     window.location.href = "vault.html";
     return false;
   }
