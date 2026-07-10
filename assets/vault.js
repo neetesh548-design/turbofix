@@ -25,22 +25,17 @@ const state = {
 
 async function safeFetch(url, options, _retried = false) {
   try {
-    const resp = await fetch(url, options);
-    return resp;
+    return await fetch(url, options);
   } catch (err) {
-    console.error("safeFetch error:", err.name, err.message, "url:", url, "retried:", _retried);
+    console.error("Fetch error:", err);
     if (!_retried) {
-      console.log("First request failed — waking backend and retrying…");
       try {
-        const wake = await fetch(state.apiBase.replace(/\/$/, "") + "/health");
-        console.log("Health ping status:", wake.status);
-      } catch (wakeErr) {
-        console.error("Health ping also failed:", wakeErr.name, wakeErr.message);
-      }
+        await fetch(state.apiBase.replace(/\/$/, "") + "/health");
+      } catch (_) { /* ignore */ }
       await new Promise(r => setTimeout(r, 3000));
       return safeFetch(url, options, true);
     }
-    throw new Error("Upload failed: " + err.message + ". Check browser console (F12) for details.");
+    throw new Error("Connection failed — the backend may be starting up. Please wait a moment and try again.");
   }
 }
 
@@ -712,11 +707,17 @@ document.addEventListener("DOMContentLoaded", () => {
     clearError($("vaultError"));
     const fileInput = $("uploadFile");
     if (!fileInput.files.length) return;
+    const file = fileInput.files[0];
+    const MAX_SIZE_MB = 25;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      showError($("vaultError"), `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_SIZE_MB} MB.`);
+      return;
+    }
     const formData = new FormData();
     formData.append("machine_id", state.currentMachineId);
     formData.append("category", $("uploadCategory").value);
     formData.append("title", $("uploadTitle").value);
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", file);
     try {
       await uploadDocument(formData);
       e.target.reset();
