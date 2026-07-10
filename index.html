@@ -110,16 +110,22 @@
 
   <!-- ============ HERO ============ -->
   <section class="hero">
-    <div class="container hero-inner">
-      <div class="hero-copy">
+    <div class="container">
+      <!-- Hero Header -->
+      <div class="hero-header" style="text-align: center; max-width: 780px; margin: 0 auto 40px;">
         <p class="eyebrow" data-i18n="hero.eyebrow">🏭 Built for Pune MIDC factories</p>
         <h1 data-i18n="hero.title">ZERO UNPLANNED DOWNTIME</h1>
-        <p class="lede" data-i18n="hero.lede">
+        <p class="lede" style="max-width: 100%; margin: 18px auto 0;" data-i18n="hero.lede">
           Adjust the sliders below to calculate your factory's exact downtime leak and annual savings with TurboFix.
         </p>
+      </div>
 
-        <div class="card roi-card" style="margin: 24px 0; padding: 24px; border: 1.5px solid rgba(245, 158, 11, 0.25); border-radius: 12px; background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); box-shadow: 0 12px 32px rgba(0,0,0,0.4); text-align: left;">
-          <h3 style="font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; margin-top: 0;">⚡ Downtime Leak & Savings Calculator</h3>
+      <!-- 3-Card Equal-Height Row -->
+      <div class="hero-cards-row">
+
+        <!-- CARD 1: ROI Calculator -->
+        <div class="hero-card-item roi-card">
+          <h3 style="font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; margin-top: 0;">⚡ Downtime Leak &amp; Savings Calculator</h3>
           
           <div class="slider-group" style="margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--slate-light); margin-bottom: 6px;">
@@ -131,13 +137,12 @@
 
           <div class="slider-group" style="margin-bottom: 12px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--slate-light); margin-bottom: 6px;">
-              <span>Average Monthly Breakdowns (Per Machine):</span>
+              <span>Avg Monthly Breakdowns (Per Machine):</span>
               <strong id="breakdownsVal" style="color: white; font-weight: 700;">3</strong>
             </div>
             <input type="range" id="breakdownsSlider" min="1" max="10" value="3" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
           </div>
 
-          <!-- Advanced Parameters Section (Always visible) -->
           <div id="advancedParams" style="display: block; border-top: 1px dashed rgba(148, 163, 184, 0.12); padding-top: 16px; margin-bottom: 20px; margin-top: 16px;">
             <div class="slider-group" style="margin-bottom: 16px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
@@ -146,18 +151,16 @@
               </div>
               <input type="range" id="rateSlider" min="1000" max="25000" step="500" value="5000" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
             </div>
-
             <div class="slider-group" style="margin-bottom: 16px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
-                <span>Current Resolution Delay (Traditional):</span>
+                <span>Current Resolution Delay:</span>
                 <strong style="color: white; font-weight: 700;"><span id="tradHoursVal">3.0</span> hrs</strong>
               </div>
               <input type="range" id="tradHoursSlider" min="1" max="10" step="0.5" value="3.0" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
             </div>
-
             <div class="slider-group" style="margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
-                <span>TurboFix Dispatch & Triage Speed:</span>
+                <span>TurboFix Dispatch Speed:</span>
                 <strong style="color: white; font-weight: 700;"><span id="turboMinsVal">45</span> mins</strong>
               </div>
               <input type="range" id="turboMinsSlider" min="15" max="120" step="5" value="45" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
@@ -166,7 +169,7 @@
 
           <div class="roi-results" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border-top: 1px solid rgba(148, 163, 184, 0.16); padding-top: 20px; margin-bottom: 16px;">
             <div>
-              <span style="font-size: 0.75rem; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">🔴 Loss (Traditional Way)</span>
+              <span style="font-size: 0.75rem; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">🔴 Loss (Traditional)</span>
               <span id="lossWithout" style="font-size: 1.25rem; font-weight: 700; color: #ef4444;">₹8,10,000</span>
               <span id="tradHoursLabel" style="font-size: 0.68rem; color: var(--slate-light); display: block; margin-top: 2px;">at ~3.0 hrs per breakdown</span>
             </div>
@@ -179,78 +182,139 @@
           <p id="downtimeRateLabel" style="font-size: 0.72rem; color: var(--slate-light); margin: 0; text-align: center; border-top: 1px dashed rgba(148, 163, 184, 0.1); padding-top: 10px;">Calculated using local Pune MIDC operational rates (avg. ₹5,000/hr downtime loss).</p>
         </div>
 
-        <script>
-          (function() {
-            var machinesSlider = document.getElementById('machinesSlider');
-            var breakdownsSlider = document.getElementById('breakdownsSlider');
-            var rateSlider = document.getElementById('rateSlider');
-            var tradHoursSlider = document.getElementById('tradHoursSlider');
-            var turboMinsSlider = document.getElementById('turboMinsSlider');
+        <!-- CARD 2: WITHOUT TURBOFIX -->
+        <div class="hero-card-item side-card without">
+          <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🚶</span>
+              <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📞</span>
+              <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤔</span>
+              <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🛠️</span>
+              <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
+            </div>
+          </div>
+          <div class="bottom-result bad">
+            <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
+            <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
+          </div>
+        </div>
 
-            var machinesVal = document.getElementById('machinesVal');
-            var breakdownsVal = document.getElementById('breakdownsVal');
-            var rateVal = document.getElementById('rateVal');
-            var tradHoursVal = document.getElementById('tradHoursVal');
-            var turboMinsVal = document.getElementById('turboMinsVal');
+        <!-- CARD 3: WITH TURBOFIX -->
+        <div class="hero-card-item side-card with">
+          <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📱</span>
+              <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🎙️</span>
+              <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤖</span>
+              <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item highlight-item">
+              <span class="t-icon">✅</span>
+              <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
+            </div>
+          </div>
+          <div class="bottom-result good">
+            <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
+            <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
+          </div>
+        </div>
 
-            var lossWithout = document.getElementById('lossWithout');
-            var savingsVal = document.getElementById('savingsVal');
-            var tradHoursLabel = document.getElementById('tradHoursLabel');
-            var downtimeRateLabel = document.getElementById('downtimeRateLabel');
+      </div>
 
-            var advancedParams = document.getElementById('advancedParams');
+      <script>
+        (function() {
+          var machinesSlider = document.getElementById('machinesSlider');
+          var breakdownsSlider = document.getElementById('breakdownsSlider');
+          var rateSlider = document.getElementById('rateSlider');
+          var tradHoursSlider = document.getElementById('tradHoursSlider');
+          var turboMinsSlider = document.getElementById('turboMinsSlider');
+          var machinesVal = document.getElementById('machinesVal');
+          var breakdownsVal = document.getElementById('breakdownsVal');
+          var rateVal = document.getElementById('rateVal');
+          var tradHoursVal = document.getElementById('tradHoursVal');
+          var turboMinsVal = document.getElementById('turboMinsVal');
+          var lossWithout = document.getElementById('lossWithout');
+          var savingsVal = document.getElementById('savingsVal');
+          var tradHoursLabel = document.getElementById('tradHoursLabel');
+          var downtimeRateLabel = document.getElementById('downtimeRateLabel');
 
-            function updateROI() {
-              var machines = parseInt(machinesSlider.value);
-              var breakdowns = parseInt(breakdownsSlider.value);
-              var rate = parseInt(rateSlider.value);
-              var tradHours = parseFloat(tradHoursSlider.value);
-              var turboMins = parseInt(turboMinsSlider.value);
-              
-              machinesVal.textContent = machines;
-              breakdownsVal.textContent = breakdowns;
-              rateVal.textContent = rate.toLocaleString('en-IN');
-              tradHoursVal.textContent = tradHours.toFixed(1);
-              turboMinsVal.textContent = turboMins;
+          function updateROI() {
+            var machines = parseInt(machinesSlider.value);
+            var breakdowns = parseInt(breakdownsSlider.value);
+            var rate = parseInt(rateSlider.value);
+            var tradHours = parseFloat(tradHoursSlider.value);
+            var turboMins = parseInt(turboMinsSlider.value);
+            machinesVal.textContent = machines;
+            breakdownsVal.textContent = breakdowns;
+            rateVal.textContent = rate.toLocaleString('en-IN');
+            tradHoursVal.textContent = tradHours.toFixed(1);
+            turboMinsVal.textContent = turboMins;
+            tradHoursLabel.textContent = 'at ~' + tradHours.toFixed(1) + ' hrs per breakdown';
+            downtimeRateLabel.textContent = 'Calculated using your custom rates (₹' + rate.toLocaleString('en-IN') + '/hr downtime loss).';
+            var totalBreakdowns = machines * breakdowns * 12;
+            var costWithout = totalBreakdowns * tradHours * rate;
+            var costWith = totalBreakdowns * (turboMins / 60.0) * rate;
+            var netSavings = costWithout - costWith;
+            lossWithout.textContent = '₹' + costWithout.toLocaleString('en-IN');
+            savingsVal.textContent = '₹' + netSavings.toLocaleString('en-IN');
+          }
 
-              // Dynamic labels
-              tradHoursLabel.textContent = 'at ~' + tradHours.toFixed(1) + ' hrs per breakdown';
-              downtimeRateLabel.textContent = 'Calculated using your custom rates (₹' + rate.toLocaleString('en-IN') + '/hr downtime loss).';
+          machinesSlider.addEventListener('input', updateROI);
+          breakdownsSlider.addEventListener('input', updateROI);
+          rateSlider.addEventListener('input', updateROI);
+          tradHoursSlider.addEventListener('input', updateROI);
+          turboMinsSlider.addEventListener('input', updateROI);
+          updateROI();
+        })();
+      </script>
 
-              var totalBreakdowns = machines * breakdowns * 12;
-
-              var costWithout = totalBreakdowns * tradHours * rate;
-              var costWith = totalBreakdowns * (turboMins / 60.0) * rate;
-              var netSavings = costWithout - costWith;
-
-              lossWithout.textContent = '₹' + costWithout.toLocaleString('en-IN');
-              savingsVal.textContent = '₹' + netSavings.toLocaleString('en-IN');
-            }
-
-            machinesSlider.addEventListener('input', updateROI);
-            breakdownsSlider.addEventListener('input', updateROI);
-            rateSlider.addEventListener('input', updateROI);
-            tradHoursSlider.addEventListener('input', updateROI);
-            turboMinsSlider.addEventListener('input', updateROI);
-
-            updateROI();
-          })();
-        </script>
-
-        <div class="hero-relief">
+      <!-- Hero Bottom -->
+      <div style="text-align: center; margin-top: 40px;">
+        <div class="hero-relief" style="max-width: 700px; margin: 0 auto 24px;">
           <p class="hero-relief-before" data-i18n="hero.reliefBefore">😩 Right now: minutes lost walking the floor, more lost guessing which technician to call.</p>
           <p class="hero-relief-after" data-i18n="hero.reliefAfter">⚡ With TurboFix: technician notified in under 60 seconds — straight from a voice note, automatically.</p>
         </div>
-
-        <div class="hero-actions">
+        <div class="hero-actions" style="justify-content: center;">
           <a class="btn btn-whatsapp btn-lg" href="#contact">
             <span class="ico">💬</span> <span data-i18n="hero.ctaTrial">Start Your Free 1-Month Trial</span>
           </a>
           <a class="btn btn-ghost btn-lg" href="#demo" data-i18n="hero.ctaDemo">▶ Watch Live Demo</a>
         </div>
         <p class="hero-fineprint" data-i18n="hero.fineprint">No credit card. No app installs. Cancel anytime.</p>
-
-        <div class="hero-stats">
+        <div class="hero-stats" style="justify-content: center; margin-top: 36px;">
           <div class="stat">
             <span class="stat-num" data-count="60" data-prefix="&lt; " data-suffix=" sec">&lt; 0 sec</span>
             <span class="stat-label" data-i18n="hero.stat1">report to technician notified</span>
@@ -262,80 +326,6 @@
           <div class="stat">
             <span class="stat-num" data-count="0">0</span>
             <span class="stat-label" data-i18n="hero.stat3">apps for workers to install</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-comparison">
-          <!-- WITHOUT TURBOFIX -->
-          <div class="side-card without">
-            <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
-            <div class="timeline-slim">
-              <div class="timeline-item">
-                <span class="t-icon">🚨</span>
-                <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">🚶</span>
-                <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">📞</span>
-                <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">🤔</span>
-                <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">🛠️</span>
-                <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
-              </div>
-            </div>
-            <div class="bottom-result bad">
-              <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
-              <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
-            </div>
-          </div>
-
-          <!-- WITH TURBOFIX -->
-          <div class="side-card with">
-            <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
-            <div class="timeline-slim">
-              <div class="timeline-item">
-                <span class="t-icon">🚨</span>
-                <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">📱</span>
-                <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">🎙️</span>
-                <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item">
-                <span class="t-icon">🤖</span>
-                <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
-              </div>
-              <div class="timeline-arrow">↓</div>
-              <div class="timeline-item highlight-item">
-                <span class="t-icon">✅</span>
-                <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
-              </div>
-            </div>
-            <div class="bottom-result good">
-              <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
-              <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
-            </div>
           </div>
         </div>
       </div>
