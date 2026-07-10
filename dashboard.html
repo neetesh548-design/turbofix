@@ -60,6 +60,10 @@
         <div class="kpi-label">Urgent Issues</div>
       </div>
       <div class="kpi-card">
+        <div class="kpi-number" id="staleMachines">—</div>
+        <div class="kpi-label">No Data / Stale</div>
+      </div>
+      <div class="kpi-card">
         <div class="kpi-number" id="openTickets">—</div>
         <div class="kpi-label">Open Tickets</div>
       </div>
@@ -120,6 +124,12 @@
     <div class="activity-section" id="manualEntrySection" style="margin-top:24px; display:none;">
       <h2>Log Daily Data</h2>
       <div class="manual-entry-form" id="manualEntryForm"></div>
+    </div>
+
+    <!-- Supervisor Ownership (Owner-Only) -->
+    <div class="activity-section" id="supervisorOwnershipSection" style="margin-top:24px; display:none;">
+      <h2>Supervisor Machine Ownership</h2>
+      <div id="supervisorListGrid" class="supervisor-list-grid"></div>
     </div>
 
     <div class="activity-section">
@@ -263,11 +273,20 @@ async function loadDashboard() {
     urgentEl.textContent = data.kpis.urgent_open ?? "—";
     urgentEl.classList.toggle("kpi-warning", (data.kpis.urgent_open || 0) > 0);
 
+    // Stale machines KPI
+    const staleEl = document.getElementById("staleMachines");
+    if (staleEl) {
+      const stale = data.kpis.stale_machines || 0;
+      staleEl.textContent = stale;
+      staleEl.classList.toggle("kpi-warning", stale > 0);
+    }
+
     renderAutoInsights(data.auto_insights || {});
     renderCustomKpis(data.custom_kpis || []);
 
     renderAttention(data.needs_attention || []);
     renderTrend(data.weekly_trend || []);
+    renderSupervisorGrid(data);
 
     const list = document.getElementById("activityList");
     if (data.recent_activity.length === 0) {
@@ -520,6 +539,102 @@ async function deleteKpi(kpiId) {
     loadKpiConfigs();
     loadDashboard();
   } catch(e) { console.error("Delete KPI error:", e); }
+}
+
+function isOwner() {
+  const user = JSON.parse(localStorage.getItem("tf_user") || "{}");
+  return user && user.role === "owner";
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderSupervisorGrid(data) {
+  const section = document.getElementById("supervisorOwnershipSection");
+  const grid = document.getElementById("supervisorListGrid");
+  if (!section || !grid) return;
+
+  if (!isOwner()) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+  const supervisors = data.supervisors || [];
+  const unassigned = data.unassigned_machines || [];
+
+  if (supervisors.length === 0 && unassigned.length === 0) {
+    grid.innerHTML = '<p class="placeholder" style="grid-column: span 3; text-align: center; padding: 20px;">No supervisors or machines onboarded yet.</p>';
+    return;
+  }
+
+  let html = "";
+
+  supervisors.forEach(sup => {
+    const riskMap = data.machine_risk_map || {};
+    const machinesHtml = sup.machines.length === 0
+      ? '<p class="placeholder" style="margin:8px 0; font-size:12px;">No machines assigned</p>'
+      : sup.machines.map(m => {
+          const risk = riskMap[m.machine_id] || "stale";
+          const riskLabel = risk === "stale" ? "No data" : risk.charAt(0).toUpperCase() + risk.slice(1);
+          return `
+          <div class="supervisor-machine-row">
+            <div class="machine-info">
+              <span class="machine-name">${escapeHtml(m.machine_name)}</span>
+              <span class="machine-id-loc">${escapeHtml(m.machine_id)} ${m.location ? '· ' + escapeHtml(m.location) : ''}</span>
+            </div>
+            <span class="risk-badge risk-${risk}">${riskLabel}</span>
+          </div>`;
+        }).join("");
+
+    html += `
+      <div class="supervisor-card">
+        <div>
+          <h3>${escapeHtml(sup.name)}</h3>
+          <div class="supervisor-meta">
+            ${sup.email ? '📧 ' + escapeHtml(sup.email) : ''} 
+            ${sup.phone ? '<br>📱 ' + escapeHtml(sup.phone) : ''}
+          </div>
+        </div>
+        <div class="supervisor-machines-list">
+          <h4 style="margin: 8px 0 4px; font-size: 11px; text-transform: uppercase; color: var(--slate); letter-spacing: 0.05em;">Assigned Machines (${sup.machines.length})</h4>
+          ${machinesHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  if (unassigned.length > 0) {
+    const riskMap = data.machine_risk_map || {};
+    const unassignedHtml = unassigned.map(m => {
+      const risk = riskMap[m.machine_id] || "stale";
+      const riskLabel = risk === "stale" ? "No data" : risk.charAt(0).toUpperCase() + risk.slice(1);
+      return `
+      <div class="supervisor-machine-row">
+        <div class="machine-info">
+          <span class="machine-name">${escapeHtml(m.machine_name)}</span>
+          <span class="machine-id-loc">${escapeHtml(m.machine_id)} ${m.location ? '· ' + escapeHtml(m.location) : ''}</span>
+        </div>
+        <span class="risk-badge risk-${risk}">${riskLabel}</span>
+      </div>`;
+    }).join("");
+
+    html += `
+      <div class="supervisor-card" style="border-style: dashed; border-color: var(--slate-lt);">
+        <div>
+          <h3>Unassigned Assets</h3>
+          <div class="supervisor-meta">Machines not linked to any supervisor profile</div>
+        </div>
+        <div class="supervisor-machines-list">
+          <h4 style="margin: 8px 0 4px; font-size: 11px; text-transform: uppercase; color: var(--slate); letter-spacing: 0.05em;">Unlinked Machines (${unassigned.length})</h4>
+          ${unassignedHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
 }
 
 // Auth gate — redirect to vault.html staff login if no token

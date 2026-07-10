@@ -19,6 +19,7 @@ const state = {
   token: localStorage.getItem("tf_token") || null,
   user: JSON.parse(localStorage.getItem("tf_user") || "null"),
   machines: [],
+  supervisors: [],
   currentMachineId: null,
 };
 
@@ -110,11 +111,10 @@ async function login(identifier, password) {
   setSession(await resp.json());
 }
 
-async function registerCompany(payload) {
+async function registerCompany(formData) {
   const resp = await safeFetch(apiUrl("/auth/register"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: formData,
   });
   if (!resp.ok) {
     let detail = "Registration failed.";
@@ -133,6 +133,47 @@ async function addSupervisor(payload) {
   return resp.json();
 }
 
+async function loadSupervisorsDropdown() {
+  const select = $("newMachineSupervisor");
+  const editSelect = $("editMachineSupervisor");
+  const manageSelect = $("selectSupervisorAction");
+  if (!select) return;
+  select.innerHTML = '<option value="">-- Select Supervisor (Optional) --</option>';
+  if (editSelect) {
+    editSelect.innerHTML = '<option value="">-- Select Supervisor (Optional) --</option>';
+  }
+  if (manageSelect) {
+    manageSelect.innerHTML = '<option value="new">-- Create New Supervisor --</option>';
+  }
+  try {
+    const resp = await apiFetch("/vault/supervisors");
+    if (!resp.ok) return;
+    state.supervisors = await resp.json();
+    state.supervisors.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.user_id;
+      opt.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+      select.appendChild(opt);
+
+      if (editSelect) {
+        const opt3 = document.createElement("option");
+        opt3.value = s.user_id;
+        opt3.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+        editSelect.appendChild(opt3);
+      }
+
+      if (manageSelect) {
+        const opt2 = document.createElement("option");
+        opt2.value = s.user_id;
+        opt2.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+        manageSelect.appendChild(opt2);
+      }
+    });
+  } catch (err) {
+    console.error("Failed to load supervisors:", err);
+  }
+}
+
 function renderUserBar() {
   $("whoName").textContent = state.user.name;
   $("whoCompany").textContent = " · " + state.user.company_code;
@@ -146,6 +187,17 @@ function renderUserBar() {
   $("addConsToggleWrap").style.display = canWrite() ? "block" : "none";
   $("addMachineToggleWrap").style.display = canWrite() ? "block" : "none";
   $("addSupervisorToggleWrap").style.display = canDelete() ? "block" : "none";
+
+  const isOwner = state.user && state.user.role === "owner";
+  $("editMachineToggleBtn").style.display = isOwner ? "block" : "none";
+
+  const supGroup = $("newMachineSupervisorGroup");
+  if (supGroup) {
+    supGroup.style.display = isOwner ? "block" : "none";
+    if (isOwner) {
+      loadSupervisorsDropdown();
+    }
+  }
 }
 
 // ---------------------------------------------------------------
@@ -449,14 +501,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = $("registerSubmit");
     btn.disabled = true;
     try {
-      const result = await registerCompany({
-        company_code: $("regCompanyCode").value.trim(),
-        company_name: $("regCompanyName").value.trim(),
-        admin_contact_phone: $("regAdminPhone").value.trim(),
-        owner_name: $("regOwnerName").value.trim(),
-        owner_email: $("regOwnerEmail").value.trim(),
-        owner_password: $("regOwnerPassword").value,
-      });
+      const fileInput = $("regPaymentScreenshot");
+      if (!fileInput.files || fileInput.files.length === 0) {
+        throw new Error("Payment screenshot is required.");
+      }
+      
+      const formData = new FormData();
+      formData.append("company_code", $("regCompanyCode").value.trim());
+      formData.append("company_name", $("regCompanyName").value.trim());
+      formData.append("admin_contact_phone", $("regAdminPhone").value.trim());
+      formData.append("owner_name", $("regOwnerName").value.trim());
+      formData.append("owner_email", $("regOwnerEmail").value.trim());
+      formData.append("owner_password", $("regOwnerPassword").value);
+      formData.append("payment_screenshot", fileInput.files[0]);
+
+      const result = await registerCompany(formData);
       e.target.reset();
       successEl.textContent = result.message || "Registration submitted! A TurboFix admin will review and approve your company.";
       successEl.style.display = "block";
@@ -471,28 +530,123 @@ document.addEventListener("DOMContentLoaded", () => {
     const card = $("addSupervisorCard");
     card.style.display = card.style.display === "none" ? "block" : "none";
   });
+
+  $("selectSupervisorAction").addEventListener("change", (e) => {
+    const val = e.target.value;
+    const titleEl = $("manageSupervisorTitle");
+    const submitBtn = $("addSupervisorSubmit");
+    const deleteBtn = $("deleteSupervisorBtn");
+    const passwordLabel = $("supPasswordLabel");
+    const passwordInput = $("supPassword");
+
+    clearError($("addSupervisorError"));
+    $("addSupervisorSuccess").style.display = "none";
+
+    if (val === "new") {
+      titleEl.textContent = "Manage Supervisor Accounts";
+      submitBtn.textContent = "Create supervisor";
+      deleteBtn.style.display = "none";
+      passwordLabel.textContent = "Password";
+      passwordInput.required = true;
+      $("addSupervisorForm").reset();
+    } else {
+      const sup = state.supervisors.find(s => s.user_id === val);
+      if (sup) {
+        titleEl.textContent = `Edit Supervisor: ${sup.name}`;
+        submitBtn.textContent = "Save changes";
+        deleteBtn.style.display = "block";
+        passwordLabel.textContent = "Password (leave blank to keep current)";
+        passwordInput.required = false;
+
+        $("supName").value = sup.name || "";
+        $("supPhone").value = sup.phone || "";
+        $("supEmail").value = sup.email || "";
+        passwordInput.value = "";
+      }
+    }
+  });
+
+  $("deleteSupervisorBtn").addEventListener("click", async () => {
+    const supervisorId = $("selectSupervisorAction").value;
+    if (!supervisorId || supervisorId === "new") return;
+    if (!confirm("Are you sure you want to delete this supervisor? This will also unassign them from any machines.")) return;
+
+    const errEl = $("addSupervisorError");
+    const successEl = $("addSupervisorSuccess");
+    clearError(errEl);
+    successEl.style.display = "none";
+
+    try {
+      const resp = await apiFetch(`/auth/supervisors/${supervisorId}`, {
+        method: "DELETE"
+      });
+      if (!resp.ok) {
+        throw new Error((await resp.json()).detail || "Failed to delete supervisor");
+      }
+      successEl.textContent = "Supervisor deleted successfully.";
+      successEl.style.display = "block";
+      
+      $("selectSupervisorAction").value = "new";
+      $("selectSupervisorAction").dispatchEvent(new Event("change"));
+      
+      await loadSupervisorsDropdown();
+    } catch (err) {
+      showError(errEl, err.message);
+    }
+  });
+
   $("addSupervisorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const errEl = $("addSupervisorError");
     const successEl = $("addSupervisorSuccess");
     clearError(errEl);
     successEl.style.display = "none";
+
+    const supervisorId = $("selectSupervisorAction").value;
+    const isNew = supervisorId === "new";
+
     if (!$("supPhone").value.trim() && !$("supEmail").value.trim()) {
       showError(errEl, "Enter a phone or email so the supervisor can log in.");
       return;
     }
+
     const btn = $("addSupervisorSubmit");
     btn.disabled = true;
     try {
-      const result = await addSupervisor({
-        name: $("supName").value.trim(),
-        phone: $("supPhone").value.trim(),
-        email: $("supEmail").value.trim(),
-        password: $("supPassword").value,
-      });
-      e.target.reset();
-      successEl.textContent = `Supervisor "${result.name}" created (${result.user_id}).`;
+      if (isNew) {
+        const result = await addSupervisor({
+          name: $("supName").value.trim(),
+          phone: $("supPhone").value.trim(),
+          email: $("supEmail").value.trim(),
+          password: $("supPassword").value,
+        });
+        e.target.reset();
+        successEl.textContent = `Supervisor "${result.name}" created (${result.user_id}).`;
+      } else {
+        const payload = {
+          name: $("supName").value.trim(),
+          phone: $("supPhone").value.trim(),
+          email: $("supEmail").value.trim(),
+        };
+        if ($("supPassword").value) {
+          payload.password = $("supPassword").value;
+        }
+        const resp = await apiFetch(`/auth/supervisors/${supervisorId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+          throw new Error((await resp.json()).detail || "Failed to update supervisor");
+        }
+        successEl.textContent = "Supervisor updated successfully.";
+
+        $("selectSupervisorAction").value = "new";
+        $("selectSupervisorAction").dispatchEvent(new Event("change"));
+      }
+      
       successEl.style.display = "block";
+      await loadSupervisorsDropdown();
     } catch (err) {
       showError(errEl, err.message);
     } finally {
@@ -502,6 +656,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("machinePicker").addEventListener("change", async (e) => {
     state.currentMachineId = e.target.value;
+    
+    // Refresh edit form if open
+    const card = $("editMachineCard");
+    if (card && card.style.display !== "none") {
+      const machine = state.machines.find(m => m.machine_id === state.currentMachineId);
+      if (machine) {
+        $("editMachineName").value = machine.machine_name || "";
+        $("editMachineLocation").value = machine.location || "";
+        $("editMachineTechPhone").value = machine.assigned_technician_phone || "";
+        $("editMachineInformed1").value = machine.informed_phones ? (machine.informed_phones[0] || "") : "";
+        $("editMachineSupervisor").value = machine.supervisor_id || "";
+      }
+    }
+
     try {
       await refreshActivePanel();
     } catch (err) {
@@ -612,12 +780,16 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     clearError($("vaultError"));
     try {
-      const machine = await createMachine({
+      const payload = {
         machine_name: $("newMachineName").value,
         location: $("newMachineLocation").value,
         assigned_technician_phone: $("newMachineTechPhone").value,
         informed_phone_1: $("newMachineInformed1").value,
-      });
+      };
+      if (state.user && state.user.role === "owner") {
+        payload.supervisor_id = $("newMachineSupervisor").value;
+      }
+      const machine = await createMachine(payload);
       e.target.reset();
       $("addMachineCard").style.display = "none";
       await loadMachines();
@@ -640,6 +812,65 @@ document.addEventListener("DOMContentLoaded", () => {
     const machine = state.machines.find(m => m.machine_id === state.currentMachineId);
     if (machine) {
       showNewMachineResult(machine);
+    }
+  });
+
+  $("editMachineToggleBtn").addEventListener("click", () => {
+    const card = $("editMachineCard");
+    const isShowing = card.style.display !== "none";
+    if (isShowing) {
+      card.style.display = "none";
+    } else {
+      card.style.display = "block";
+      const machine = state.machines.find(m => m.machine_id === state.currentMachineId);
+      if (machine) {
+        $("editMachineName").value = machine.machine_name || "";
+        $("editMachineLocation").value = machine.location || "";
+        $("editMachineTechPhone").value = machine.assigned_technician_phone || "";
+        $("editMachineInformed1").value = machine.informed_phones ? (machine.informed_phones[0] || "") : "";
+        $("editMachineSupervisor").value = machine.supervisor_id || "";
+      }
+    }
+  });
+
+  $("editMachineForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = $("editMachineError");
+    const successEl = $("editMachineSuccess");
+    clearError(errEl);
+    successEl.style.display = "none";
+
+    try {
+      const payload = {
+        machine_name: $("editMachineName").value.trim(),
+        location: $("editMachineLocation").value.trim(),
+        assigned_technician_phone: $("editMachineTechPhone").value.trim(),
+        informed_phone_1: $("editMachineInformed1").value.trim(),
+        supervisor_id: $("editMachineSupervisor").value,
+      };
+
+      const resp = await apiFetch(`/vault/machines/${state.currentMachineId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) {
+        throw new Error((await resp.json()).detail || "Failed to update machine details");
+      }
+      successEl.textContent = "Machine details updated successfully.";
+      successEl.style.display = "block";
+
+      const currentSelected = state.currentMachineId;
+      await loadMachines();
+      state.currentMachineId = currentSelected;
+      $("machinePicker").value = currentSelected;
+      
+      setTimeout(() => {
+        successEl.style.display = "none";
+        $("editMachineCard").style.display = "none";
+      }, 1500);
+    } catch (err) {
+      showError(errEl, err.message);
     }
   });
 

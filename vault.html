@@ -117,6 +117,10 @@
         <label for="regOwnerPassword">Password</label>
         <input type="password" id="regOwnerPassword" autocomplete="new-password" minlength="8" required>
       </div>
+      <div class="vault-field">
+        <label for="regPaymentScreenshot">Payment screenshot confirmation</label>
+        <input type="file" id="regPaymentScreenshot" accept="image/*" required>
+      </div>
       <button type="submit" class="vault-btn vault-btn-primary" id="registerSubmit">Register</button>
     </form>
 
@@ -137,22 +141,33 @@
 
     <div class="vault-error" id="vaultError"></div>
 
-    <!-- Owner-only: Add Supervisor -->
+    <!-- Owner-only: Manage Supervisors -->
     <div class="vault-upload-toggle" id="addSupervisorToggleWrap" style="display:none">
-      <button class="vault-btn vault-btn-ghost" id="addSupervisorToggleBtn">+ Add Supervisor</button>
+      <button class="vault-btn vault-btn-ghost" id="addSupervisorToggleBtn">+ Manage Supervisors</button>
     </div>
     <div class="vault-card" id="addSupervisorCard" style="display:none">
-      <h3 style="margin:0 0 10px; font-size:15px; color:var(--slate-light);">Create supervisor account</h3>
+      <h3 style="margin:0 0 10px; font-size:15px; color:var(--slate-light);" id="manageSupervisorTitle">Manage Supervisor Accounts</h3>
       <div class="vault-error" id="addSupervisorError"></div>
       <div class="vault-success" id="addSupervisorSuccess" style="display:none; background:#065f46; color:#d1fae5; padding:10px 14px; border-radius:8px; margin-bottom:10px; font-size:13px;"></div>
+      
+      <div class="vault-field" style="margin-bottom:14px;">
+        <label for="selectSupervisorAction">Select supervisor</label>
+        <select id="selectSupervisorAction" style="width:100%; padding:8px; border-radius:6px; background:#1e293b; color:#fff; border:1px solid #334155;">
+          <option value="new">-- Create New Supervisor --</option>
+        </select>
+      </div>
+
       <form id="addSupervisorForm">
         <div class="vault-form-grid">
           <div class="vault-field"><label>Name</label><input type="text" id="supName" required></div>
           <div class="vault-field"><label>Phone</label><input type="text" id="supPhone" placeholder="+91..."></div>
           <div class="vault-field"><label>Email</label><input type="email" id="supEmail"></div>
-          <div class="vault-field"><label>Password</label><input type="password" id="supPassword" minlength="8" required></div>
+          <div class="vault-field"><label id="supPasswordLabel">Password</label><input type="password" id="supPassword" minlength="8" required></div>
         </div>
-        <button type="submit" class="vault-btn vault-btn-primary" id="addSupervisorSubmit" style="margin-top:10px">Create supervisor</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button type="submit" class="vault-btn vault-btn-primary" id="addSupervisorSubmit" style="flex:1">Create supervisor</button>
+          <button type="button" class="vault-btn vault-btn-danger" id="deleteSupervisorBtn" style="display:none; flex:1">Delete supervisor</button>
+        </div>
       </form>
     </div>
 
@@ -170,6 +185,12 @@
           <div class="vault-field"><label for="newMachineLocation">Location</label><input type="text" id="newMachineLocation" placeholder="e.g. Shop Floor A"></div>
           <div class="vault-field"><label for="newMachineTechPhone">Assigned technician phone</label><input type="text" id="newMachineTechPhone" placeholder="+91..." required></div>
           <div class="vault-field"><label for="newMachineInformed1">Informed phone (optional)</label><input type="text" id="newMachineInformed1" placeholder="+91..."></div>
+          <div class="vault-field" id="newMachineSupervisorGroup" style="display:none; grid-column: span 2">
+            <label for="newMachineSupervisor">Assign Supervisor</label>
+            <select id="newMachineSupervisor">
+              <option value="">-- Select Supervisor (Optional) --</option>
+            </select>
+          </div>
         </div>
         <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Create machine + generate QR tag</button>
       </form>
@@ -191,6 +212,32 @@
         <select id="machinePicker" style="width: 100%;"></select>
       </div>
       <button class="vault-btn vault-btn-ghost" id="printExistingTagBtn" style="height: 42px; margin-bottom: 6px;">Print QR Tag</button>
+      <button class="vault-btn vault-btn-ghost" id="editMachineToggleBtn" style="height: 42px; margin-bottom: 6px; display: none;">Edit Machine</button>
+    </div>
+
+    <!-- Owner-only: Edit Machine Details -->
+    <div class="vault-card" id="editMachineCard" style="display:none; margin-top: 14px; margin-bottom: 14px;">
+      <h3 style="margin:0 0 10px; font-size:15px; color:var(--slate-light);">Edit Machine Details</h3>
+      <div class="vault-error" id="editMachineError"></div>
+      <div class="vault-success" id="editMachineSuccess" style="display:none; background:#065f46; color:#d1fae5; padding:10px 14px; border-radius:8px; margin-bottom:10px; font-size:13px;"></div>
+      <form id="editMachineForm">
+        <div class="vault-form-grid">
+          <div class="vault-field" style="grid-column: span 2">
+            <label for="editMachineName">Machine name</label>
+            <input type="text" id="editMachineName" required>
+          </div>
+          <div class="vault-field"><label for="editMachineLocation">Location</label><input type="text" id="editMachineLocation"></div>
+          <div class="vault-field"><label for="editMachineTechPhone">Assigned technician phone</label><input type="text" id="editMachineTechPhone" required></div>
+          <div class="vault-field"><label for="editMachineInformed1">Informed phone (optional)</label><input type="text" id="editMachineInformed1"></div>
+          <div class="vault-field">
+            <label for="editMachineSupervisor">Assign Supervisor</label>
+            <select id="editMachineSupervisor">
+              <option value="">-- Select Supervisor (Optional) --</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Save machine changes</button>
+      </form>
     </div>
 
     <div class="vault-tabs">
