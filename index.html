@@ -266,79 +266,75 @@
         </div>
       </div>
 
-      <div class="hero-visual" aria-hidden="true" style="padding-top: 10px;">
-        <div class="comparison-visual" style="display: flex; gap: 16px; width: 100%; justify-content: center; align-items: stretch; margin-top: 0;">
-          <!-- LEFT: WITHOUT TURBOFIX -->
-          <div class="side-card without" style="flex: 1; min-width: 0; padding: 18px; border-radius: 12px; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-top: 4px solid var(--red);">
-            <div class="side-label" data-i18n="comparison.withoutLabel" style="font-size: 0.72rem; font-weight: 700; color: var(--red); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase;">WITHOUT TURBOFIX</div>
-            
-            <div class="timeline-slim" style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-comparison">
+          <!-- WITHOUT TURBOFIX -->
+          <div class="side-card without">
+            <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
+            <div class="timeline-slim">
+              <div class="timeline-item">
                 <span class="t-icon">🚨</span>
                 <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">🚶</span>
                 <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">📞</span>
                 <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">🤔</span>
                 <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">🛠️</span>
                 <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
               </div>
             </div>
-
-            <div class="bottom-result bad" style="margin-top: 16px; border-top: 1px dashed rgba(248, 113, 113, 0.16); padding-top: 12px; text-align: center;">
-              <p class="big-number" data-i18n="comparison.withoutTime" style="font-size: 1.1rem; font-weight: 700; color: var(--red); margin: 0;">30+ minutes</p>
-              <p class="small-text" data-i18n="comparison.withoutCost" style="font-size: 0.72rem; color: var(--slate-light); margin: 2px 0 0;">₹10,000+ lost</p>
+            <div class="bottom-result bad">
+              <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
+              <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
             </div>
           </div>
 
-          <!-- RIGHT: WITH TURBOFIX -->
-          <div class="side-card with" style="flex: 1; min-width: 0; padding: 18px; border-radius: 12px; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-top: 4px solid var(--green); border-left: 1.5px solid rgba(245, 158, 11, 0.25);">
-            <div class="side-label" data-i18n="comparison.withLabel" style="font-size: 0.72rem; font-weight: 700; color: var(--green); letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase;">WITH TURBOFIX</div>
-            
-            <div class="timeline-slim" style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+          <!-- WITH TURBOFIX -->
+          <div class="side-card with">
+            <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
+            <div class="timeline-slim">
+              <div class="timeline-item">
                 <span class="t-icon">🚨</span>
                 <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">📱</span>
                 <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">🎙️</span>
                 <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item">
                 <span class="t-icon">🤖</span>
                 <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
               </div>
-              <div class="timeline-arrow" style="text-align: center; color: rgba(255,255,255,0.15); font-size: 0.8rem; margin: -2px 0;">↓</div>
-              <div class="timeline-item highlight-item" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--green); font-weight: 700;">
+              <div class="timeline-arrow">↓</div>
+              <div class="timeline-item highlight-item">
                 <span class="t-icon">✅</span>
                 <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
               </div>
             </div>
-
-            <div class="bottom-result good" style="margin-top: 16px; border-top: 1px dashed rgba(34, 197, 94, 0.16); padding-top: 12px; text-align: center;">
-              <p class="big-number" data-i18n="comparison.withTime" style="font-size: 1.1rem; font-weight: 800; color: var(--green); margin: 0; text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);">60 seconds</p>
-              <p class="small-text" data-i18n="comparison.withSave" style="font-size: 0.72rem; color: var(--slate-light); margin: 2px 0 0;">Save ₹10,000+</p>
+            <div class="bottom-result good">
+              <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
+              <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
             </div>
           </div>
         </div>

@@ -273,7 +273,147 @@ p { margin: 0; }
 .stat-num { font-size: 1.7rem; font-weight: 800; color: var(--ink); }
 .stat-label { font-size: 0.82rem; color: var(--slate); margin-top: 2px; }
 
-.hero-visual { position: relative; display: flex; justify-content: center; }
+.hero-visual { position: relative; display: flex; justify-content: center; align-items: flex-start; }
+
+/* ===========================================================
+   Hero Comparison — unified dark-premium theme
+   Matches the ROI calculator's gradient card aesthetic
+   =========================================================== */
+.hero-comparison {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.hero-comparison .side-card {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 18px;
+  border-radius: 12px;
+  margin: 0;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+  border: 1.5px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.hero-comparison .side-card.without {
+  border-top: 3px solid rgba(248, 113, 113, 0.5);
+}
+
+.hero-comparison .side-card.with {
+  border-top: 3px solid rgba(245, 158, 11, 0.6);
+}
+
+.hero-comparison .side-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.hero-comparison .side-label {
+  display: inline-block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+.hero-comparison .without .side-label {
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+}
+
+.hero-comparison .with .side-label {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.hero-comparison .timeline-slim {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.hero-comparison .timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--slate);
+  font-weight: 500;
+}
+
+.hero-comparison .timeline-item.highlight-item {
+  background: rgba(245, 158, 11, 0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 2px solid #f59e0b;
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.hero-comparison .t-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.hero-comparison .timeline-arrow {
+  text-align: center;
+  color: rgba(148, 163, 184, 0.12);
+  font-size: 0.7rem;
+  line-height: 0.5;
+  margin: 0;
+}
+
+.hero-comparison .bottom-result {
+  margin-top: 14px;
+  padding: 12px 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: none;
+  border-top: 1px dashed rgba(148, 163, 184, 0.1);
+}
+
+.hero-comparison .bottom-result.bad {
+  background: rgba(248, 113, 113, 0.04);
+}
+
+.hero-comparison .bottom-result.good {
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.hero-comparison .bottom-result .big-number {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 2px;
+}
+
+.hero-comparison .bottom-result.bad .big-number {
+  color: #f87171;
+}
+
+.hero-comparison .bottom-result.good .big-number {
+  color: #f59e0b;
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+}
+
+.hero-comparison .bottom-result .small-text {
+  font-size: 0.68rem;
+  color: var(--slate-light);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .hero-comparison {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
 .blob {
   position: absolute;
   border-radius: 50%;
