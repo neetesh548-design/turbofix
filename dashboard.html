@@ -228,6 +228,13 @@ async function loadDashboard() {
       headers: {"Authorization": `Bearer ${token}`},
     });
 
+    if (resp.status === 403) {
+      alert("Your company registration is pending admin approval.");
+      localStorage.removeItem("tf_token");
+      localStorage.removeItem("tf_user");
+      window.location.href = "vault.html";
+      return;
+    }
     if (!resp.ok) {
       localStorage.removeItem("tf_token");
       localStorage.removeItem("tf_user");

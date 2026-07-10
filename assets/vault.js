@@ -104,23 +104,33 @@ async function login(identifier, password) {
   if (!resp.ok) {
     let detail = "Invalid credentials.";
     try { detail = (await resp.json()).detail || detail; } catch (_) {}
+    if (resp.status === 403) throw new Error(detail);
     throw new Error(detail);
   }
   setSession(await resp.json());
 }
 
-async function signup(payload) {
-  const resp = await safeFetch(apiUrl("/auth/signup"), {
+async function registerCompany(payload) {
+  const resp = await safeFetch(apiUrl("/auth/register"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   if (!resp.ok) {
-    let detail = "Sign up failed.";
+    let detail = "Registration failed.";
     try { detail = (await resp.json()).detail || detail; } catch (_) {}
     throw new Error(detail);
   }
-  setSession(await resp.json());
+  return resp.json();
+}
+
+async function addSupervisor(payload) {
+  const resp = await apiFetch("/auth/supervisors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return resp.json();
 }
 
 function renderUserBar() {
@@ -135,6 +145,7 @@ function renderUserBar() {
   $("addPartToggleWrap").style.display = canWrite() ? "block" : "none";
   $("addConsToggleWrap").style.display = canWrite() ? "block" : "none";
   $("addMachineToggleWrap").style.display = canWrite() ? "block" : "none";
+  $("addSupervisorToggleWrap").style.display = canDelete() ? "block" : "none";
 }
 
 // ---------------------------------------------------------------
@@ -385,7 +396,7 @@ async function refreshActivePanel() {
 
 async function enterVault() {
   $("loginCard").style.display = "none";
-  $("signupCard").style.display = "none";
+  $("registerCard").style.display = "none";
   $("vaultShell").style.display = "block";
   renderUserBar();
   try {
@@ -421,34 +432,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("logoutBtn").addEventListener("click", logout);
 
-  $("showSignupBtn").addEventListener("click", () => {
+  $("showRegisterBtn").addEventListener("click", () => {
     $("loginCard").style.display = "none";
-    $("signupCard").style.display = "block";
+    $("registerCard").style.display = "block";
   });
   $("backToLoginBtn").addEventListener("click", () => {
-    $("signupCard").style.display = "none";
+    $("registerCard").style.display = "none";
     $("loginCard").style.display = "block";
   });
-  $("signupForm").addEventListener("submit", async (e) => {
+  $("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const errEl = $("signupError");
+    const errEl = $("registerError");
+    const successEl = $("registerSuccess");
     clearError(errEl);
-    if (!$("signupPhone").value.trim() && !$("signupEmail").value.trim()) {
-      showError(errEl, "Enter a phone or email so you can log in afterward.");
-      return;
-    }
-    const btn = $("signupSubmit");
+    successEl.style.display = "none";
+    const btn = $("registerSubmit");
     btn.disabled = true;
     try {
-      await signup({
-        company_code: $("signupCompanyCode").value.trim(),
-        admin_contact_phone: $("signupAdminPhone").value.trim(),
-        name: $("signupName").value.trim(),
-        phone: $("signupPhone").value.trim(),
-        email: $("signupEmail").value.trim(),
-        password: $("signupPassword").value,
+      const result = await registerCompany({
+        company_code: $("regCompanyCode").value.trim(),
+        company_name: $("regCompanyName").value.trim(),
+        admin_contact_phone: $("regAdminPhone").value.trim(),
+        owner_name: $("regOwnerName").value.trim(),
+        owner_email: $("regOwnerEmail").value.trim(),
+        owner_password: $("regOwnerPassword").value,
       });
-      await enterVault();
+      e.target.reset();
+      successEl.textContent = result.message || "Registration submitted! A TurboFix admin will review and approve your company.";
+      successEl.style.display = "block";
+    } catch (err) {
+      showError(errEl, err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("addSupervisorToggleBtn").addEventListener("click", () => {
+    const card = $("addSupervisorCard");
+    card.style.display = card.style.display === "none" ? "block" : "none";
+  });
+  $("addSupervisorForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = $("addSupervisorError");
+    const successEl = $("addSupervisorSuccess");
+    clearError(errEl);
+    successEl.style.display = "none";
+    if (!$("supPhone").value.trim() && !$("supEmail").value.trim()) {
+      showError(errEl, "Enter a phone or email so the supervisor can log in.");
+      return;
+    }
+    const btn = $("addSupervisorSubmit");
+    btn.disabled = true;
+    try {
+      const result = await addSupervisor({
+        name: $("supName").value.trim(),
+        phone: $("supPhone").value.trim(),
+        email: $("supEmail").value.trim(),
+        password: $("supPassword").value,
+      });
+      e.target.reset();
+      successEl.textContent = `Supervisor "${result.name}" created (${result.user_id}).`;
+      successEl.style.display = "block";
     } catch (err) {
       showError(errEl, err.message);
     } finally {
