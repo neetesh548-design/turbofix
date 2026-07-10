@@ -6,7 +6,7 @@
    the rest of demo-site.
    =========================================================== */
 
-const storedApiBase = sessionStorage.getItem("tf_vault_api_base");
+const storedApiBase = localStorage.getItem("tf_api_base");
 let defaultApiBase = "https://turbofix-backend-ehxb.onrender.com";
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
 if (isLocal) {
@@ -16,8 +16,8 @@ const DEFAULT_API_BASE = defaultApiBase;
 
 const state = {
   apiBase: (isLocal && storedApiBase === "https://turbofix-backend-ehxb.onrender.com") ? defaultApiBase : (storedApiBase || defaultApiBase),
-  token: sessionStorage.getItem("tf_vault_token") || null,
-  user: JSON.parse(sessionStorage.getItem("tf_vault_user") || "null"),
+  token: localStorage.getItem("tf_token") || null,
+  user: JSON.parse(localStorage.getItem("tf_user") || "null"),
   machines: [],
   currentMachineId: null,
 };
@@ -73,11 +73,17 @@ function canWrite() {
   return state.user && (state.user.role === "owner" || state.user.role === "maintenance_head" || state.user.role === "supervisor");
 }
 
+function canDelete() {
+  return state.user && state.user.role === "owner";
+}
+
 function logout() {
   state.token = null;
   state.user = null;
-  sessionStorage.removeItem("tf_vault_token");
-  sessionStorage.removeItem("tf_vault_user");
+  localStorage.removeItem("tf_token");
+  localStorage.removeItem("tf_user");
+  localStorage.removeItem("dashToken");
+  localStorage.removeItem("dashUser");
   $("vaultShell").style.display = "none";
   $("loginCard").style.display = "block";
 }
@@ -85,8 +91,8 @@ function logout() {
 function setSession(body) {
   state.token = body.access_token;
   state.user = body.user;
-  sessionStorage.setItem("tf_vault_token", state.token);
-  sessionStorage.setItem("tf_vault_user", JSON.stringify(state.user));
+  localStorage.setItem("tf_token", state.token);
+  localStorage.setItem("tf_user", JSON.stringify(state.user));
 }
 
 async function login(identifier, password) {
@@ -271,7 +277,7 @@ async function loadDocuments() {
       </div>
       <div class="vault-doc-actions">
         <button class="vault-btn vault-btn-ghost" data-download="${doc.document_id}">Download</button>
-        ${canWrite() ? `<button class="vault-btn vault-btn-danger" data-delete="${doc.document_id}">Delete</button>` : ""}
+        ${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete="${doc.document_id}">Delete</button>` : ""}
       </div>`;
     list.appendChild(card);
   }
@@ -342,7 +348,7 @@ function loadSpareParts() {
     <td>${p.quantity_on_hand} ${escapeHtml(p.unit || "")}</td>
     <td>${p.reorder_level}</td>
     <td>${escapeHtml(p.supplier || "")}</td>
-    <td>${canWrite() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${p.part_id}">Delete</button>` : ""}</td>
+    <td>${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${p.part_id}">Delete</button>` : ""}</td>
   `);
 }
 
@@ -352,7 +358,7 @@ function loadConsumables() {
     <td>${c.quantity_on_hand} ${escapeHtml(c.unit || "")}</td>
     <td>${c.reorder_level}</td>
     <td>${escapeHtml(c.notes || "")}</td>
-    <td>${canWrite() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${c.consumable_id}">Delete</button>` : ""}</td>
+    <td>${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${c.consumable_id}">Delete</button>` : ""}</td>
   `);
 }
 
@@ -394,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("apiBaseInput").value = state.apiBase;
   $("apiBaseInput").addEventListener("change", (e) => {
     state.apiBase = e.target.value.trim() || DEFAULT_API_BASE;
-    sessionStorage.setItem("tf_vault_api_base", state.apiBase);
+    localStorage.setItem("tf_api_base", state.apiBase);
   });
 
   $("loginForm").addEventListener("submit", async (e) => {
