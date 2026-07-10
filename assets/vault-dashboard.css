@@ -18,12 +18,76 @@ body {
   background: var(--charcoal);
   color: #ffffff;
   margin: 0;
-  padding: 20px;
+  padding: 0;
+}
+
+/* ── Topbar (matches vault.html) ── */
+.dash-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--offwhite);
+  border-bottom: 1px solid #1e293b;
+}
+.dash-topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.dash-topbar .brand-turbo { color: #fff; }
+.dash-topbar .brand-fix { color: var(--brand); }
+.dash-topbar .brand-section {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--slate);
+  margin-left: 6px;
+}
+.dash-topbar .topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.dash-topbar .topbar-nav a {
+  color: var(--slate);
+  font-size: 0.85rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.dash-topbar .topbar-nav a:hover { color: #22c55e; }
+.btn-signout {
+  background: transparent;
+  border: 1px solid var(--slate);
+  color: var(--slate);
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.btn-signout:hover { border-color: #fff; color: #fff; }
+
+@media (max-width: 640px) {
+  .dash-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .dash-topbar .brand { font-size: 1.2rem; }
+  .dash-topbar .brand-section { font-size: 0.9rem; }
+  .dash-topbar .topbar-nav { gap: 10px; }
+  .dash-topbar .topbar-nav a { font-size: 0.75rem; }
+  .btn-signout { font-size: 0.75rem; padding: 4px 10px; }
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .screen {
