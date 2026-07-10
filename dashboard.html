@@ -116,6 +116,47 @@
       </div>
     </div>
 
+    <!-- Auto-Derived Insights -->
+    <div class="section-divider">
+      <span class="section-divider-label">Auto-Derived Insights</span>
+    </div>
+    <div class="kpis-grid" id="autoInsights">
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="mtbfHours">—</div>
+        <div class="kpi-label">MTBF (hrs)</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="mttrHours">—</div>
+        <div class="kpi-label">MTTR (hrs)</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="repeatPct">—</div>
+        <div class="kpi-label">Repeat Breakdown %</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="topProblem" style="font-size:18px;">—</div>
+        <div class="kpi-label">#1 Problem Machine</div>
+      </div>
+    </div>
+
+    <!-- Custom KPIs (Owner-Defined) -->
+    <div class="section-divider">
+      <span class="section-divider-label">Your Custom KPIs</span>
+      <button class="btn-icon" id="openKpiSettings" title="Configure KPIs">⚙</button>
+    </div>
+    <div class="kpis-grid" id="customKpiGrid">
+      <div class="kpi-card kpi-add-card" id="addKpiPlaceholder">
+        <div class="kpi-number" style="font-size:24px; cursor:pointer;" onclick="document.getElementById('openKpiSettings').click()">+</div>
+        <div class="kpi-label">Add Custom KPI</div>
+      </div>
+    </div>
+
+    <!-- Manual Data Entry -->
+    <div class="activity-section" id="manualEntrySection" style="margin-top:24px; display:none;">
+      <h2>Log Daily Data</h2>
+      <div class="manual-entry-form" id="manualEntryForm"></div>
+    </div>
+
     <div class="activity-section">
       <h2>Needs Attention Now</h2>
       <div id="attentionList" class="activity-list">
@@ -137,6 +178,62 @@
 
     <div class="footer-link">
       <a href="vault.html">Manage Documents & Spare Parts →</a>
+    </div>
+
+    <!-- KPI Settings Modal -->
+    <div class="modal-overlay" id="kpiModal" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Configure Custom KPIs</h2>
+          <button class="btn-icon" id="closeKpiModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="kpiConfigList"></div>
+          <div class="kpi-add-form" id="kpiAddForm">
+            <h3 style="margin:20px 0 12px; font-size:15px; color:var(--brand);">Add New KPI</h3>
+            <div class="form-row">
+              <div class="form-group" style="flex:2;">
+                <label for="newKpiName">KPI Name</label>
+                <input type="text" id="newKpiName" placeholder="e.g. Production Units/Shift">
+              </div>
+              <div class="form-group" style="flex:1;">
+                <label for="newKpiType">Type</label>
+                <select id="newKpiType">
+                  <option value="manual">Manual Input</option>
+                  <option value="auto">Auto-Tracked</option>
+                  <option value="calc">Calculated</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newKpiUnit">Unit</label>
+                <input type="text" id="newKpiUnit" placeholder="e.g. units, kWh, Rs, %">
+              </div>
+              <div class="form-group">
+                <label for="newKpiTarget">Target Value</label>
+                <input type="text" id="newKpiTarget" placeholder="e.g. 450">
+              </div>
+              <div class="form-group">
+                <label for="newKpiCost">Cost/Hour (if calc)</label>
+                <input type="text" id="newKpiCost" placeholder="e.g. 5000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newKpiWarning">Warning Threshold</label>
+                <input type="text" id="newKpiWarning" placeholder="e.g. 400">
+              </div>
+              <div class="form-group">
+                <label for="newKpiCritical">Critical Threshold</label>
+                <input type="text" id="newKpiCritical" placeholder="e.g. 300">
+              </div>
+            </div>
+            <button class="btn-primary" id="saveNewKpi" style="margin-top:12px;">Add KPI</button>
+            <div id="kpiFormError" class="error-msg"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -218,6 +315,9 @@ async function loadDashboard() {
     const urgentEl = document.getElementById("urgentOpen");
     urgentEl.textContent = data.kpis.urgent_open ?? "—";
     urgentEl.classList.toggle("kpi-warning", (data.kpis.urgent_open || 0) > 0);
+
+    renderAutoInsights(data.auto_insights || {});
+    renderCustomKpis(data.custom_kpis || []);
 
     renderAttention(data.needs_attention || []);
     renderTrend(data.weekly_trend || []);
@@ -316,6 +416,175 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.removeItem("dashUser");
   showLogin();
 });
+
+// ===== Auto Insights =====
+function renderAutoInsights(insights) {
+  document.getElementById("mtbfHours").textContent = insights.mtbf_hours || "—";
+  document.getElementById("mttrHours").textContent = insights.mttr_hours || "—";
+
+  const rpEl = document.getElementById("repeatPct");
+  rpEl.textContent = (insights.repeat_breakdown_pct ?? "—") + (insights.repeat_breakdown_pct != null ? "%" : "");
+  rpEl.classList.toggle("kpi-danger", (insights.repeat_breakdown_pct || 0) > 15);
+  rpEl.classList.toggle("kpi-warning", (insights.repeat_breakdown_pct || 0) > 5 && (insights.repeat_breakdown_pct || 0) <= 15);
+
+  const topEl = document.getElementById("topProblem");
+  if (insights.top_problem_machines && insights.top_problem_machines.length > 0) {
+    const top = insights.top_problem_machines[0];
+    topEl.textContent = top.machine_name || top.machine_id;
+    topEl.title = `${top.ticket_count} tickets in last 30 days`;
+  } else {
+    topEl.textContent = "—";
+  }
+}
+
+// ===== Custom KPIs =====
+function renderCustomKpis(kpis) {
+  const grid = document.getElementById("customKpiGrid");
+  const placeholder = document.getElementById("addKpiPlaceholder");
+
+  grid.querySelectorAll(".custom-kpi-card").forEach(el => el.remove());
+
+  kpis.forEach(kpi => {
+    const card = document.createElement("div");
+    card.className = `kpi-card custom-kpi-card kpi-status-${kpi.status || "normal"}`;
+    card.innerHTML = `
+      <span class="custom-kpi-tag">${escapeHtml(kpi.kpi_type)}</span>
+      <div class="kpi-number">${escapeHtml(kpi.value)}</div>
+      <div class="kpi-label">${escapeHtml(kpi.kpi_name)}${kpi.target ? ' (target: ' + escapeHtml(kpi.target) + ')' : ''}</div>
+    `;
+    grid.insertBefore(card, placeholder);
+  });
+
+  // Show manual entry form for manual-type KPIs
+  const manualKpis = kpis.filter(k => k.kpi_type === "manual" && k.value === "—");
+  const entrySection = document.getElementById("manualEntrySection");
+  const entryForm = document.getElementById("manualEntryForm");
+  if (manualKpis.length > 0) {
+    entrySection.style.display = "block";
+    entryForm.innerHTML = manualKpis.map(k => `
+      <div class="manual-entry-item">
+        <label>${escapeHtml(k.kpi_name)} ${k.unit ? '(' + escapeHtml(k.unit) + ')' : ''}</label>
+        <input type="text" id="entry-${k.kpi_id}" placeholder="Value">
+        <button onclick="submitManualEntry('${k.kpi_id}')">Save</button>
+      </div>
+    `).join("");
+  } else {
+    entrySection.style.display = "none";
+  }
+}
+
+async function submitManualEntry(kpiId) {
+  const input = document.getElementById("entry-" + kpiId);
+  if (!input || !input.value.trim()) return;
+  const token = localStorage.getItem("dashToken");
+  try {
+    await fetch(`${BACKEND_URL}/vault/kpis/data`, {
+      method: "POST",
+      headers: {"Authorization": `Bearer ${token}`, "Content-Type": "application/json"},
+      body: JSON.stringify({kpi_id: kpiId, value: input.value.trim()}),
+    });
+    input.value = "";
+    loadDashboard();
+  } catch(e) { console.error("Manual entry error:", e); }
+}
+
+// ===== KPI Settings Modal =====
+document.getElementById("openKpiSettings").addEventListener("click", () => {
+  document.getElementById("kpiModal").style.display = "flex";
+  loadKpiConfigs();
+});
+
+document.getElementById("closeKpiModal").addEventListener("click", () => {
+  document.getElementById("kpiModal").style.display = "none";
+});
+
+document.getElementById("kpiModal").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("kpiModal")) {
+    document.getElementById("kpiModal").style.display = "none";
+  }
+});
+
+async function loadKpiConfigs() {
+  const token = localStorage.getItem("dashToken");
+  try {
+    const resp = await fetch(`${BACKEND_URL}/vault/kpis`, {
+      headers: {"Authorization": `Bearer ${token}`},
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    renderKpiConfigList(data.configs || []);
+  } catch(e) { console.error("KPI config load error:", e); }
+}
+
+function renderKpiConfigList(configs) {
+  const list = document.getElementById("kpiConfigList");
+  if (configs.length === 0) {
+    list.innerHTML = `<p class="placeholder" style="padding:16px;">No custom KPIs configured yet. Add one below.</p>`;
+    return;
+  }
+  list.innerHTML = configs.map(c => `
+    <div class="kpi-config-row">
+      <div class="kpi-config-info">
+        <div class="kpi-config-name">${escapeHtml(c.kpi_name)}</div>
+        <div class="kpi-config-meta">${c.unit ? escapeHtml(c.unit) : '—'} · Target: ${c.target_value || '—'} · Warning: ${c.warning_threshold || '—'} · Critical: ${c.critical_threshold || '—'}</div>
+      </div>
+      <span class="kpi-type-badge kpi-type-${c.kpi_type}">${escapeHtml(c.kpi_type)}</span>
+      <button class="btn-delete" onclick="deleteKpi('${c.kpi_id}')">Delete</button>
+    </div>
+  `).join("");
+}
+
+document.getElementById("saveNewKpi").addEventListener("click", async () => {
+  const name = document.getElementById("newKpiName").value.trim();
+  const errDiv = document.getElementById("kpiFormError");
+  if (!name) { errDiv.textContent = "KPI name is required."; return; }
+
+  const token = localStorage.getItem("dashToken");
+  const body = {
+    kpi_name: name,
+    kpi_type: document.getElementById("newKpiType").value,
+    unit: document.getElementById("newKpiUnit").value.trim(),
+    target_value: document.getElementById("newKpiTarget").value.trim(),
+    cost_per_hour: document.getElementById("newKpiCost").value.trim(),
+    warning_threshold: document.getElementById("newKpiWarning").value.trim(),
+    critical_threshold: document.getElementById("newKpiCritical").value.trim(),
+  };
+
+  try {
+    const resp = await fetch(`${BACKEND_URL}/vault/kpis`, {
+      method: "POST",
+      headers: {"Authorization": `Bearer ${token}`, "Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      errDiv.textContent = err.detail || "Failed to add KPI.";
+      return;
+    }
+    errDiv.textContent = "";
+    document.getElementById("newKpiName").value = "";
+    document.getElementById("newKpiUnit").value = "";
+    document.getElementById("newKpiTarget").value = "";
+    document.getElementById("newKpiCost").value = "";
+    document.getElementById("newKpiWarning").value = "";
+    document.getElementById("newKpiCritical").value = "";
+    loadKpiConfigs();
+    loadDashboard();
+  } catch(e) { errDiv.textContent = "Error: " + e.message; }
+});
+
+async function deleteKpi(kpiId) {
+  if (!confirm("Delete this KPI?")) return;
+  const token = localStorage.getItem("dashToken");
+  try {
+    await fetch(`${BACKEND_URL}/vault/kpis/${kpiId}`, {
+      method: "DELETE",
+      headers: {"Authorization": `Bearer ${token}`},
+    });
+    loadKpiConfigs();
+    loadDashboard();
+  } catch(e) { console.error("Delete KPI error:", e); }
+}
 
 // Check for saved token on load
 if (localStorage.getItem("dashToken")) {

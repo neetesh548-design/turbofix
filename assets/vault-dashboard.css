@@ -363,6 +363,260 @@ body {
   text-decoration: underline;
 }
 
+/* Section dividers */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 16px;
+}
+
+.section-divider-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.btn-icon {
+  background: none;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: var(--slate);
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-icon:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* Insight cards */
+.insight-card {
+  border-left: 3px solid #3b82f6;
+}
+
+.insight-card .kpi-number {
+  color: #93c5fd;
+}
+
+/* Custom KPI cards */
+.kpi-card.custom-kpi-card {
+  border: 1px dashed rgba(245, 158, 11, 0.3);
+  position: relative;
+}
+
+.kpi-card.custom-kpi-card .kpi-number {
+  color: var(--brand);
+}
+
+.custom-kpi-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--brand);
+  color: #000;
+  padding: 1px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-status-critical .kpi-number { color: var(--danger) !important; }
+.kpi-status-warning .kpi-number { color: var(--warning) !important; }
+
+.kpi-add-card {
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.kpi-add-card:hover {
+  opacity: 1;
+  border-color: var(--brand);
+}
+
+/* Manual data entry */
+.manual-entry-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.manual-entry-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.manual-entry-item label {
+  font-size: 12px;
+  color: var(--slate);
+  flex: 1;
+  font-weight: 600;
+}
+
+.manual-entry-item input {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 6px;
+  font-size: 13px;
+  background: var(--charcoal);
+  color: white;
+  text-align: right;
+}
+
+.manual-entry-item button {
+  padding: 6px 10px;
+  background: var(--brand);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* KPI Settings Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--offwhite);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.modal-header h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+  color: white;
+}
+
+.modal-body {
+  padding: 20px 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-row .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--charcoal);
+  color: white;
+}
+
+.kpi-config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--charcoal);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--brand);
+}
+
+.kpi-config-row .kpi-config-info {
+  flex: 1;
+}
+
+.kpi-config-row .kpi-config-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+}
+
+.kpi-config-row .kpi-config-meta {
+  font-size: 11px;
+  color: var(--slate);
+  margin-top: 2px;
+}
+
+.kpi-config-row .kpi-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.kpi-type-auto { background: #1a3a2a; color: #22c55e; }
+.kpi-type-calc { background: #1a2a3a; color: #3b82f6; }
+.kpi-type-manual { background: #3a2a12; color: #f59e0b; }
+
+.kpi-config-row .btn-delete {
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.kpi-config-row .btn-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 /* Dark theme adjustments */
 #dashScreen {
   background: var(--charcoal);
