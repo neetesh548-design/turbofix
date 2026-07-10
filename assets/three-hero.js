@@ -30,63 +30,84 @@
   const machineGroup = new THREE.Group();
   scene.add(machineGroup);
 
-  // 1. Central Chrome Shaft
-  const shaftGeom = new THREE.CylinderGeometry(0.18, 0.18, 3, 32);
-  const shaftMat = new THREE.MeshStandardMaterial({ 
-    color: 0x94a3b8, 
-    roughness: 0.1, 
-    metalness: 0.9 
-  });
-  const shaft = new THREE.Mesh(shaftGeom, shaftMat);
-  shaft.rotation.x = Math.PI / 2;
-  machineGroup.add(shaft);
+  // Helper function to create a precision gear
+  function createGear(radius, thickness, toothCount, color, metalness, roughness) {
+    const gearGroup = new THREE.Group();
 
-  // 2. Primary Emerald Gear Ring
-  const ringGeom = new THREE.TorusGeometry(1, 0.22, 16, 100);
-  const ringMat = new THREE.MeshStandardMaterial({ 
-    color: 0x22a35a, 
-    roughness: 0.25, 
-    metalness: 0.75 
-  });
-  const ring = new THREE.Mesh(ringGeom, ringMat);
-  machineGroup.add(ring);
+    // 1. Central hub (cylinder)
+    const hubGeom = new THREE.CylinderGeometry(radius * 0.22, radius * 0.22, thickness + 0.02, 32);
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.1 });
+    const hub = new THREE.Mesh(hubGeom, hubMat);
+    hub.rotation.x = Math.PI / 2;
+    gearGroup.add(hub);
 
-  // 3. Gold Cog Teeth (8 surrounding cogs)
-  const cogGeom = new THREE.BoxGeometry(0.16, 0.3, 0.24);
-  const cogMat = new THREE.MeshStandardMaterial({ 
-    color: 0xf59e0b, 
-    roughness: 0.15, 
-    metalness: 0.85 
-  });
-  for (let i = 0; i < 8; i++) {
-    const angle = (i / 8) * Math.PI * 2;
-    const cog = new THREE.Mesh(cogGeom, cogMat);
-    cog.position.set(Math.cos(angle) * 1.1, Math.sin(angle) * 1.1, 0);
-    cog.rotation.z = angle + Math.PI / 2;
-    machineGroup.add(cog);
+    // 2. Main Gear body (cylinder)
+    const bodyGeom = new THREE.CylinderGeometry(radius * 0.85, radius * 0.85, thickness, 32);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: metalness, roughness: roughness });
+    const body = new THREE.Mesh(bodyGeom, bodyMat);
+    body.rotation.x = Math.PI / 2;
+    gearGroup.add(body);
+
+    // 3. Teeth (cogs)
+    const toothWidth = (Math.PI * 2 * radius) / (toothCount * 2);
+    const toothHeight = radius * 0.25;
+    const toothDepth = thickness - 0.02;
+    const toothGeom = new THREE.BoxGeometry(toothWidth, toothHeight, toothDepth);
+    const toothMat = new THREE.MeshStandardMaterial({ color: color, metalness: metalness, roughness: roughness });
+
+    for (let i = 0; i < toothCount; i++) {
+      const angle = (i / toothCount) * Math.PI * 2;
+      const tooth = new THREE.Mesh(toothGeom, toothMat);
+      tooth.position.set(Math.cos(angle) * (radius * 0.92), Math.sin(angle) * (radius * 0.92), 0);
+      tooth.rotation.z = angle;
+      gearGroup.add(tooth);
+    }
+
+    return gearGroup;
   }
 
-  // 4. Outer support shield outline (subtle)
-  const shieldGeom = new THREE.RingGeometry(1.6, 1.62, 6);
-  const shieldMat = new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide });
-  const shield = new THREE.Mesh(shieldGeom, shieldMat);
-  machineGroup.add(shield);
+  // Create Gears (large center gear, interlinked with left and right small gears)
+  const thickness = 0.22;
+
+  // 1. Large Central Green Gear (16 cogs)
+  const largeGear = createGear(0.75, thickness, 16, 0x22a35a, 0.8, 0.2);
+  machineGroup.add(largeGear);
+
+  // 2. Left Gold Gear (8 cogs, half size)
+  const leftGear = createGear(0.375, thickness, 8, 0xf59e0b, 0.9, 0.15);
+  leftGear.position.set(-1.12, 0, 0);
+  machineGroup.add(leftGear);
+
+  // 3. Right Gold Gear (8 cogs, half size)
+  const rightGear = createGear(0.375, thickness, 8, 0xf59e0b, 0.9, 0.15);
+  rightGear.position.set(1.12, 0, 0);
+  machineGroup.add(rightGear);
+
+  // 4. Outer shield ring (enclosing gear setup)
+  const shieldRingGeom = new THREE.TorusGeometry(1.6, 0.04, 16, 100);
+  const shieldRingMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9, roughness: 0.1 });
+  const shieldRing = new THREE.Mesh(shieldRingGeom, shieldRingMat);
+  machineGroup.add(shieldRing);
 
   // Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xfff0d0, 1.5); // Warm gold main light
+  const dirLight = new THREE.DirectionalLight(0xfff0d0, 1.6); // Warm gold main light
   dirLight.position.set(5, 5, 4);
   scene.add(dirLight);
 
-  const greenLight = new THREE.PointLight(0x22a35a, 2.5, 12); // Secondary green accent glow
+  const greenLight = new THREE.PointLight(0x22a35a, 2.5, 12); // Emerald accent glow
   greenLight.position.set(-3, -2, 2.5);
   scene.add(greenLight);
 
-  const goldLight = new THREE.PointLight(0xf59e0b, 2.0, 10); // Secondary gold glow
+  const goldLight = new THREE.PointLight(0xf59e0b, 2.0, 10); // Gold accent glow
   goldLight.position.set(3, 3, -1);
   scene.add(goldLight);
+
+  // Initial Tilt to display 3D depth of gears
+  machineGroup.rotation.x = 0.5; 
+  machineGroup.rotation.y = -0.3;
 
   // Mouse Parallax variables
   let mouseX = 0;
@@ -106,14 +127,18 @@
 
     const elapsedTime = clock.getElapsedTime();
 
-    // Slowly rotate machine components
-    machineGroup.rotation.z = elapsedTime * 0.15;
-    machineGroup.rotation.y = Math.sin(elapsedTime * 0.08) * 0.12;
+    // 1. Rotate central gear clockwise
+    largeGear.rotation.z = elapsedTime * 0.18;
+
+    // 2. Rotate side gears counter-clockwise at mesh-perfect ratio (2x speed)
+    // Add small angle offsets so teeth slot into each other rather than collide
+    leftGear.rotation.z = -elapsedTime * 0.36 + Math.PI / 8;
+    rightGear.rotation.z = -elapsedTime * 0.36 + Math.PI / 8;
 
     // Apply mouse parallax if controls are idle
     if (controls.state === -1) {
       targetX = mouseX * 0.5;
-      targetY = -mouseY * 0.3; // Invert Y
+      targetY = -mouseY * 0.3;
       camera.position.x += (targetX - camera.position.x) * 0.05;
       camera.position.y += (targetY - camera.position.y) * 0.05;
     }
