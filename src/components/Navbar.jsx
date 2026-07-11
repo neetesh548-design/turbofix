@@ -7,11 +7,19 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
   const [isAuth, setIsAuth] = useState(!!localStorage.getItem('tf_token'));
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('tf_user')) || null; }
+    catch { return null; }
+  });
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
 
   useEffect(() => {
-    const handleAuth = () => setIsAuth(!!localStorage.getItem('tf_token'));
+    const handleAuth = () => {
+      setIsAuth(!!localStorage.getItem('tf_token'));
+      try { setUser(JSON.parse(localStorage.getItem('tf_user')) || null); }
+      catch { setUser(null); }
+    };
     window.addEventListener('authChanged', handleAuth);
 
     const handleScroll = () => {
@@ -105,7 +113,13 @@ export default function Navbar() {
             <option value="mr">मराठी</option>
           </select>
           {isAuth ? (
-            <Link to="/dashboard.html" className="login-link">Dashboard</Link>
+            <div className="nav-user-info" style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+              <div style={{textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                <span style={{fontSize: '13px', fontWeight: '600', color: '#f8fafc', lineHeight: '1.2'}}>{user?.name || 'Staff'}</span>
+                <span style={{fontSize: '11px', color: '#94a3b8', lineHeight: '1.2', textTransform: 'uppercase', letterSpacing: '0.05em'}}>{user?.company_code || 'TurboFix'}</span>
+              </div>
+              <Link to="/dashboard.html" className="login-link" style={{padding: '6px 14px', fontSize: '13px'}}>Dashboard</Link>
+            </div>
           ) : (
             <Link to="/vault.html" className="login-link">{t('nav.login')}</Link>
           )}
