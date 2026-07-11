@@ -122,7 +122,7 @@ export default function Vault() {
         <span class="vault-role-badge" id="whoRole"></span>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="#/dashboard.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Dashboard</a>
+        <a href="dashboard.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Dashboard</a>
         <button class="vault-btn vault-btn-ghost" id="logoutBtn">Log out</button>
       </div>
     </div>

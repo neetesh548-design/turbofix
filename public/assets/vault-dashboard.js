@@ -19,7 +19,7 @@ function requireAuth() {
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem("tf_token");
     localStorage.removeItem("tf_user");
-    window.location.href = "#/vault.html";
+    window.location.href = "vault.html";
     return false;
   }
   return true;

@@ -45,7 +45,7 @@ export default function Dashboard() {
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="#/vault.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Document Vault</a>
+        <a href="vault.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Document Vault</a>
         <button class="vault-btn vault-btn-ghost" id="logoutBtn" style="border: 1px solid var(--border); color: #fff;">Log out</button>
       </div>
     </div>
