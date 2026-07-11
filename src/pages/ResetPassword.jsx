@@ -38,7 +38,7 @@ export default function ResetPassword() {
           </div>
           <button id="requestBtn" class="btn-primary vault-btn vault-btn-primary" style="width: 100%;">Send reset link</button>
           <div id="requestMsg" class="error-msg vault-error"></div>
-          <div class="footer-link" style="text-align: center; margin-top: 14px;"><a href="#/vault.html" style="color: var(--slate-light);">← Back to sign in</a></div>
+          <div class="footer-link" style="text-align: center; margin-top: 14px;"><a href="vault.html" style="color: var(--slate-light);">← Back to sign in</a></div>
         </div>
 
         <!-- Step 2: choose a new password (shown when the URL carries a ?token=) -->
@@ -54,7 +54,7 @@ export default function ResetPassword() {
           </div>
           <button id="resetBtn" class="btn-primary vault-btn vault-btn-primary" style="width: 100%;">Set new password</button>
           <div id="resetMsg" class="error-msg vault-error"></div>
-          <div class="footer-link" style="text-align: center; margin-top: 14px;"><a href="#/vault.html" style="color: var(--slate-light);">← Back to sign in</a></div>
+          <div class="footer-link" style="text-align: center; margin-top: 14px;"><a href="vault.html" style="color: var(--slate-light);">← Back to sign in</a></div>
         </div>
       </div>
     </div>

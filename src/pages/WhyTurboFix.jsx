@@ -159,7 +159,7 @@ export default function WhyTurboFix() {
           <div style={{ marginTop: '80px' }}>
             <h2 style={{ fontSize: '2rem', marginBottom: '24px' }}>Ready to see it on your floor?</h2>
             <p style={{ color: 'var(--slate)', maxWidth: '600px', margin: '0 auto 32px' }}>TurboFix works through WhatsApp — no app downloads, no training, no IT setup.</p>
-            <a href="#/qr-generator.html" className="btn btn-primary" style={{ display: 'inline-block' }}>Generate a QR Tag for free</a>
+            <a href="/qr-generator.html" className="btn btn-primary" style={{ display: 'inline-block' }}>Generate a QR Tag for free</a>
           </div>
         </div>
       </section>
