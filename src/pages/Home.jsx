@@ -14,12 +14,12 @@ export default function Home() {
             1. HERO SECTION
             ============================================================ */}
         <section className="hero" style={{ padding: '100px 0 80px', textAlign: 'center', background: 'var(--navy)' }}>
-          <div className="container" style={{ maxWidth: '800px' }}>
-            <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', lineHeight: '1.1' }}>
+          <div className="container" style={{ maxWidth: '1200px' }}>
+            <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', lineHeight: '1.1', maxWidth: '900px', margin: '0 auto 20px' }}>
               NO APP. NO TRAINING. <br />
               <span style={{ color: 'var(--brand)' }}>JUST SCAN AND WHATSAPP.</span>
             </h1>
-            <p className="lede" style={{ fontSize: '1.25rem', color: 'var(--slate)', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
+            <p className="lede" style={{ fontSize: '1.25rem', color: 'var(--slate)', marginBottom: '40px', maxWidth: '700px', margin: '0 auto 40px' }}>
               Turn any factory machine into a ticketing point in 10 seconds. Built specifically for MSME factory owners in the Pune MIDC industrial belt.
             </p>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '60px' }}>
@@ -31,39 +31,79 @@ export default function Home() {
               </a>
             </div>
             
-            {/* Mockup Flow */}
+            {/* Mockup Flow - 6 Step Process */}
             <div className="hero-mockup" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
               gap: '20px',
               background: 'var(--card)',
-              padding: '24px',
+              padding: '32px 24px',
               borderRadius: '16px',
               border: '1px solid var(--border)',
               boxShadow: 'var(--shadow-lg)',
-              flexWrap: 'wrap'
+              marginTop: '20px'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '100px', height: '100px', background: '#fff', padding: '8px', borderRadius: '8px', margin: '0 auto 12px' }}>
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=TurboFix" alt="QR Code" style={{ width: '100%', height: '100%' }} />
+              {/* Step 1: Scan */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>1</div>
+                <div style={{ width: '60px', height: '60px', background: '#fff', padding: '4px', borderRadius: '8px', margin: '0 auto 12px' }}>
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=TurboFix" alt="QR Code" style={{ width: '100%', height: '100%' }} />
                 </div>
-                <span style={{ fontSize: '13px', color: 'var(--slate)' }}>Scan QR</span>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>Scan QR</div>
               </div>
-              <div style={{ color: 'var(--slate)', fontSize: '24px' }}>→</div>
-              <div style={{ background: '#075e54', padding: '16px', borderRadius: '16px', width: '220px', textAlign: 'left' }}>
-                <div style={{ background: '#dcf8c6', color: '#000', padding: '8px 12px', borderRadius: '8px 8px 0 8px', fontSize: '13px', marginBottom: '8px', marginLeft: 'auto', width: 'fit-content' }}>
-                  Motor is overheating again.
+
+              {/* Step 2: Auto Identify */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>2</div>
+                <div style={{ background: '#075e54', padding: '10px', borderRadius: '8px', marginBottom: 'auto', marginTop: '4px' }}>
+                  <div style={{ background: '#fff', color: '#000', padding: '6px', borderRadius: '0 8px 8px 8px', fontSize: '11px', lineHeight: '1.4' }}>
+                    <strong style={{ color: '#075e54' }}>System:</strong><br/>Machine CNC-04 Identified
+                  </div>
                 </div>
-                <div style={{ background: '#fff', color: '#000', padding: '8px 12px', borderRadius: '8px 8px 8px 0', fontSize: '13px', width: 'fit-content' }}>
-                  Ticket #104 logged. Supervisor notified.
-                </div>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>Auto-Identify</div>
               </div>
-              <div style={{ color: 'var(--slate)', fontSize: '24px' }}>→</div>
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', width: '200px', textAlign: 'left' }}>
-                <div style={{ fontSize: '12px', color: 'var(--slate)', marginBottom: '8px' }}>Open Tickets</div>
-                <div style={{ background: 'rgba(255,0,0,0.1)', borderLeft: '3px solid var(--red)', padding: '8px', fontSize: '13px', marginBottom: '8px' }}>#104: Motor Overheat</div>
-                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', fontSize: '13px' }}>#103: Belt Jam</div>
+
+              {/* Step 3: Record Voice */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>3</div>
+                <div style={{ background: '#075e54', padding: '10px', borderRadius: '8px', marginBottom: 'auto', marginTop: '4px' }}>
+                  <div style={{ background: '#dcf8c6', color: '#000', padding: '6px', borderRadius: '8px 8px 0 8px', fontSize: '11px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+                    <span>▶</span>
+                    <span>0:12</span>
+                    <span style={{ fontSize: '14px' }}>🎙️</span>
+                  </div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>Record Voice</div>
+              </div>
+
+              {/* Step 4: AI Diagnose */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>4</div>
+                <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '8px', borderRadius: '8px', fontSize: '11px', color: '#38bdf8', marginBottom: 'auto', lineHeight: '1.4', marginTop: '4px' }}>
+                  <strong style={{ display: 'block', marginBottom: '2px' }}>🤖 AI Analysis:</strong> Historical match (Oct 12). Check coolant block.
+                </div>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>AI Diagnose</div>
+              </div>
+
+              {/* Step 5: Intimation */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>5</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: 'auto', marginTop: '4px' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: '#fff' }}>🔔 Alerts Sent:</div>
+                  <div style={{ background: 'var(--navy)', border: '1px solid var(--border)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: 'var(--slate-light)' }}>Owner</div>
+                  <div style={{ background: 'var(--navy)', border: '1px solid var(--border)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: 'var(--slate-light)' }}>Supervisor</div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>Intimation</div>
+              </div>
+
+              {/* Step 6: Resolved */}
+              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>6</div>
+                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px 8px', borderRadius: '8px', textAlign: 'center', marginBottom: 'auto', marginTop: '4px' }}>
+                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>✅</div>
+                  <div style={{ fontSize: '10px', color: 'var(--green)' }}>Issue Fixed<br/>(Downtime: 15m)</div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>Resolved</div>
               </div>
             </div>
           </div>
