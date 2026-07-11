@@ -6,15 +6,15 @@
    the rest of demo-site.
    =========================================================== */
 
-const storedApiBase = localStorage.getItem("tf_api_base");
-let defaultApiBase = "https://turbofix-backend-ehxb.onrender.com";
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
+var storedApiBase = localStorage.getItem("tf_api_base");
+var defaultApiBase = "https://turbofix-backend-ehxb.onrender.com";
+var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
 if (isLocal) {
   defaultApiBase = "http://127.0.0.1:8000";
 }
-const DEFAULT_API_BASE = defaultApiBase;
+var DEFAULT_API_BASE = defaultApiBase;
 
-const state = {
+var state = {
   apiBase: (isLocal && storedApiBase === "https://turbofix-backend-ehxb.onrender.com") ? defaultApiBase : (storedApiBase || defaultApiBase),
   token: localStorage.getItem("tf_token") || null,
   user: JSON.parse(localStorage.getItem("tf_user") || "null"),
@@ -60,7 +60,7 @@ async function safeFetch(url, options, _retried = false) {
   }
 }
 
-const $ = (id) => document.getElementById(id);
+var $ = (id) => document.getElementById(id);
 
 function showLoading(container, message = "Loading…") {
   if (typeof container === "string") container = $(container);
@@ -378,7 +378,7 @@ function showNewMachineResult(machine) {
 // Documents
 // ---------------------------------------------------------------
 
-const CATEGORY_LABELS = {
+var CATEGORY_LABELS = {
   manual: "Manual",
   circuit_diagram: "Circuit diagram",
   hydraulic_diagram: "Hydraulic diagram",

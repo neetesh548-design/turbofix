@@ -1,4 +1,4 @@
-const BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("tf_api_base") || "https://turbofix-backend-ehxb.onrender.com";
+var BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("tf_api_base") || "https://turbofix-backend-ehxb.onrender.com";
 
 function isOwner() {
   const u = JSON.parse(localStorage.getItem("tf_user") || "null");
@@ -25,7 +25,7 @@ function requireAuth() {
   return true;
 }
 
-let dashFirstLoad = true;
+var dashFirstLoad = true;
 
 async function loadDashboard() {
   const token = localStorage.getItem("tf_token");
@@ -175,6 +175,9 @@ function renderTrend(weeks) {
 function showDashboard() {
   document.getElementById("dashScreen").style.display = "block";
   loadDashboard();
+
+  if (window.tfDashPollingStarted) return;
+  window.tfDashPollingStarted = true;
 
   let pollInterval = 5000;
   let pollTimer = null;
