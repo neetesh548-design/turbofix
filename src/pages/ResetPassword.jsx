@@ -6,12 +6,12 @@ export default function ResetPassword() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const script = document.createElement('script');
-    script.src = '/assets/vault.js';
+    script.src = `${import.meta.env.BASE_URL}assets/vault.js`;
     document.body.appendChild(script);
 
     const style = document.createElement('link');
     style.rel = 'stylesheet';
-    style.href = '/assets/vault.css';
+    style.href = `${import.meta.env.BASE_URL}assets/vault.css`;
     document.head.appendChild(style);
     
     return () => {

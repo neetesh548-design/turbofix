@@ -8,17 +8,17 @@ export default function Dashboard() {
     window.scrollTo(0, 0);
     // Load dashboard script
     const script = document.createElement('script');
-    script.src = '/assets/vault-dashboard.js';
+    script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
     document.body.appendChild(script);
 
     const style = document.createElement('link');
     style.rel = 'stylesheet';
-    style.href = '/assets/vault.css';
+    style.href = `${import.meta.env.BASE_URL}assets/vault.css`;
     document.head.appendChild(style);
 
     const styleDash = document.createElement('link');
     styleDash.rel = 'stylesheet';
-    styleDash.href = '/assets/vault-dashboard.css';
+    styleDash.href = `${import.meta.env.BASE_URL}assets/vault-dashboard.css`;
     document.head.appendChild(styleDash);
     
     return () => {
