@@ -19,17 +19,17 @@ const CONFIG = {
 // ===========================================================
 const I18N_STORAGE_KEY = "turbofix_lang";
 
-function getCurrentLang() {
+window.getCurrentLang = function() {
   return localStorage.getItem(I18N_STORAGE_KEY) || "en";
 }
 
 function t(key) {
-  const lang = getCurrentLang();
+  const lang = window.getCurrentLang();
   const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
   return dict[key] || TRANSLATIONS.en[key] || "";
 }
 
-function applyTranslations(lang) {
+window.applyTranslations = function(lang) {
   const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");

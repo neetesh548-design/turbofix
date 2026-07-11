@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [lang, setLang] = useState(localStorage.getItem('turbofix_lang') || 'en');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,6 +13,15 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLangChange = (e) => {
+    const newLang = e.target.value;
+    setLang(newLang);
+    localStorage.setItem('turbofix_lang', newLang);
+    if (window.applyTranslations) {
+      window.applyTranslations(newLang);
+    }
+  };
 
   return (
     <header className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="nav">
@@ -52,7 +62,7 @@ export default function Navbar() {
         </nav>
 
         <div className="nav-cta">
-          <select className="lang-switch" id="langSwitch" aria-label="Choose language" defaultValue="en">
+          <select className="lang-switch" id="langSwitch" aria-label="Choose language" value={lang} onChange={handleLangChange}>
             <option value="en">English</option>
             <option value="hi">हिंदी</option>
             <option value="mr">मराठी</option>
