@@ -4,22 +4,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@600;700;800&display=swap');
 
 :root {
-  --green: #f59e0b; /* Gold/Amber */
-  --green-dark: #d97706; /* Dark gold/amber */
-  --green-light: rgba(245, 158, 11, 0.12);
-  --cyan: #f59e0b;
-  --navy: #0B1120;
-  --navy-2: #111C33;
-  --navy-3: #2D230F;
-  --ink: #EDF2FA;
-  --slate: #9AA8C0;
-  --slate-light: #5E6B84;
-  --bg: #0a0f1d; /* Deep slate background */
-  --card: #0f172a; /* Card surface background */
-  --border: rgba(148, 163, 184, 0.16);
+  --green: #25D366; /* WhatsApp Green */
+  --green-dark: #128C7E;
+  --green-light: rgba(37, 211, 102, 0.12);
+  --brand: #25D366;
+  --cyan: #25D366;
+  
+  --bg: #1a1f24; /* Dark charcoal */
+  --card: #20262c; /* Slightly lighter charcoal for cards */
+  --navy: #1a1f24;
+  --navy-2: #20262c;
+  --navy-3: #334155; /* Steel grey */
+  
+  --ink: #f8fafc; /* Off-white text */
+  --slate: #94a3b8; /* Steel grey */
+  --slate-light: #64748b;
+  --border: rgba(255, 255, 255, 0.1);
+  
   --amber: #FBBF24;
   --red: #F87171;
-  --ok: #f59e0b;
+  --ok: #25D366;
 
   --radius: 8px; /* Square/slightly rounded corners */
   --radius-sm: 6px;
