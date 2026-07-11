@@ -8,7 +8,7 @@ export default function Dashboard() {
     window.scrollTo(0, 0);
     // Load dashboard script
     const script = document.createElement('script');
-    script.src = `${import.meta.env.BASE_URL}assets/vault.js`;
+    script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
     document.body.appendChild(script);
 
     const style = document.createElement('link');
@@ -37,10 +37,16 @@ export default function Dashboard() {
 <div class="container">
   <!-- Dashboard screen (auth via shared token from vault.html staff login) -->
   <div id="dashScreen" class="screen">
-    <div class="dash-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
-      <div>
-        <h1 id="companyName" style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 26px; text-transform: uppercase; color: white; margin: 0;">Loading...</h1>
-        <p id="userRole" class="user-role" style="margin: 4px 0 0;"></p>
+    <div class="dash-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div>
+          <h1 id="companyName" style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 26px; text-transform: uppercase; color: white; margin: 0;">Loading...</h1>
+          <p id="userRole" class="user-role" style="margin: 4px 0 0;"></p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="#/vault.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Document Vault</a>
+        <button class="vault-btn vault-btn-ghost" id="logoutBtn" style="border: 1px solid var(--border); color: #fff;">Log out</button>
       </div>
     </div>
 
