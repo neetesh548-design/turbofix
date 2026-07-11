@@ -564,7 +564,7 @@ async function enterVault() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function initVault() {
   $("apiBaseInput").value = state.apiBase;
   $("apiBaseInput").addEventListener("change", (e) => {
     state.apiBase = e.target.value.trim() || DEFAULT_API_BASE;
@@ -997,4 +997,10 @@ document.addEventListener("DOMContentLoaded", () => {
       enterVault();
     }
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initVault);
+} else {
+  initVault();
+}

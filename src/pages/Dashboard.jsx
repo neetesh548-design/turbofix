@@ -8,7 +8,7 @@ export default function Dashboard() {
     window.scrollTo(0, 0);
     // Load dashboard script
     const script = document.createElement('script');
-    script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
+    script.src = `${import.meta.env.BASE_URL}assets/vault.js`;
     document.body.appendChild(script);
 
     const style = document.createElement('link');
