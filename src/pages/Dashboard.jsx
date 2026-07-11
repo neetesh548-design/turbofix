@@ -9,13 +9,22 @@ export default function Dashboard() {
     // Load dashboard script
     const script = document.createElement('script');
     script.src = '/assets/vault-dashboard.js';
-    script.onload = () => {
-      // Initialize if needed
-    };
     document.body.appendChild(script);
+
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = '/assets/vault.css';
+    document.head.appendChild(style);
+
+    const styleDash = document.createElement('link');
+    styleDash.rel = 'stylesheet';
+    styleDash.href = '/assets/vault-dashboard.css';
+    document.head.appendChild(styleDash);
     
     return () => {
       script.remove();
+      style.remove();
+      styleDash.remove();
     };
   }, []);
 

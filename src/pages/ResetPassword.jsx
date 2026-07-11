@@ -8,9 +8,15 @@ export default function ResetPassword() {
     const script = document.createElement('script');
     script.src = '/assets/vault.js';
     document.body.appendChild(script);
+
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = '/assets/vault.css';
+    document.head.appendChild(style);
     
     return () => {
       script.remove();
+      style.remove();
     };
   }, []);
 
