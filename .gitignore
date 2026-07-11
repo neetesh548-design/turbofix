@@ -1,1 +1,28 @@
 .DS_Store
+
+# Secrets — never commit credentials or keys
+.env
+backend/.env
+google key/
+*.pem
+*.p12
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+backend/.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Media / uploads (ephemeral local storage)
+backend/media_store/
+backend/document_store/

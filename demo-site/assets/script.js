@@ -33,13 +33,7 @@ function applyTranslations(lang) {
   const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
-    if (dict[key]) {
-      if (el.hasAttribute("data-i18n-html")) {
-        el.innerHTML = dict[key];
-      } else {
-        el.textContent = dict[key];
-      }
-    }
+    if (dict[key]) el.innerHTML = dict[key];
   });
   document.documentElement.setAttribute("lang", lang);
 }

@@ -806,7 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fileInput = $("uploadFile");
     if (!fileInput.files.length) return;
     const file = fileInput.files[0];
-    const MAX_SIZE_MB = 50;
+    const MAX_SIZE_MB = 25;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       showError($("vaultError"), `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_SIZE_MB} MB.`);
       return;

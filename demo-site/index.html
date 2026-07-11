@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboFix — Machines Fixed at Turbo Speed</title>
+<meta name="description" content="AI-powered, WhatsApp-native maintenance ticketing for factories. No app to install — scan a QR tag, speak the issue, and the right technician gets notified while your dashboard updates itself.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#05070F">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ============ LANGUAGE GATE ============ -->
+<div class="lang-gate" id="langGate">
+  <div class="lang-gate-blob lang-gate-blob-1" aria-hidden="true"></div>
+  <div class="lang-gate-blob lang-gate-blob-2" aria-hidden="true"></div>
+  <div class="lang-gate-card">
+    <span class="brand-mark lang-gate-mark">⚡</span>
+    <h2 class="lang-gate-title">Choose your language<br>अपनी भाषा चुनें · तुमची भाषा निवडा</h2>
+    <p class="lang-gate-sub">We'll load the page and float the live demo onto your screen automatically.</p>
+    <div class="lang-gate-options">
+      <button class="lang-gate-btn" data-lang="en" style="--i:0">
+        <span class="lang-gate-badge">A</span>
+        <span class="lang-gate-text">
+          <span class="lang-gate-native">English</span>
+          <span class="lang-gate-hint">Continue in English</span>
+        </span>
+        <span class="lang-gate-check">✓</span>
+      </button>
+      <button class="lang-gate-btn" data-lang="hi" style="--i:1">
+        <span class="lang-gate-badge">अ</span>
+        <span class="lang-gate-text">
+          <span class="lang-gate-native">हिंदी</span>
+          <span class="lang-gate-hint">हिंदी में जारी रखें</span>
+        </span>
+        <span class="lang-gate-check">✓</span>
+      </button>
+      <button class="lang-gate-btn" data-lang="mr" style="--i:2">
+        <span class="lang-gate-badge">म</span>
+        <span class="lang-gate-text">
+          <span class="lang-gate-native">मराठी</span>
+          <span class="lang-gate-hint">मराठीत सुरू ठेवा</span>
+        </span>
+        <span class="lang-gate-check">✓</span>
+      </button>
+    </div>
+    <p class="lang-gate-footnote">✨ Takes 2 seconds — you can change this anytime from the menu bar</p>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="nav-inner container">
+    <a href="#top" class="brand">
+      <span class="brand-mark">⚡</span>
+      <span class="brand-name">TurboFix</span>
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+      <a href="#demo" data-i18n="nav.demo">Live demo</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#trial" data-i18n="nav.trial">Free Trial</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#contact" data-i18n="nav.contact">Get Started</a>
+      <a href="vault.html" title="Owner / Supervisor / Maintenance Head sign-in">Staff Login</a>
+    </nav>
+
+    <div class="nav-cta">
+      <select class="lang-switch" id="langSwitch" aria-label="Choose language">
+        <option value="en">English</option>
+        <option value="hi">हिंदी</option>
+        <option value="mr">मराठी</option>
+      </select>
+      <a class="btn btn-whatsapp btn-sm" href="#contact">
+        <span class="ico">💬</span> <span data-i18n="nav.cta">Start Free Trial</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="hero.eyebrow">🏭 Built for Pune MIDC factories</p>
+        <h1 data-i18n="hero.title">Machines fixed at <span class="accent">turbo speed.</span></h1>
+        <p class="lede" data-i18n="hero.lede">
+          Right now, a breakdown means someone walking the floor, guessing what's wrong, and
+          hoping the right technician hears about it before the shift is lost. TurboFix closes
+          that gap: a worker scans the QR tag already on the machine, speaks the issue into
+          WhatsApp, and AI instantly turns it into a clear brief — likely cause, urgency, first
+          action — for the right technician. No app to install, no IT project, and your
+          dashboard updates itself the moment it happens, so you're never the last to know
+          what's broken on your own floor.
+        </p>
+
+        <div class="hero-relief">
+          <p class="hero-relief-before" data-i18n="hero.reliefBefore">😩 Right now: minutes lost walking the floor, more lost guessing which technician to call.</p>
+          <p class="hero-relief-after" data-i18n="hero.reliefAfter">⚡ With TurboFix: technician notified in under 60 seconds — straight from a voice note, automatically.</p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn btn-whatsapp btn-lg" href="#contact">
+            <span class="ico">💬</span> <span data-i18n="hero.ctaTrial">Start Your Free 1-Month Trial</span>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#demo" data-i18n="hero.ctaDemo">▶ Watch Live Demo</a>
+        </div>
+        <p class="hero-fineprint" data-i18n="hero.fineprint">No credit card. No app installs. Cancel anytime.</p>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num" data-count="60" data-prefix="&lt; " data-suffix=" sec">&lt; 0 sec</span>
+            <span class="stat-label" data-i18n="hero.stat1">report to technician notified</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="5" data-suffix=" min">0 min</span>
+            <span class="stat-label" data-i18n="hero.stat2">setup per machine</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="0">0</span>
+            <span class="stat-label" data-i18n="hero.stat3">apps for workers to install</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone-frame phone-frame--hero">
+          <div class="phone-notch"></div>
+          <div class="chat-header">
+            <span class="chat-avatar">🏭</span>
+            <div>
+              <div class="chat-title">TurboFix</div>
+              <div class="chat-sub" data-i18n="hero.chatSub">business account</div>
+            </div>
+          </div>
+          <div class="chat-body chat-body--static">
+            <div class="bubble bubble-out" data-i18n="hero.bubbleOut">Issue with TF-ACME3-M001: <br>spindle making a loud noise 🔊</div>
+            <div class="bubble bubble-in" data-i18n="hero.bubbleIn">
+              <strong>Ticket #T-2481 logged ✅</strong><br>
+              Likely cause: worn spindle bearing<br>
+              Urgency: <span class="badge badge-high">High</span><br>
+              Notifying Ramesh (Technician)…
+            </div>
+          </div>
+        </div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE DEMO ============ -->
+  <section class="section demo-section" id="demo">
+    <div class="container">
+      <h2 class="section-title" data-i18n="demo.title">See TurboFix in action</h2>
+      <p class="section-sub" data-i18n="demo.sub">This is a simulated walkthrough — no sign-up needed. Tap play to watch a real ticket flow through the system, end to end.</p>
+
+      <div class="demo-grid">
+        <!-- Phone / chat simulation -->
+        <div class="demo-phone-wrap">
+          <!-- Step tracker: narrates what's happening in plain language -->
+          <div class="demo-steps" id="demoSteps">
+            <div class="demo-step" data-step="1">
+              <span class="demo-step-dot">📷</span>
+              <span class="demo-step-label" data-i18n="demo.step1Label">Scan</span>
+            </div>
+            <div class="demo-step" data-step="2">
+              <span class="demo-step-dot">🎙️</span>
+              <span class="demo-step-label" data-i18n="demo.step2Label">Report</span>
+            </div>
+            <div class="demo-step" data-step="3">
+              <span class="demo-step-dot">🤖</span>
+              <span class="demo-step-label" data-i18n="demo.step3Label">AI Triage</span>
+            </div>
+            <div class="demo-step" data-step="4">
+              <span class="demo-step-dot">🔔</span>
+              <span class="demo-step-label" data-i18n="demo.step4Label">Notify</span>
+            </div>
+            <div class="demo-step" data-step="5">
+              <span class="demo-step-dot">✅</span>
+              <span class="demo-step-label" data-i18n="demo.step5Label">Resolved</span>
+            </div>
+          </div>
+          <p class="demo-step-desc" id="demoStepDesc" data-i18n="demo.step0Desc">Tap the QR or press play to watch a real ticket move from "machine down" to "technician on it" — start to finish, in under a minute.</p>
+
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="chat-header">
+              <span class="chat-avatar">🏭</span>
+              <div>
+                <div class="chat-title">TurboFix</div>
+                <div class="chat-sub" id="demoStatus" data-i18n="demo.tapToStart">tap play to start</div>
+              </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+              <div class="chat-placeholder" id="chatPlaceholder">
+                <div class="qr-tap" id="qrTap">
+                  <div class="qr-icon">▦</div>
+                  <p data-i18n="demo.qrTap">Tap the QR to simulate a worker scanning it</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-replay" id="replayBtn" data-i18n="demo.playBtn">▶ Play Demo</button>
+          <p class="demo-autoreplay-note" data-i18n="demo.autoReplayNote">This demo loops automatically — feel free to replay it anytime.</p>
+        </div>
+
+        <!-- Dashboard simulation -->
+        <div class="demo-dashboard">
+          <div class="dash-card">
+            <div class="dash-head">
+              <h3 data-i18n="demo.dashboardTitle">Live Dashboard</h3>
+              <span class="dash-live" data-i18n="demo.liveBadge">● live</span>
+            </div>
+            <div class="dash-kpis">
+              <div class="kpi">
+                <span class="kpi-num" id="kpiOpen">2</span>
+                <span class="kpi-label" data-i18n="demo.kpiOpen">Open Tickets</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiDown">1</span>
+                <span class="kpi-label" data-i18n="demo.kpiDown">Machines Down</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiHealth">86%</span>
+                <span class="kpi-label" data-i18n="demo.kpiHealth">Plant Health</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiAvg">4.2h</span>
+                <span class="kpi-label" data-i18n="demo.kpiAvg">Avg. Time to Fix</span>
+              </div>
+            </div>
+            <div class="dash-feed" id="dashFeed">
+              <p class="dash-feed-empty" data-i18n="demo.feedEmpty">Activity will appear here once the demo starts…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEFORE/AFTER COMPARISON ============ -->
+  <section class="section comparison">
+    <div class="container">
+      <h2 class="section-title" data-i18n="comparison.title">The Real Difference</h2>
+      <p class="section-sub" data-i18n="comparison.sub">Your break-down story changes completely.</p>
+
+      <div class="comparison-visual">
+        <!-- LEFT: WITHOUT TURBOFIX -->
+        <div class="side-card without">
+          <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
+          <div class="big-emoji">😓</div>
+
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🚶</span>
+              <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
+              <span class="t-timer">+5 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📞</span>
+              <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
+              <span class="t-timer">+10 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤔</span>
+              <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
+              <span class="t-timer">+8 min</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🛠️</span>
+              <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
+              <span class="t-timer">+7 min</span>
+            </div>
+          </div>
+
+          <div class="bottom-result bad">
+            <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
+            <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
+          </div>
+        </div>
+
+        <!-- RIGHT: WITH TURBOFIX -->
+        <div class="side-card with">
+          <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
+          <div class="big-emoji">⚡</div>
+
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon">🚨</span>
+              <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">📱</span>
+              <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
+              <span class="t-timer">10 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🎙️</span>
+              <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
+              <span class="t-timer">20 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon">🤖</span>
+              <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
+              <span class="t-timer">10 sec</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item highlight-item">
+              <span class="t-icon">✅</span>
+              <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
+              <span class="t-timer">Instant</span>
+            </div>
+          </div>
+
+          <div class="bottom-result good">
+            <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
+            <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM: THE PAYOFF -->
+      <div class="comparison-payoff">
+        <div class="payoff-item">
+          <p class="payoff-label" data-i18n="comparison.payoff1Label">Per breakdown</p>
+          <p class="payoff-value" data-i18n="comparison.payoff1Value">Save 30 min + ₹10K</p>
+        </div>
+        <div class="payoff-spacer">→</div>
+        <div class="payoff-item highlight">
+          <p class="payoff-label" data-i18n="comparison.payoff2Label">10 breakdowns/month</p>
+          <p class="payoff-value" data-i18n="comparison.payoff2Value">₹100,000+ per month</p>
+        </div>
+        <div class="payoff-spacer">→</div>
+        <div class="payoff-item">
+          <p class="payoff-label" data-i18n="comparison.payoff3Label">The real win</p>
+          <p class="payoff-value" data-i18n="comparison.payoff3Value">You're in control 😌</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROBLEM ============ -->
+  <section class="section problem">
+    <div class="container">
+      <h2 class="section-title" data-i18n="problem.title">Three silent leaks draining your factory every month</h2>
+      <p class="section-sub" data-i18n="problem.sub">They never show up as a single line item — which is exactly why they never get fixed.</p>
+      <div class="grid grid-3">
+        <div class="card leak-card">
+          <div class="leak-ico">⏱️</div>
+          <h3 data-i18n="problem.leak1.title">Downtime search cost</h3>
+          <p data-i18n="problem.leak1.body">Hours lost between "something's wrong" and "the right technician knows about it" — not fixing it, just <em>finding out</em>.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">⚡</div>
+          <h3 data-i18n="problem.leak2.title">Ghost power</h3>
+          <p data-i18n="problem.leak2.body">Machines idling, leaking air, or running inefficiently for days because nobody logged the small issue before it became a big one.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">📦</div>
+          <h3 data-i18n="problem.leak3.title">Dead stock</h3>
+          <p data-i18n="problem.leak3.body">Emergency spare-part orders at premium prices because failures were never tracked long enough to see the pattern coming.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="section how" id="how">
+    <div class="container">
+      <h2 class="section-title" data-i18n="how.title">From "it's broken" to "it's assigned" in under a minute</h2>
+      <p class="section-sub" data-i18n="how.sub">Four steps. Zero new habits for your shop-floor team.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-ico">📱</div>
+          <h3 data-i18n="how.step1.title">Scan the QR tag</h3>
+          <p data-i18n="how.step1.body">Every machine has a printed tag. Scanning it opens WhatsApp with the machine's ID already filled in.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-ico">🎙️</div>
+          <h3 data-i18n="how.step2.title">Speak the issue</h3>
+          <p data-i18n="how.step2.body">The worker just talks — in whatever language is natural. No forms, no typing, no app to learn.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-ico">🤖</div>
+          <h3 data-i18n="how.step3.title">AI triages instantly</h3>
+          <p data-i18n="how.step3.body">Voice is transcribed and summarised into likely cause, urgency, and a suggested first action.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-ico">✅</div>
+          <h3 data-i18n="how.step4.title">Right people notified</h3>
+          <p data-i18n="how.step4.body">The assigned technician and anyone who needs to know get pinged on WhatsApp. Your dashboard updates itself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRIAL ============ -->
+  <section class="section trial-section" id="trial">
+    <div class="container trial-inner">
+      <div class="trial-copy">
+        <p class="eyebrow eyebrow-light" data-i18n="trial.eyebrow">🎁 Zero-risk pilot</p>
+        <h2 data-i18n="trial.title">Try TurboFix free for a full month</h2>
+        <p class="lede-light" data-i18n="trial.lede">
+          Bring your own machines, your own team, your own WhatsApp number. We'll help you
+          tag your first machines and get your first tickets flowing — free for 30 days.
+        </p>
+        <ul class="check-list">
+          <li data-i18n="trial.check1">Unlimited tickets for up to 20 machines</li>
+          <li data-i18n="trial.check2">AI voice-note transcription &amp; triage included</li>
+          <li data-i18n="trial.check3">Live dashboard for your whole team</li>
+          <li data-i18n="trial.check4">WhatsApp setup support, not a support ticket queue</li>
+          <li data-i18n="trial.check5">No credit card required to start</li>
+        </ul>
+        <a class="btn btn-whatsapp btn-lg" href="#contact">
+          <span class="ico">💬</span> <span data-i18n="trial.cta">Claim Your Free Trial on WhatsApp</span>
+        </a>
+        <p class="hero-fineprint hero-fineprint-light" data-i18n="trial.fineprint">We'll reply on WhatsApp within one business day.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section class="section why">
+    <div class="container">
+      <h2 class="section-title" data-i18n="why.title">Why factories switch to TurboFix</h2>
+      <div class="grid grid-3">
+        <div class="card why-card">
+          <div class="why-ico">🚫📲</div>
+          <h3 data-i18n="why.card1.title">No app, ever</h3>
+          <p data-i18n="why.card1.body">Workers already know how to use WhatsApp. That's the entire training required.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🤖</div>
+          <h3 data-i18n="why.card2.title">AI-powered triage</h3>
+          <p data-i18n="why.card2.body">Every voice note becomes a structured brief: likely cause, urgency, suggested first action.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🏢</div>
+          <h3 data-i18n="why.card3.title">Multi-tenant &amp; secure</h3>
+          <p data-i18n="why.card3.body">Every machine ID is scoped to your company code — your tickets never mix with anyone else's.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">📊</div>
+          <h3 data-i18n="why.card4.title">Live dashboard</h3>
+          <p data-i18n="why.card4.body">Open tickets, machines down, plant health — updated the moment a ticket is logged, not at end of shift.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">⚡</div>
+          <h3 data-i18n="why.card5.title">Same-day setup</h3>
+          <p data-i18n="why.card5.body">Print QR tags, stick them on, done. Most pilots go live the same day they sign up.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">💰</div>
+          <h3 data-i18n="why.card6.title">Pay for tickets, not seats</h3>
+          <p data-i18n="why.card6.body">No per-user licensing. Cost scales with how much your team actually reports, not headcount.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section faq-section" id="faq">
+    <div class="container">
+      <h2 class="section-title" data-i18n="faq.title">Frequently asked questions</h2>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q1">Do workers need to install anything?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a1">No. Everything runs over WhatsApp, which almost every worker already has and uses daily. There is nothing to download or log into.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q2">What happens after the free trial ends?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a2">We'll check in with you on WhatsApp before it ends. If TurboFix is working for you, you move to pay-per-ticket pricing — no auto-billing surprises, no lock-in contract.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q3">Can workers speak in their own language?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a3">Yes — workers just speak naturally into a voice note. Our AI layer transcribes and summarises it into a clear brief for the technician.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q4">Is our data isolated from other companies?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a4">Yes. Every machine ID is scoped to your unique company code, and every ticket, dashboard view, and notification is filtered to your company only.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q5">What if we have more than 20 machines?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a5">No problem — the 20-machine cap only applies to the free trial. Message us on WhatsApp and we'll size a plan for your full factory floor.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEAD CAPTURE ============ -->
+  <section class="section lead-section" id="contact">
+    <div class="container lead-inner">
+      <div class="lead-copy">
+        <p class="eyebrow" data-i18n="lead.eyebrow">📞 Get started</p>
+        <h2 class="lead-title" data-i18n="lead.title">Ready to stop losing hours to breakdowns?</h2>
+        <p class="lead-sub" data-i18n="lead.sub">
+          Leave your details and we'll message you on WhatsApp within one business day to set up
+          your free 1-month pilot — QR tags, dashboard, everything.
+        </p>
+        <div class="lead-alt">
+          <p data-i18n="lead.or">Prefer to talk right away?</p>
+          <a class="btn btn-ghost" data-wa="general" target="_blank" rel="noopener">
+            <span class="ico">💬</span> <span data-i18n="lead.chatNow">Chat with us now</span>
+          </a>
+        </div>
+      </div>
+
+      <form class="lead-form" id="leadForm" novalidate>
+        <div class="lead-field">
+          <label for="leadName" data-i18n="lead.name">Your name</label>
+          <input type="text" id="leadName" name="name" autocomplete="name" required>
+        </div>
+        <div class="lead-field">
+          <label for="leadCompany" data-i18n="lead.company">Factory / company name</label>
+          <input type="text" id="leadCompany" name="company" autocomplete="organization" required>
+        </div>
+        <div class="lead-row">
+          <div class="lead-field">
+            <label for="leadCity" data-i18n="lead.city">City</label>
+            <input type="text" id="leadCity" name="city" autocomplete="address-level2">
+          </div>
+          <div class="lead-field">
+            <label for="leadMachines" data-i18n="lead.machines">Machines (approx.)</label>
+            <input type="number" id="leadMachines" name="machines" min="1" inputmode="numeric">
+          </div>
+        </div>
+        <div class="lead-field">
+          <label for="leadPhone" data-i18n="lead.phone">Your WhatsApp number</label>
+          <input type="tel" id="leadPhone" name="phone" autocomplete="tel" inputmode="tel" required>
+        </div>
+        <button type="submit" class="btn btn-whatsapp btn-lg lead-submit">
+          <span class="ico">📩</span> <span data-i18n="lead.submit">Send my details on WhatsApp</span>
+        </button>
+        <p class="lead-note" data-i18n="lead.note">
+          The button opens WhatsApp with your details pre-filled — you just press send.
+          Nothing is stored on this website.
+        </p>
+        <p class="lead-error" id="leadError" hidden data-i18n="lead.error">Please fill in your name, company, and WhatsApp number.</p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FLOATING WHATSAPP BUTTON ============ -->
+<a class="float-wa" data-wa="general" target="_blank" rel="noopener" aria-label="Chat with TurboFix on WhatsApp">
+  <span class="float-wa-ico">💬</span>
+  <span class="float-wa-label" data-i18n="float.label">Chat on WhatsApp</span>
+</a>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a href="#top" class="brand">
+        <span class="brand-mark">⚡</span>
+        <span class="brand-name">TurboFix</span>
+      </a>
+      <p data-i18n="footer.tagline">Machines fixed at turbo speed. AI-powered, WhatsApp-native maintenance ticketing for factories.</p>
+    </div>
+    <div class="footer-links">
+      <h4 data-i18n="footer.product">Product</h4>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#demo" data-i18n="nav.demo">Live demo</a>
+      <a href="#trial" data-i18n="nav.trial">Free Trial</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </div>
+    <div class="footer-links">
+      <h4 data-i18n="footer.contact">Get in touch</h4>
+      <a data-wa="general" target="_blank" rel="noopener"><span data-i18n="footer.chat">💬 Chat on WhatsApp</span></a>
+      <a href="#contact"><span data-i18n="footer.callback">📩 Request a callback</span></a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p><span data-i18n="footer.copyrightPrefix">&copy;</span> <span id="year"></span> <span data-i18n="footer.copyrightSuffix">TurboFix. Built for the Pune MIDC industrial belt — and beyond.</span></p>
+    <a href="#" id="teamAdminLink" class="team-admin-link" title="TurboFix team — internal">TurboFix team</a>
+  </div>
+</footer>
+
+<script src="assets/i18n.js"></script>
+<script src="assets/script.js"></script>
+<script>
+  // "TurboFix Team" opens the admin approval console, which is served by the backend
+  // at <backend>/admin (not by this static site). Resolve the backend URL the same way
+  // dashboard.html does — ?backend= override, else a stored value, else prompt once —
+  // so it works in local dev and against the deployed backend without a rebuild.
+  (function () {
+    var link = document.getElementById("teamAdminLink");
+    if (!link) return;
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      var base = "https://turbofix-backend-ehxb.onrender.com";
+      window.open(base + "/admin", "_blank", "noopener");
+    });
+  })();
+</script>
+</body>
+</html>

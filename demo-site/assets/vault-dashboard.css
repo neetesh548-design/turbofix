@@ -1,0 +1,370 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand: #22a35a;
+  --brand-dark: #125c31;
+  --charcoal: #1b1f24;
+  --slate: #5a6472;
+  --slate-lt: #b9c0c6;
+  --offwhite: #f4f5f6;
+  --danger: #c94040;
+  --warning: #f59e0b;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--charcoal);
+  color: var(--charcoal);
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== LOGIN ===== */
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h1 {
+  font-size: 28px;
+  margin: 0 0 4px;
+  color: var(--charcoal);
+}
+
+.login-card .subtitle {
+  color: var(--slate);
+  margin: 0 0 24px;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--charcoal);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(34, 163, 90, 0.1);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--brand-dark);
+}
+
+.error-msg {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 18px;
+}
+
+.footer-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.footer-link a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.footer-link a:hover {
+  text-decoration: underline;
+}
+
+/* ===== DASHBOARD ===== */
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+.dash-header h1 {
+  font-size: 32px;
+  margin: 0;
+  color: white;
+}
+
+.user-role {
+  font-size: 13px;
+  color: var(--slate-lt);
+  margin: 6px 0 0;
+}
+
+.btn-secondary {
+  padding: 9px 16px;
+  background: transparent;
+  color: var(--slate-lt);
+  border: 1px solid var(--slate-lt);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 8px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--slate);
+  font-weight: 500;
+}
+
+.activity-section {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.activity-section h2 {
+  font-size: 18px;
+  margin: 0 0 16px;
+  color: var(--charcoal);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--offwhite);
+  border-radius: 8px;
+  border-left: 3px solid var(--brand);
+}
+
+.activity-main {
+  flex: 1;
+}
+
+.ticket-id {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+
+.ticket-machine {
+  font-size: 12px;
+  color: var(--slate);
+  margin-top: 2px;
+}
+
+.activity-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-open {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-closed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.urgency-high {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.urgency-medium {
+  color: var(--warning);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.urgency-low {
+  color: var(--slate);
+  font-size: 11px;
+}
+
+.placeholder {
+  color: var(--slate);
+  text-align: center;
+  padding: 32px 20px;
+  font-size: 14px;
+}
+
+/* Owner view: alert states on KPI numbers */
+.kpi-number.kpi-danger { color: var(--danger); }
+.kpi-number.kpi-warning { color: var(--warning); }
+
+/* Owner view: needs-attention rows tinted by urgency */
+.activity-row.attention-high { border-left-color: var(--danger); background: #fef2f2; }
+.activity-row.attention-medium { border-left-color: var(--warning); }
+.activity-row.attention-low { border-left-color: #cbd5e1; }
+
+/* Owner view: breakdowns-per-week mini bar chart */
+.trend-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  height: 140px;
+}
+
+.trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 56px;
+  min-height: 2px;
+  background: var(--brand);
+  border-radius: 4px 4px 0 0;
+}
+
+.trend-week {
+  font-size: 11px;
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+.footer-link {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  color: white;
+}
+
+.footer-link a {
+  color: var(--slate-lt);
+  text-decoration: none;
+}
+
+.footer-link a:hover {
+  text-decoration: underline;
+}
+
+/* Dark theme adjustments */
+#dashScreen {
+  background: linear-gradient(135deg, var(--charcoal) 0%, #2a3038 100%);
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+@media (max-width: 768px) {
+  .kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dash-header h1 {
+    font-size: 24px;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+}
