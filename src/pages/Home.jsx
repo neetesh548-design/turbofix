@@ -1,303 +1,381 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useLanguage } from '../LanguageContext';
-import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 
 export default function Home() {
   const { t } = useLanguage();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    // If the legacy script was loaded, we might need to initialize the demo
-    if (window.initDemo) window.initDemo();
-    if (window.initStatCounters) window.initStatCounters();
-    if (window.initFaq) window.initFaq();
-  }, []);
-
   return (
     <MainLayout>
-      <div className="home-page-redesign" style={{ paddingBottom: '80px' }}>
-        
-        {/* ============================================================
-            1. HERO SECTION
-            ============================================================ */}
-        <section className="hero" style={{ padding: '100px 0 80px', textAlign: 'center', background: 'var(--navy)' }}>
-          <div className="container" style={{ maxWidth: '1200px' }}>
-            <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', lineHeight: '1.1', maxWidth: '900px', margin: '0 auto 20px' }}>
+      <div className="home-page">
+
+        {/* HERO */}
+        <section className="hero">
+          <div className="container hero-center">
+            <h1 className="hero-headline">
               {t('hero.title1')} <br />
-              <span style={{ color: 'var(--brand)' }}>{t('hero.title2')}</span>
+              <span className="text-brand">{t('hero.title2')}</span>
             </h1>
-            <p className="lede" style={{ fontSize: '1.25rem', color: 'var(--slate)', marginBottom: '40px', maxWidth: '700px', margin: '0 auto 40px' }}>
-              {t('hero.lede')}
-            </p>
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '60px' }}>
-              <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 32px', fontSize: '1.1rem', background: 'var(--brand)', color: '#1a1f24' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a5.227 5.227 0 00-.571-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
+            <p className="hero-lede">{t('hero.lede')}</p>
+            <div className="hero-cta-row">
+              <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-whatsapp btn-lg">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a5.227 5.227 0 00-.571-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                 {t('hero.btn')}
               </a>
             </div>
-            
-            {/* Mockup Flow - 6 Step Process */}
-            <div className="hero-mockup" style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
-              gap: '20px',
-              background: 'var(--card)',
-              padding: '32px 24px',
-              borderRadius: '16px',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-lg)',
-              marginTop: '20px'
-            }}>
-              {/* Step 1: Scan */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>1</div>
-                <div style={{ width: '60px', height: '60px', background: '#fff', padding: '4px', borderRadius: '8px', margin: '0 auto 12px' }}>
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=TurboFix" alt="QR Code" style={{ width: '100%', height: '100%' }} />
-                </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>{t('hero.step1')}</div>
-              </div>
 
-              {/* Step 2: Auto Identify */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>2</div>
-                <div style={{ background: '#075e54', padding: '10px', borderRadius: '8px', marginBottom: 'auto', marginTop: '4px' }}>
-                  <div style={{ background: '#fff', color: '#000', padding: '6px', borderRadius: '0 8px 8px 8px', fontSize: '11px', lineHeight: '1.4' }}>
-                    <strong style={{ color: '#075e54' }}>System:</strong><br/>Machine CNC-04 Identified
+            {/* Hero Flow Pipeline */}
+            <div className="hero-flow">
+              <div className="flow-step">
+                <div className="flow-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
+                </div>
+                <span className="flow-label">{t('hero.step1')}</span>
+              </div>
+              <div className="flow-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+              <div className="flow-step">
+                <div className="flow-icon flow-icon--machine">
+                  <span>🏭</span>
+                </div>
+                <span className="flow-label">{t('hero.step2')}</span>
+                <span className="flow-detail">CNC Lathe #3</span>
+              </div>
+              <div className="flow-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+              <div className="flow-step">
+                <div className="flow-icon flow-icon--voice">
+                  <span>🎙️</span>
+                </div>
+                <span className="flow-label">{t('hero.step3')}</span>
+              </div>
+              <div className="flow-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+              <div className="flow-step">
+                <div className="flow-icon flow-icon--ai">
+                  <span>🤖</span>
+                </div>
+                <span className="flow-label">{t('hero.step4')}</span>
+                <span className="flow-detail">"Spindle bearing wear"</span>
+              </div>
+              <div className="flow-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+              <div className="flow-step">
+                <div className="flow-icon flow-icon--notify">
+                  <span>🔔</span>
+                </div>
+                <span className="flow-label">{t('hero.step5')}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* THE PROBLEM */}
+        <section className="section" id="problem">
+          <div className="container">
+            <h2 className="section-title">{t('problem.title')}</h2>
+            <p className="section-sub">Every factory floor has the same invisible leaks draining profits.</p>
+            <div className="problem-grid">
+              <div className="problem-card card">
+                <div className="problem-icon">🗣️</div>
+                <h3>{t('problem.card1.title')}</h3>
+                <p>{t('problem.card1.desc')}</p>
+              </div>
+              <div className="problem-card card">
+                <div className="problem-icon">🤷‍♂️</div>
+                <h3>{t('problem.card2.title')}</h3>
+                <p>{t('problem.card2.desc')}</p>
+              </div>
+              <div className="problem-card card">
+                <div className="problem-icon">🔁</div>
+                <h3>{t('problem.card3.title')}</h3>
+                <p>{t('problem.card3.desc')}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section className="section" id="how" style={{ background: 'var(--navy-2)' }}>
+          <div className="container">
+            <h2 className="section-title">{t('how.title') || 'How It Works'}</h2>
+            <p className="section-sub">{t('how.sub') || 'Zero training required. If they can use WhatsApp, they can use TurboFix.'}</p>
+            <div className="how-steps">
+              <div className="how-step">
+                <div className="how-num">1</div>
+                <div className="how-content">
+                  <h4>{t('how.step1.title') || 'Scan the Machine QR'}</h4>
+                  <p>{t('how.step1.desc') || 'Operator scans the QR code sticker placed on the faulty machine.'}</p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-num">2</div>
+                <div className="how-content">
+                  <h4>{t('how.step2.title') || 'Send a WhatsApp Message'}</h4>
+                  <p>{t('how.step2.desc') || 'WhatsApp opens automatically with the Machine ID pre-filled. They just type the issue or send a voice note.'}</p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-num">3</div>
+                <div className="how-content">
+                  <h4>{t('how.step3.title') || 'Ticket is Auto-Logged'}</h4>
+                  <p>{t('how.step3.desc') || 'The backend logs the exact time, alerts the maintenance supervisor immediately, and starts the SLA clock.'}</p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-num">4</div>
+                <div className="how-content">
+                  <h4>{t('how.step4.title') || 'Owner Tracks Everything'}</h4>
+                  <p>{t('how.step4.desc') || 'Check your live dashboard to see response times, pending fixes, and historic machine health.'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURES GRID */}
+        <section className="section">
+          <div className="container">
+            <h2 className="section-title">{t('features.title')}</h2>
+            <p className="section-sub">{t('features.sub')}</p>
+            <div className="features-grid">
+              <div className="feature-card card">
+                <h3>{t('features.whatsapp.title')}</h3>
+                <p>{t('features.whatsapp.desc')}</p>
+              </div>
+              <div className="feature-card card">
+                <h3>{t('features.qr.title')}</h3>
+                <p>{t('features.qr.desc')}</p>
+              </div>
+              <div className="feature-card card">
+                <h3>{t('features.sheets.title')}</h3>
+                <p>{t('features.sheets.desc')}</p>
+              </div>
+              <div className="feature-card card">
+                <h3>{t('features.offline.title')}</h3>
+                <p>{t('features.offline.desc')}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* VIDEO DEMO */}
+        <section className="section demo-video-section" id="demo" style={{ background: 'var(--navy-2)' }}>
+          <div className="container">
+            <h2 className="section-title">{t('demo.title')}</h2>
+            <p className="section-sub">{t('demo.sub')}</p>
+            <div className="demo-video-wrap">
+              <div className="demo-video-placeholder">
+                <div className="demo-video-play">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div className="demo-video-overlay">
+                  <div className="demo-video-mockup">
+                    <div className="demo-mock-bar">
+                      <span className="demo-mock-dot" style={{ background: 'var(--red)' }} />
+                      <span className="demo-mock-dot" style={{ background: 'var(--amber)' }} />
+                      <span className="demo-mock-dot" style={{ background: 'var(--ok)' }} />
+                    </div>
+                    <div className="demo-mock-body">
+                      <div className="demo-mock-chat">
+                        <div className="demo-mock-bubble demo-mock-bubble--sys">{t('demo.mock.sys')}</div>
+                        <div className="demo-mock-bubble demo-mock-bubble--out">{t('demo.mock.out')}</div>
+                        <div className="demo-mock-bubble demo-mock-bubble--in">{t('demo.mock.in')}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>{t('hero.step2')}</div>
               </div>
-
-              {/* Step 3: Record Voice */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>3</div>
-                <div style={{ background: '#075e54', padding: '10px', borderRadius: '8px', marginBottom: 'auto', marginTop: '4px' }}>
-                  <div style={{ background: '#dcf8c6', color: '#000', padding: '6px', borderRadius: '8px 8px 0 8px', fontSize: '11px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
-                    <span>▶</span>
-                    <span>0:12</span>
-                    <span style={{ fontSize: '14px' }}>🎙️</span>
-                  </div>
-                </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>{t('hero.step3')}</div>
-              </div>
-
-              {/* Step 4: AI Diagnose */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>4</div>
-                <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '8px', borderRadius: '8px', fontSize: '11px', color: '#38bdf8', marginBottom: 'auto', lineHeight: '1.4', marginTop: '4px' }}>
-                  <strong style={{ display: 'block', marginBottom: '2px' }}>🤖 AI Analysis:</strong> Historical match (Oct 12). Check coolant block.
-                </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>{t('hero.step4')}</div>
-              </div>
-
-              {/* Step 5: Intimation */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>5</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: 'auto', marginTop: '4px' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: '#fff' }}>🔔 Alerts Sent:</div>
-                  <div style={{ background: 'var(--navy)', border: '1px solid var(--border)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: 'var(--slate-light)' }}>Owner</div>
-                  <div style={{ background: 'var(--navy)', border: '1px solid var(--border)', padding: '4px 6px', borderRadius: '4px', fontSize: '10px', color: 'var(--slate-light)' }}>Supervisor</div>
-                </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>{t('hero.step5')}</div>
-              </div>
-
-              {/* Step 6: Resolved */}
-              <div style={{ background: 'var(--navy-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '-10px', background: 'var(--brand)', color: '#000', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>6</div>
-                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px 8px', borderRadius: '8px', textAlign: 'center', marginBottom: 'auto', marginTop: '4px' }}>
-                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>✅</div>
-                  <div style={{ fontSize: '10px', color: 'var(--green)' }}>Issue Fixed<br/>(Downtime: 15m)</div>
-                </div>
-                <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold', textAlign: 'center', marginTop: '12px' }}>{t('hero.step6')}</div>
-              </div>
+              <p className="demo-video-note">{t('demo.note')}</p>
             </div>
           </div>
         </section>
 
-        {/* ============================================================
-            2. THE PROBLEM SECTION
-            ============================================================ */}
-        <section id="problem" className="section bg-light" style={{ background: '#f8fafc', padding: '80px 0' }}>
+        {/* COMPARISON TABLE */}
+        <section className="section compare-section" id="compare">
           <div className="container">
-            <div className="section-header" style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 style={{ fontSize: '2.5rem', marginBottom: '16px', color: '#0f172a' }}>{t('problem.title')}</h2>
-            </div>
-            
-            <div className="problem-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-              <div className="problem-card" style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div className="problem-icon" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>🗣️</div>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: '#0f172a' }}>{t('problem.card1.title')}</h3>
-                <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-                  {t('problem.card1.desc')}
-                </p>
-              </div>
-              <div className="problem-card" style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div className="problem-icon" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>🤷‍♂️</div>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: '#0f172a' }}>{t('problem.card2.title')}</h3>
-                <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-                  {t('problem.card2.desc')}
-                </p>
-              </div>
-              <div className="problem-card" style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div className="problem-icon" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>🔁</div>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: '#0f172a' }}>{t('problem.card3.title')}</h3>
-                <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-                  {t('problem.card3.desc')}
-                </p>
-              </div>
+            <h2 className="section-title">{t('compare.title')}</h2>
+            <p className="section-sub">{t('compare.sub')}</p>
+            <div className="compare-table-wrap">
+              <table className="compare-table">
+                <thead>
+                  <tr>
+                    <th>{t('compare.col.feature')}</th>
+                    <th className="compare-col-old">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                      {t('compare.col.register')}
+                    </th>
+                    <th className="compare-col-cmms">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                      {t('compare.col.cmms')}
+                    </th>
+                    <th className="compare-col-tf">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                      TurboFix
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{t('compare.row.setup')}</td>
+                    <td>{t('compare.register.setup')}</td>
+                    <td>{t('compare.cmms.setup')}</td>
+                    <td className="compare-highlight">{t('compare.tf.setup')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.training')}</td>
+                    <td>{t('compare.register.training')}</td>
+                    <td>{t('compare.cmms.training')}</td>
+                    <td className="compare-highlight">{t('compare.tf.training')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.cost')}</td>
+                    <td>{t('compare.register.cost')}</td>
+                    <td>{t('compare.cmms.cost')}</td>
+                    <td className="compare-highlight">{t('compare.tf.cost')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.records')}</td>
+                    <td><span className="compare-no">{t('compare.register.records')}</span></td>
+                    <td>{t('compare.cmms.records')}</td>
+                    <td className="compare-highlight">{t('compare.tf.records')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.alerts')}</td>
+                    <td><span className="compare-no">{t('compare.register.alerts')}</span></td>
+                    <td>{t('compare.cmms.alerts')}</td>
+                    <td className="compare-highlight">{t('compare.tf.alerts')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.export')}</td>
+                    <td><span className="compare-no">{t('compare.register.export')}</span></td>
+                    <td>{t('compare.cmms.export')}</td>
+                    <td className="compare-highlight">{t('compare.tf.export')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.offline')}</td>
+                    <td>{t('compare.register.offline')}</td>
+                    <td><span className="compare-no">{t('compare.cmms.offline')}</span></td>
+                    <td className="compare-highlight">{t('compare.tf.offline')}</td>
+                  </tr>
+                  <tr>
+                    <td>{t('compare.row.accountability')}</td>
+                    <td><span className="compare-no">{t('compare.register.accountability')}</span></td>
+                    <td>{t('compare.cmms.accountability')}</td>
+                    <td className="compare-highlight">{t('compare.tf.accountability')}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
 
-        {/* ============================================================
-            3. HOW IT WORKS
-            ============================================================ */}
-        <section style={{ padding: '80px 0', background: 'var(--navy-2)' }}>
+        {/* SOCIAL PROOF */}
+        <section className="section" style={{ background: 'var(--navy-2)' }}>
           <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h2 style={{ fontSize: '2.5rem' }}>How it works</h2>
-              <p style={{ color: 'var(--slate)', fontSize: '1.1rem' }}>Zero training required. If they can use WhatsApp, they can use TurboFix.</p>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px', margin: '0 auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'var(--card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ background: 'var(--brand)', color: '#1a1f24', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0 }}>1</div>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>Scan the Machine QR</h4>
-                  <p style={{ color: 'var(--slate)', margin: 0 }}>Operator scans the QR code sticker placed on the faulty machine.</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'var(--card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ background: 'var(--brand)', color: '#1a1f24', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0 }}>2</div>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>Send a WhatsApp Message</h4>
-                  <p style={{ color: 'var(--slate)', margin: 0 }}>WhatsApp opens automatically with the Machine ID pre-filled. They just type the issue (or send a voice note/photo).</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'var(--card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ background: 'var(--brand)', color: '#1a1f24', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0 }}>3</div>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>Ticket is Auto-Logged</h4>
-                  <p style={{ color: 'var(--slate)', margin: 0 }}>The backend logs the exact time, alerts the maintenance supervisor immediately, and starts the SLA clock.</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'var(--card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ background: 'var(--brand)', color: '#1a1f24', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0 }}>4</div>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>Owner Tracks Everything</h4>
-                  <p style={{ color: 'var(--slate)', margin: 0 }}>You check your live dashboard (or Google Sheet) to see response times, pending fixes, and historic machine health.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================
-            4. FEATURES GRID
-            ============================================================ */}
-        <section style={{ padding: '80px 0' }}>
-          <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h2 style={{ fontSize: '2.5rem' }}>Built for MSME Factories</h2>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--brand)' }}>100% WhatsApp Native</h3>
-                <p style={{ color: 'var(--slate)' }}>No new apps to download, no passwords for workers to forget. It lives where they already spend their time.</p>
-              </div>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--brand)' }}>QR Tagging per Machine</h3>
-                <p style={{ color: 'var(--slate)' }}>Instantly generate and print QR codes from the dashboard. Stick them on machines, and they become smart nodes.</p>
-              </div>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--brand)' }}>Transparent Google Sheets</h3>
-                <p style={{ color: 'var(--slate)' }}>Your data isn't locked in a black box. The entire backend mirrors to a live Google Sheet you can export anytime.</p>
-              </div>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--brand)' }}>Works on Bad Internet</h3>
-                <p style={{ color: 'var(--slate)' }}>WhatsApp handles slow 2G/3G connections effortlessly, meaning messages send reliably even deep inside metal factory floors.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================
-            5. SOCIAL PROOF
-            ============================================================ */}
-        <section style={{ padding: '80px 0', background: 'var(--navy-2)' }}>
-          <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h2 style={{ fontSize: '2.5rem' }}>What Owners Are Saying</h2>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative' }}>
-                <div style={{ color: 'var(--brand)', fontSize: '3rem', position: 'absolute', top: '10px', right: '20px', opacity: 0.2 }}>"</div>
-                <p style={{ fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                  [PLACEHOLDER] "Before TurboFix, my maintenance guys would waste an hour just finding out which machine was broken. Now the notification hits their phone before the operator even walks away."
+            <h2 className="section-title">{t('proof.title') || 'What Owners Are Saying'}</h2>
+            <div className="proof-grid">
+              <div className="proof-card card">
+                <div className="proof-quote">"</div>
+                <p className="proof-text">
+                  "Before TurboFix, my maintenance guys would waste an hour just finding out which machine was broken. Now the notification hits their phone before the operator even walks away."
                 </p>
-                <div>
-                  <strong style={{ display: 'block' }}>[Name Placeholder]</strong>
-                  <span style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Director, MIDC Auto Parts Mfg</span>
+                <div className="proof-author">
+                  <strong>Factory Owner</strong>
+                  <span>Director, MIDC Auto Parts Mfg</span>
                 </div>
               </div>
-              <div style={{ background: 'var(--card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)', position: 'relative' }}>
-                <div style={{ color: 'var(--brand)', fontSize: '3rem', position: 'absolute', top: '10px', right: '20px', opacity: 0.2 }}>"</div>
-                <p style={{ fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                  [PLACEHOLDER] "I didn't want to buy expensive software because my floor workers won't use it. But everyone uses WhatsApp. We deployed this to 40 machines in one afternoon."
+              <div className="proof-card card">
+                <div className="proof-quote">"</div>
+                <p className="proof-text">
+                  "I didn't want to buy expensive software because my floor workers won't use it. But everyone uses WhatsApp. We deployed this to 40 machines in one afternoon."
                 </p>
-                <div>
-                  <strong style={{ display: 'block' }}>[Name Placeholder]</strong>
-                  <span style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Owner, Fabrication Unit</span>
+                <div className="proof-author">
+                  <strong>Factory Owner</strong>
+                  <span>Owner, Fabrication Unit</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ============================================================
-            6. PRICING & CTA
-            ============================================================ */}
-        <section style={{ padding: '100px 0', textAlign: 'center' }}>
-          <div className="container" style={{ maxWidth: '600px' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>Ready to stop the downtime leak?</h2>
-            <p style={{ color: 'var(--slate)', fontSize: '1.1rem', marginBottom: '40px' }}>
-              TurboFix is built for MSME budgets. Stop losing thousands of rupees to unrecorded downtime every month.
-            </p>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 40px', fontSize: '1.2rem', background: 'var(--brand)', color: '#1a1f24', borderRadius: '8px', fontWeight: 'bold' }}>
+        {/* CTA */}
+        <section className="section cta-section" id="trial">
+          <div className="container cta-center">
+            <h2 className="section-title">{t('cta.title') || 'Ready to stop the downtime leak?'}</h2>
+            <p className="section-sub">{t('cta.sub') || 'TurboFix is built for MSME budgets. Stop losing thousands of rupees to unrecorded downtime every month.'}</p>
+            <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-whatsapp btn-lg">
               Get Started on WhatsApp
             </a>
           </div>
         </section>
 
-        {/* ============================================================
-            7. FAQ
-            ============================================================ */}
-        <section style={{ padding: '80px 0', background: 'var(--navy-2)' }}>
-          <div className="container" style={{ maxWidth: '800px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h2 style={{ fontSize: '2.5rem' }}>Frequently Asked Questions</h2>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <details style={{ background: 'var(--card)', padding: '24px', borderRadius: '8px', border: '1px solid var(--border)', cursor: 'pointer' }}>
-                <summary style={{ fontWeight: 'bold', fontSize: '1.1rem', listStyle: 'none' }}>Do I need to install any apps?</summary>
-                <p style={{ color: 'var(--slate)', marginTop: '16px' }}>No. Your workers only need the standard WhatsApp app that is already on their phones. Scanning the QR code automatically opens a chat with the TurboFix bot.</p>
+        {/* FAQ */}
+        <section className="section" id="faq" style={{ background: 'var(--navy-2)' }}>
+          <div className="container">
+            <h2 className="section-title">{t('faq.title') || 'Frequently Asked Questions'}</h2>
+            <div className="faq-list">
+              <details className="faq-item">
+                <summary>{t('faq.q1') || 'Do I need to install any apps?'}</summary>
+                <p>{t('faq.a1') || 'No. Your workers only need the standard WhatsApp app that is already on their phones. Scanning the QR code automatically opens a chat with the TurboFix bot.'}</p>
               </details>
-              <details style={{ background: 'var(--card)', padding: '24px', borderRadius: '8px', border: '1px solid var(--border)', cursor: 'pointer' }}>
-                <summary style={{ fontWeight: 'bold', fontSize: '1.1rem', listStyle: 'none' }}>What if the WiFi on the factory floor is bad?</summary>
-                <p style={{ color: 'var(--slate)', marginTop: '16px' }}>WhatsApp is highly optimized for low-bandwidth environments. If they have a basic 2G or 3G signal, the text message will go through, which is much more reliable than heavy web apps.</p>
+              <details className="faq-item">
+                <summary>{t('faq.q2') || 'What if the WiFi on the factory floor is bad?'}</summary>
+                <p>{t('faq.a2') || 'WhatsApp is highly optimized for low-bandwidth environments. If they have a basic 2G or 3G signal, the text message will go through.'}</p>
               </details>
-              <details style={{ background: 'var(--card)', padding: '24px', borderRadius: '8px', border: '1px solid var(--border)', cursor: 'pointer' }}>
-                <summary style={{ fontWeight: 'bold', fontSize: '1.1rem', listStyle: 'none' }}>Where is my data stored?</summary>
-                <p style={{ color: 'var(--slate)', marginTop: '16px' }}>All ticket data is synced instantly to a private Google Sheet that you own. You can view, export, or analyze it anytime. You are never locked in.</p>
+              <details className="faq-item">
+                <summary>{t('faq.q3') || 'Where is my data stored?'}</summary>
+                <p>{t('faq.a3') || 'All ticket data is synced instantly to a private Google Sheet that you own. You can view, export, or analyze it anytime.'}</p>
               </details>
-              <details style={{ background: 'var(--card)', padding: '24px', borderRadius: '8px', border: '1px solid var(--border)', cursor: 'pointer' }}>
-                <summary style={{ fontWeight: 'bold', fontSize: '1.1rem', listStyle: 'none' }}>How much does it cost?</summary>
-                <p style={{ color: 'var(--slate)', marginTop: '16px' }}>Our pricing is designed for MSMEs, not massive enterprises. Contact us on WhatsApp for a quick demo and a flat-rate quote based on your factory size.</p>
+              <details className="faq-item">
+                <summary>{t('faq.q4') || 'How much does it cost?'}</summary>
+                <p>{t('faq.a4') || 'Our pricing is designed for MSMEs, not massive enterprises. Contact us on WhatsApp for a quick demo and a flat-rate quote based on your factory size.'}</p>
               </details>
             </div>
+          </div>
+        </section>
+
+        {/* LEAD CAPTURE */}
+        <section className="section lead-section" id="contact">
+          <div className="container lead-inner">
+            <div className="lead-copy">
+              <h2 className="section-title" style={{ textAlign: 'left' }}>{t('lead.title') || 'Start Your Free Pilot'}</h2>
+              <p className="lead-sub">{t('lead.sub') || 'Fill in your details and our team will set up your factory within 24 hours. No credit card required.'}</p>
+              <div className="lead-alt">
+                <p>Or reach us directly:</p>
+                <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
+                  Chat on WhatsApp
+                </a>
+              </div>
+            </div>
+            <form className="lead-form" onSubmit={(e) => e.preventDefault()}>
+              <div className="lead-row">
+                <div className="lead-field">
+                  <label>{t('lead.name') || 'Your Name'}</label>
+                  <input type="text" placeholder="Rajesh Patil" />
+                </div>
+                <div className="lead-field">
+                  <label>{t('lead.phone') || 'WhatsApp Number'}</label>
+                  <input type="tel" placeholder="+91 98765 43210" />
+                </div>
+              </div>
+              <div className="lead-field">
+                <label>{t('lead.company') || 'Company Name'}</label>
+                <input type="text" placeholder="Shree Industries Pvt Ltd" />
+              </div>
+              <div className="lead-field">
+                <label>{t('lead.machines') || 'Number of Machines'}</label>
+                <input type="number" placeholder="e.g. 15" />
+              </div>
+              <button type="submit" className="btn btn-whatsapp btn-lg lead-submit">
+                {t('lead.submit') || 'Request Free Setup'}
+              </button>
+              <p className="lead-note">No spam. We'll only WhatsApp you about your pilot setup.</p>
+            </form>
           </div>
         </section>
 

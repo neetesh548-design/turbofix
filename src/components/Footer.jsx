@@ -12,7 +12,7 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <div className="container footer-grid">
+      <div className="container footer-inner">
         <div className="footer-brand">
           <Link to="/" className="brand">
             <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -58,8 +58,22 @@ export default function Footer() {
           <a href={import.meta.env.BASE_URL + '#contact'}><span>{t('footer.callback')}</span></a>
         </div>
       </div>
+      <div className="container footer-trust">
+        <div className="footer-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{t('footer.address')}</span>
+        </div>
+        <div className="footer-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8l-2 4h12z"/></svg>
+          <span>{t('footer.registered')}</span>
+        </div>
+        <div className="footer-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+          <span>{t('footer.gstin')}</span>
+        </div>
+      </div>
       <div className="container footer-bottom">
-        <p>&copy; {year} TurboFix Technologies. All rights reserved.</p>
+        <p>&copy; {year} TurboFix Technologies Pvt. Ltd. {t('footer.rights')}</p>
         <a href="https://turbofix-backend-ehxb.onrender.com/admin" target="_blank" rel="noopener noreferrer" className="team-admin-link" title="TurboFix team — internal">TurboFix team</a>
       </div>
     </footer>
