@@ -1,14 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [lang, setLang] = useState(localStorage.getItem('turbofix_lang') || 'en');
+  const [activeHash, setActiveHash] = useState('');
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
+      
+      // Scroll spy logic
+      if (location.pathname === '/') {
+        const sections = ['demo', 'how'];
+        let current = '';
+        for (const section of sections) {
+          const el = document.getElementById(section);
+          if (el && window.scrollY >= (el.offsetTop - 150)) {
+            current = `#${section}`;
+          }
+        }
+        setActiveHash(current);
+      } else {
+        setActiveHash('');
+      }
     };
     const handleLangSync = (e) => {
       setLang(e.detail);
@@ -17,11 +34,14 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('languageChanged', handleLangSync);
     
+    // Initial check
+    handleScroll();
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('languageChanged', handleLangSync);
     };
-  }, []);
+  }, [location.pathname]);
 
   const handleLangChange = (e) => {
     const newLang = e.target.value;
@@ -32,10 +52,16 @@ export default function Navbar() {
     }
   };
 
+  const isActive = (path) => {
+    if (path.startsWith('#')) return activeHash === path;
+    if (path === '/' && location.pathname === '/' && activeHash === '') return true; // Optional: home active
+    return location.pathname === path;
+  };
+
   return (
     <header className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="nav">
       <div className="container nav-inner">
-        <Link to="/" className="brand">
+        <Link to="/" className="brand" onClick={() => setIsOpen(false)}>
           <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
             <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
             <defs>
@@ -61,12 +87,21 @@ export default function Navbar() {
         </Link>
 
         <nav className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
-          <Link to="/why-turbofix.html" onClick={() => setIsOpen(false)}>Why TurboFix</Link>
-          <a href="/#demo" onClick={() => setIsOpen(false)}>Live Demo</a>
-          <a href="/#how" onClick={() => setIsOpen(false)}>How Does It Work</a>
-          <a href="/#contact" className="btn btn-sm" onClick={() => setIsOpen(false)} style={{display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.2, padding: '6px 16px'}}>
-            <span style={{fontWeight: 700, fontSize: '14px'}}>Get Started</span>
-            <span style={{fontSize: '10px', fontWeight: 400, opacity: 0.9}}>Free Trial</span>
+          <Link to="/why-turbofix.html" className={isActive('/why-turbofix.html') ? 'active' : ''} onClick={() => setIsOpen(false)}>Why TurboFix</Link>
+          {location.pathname === '/' ? (
+            <>
+              <a href="#demo" className={isActive('#demo') ? 'active' : ''} onClick={() => setIsOpen(false)}>Live Demo</a>
+              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>How Does It Work</a>
+            </>
+          ) : (
+            <>
+              <Link to="/#demo" onClick={() => setIsOpen(false)}>Live Demo</Link>
+              <Link to="/#how" onClick={() => setIsOpen(false)}>How Does It Work</Link>
+            </>
+          )}
+          <a href="/#contact" className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)}>
+            <span className="nav-btn-primary">Get Started</span>
+            <span className="nav-btn-sub">Free Trial</span>
           </a>
         </nav>
 
@@ -76,7 +111,7 @@ export default function Navbar() {
             <option value="hi">हिंदी</option>
             <option value="mr">मराठी</option>
           </select>
-          <Link to="/vault.html" style={{fontWeight: 600, color: 'var(--text-dark)', textDecoration: 'none', marginLeft: '12px', fontSize: '15px'}}>Login</Link>
+          <Link to="/vault.html" className="login-link">Login</Link>
           <button className={`nav-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
             <span></span><span></span><span></span>
           </button>
