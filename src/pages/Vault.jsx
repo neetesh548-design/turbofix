@@ -9,6 +9,12 @@ export default function Vault() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    // Inject Supabase Config for static assets
+    window.supabaseConfig = {
+      url: import.meta.env.VITE_SUPABASE_URL,
+      key: import.meta.env.VITE_SUPABASE_ANON_KEY
+    };
+
     // Scroll to top on mount
     window.scrollTo(0, 0);
     const script = document.createElement('script');
@@ -228,6 +234,25 @@ export default function Vault() {
       </form>
     </div>
 
+    {/* --- Start Accountability Workflow UI --- */}
+    <div class="vault-card" id="accountabilityShell" style="margin-top:14px; margin-bottom:14px; border:2px solid var(--brand);">
+      <h3 style="margin:0 0 10px; font-size:15px; color:var(--brand);">Anti-Pilferage Verification</h3>
+      
+      <div id="qrScanContainer" style="margin-bottom:1rem;">
+        <p style="font-size:13px; color:var(--slate-light); margin-bottom:8px;">1. Scan Machine QR Code to start work:</p>
+        <button class="vault-btn vault-btn-primary" id="scanQrBtn">Scan QR Code</button>
+        <div id="qrStatus" style="color:var(--brand); margin-top:8px; font-size:13px;"></div>
+      </div>
+
+      <div id="photoUploadContainer" style="display:none; border-top:1px solid #334155; padding-top:1rem; margin-top:1rem;">
+        <p style="font-size:13px; color:var(--slate-light); margin-bottom:8px;">2. Upload Photo of Broken Part next to New Part:</p>
+        <input type="file" accept="image/*" capture="environment" id="repairPhotoInput" style="display:block; margin-bottom:8px;" />
+        <button class="vault-btn vault-btn-secondary" id="submitRepairPhotoBtn">Submit Proof & Resolve Ticket</button>
+        <div id="photoStatus" style="color:var(--brand); margin-top:8px; font-size:13px;"></div>
+      </div>
+    </div>
+    {/* --- End Accountability Workflow UI --- */}
+
     <div class="vault-tabs">
       <div class="vault-tab active" data-panel="documents">Documents</div>
       <div class="vault-tab" data-panel="spare-parts">Spare Parts (BOM)</div>
@@ -279,9 +304,9 @@ export default function Vault() {
           <div class="vault-form-grid">
             <div class="vault-field"><label>Part name</label><input type="text" id="partName" required></div>
             <div class="vault-field"><label>Part number</label><input type="text" id="partNumber"></div>
-            <div class="vault-field"><label>Qty on hand</label><input type="number" id="partQty" value="0"></div>
+            <div class="vault-field"><label>Stock on hand</label><input type="number" id="partQty" value="0"></div>
             <div class="vault-field"><label>Unit</label><input type="text" id="partUnit" placeholder="pcs"></div>
-            <div class="vault-field"><label>Reorder level</label><input type="number" id="partReorder" value="0"></div>
+            <div class="vault-field"><label>Lead time (days)</label><input type="number" id="partLeadTime" value="7"></div>
             <div class="vault-field"><label>Supplier</label><input type="text" id="partSupplier"></div>
           </div>
           <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Add part</button>
@@ -305,9 +330,12 @@ export default function Vault() {
         <form id="addConsForm">
           <div class="vault-form-grid">
             <div class="vault-field"><label>Name</label><input type="text" id="consName" required></div>
-            <div class="vault-field"><label>Qty on hand</label><input type="number" id="consQty" value="0"></div>
+            <div class="vault-field"><label>Stock on hand</label><input type="number" id="consQty" value="0"></div>
             <div class="vault-field"><label>Unit</label><input type="text" id="consUnit" placeholder="litres"></div>
-            <div class="vault-field"><label>Reorder level</label><input type="number" id="consReorder" value="0"></div>
+            <div class="vault-field"><label>Lead time (days)</label><input type="number" id="consLeadTime" value="7"></div>
+            <div class="vault-field"><label>Buffer (days)</label><input type="number" id="consBuffer" value="3"></div>
+            <div class="vault-field"><label>Replacement schedule (days)</label><input type="number" id="consFrequency" value="90"></div>
+            <div class="vault-field" style="grid-column: span 2"><label>Last Replaced (Optional)</label><input type="date" id="consLastReplaced"></div>
           </div>
           <button type="submit" class="vault-btn vault-btn-primary" style="margin-top:10px">Add consumable</button>
         </form>

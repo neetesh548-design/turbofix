@@ -6,6 +6,11 @@ export default function Dashboard() {
   useEffect(() => {
     // Scroll to top
     window.scrollTo(0, 0);
+    // Inject Supabase Config for static assets
+    window.supabaseConfig = {
+      url: import.meta.env.VITE_SUPABASE_URL,
+      key: import.meta.env.VITE_SUPABASE_ANON_KEY
+    };
     // Load dashboard script
     const script = document.createElement('script');
     script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
@@ -136,6 +141,13 @@ export default function Dashboard() {
       <h2>Needs Attention Now</h2>
       <div id="attentionList" class="activity-list">
         <p class="placeholder">Nothing open — plant is healthy</p>
+      </div>
+    </div>
+
+    <div class="activity-section" id="consumablesCalendarSection" style="margin-top:24px;">
+      <h2>Upcoming Consumable Replacements</h2>
+      <div id="consumablesCalendarList" class="activity-list">
+        <p class="placeholder">No schedules loaded</p>
       </div>
     </div>
 

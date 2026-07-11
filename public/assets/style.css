@@ -4,30 +4,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@600;700;800&display=swap');
 
 :root {
-  --green: #f59e0b; /* Gold/Amber */
-  --green-dark: #d97706; /* Dark gold/amber */
-  --green-light: rgba(245, 158, 11, 0.12);
-  --cyan: #f59e0b;
-  --navy: #0B1120;
-  --navy-2: #111C33;
-  --navy-3: #2D230F;
-  --ink: #EDF2FA;
-  --slate: #9AA8C0;
-  --slate-light: #5E6B84;
-  --bg: #0a0f1d; /* Deep slate background */
-  --card: #0f172a; /* Card surface background */
-  --border: rgba(148, 163, 184, 0.16);
-  --amber: #FBBF24;
-  --red: #F87171;
-  --ok: #f59e0b;
+  /* Mapped to Global Theme Tokens */
+  --bg: var(--n-0); 
+  --card: var(--n-1);
+  --border: var(--n-2);
+  
+  --ink: var(--n-4);
+  --slate: var(--n-3);
+  --slate-light: var(--n-3);
 
-  --radius: 8px; /* Square/slightly rounded corners */
-  --radius-sm: 6px;
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
-  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --container: 1160px;
+  --green: var(--color-status-healthy);
+  --green-dark: var(--color-status-healthy);
+  --green-light: var(--color-status-healthy-bg); 
+  
+  --cyan: var(--color-brand); 
+  
+  --amber: var(--color-status-warning);
+  --red: var(--color-status-critical);
+  --ok: var(--color-status-healthy);
+
+  --radius: var(--radius-md); 
+  --radius-sm: var(--radius-sm);
+  
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --ease: var(--transition-fast);
+  
+  --container: var(--content-width);
+  
+  /* Landing page specifics */
+  --navy: var(--n-0);
+  --navy-2: var(--n-1);
+  --navy-3: var(--n-2);
 }
 
 * { box-sizing: border-box; }

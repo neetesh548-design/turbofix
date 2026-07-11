@@ -3,14 +3,14 @@
 }
 
 :root {
-  --brand: #f59e0b;
-  --brand-dark: #ca8a04;
-  --charcoal: #0a0f1d;
-  --slate: #94a3b8;
-  --slate-lt: #64748b;
-  --offwhite: #0f172a;
-  --danger: #ef4444;
-  --warning: #f59e0b;
+  --brand: var(--color-brand);
+  --brand-dark: var(--color-brand-dark);
+  --charcoal: var(--bg-base);
+  --slate: var(--text-secondary);
+  --slate-lt: var(--text-muted);
+  --offwhite: var(--bg-surface);
+  --danger: var(--color-status-critical);
+  --warning: var(--color-status-warning);
 }
 
 body {
