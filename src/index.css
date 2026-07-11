@@ -2132,6 +2132,22 @@ details.faq-item p {
   max-width: 720px;
   margin: 0 auto;
 }
+.demo-video-player {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.demo-video-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
 .demo-video-placeholder {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -2148,7 +2164,10 @@ details.faq-item p {
 }
 .demo-video-play {
   position: absolute;
-  z-index: 2;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -2157,6 +2176,8 @@ details.faq-item p {
   align-items: center;
   justify-content: center;
   color: #fff;
+  border: none;
+  padding: 0;
   box-shadow: 0 0 40px rgba(37, 211, 102, 0.5);
   cursor: pointer;
   transition: transform .25s var(--ease), box-shadow .25s var(--ease);
@@ -2378,14 +2399,6 @@ details.faq-item p {
 @keyframes toastIn {
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-.demo-video-play {
-  cursor: pointer;
-}
-button.demo-video-play {
-  border: none;
-  background: none;
-  padding: 0;
 }
 
 /* ===========================================================

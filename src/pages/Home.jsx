@@ -5,8 +5,9 @@ import MainLayout from '../layouts/MainLayout';
 export default function Home() {
   const { t } = useLanguage();
   const [formSent, setFormSent] = useState(false);
-  const [demoToast, setDemoToast] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const formRef = useRef(null);
+  const videoRef = useRef(null);
 
   const handleLeadSubmit = (e) => {
     e.preventDefault();
@@ -22,8 +23,10 @@ export default function Home() {
   };
 
   const handlePlayClick = () => {
-    setDemoToast(true);
-    setTimeout(() => setDemoToast(false), 3000);
+    if (videoRef.current) {
+      videoRef.current.play();
+      setVideoPlaying(true);
+    }
   };
 
   return (
@@ -190,29 +193,22 @@ export default function Home() {
             <h2 className="section-title">{t('demo.title')}</h2>
             <p className="section-sub">{t('demo.sub')}</p>
             <div className="demo-video-wrap">
-              <div className="demo-video-placeholder">
-                <button type="button" className="demo-video-play" onClick={handlePlayClick} aria-label={t('demo.play')}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </button>
-                {demoToast && <div className="demo-toast">{t('demo.coming')}</div>}
-                <div className="demo-video-overlay">
-                  <div className="demo-video-mockup">
-                    <div className="demo-mock-bar">
-                      <span className="demo-mock-dot" style={{ background: 'var(--red)' }} />
-                      <span className="demo-mock-dot" style={{ background: 'var(--amber)' }} />
-                      <span className="demo-mock-dot" style={{ background: 'var(--ok)' }} />
-                    </div>
-                    <div className="demo-mock-body">
-                      <div className="demo-mock-chat">
-                        <div className="demo-mock-bubble demo-mock-bubble--sys">{t('demo.mock.sys')}</div>
-                        <div className="demo-mock-bubble demo-mock-bubble--out">{t('demo.mock.out')}</div>
-                        <div className="demo-mock-bubble demo-mock-bubble--in">{t('demo.mock.in')}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="demo-video-player">
+                <video
+                  ref={videoRef}
+                  src={import.meta.env.BASE_URL + 'demo.mp4'}
+                  preload="metadata"
+                  playsInline
+                  controls={videoPlaying}
+                  onEnded={() => setVideoPlaying(false)}
+                  onClick={handlePlayClick}
+                />
+                {!videoPlaying && (
+                  <button type="button" className="demo-video-play" onClick={handlePlayClick} aria-label={t('demo.play')}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </button>
+                )}
               </div>
-              <p className="demo-video-note">{t('demo.note')}</p>
             </div>
           </div>
         </section>
