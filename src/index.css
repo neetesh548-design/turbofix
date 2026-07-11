@@ -2353,3 +2353,61 @@ details.faq-item p {
     gap: 12px;
   }
 }
+
+/* ===========================================================
+   Demo Toast (Coming Soon)
+   =========================================================== */
+.demo-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--brand);
+  padding: 16px 28px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  z-index: 10;
+  border: 1px solid var(--brand);
+  backdrop-filter: blur(8px);
+  animation: toastIn 0.3s ease-out;
+  text-align: center;
+  max-width: 90%;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.demo-video-play {
+  cursor: pointer;
+}
+button.demo-video-play {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+/* ===========================================================
+   Lead Form Success State
+   =========================================================== */
+.lead-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  min-height: 320px;
+}
+.lead-success-icon {
+  font-size: 3rem;
+}
+.lead-success h3 {
+  color: var(--brand);
+  font-size: 1.5rem;
+}
+.lead-success p {
+  color: var(--slate);
+  max-width: 320px;
+}

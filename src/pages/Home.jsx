@@ -1,9 +1,30 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useLanguage } from '../LanguageContext';
 import MainLayout from '../layouts/MainLayout';
 
 export default function Home() {
   const { t } = useLanguage();
+  const [formSent, setFormSent] = useState(false);
+  const [demoToast, setDemoToast] = useState(false);
+  const formRef = useRef(null);
+
+  const handleLeadSubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = fd.get('name')?.trim();
+    const phone = fd.get('phone')?.trim();
+    const company = fd.get('company')?.trim();
+    const machines = fd.get('machines')?.trim();
+    if (!name || !phone) return;
+    const msg = `Hi, I'd like to set up TurboFix.\n\nName: ${name}\nPhone: ${phone}\nCompany: ${company || '—'}\nMachines: ${machines || '—'}`;
+    window.open(`https://wa.me/919876543210?text=${encodeURIComponent(msg)}`, '_blank');
+    setFormSent(true);
+  };
+
+  const handlePlayClick = () => {
+    setDemoToast(true);
+    setTimeout(() => setDemoToast(false), 3000);
+  };
 
   return (
     <MainLayout>
@@ -78,7 +99,7 @@ export default function Home() {
         <section className="section" id="problem">
           <div className="container">
             <h2 className="section-title">{t('problem.title')}</h2>
-            <p className="section-sub">Every factory floor has the same invisible leaks draining profits.</p>
+            <p className="section-sub">{t('problem.sub')}</p>
             <div className="problem-grid">
               <div className="problem-card card">
                 <div className="problem-icon">🗣️</div>
@@ -170,9 +191,10 @@ export default function Home() {
             <p className="section-sub">{t('demo.sub')}</p>
             <div className="demo-video-wrap">
               <div className="demo-video-placeholder">
-                <div className="demo-video-play">
+                <button type="button" className="demo-video-play" onClick={handlePlayClick} aria-label={t('demo.play')}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </div>
+                </button>
+                {demoToast && <div className="demo-toast">{t('demo.coming')}</div>}
                 <div className="demo-video-overlay">
                   <div className="demo-video-mockup">
                     <div className="demo-mock-bar">
@@ -281,22 +303,18 @@ export default function Home() {
             <div className="proof-grid">
               <div className="proof-card card">
                 <div className="proof-quote">"</div>
-                <p className="proof-text">
-                  "Before TurboFix, my maintenance guys would waste an hour just finding out which machine was broken. Now the notification hits their phone before the operator even walks away."
-                </p>
+                <p className="proof-text">{t('proof.quote1')}</p>
                 <div className="proof-author">
-                  <strong>Factory Owner</strong>
-                  <span>Director, MIDC Auto Parts Mfg</span>
+                  <strong>{t('proof.author1.name')}</strong>
+                  <span>{t('proof.author1.role')}</span>
                 </div>
               </div>
               <div className="proof-card card">
                 <div className="proof-quote">"</div>
-                <p className="proof-text">
-                  "I didn't want to buy expensive software because my floor workers won't use it. But everyone uses WhatsApp. We deployed this to 40 machines in one afternoon."
-                </p>
+                <p className="proof-text">{t('proof.quote2')}</p>
                 <div className="proof-author">
-                  <strong>Factory Owner</strong>
-                  <span>Owner, Fabrication Unit</span>
+                  <strong>{t('proof.author2.name')}</strong>
+                  <span>{t('proof.author2.role')}</span>
                 </div>
               </div>
             </div>
@@ -309,7 +327,7 @@ export default function Home() {
             <h2 className="section-title">{t('cta.title') || 'Ready to stop the downtime leak?'}</h2>
             <p className="section-sub">{t('cta.sub') || 'TurboFix is built for MSME budgets. Stop losing thousands of rupees to unrecorded downtime every month.'}</p>
             <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-whatsapp btn-lg">
-              Get Started on WhatsApp
+              {t('cta.btn')}
             </a>
           </div>
         </section>
@@ -346,36 +364,44 @@ export default function Home() {
               <h2 className="section-title" style={{ textAlign: 'left' }}>{t('lead.title') || 'Start Your Free Pilot'}</h2>
               <p className="lead-sub">{t('lead.sub') || 'Fill in your details and our team will set up your factory within 24 hours. No credit card required.'}</p>
               <div className="lead-alt">
-                <p>Or reach us directly:</p>
+                <p>{t('lead.or')}</p>
                 <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
-                  Chat on WhatsApp
+                  {t('footer.chat')}
                 </a>
               </div>
             </div>
-            <form className="lead-form" onSubmit={(e) => e.preventDefault()}>
-              <div className="lead-row">
-                <div className="lead-field">
-                  <label>{t('lead.name') || 'Your Name'}</label>
-                  <input type="text" placeholder="Rajesh Patil" />
+            {formSent ? (
+              <div className="lead-form lead-success">
+                <div className="lead-success-icon">✅</div>
+                <h3>{t('lead.success.title')}</h3>
+                <p>{t('lead.success.desc')}</p>
+              </div>
+            ) : (
+              <form className="lead-form" ref={formRef} onSubmit={handleLeadSubmit}>
+                <div className="lead-row">
+                  <div className="lead-field">
+                    <label>{t('lead.name')}</label>
+                    <input type="text" name="name" required placeholder="Rajesh Patil" />
+                  </div>
+                  <div className="lead-field">
+                    <label>{t('lead.phone')}</label>
+                    <input type="tel" name="phone" required placeholder="+91 98765 43210" />
+                  </div>
                 </div>
                 <div className="lead-field">
-                  <label>{t('lead.phone') || 'WhatsApp Number'}</label>
-                  <input type="tel" placeholder="+91 98765 43210" />
+                  <label>{t('lead.company')}</label>
+                  <input type="text" name="company" placeholder="Shree Industries Pvt Ltd" />
                 </div>
-              </div>
-              <div className="lead-field">
-                <label>{t('lead.company') || 'Company Name'}</label>
-                <input type="text" placeholder="Shree Industries Pvt Ltd" />
-              </div>
-              <div className="lead-field">
-                <label>{t('lead.machines') || 'Number of Machines'}</label>
-                <input type="number" placeholder="e.g. 15" />
-              </div>
-              <button type="submit" className="btn btn-whatsapp btn-lg lead-submit">
-                {t('lead.submit') || 'Request Free Setup'}
-              </button>
-              <p className="lead-note">No spam. We'll only WhatsApp you about your pilot setup.</p>
-            </form>
+                <div className="lead-field">
+                  <label>{t('lead.machines')}</label>
+                  <input type="number" name="machines" placeholder="e.g. 15" />
+                </div>
+                <button type="submit" className="btn btn-whatsapp btn-lg lead-submit">
+                  {t('lead.submit')}
+                </button>
+                <p className="lead-note">{t('lead.note')}</p>
+              </form>
+            )}
           </div>
         </section>
 

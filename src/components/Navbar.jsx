@@ -100,7 +100,15 @@ export default function Navbar() {
               <Link to="/#how" onClick={() => setIsOpen(false)}>{t('nav.how')}</Link>
             </>
           )}
-          <a href={import.meta.env.BASE_URL + '#contact'} className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)}>
+          <a href="#contact" className="btn btn-sm nav-get-started" onClick={(e) => {
+            e.preventDefault();
+            setIsOpen(false);
+            if (location.pathname !== '/') {
+              window.location.href = import.meta.env.BASE_URL + '#contact';
+              return;
+            }
+            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+          }}>
             <span className="nav-btn-primary">{t('nav.start')}</span>
             <span className="nav-btn-sub">{t('nav.trial')}</span>
           </a>

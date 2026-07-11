@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 
 export default function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
   const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
+
+  const scrollTo = (id) => (e) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: id } });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <footer className="footer">
@@ -38,14 +49,14 @@ export default function Footer() {
             </svg>
             <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix" style={{ color: '#fff' }}>FIX</span></span>
           </Link>
-          <p className="footer-tagline">Zero unplanned downtime.</p>
+          <p className="footer-tagline">{t('footer.tagline')}</p>
         </div>
         <div className="footer-links">
           <h4>{t('footer.product')}</h4>
-          <a href={import.meta.env.BASE_URL + '#how'}>{t('footer.how')}</a>
-          <a href={import.meta.env.BASE_URL + '#demo'}>{t('nav.demo')}</a>
-          <a href={import.meta.env.BASE_URL + '#trial'}>{t('nav.trial')}</a>
-          <a href={import.meta.env.BASE_URL + '#faq'}>{t('footer.faq')}</a>
+          <a href="#how" onClick={scrollTo('how')}>{t('footer.how')}</a>
+          <a href="#demo" onClick={scrollTo('demo')}>{t('nav.demo')}</a>
+          <a href="#trial" onClick={scrollTo('trial')}>{t('nav.trial')}</a>
+          <a href="#faq" onClick={scrollTo('faq')}>{t('footer.faq')}</a>
         </div>
         <div className="footer-links">
           <h4>{t('footer.contact')}</h4>
@@ -55,7 +66,7 @@ export default function Footer() {
             </svg>
             {t('footer.chat')}
           </a>
-          <a href={import.meta.env.BASE_URL + '#contact'}><span>{t('footer.callback')}</span></a>
+          <a href="#contact" onClick={scrollTo('contact')}><span>{t('footer.callback')}</span></a>
         </div>
       </div>
       <div className="container footer-trust">

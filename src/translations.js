@@ -19,6 +19,7 @@ export const translations = {
     "hero.step6": "Resolved",
     
     "problem.title": "The Shop Floor Reality",
+    "problem.sub": "Every factory floor has the same invisible leaks draining profits.",
     "problem.card1.title": "Lost Complaints",
     "problem.card1.desc": "Workers shout over the noise or scribble in paper logbooks. By the time the supervisor hears about it, the machine has been dead for an hour.",
     "problem.card2.title": "No Accountability",
@@ -49,9 +50,16 @@ export const translations = {
     "features.offline.desc": "WhatsApp handles slow 2G/3G connections effortlessly, meaning messages send reliably even deep inside metal factory floors.",
 
     "proof.title": "What Owners Are Saying",
+    "proof.quote1": "Before TurboFix, my maintenance guys would waste an hour just finding out which machine was broken. Now the notification hits their phone before the operator even walks away.",
+    "proof.quote2": "I didn't want to buy expensive software because my floor workers won't use it. But everyone uses WhatsApp. We deployed this to 40 machines in one afternoon.",
+    "proof.author1.name": "Factory Owner",
+    "proof.author1.role": "Director, MIDC Auto Parts Mfg",
+    "proof.author2.name": "Factory Owner",
+    "proof.author2.role": "Owner, Fabrication Unit",
 
     "cta.title": "Ready to stop the downtime leak?",
     "cta.sub": "TurboFix is built for MSME budgets. Stop losing thousands of rupees to unrecorded downtime every month.",
+    "cta.btn": "Get Started on WhatsApp",
 
     "faq.title": "Frequently Asked Questions",
     "faq.q1": "Do I need to install any apps?",
@@ -70,6 +78,10 @@ export const translations = {
     "lead.company": "Company Name",
     "lead.machines": "Number of Machines",
     "lead.submit": "Request Free Setup",
+    "lead.or": "Or reach us directly:",
+    "lead.note": "No spam. We'll only WhatsApp you about your pilot setup.",
+    "lead.success.title": "Message Sent!",
+    "lead.success.desc": "We've opened WhatsApp with your details. Our team will reach out within 24 hours.",
 
     "demo.title": "See It in Action",
     "demo.sub": "Watch a real breakdown ticket — from QR scan to supervisor notification — in under 60 seconds.",
@@ -77,6 +89,8 @@ export const translations = {
     "demo.mock.out": "Spindle bearing making noise since morning shift",
     "demo.mock.in": "Ticket T-1042 created. Supervisor Patil notified. ETA: 12 min.",
     "demo.note": "Full video walkthrough coming soon. Chat on WhatsApp for a live 1-on-1 demo.",
+    "demo.play": "Play demo video",
+    "demo.coming": "Full video coming soon! Chat on WhatsApp for a live demo.",
 
     "compare.title": "TurboFix vs. the Alternatives",
     "compare.sub": "See how we stack up against what most MSME factories use today.",
@@ -121,13 +135,14 @@ export const translations = {
     "footer.gstin": "GSTIN: 27AAACT1234F1ZP",
     "footer.rights": "All rights reserved.",
 
+    "footer.tagline": "Zero unplanned downtime.",
     "footer.product": "Product",
     "footer.how": "How it works",
     "footer.faq": "FAQ",
     "footer.contact": "Get in touch",
     "footer.chat": "Chat on WhatsApp",
-    "footer.callback": "📩 Request a callback",
-    
+    "footer.callback": "Request a callback",
+
     "vault.title": "Admin Vault",
     "vault.subtitle": "Secure Staff Portal",
     "vault.email": "Email Address",
@@ -161,6 +176,7 @@ export const translations = {
     "hero.step6": "समस्या हल",
     
     "problem.title": "फैक्ट्री की हकीकत",
+    "problem.sub": "हर फैक्ट्री फ्लोर में एक जैसी अदृश्य लीक होती हैं जो मुनाफा खा रही हैं।",
     "problem.card1.title": "गुम हुई शिकायतें",
     "problem.card1.desc": "शोर में मजदूर चिल्लाते हैं या रजिस्टर में लिखते हैं। सुपरवाइजर को पता चलने तक मशीन एक घंटे से बंद रहती है।",
     "problem.card2.title": "कोई जवाबदेही नहीं",
@@ -191,9 +207,16 @@ export const translations = {
     "features.offline.desc": "WhatsApp धीमे 2G/3G कनेक्शन पर भी बेहतरीन काम करता है, फैक्ट्री के अं��र भी मैसेज पहुंचता है।",
 
     "proof.title": "मालिक क्या कह रहे हैं",
+    "proof.quote1": "TurboFix से पहले, मेरे मेंटेनेंस वाले एक घंटा सिर्फ यह पता लगाने में बर्बाद करते थे कि कौन सी मशीन खराब है। अब ऑपरेटर के जाने से पहले ही उनके फोन पर नोटिफिकेशन आ जाता है।",
+    "proof.quote2": "मैं महंगा सॉफ्टवेयर नहीं खरीदना चाहता था क्योंकि मेरे फ्लोर वर्कर्स इसे इस्तेमाल नहीं करेंगे। लेकिन WhatsApp तो सब चलाते हैं। एक दोपहर में 40 मशीनों पर लगा दिया।",
+    "proof.author1.name": "फैक्ट्री मालिक",
+    "proof.author1.role": "डायरेक्टर, MIDC ऑटो पार्ट्स",
+    "proof.author2.name": "फैक्ट्री मालिक",
+    "proof.author2.role": "मालिक, फैब्रिकेशन यूनिट",
 
     "cta.title": "डाउनटाइम की लीक रोकने के लिए तैयार?",
     "cta.sub": "TurboFix MSME बजट के लिए बनाया गया है। हर महीने अनरिकॉर्डेड डाउनटाइम से हज़ारों रुपये खोना बंद करें।",
+    "cta.btn": "WhatsApp पर शुरू करें",
 
     "faq.title": "अक्सर पूछे जा���े वाले प्रश्न",
     "faq.q1": "क्या मुझे कोई ऐप इंस्टॉल करना होगा?",
@@ -212,6 +235,10 @@ export const translations = {
     "lead.company": "कंपनी का नाम",
     "lead.machines": "मशीनों की संख्या",
     "lead.submit": "फ्री सेटअप का अनुरोध करें",
+    "lead.or": "या सीधे संपर्क करें:",
+    "lead.note": "कोई स्पैम नहीं। हम सिर्फ आपके पायलट सेटअप के बारे में WhatsApp करेंगे।",
+    "lead.success.title": "मैसेज भेजा गया!",
+    "lead.success.desc": "हमने आपकी जानकारी के साथ WhatsApp खोला है। हमारी टीम 24 घंटे में संपर्क करेगी।",
 
     "demo.title": "इसे काम करते देखें",
     "demo.sub": "एक असली ब्रेकडाउन टिकट देखें — QR स्कैन से सुपरवाइजर नोटिफिकेशन तक — 60 सेकंड से कम में।",
@@ -219,6 +246,8 @@ export const translations = {
     "demo.mock.out": "स्पिंडल बेयरिंग में सुबह की शिफ्ट से आवाज आ रही है",
     "demo.mock.in": "टिकट T-1042 बना। सुपरवाइजर पाटिल को सूचित किया। ETA: 12 मिनट।",
     "demo.note": "पूरा वीडियो वॉकथ्रू जल्द आ रहा है। लाइव डेमो के लिए WhatsApp पर चैट करें।",
+    "demo.play": "डेमो वीडियो चलाएं",
+    "demo.coming": "पूरा वीडियो जल्द आ रहा है! लाइव डेमो के लिए WhatsApp पर चैट करें।",
 
     "compare.title": "TurboFix बनाम विकल्प",
     "compare.sub": "देखें कि ज़्यादातर MSME फैक्ट्रियाँ आज जो इस्तेमाल करती हैं, उसकी तुलना में हम कहाँ हैं।",
@@ -263,13 +292,14 @@ export const translations = {
     "footer.gstin": "GSTIN: 27AAACT1234F1ZP",
     "footer.rights": "सर्वाधिकार सुरक्षित।",
 
+    "footer.tagline": "शून्य अनियोजित डाउनटाइम।",
     "footer.product": "प्रोडक्ट",
     "footer.how": "यह कैसे काम करता है",
     "footer.faq": "अक्सर पूछे जाने वाले प्रश्न",
     "footer.contact": "संपर्क करें",
     "footer.chat": "WhatsApp पर चैट करें",
-    "footer.callback": "📩 कॉल बैक का अनुरोध करें",
-    
+    "footer.callback": "कॉल बैक का अनुरोध करें",
+
     "vault.title": "एडमिन वॉल्ट",
     "vault.subtitle": "सुरक्षित स्टाफ पोर्टल",
     "vault.email": "ईमेल",
@@ -303,6 +333,7 @@ export const translations = {
     "hero.step6": "समस्या सोडवली",
     
     "problem.title": "फॅक्टरीमधील वास्तविकता",
+    "problem.sub": "प्रत्येक फॅक्टरी फ्लोरवर तीच अदृश्य गळती आहे जी नफा खात आहे.",
     "problem.card1.title": "हरवलेल्या तक्रारी",
     "problem.card1.desc": "कामगार गोंधळात ओरडतात किंवा कागदावर लिहितात. सुपरवायझरला माहिती मिळेपर्यंत मशीन एक तास बंद असते.",
     "problem.card2.title": "कोणतीही जबाबदारी नाही",
@@ -333,9 +364,16 @@ export const translations = {
     "features.offline.desc": "WhatsApp स्लो 2G/3G कनेक्शनवरही उत्कृष्ट काम करतो, फॅक्टरीच्या आतही मेसेज पोहोचतो.",
 
     "proof.title": "मालक काय म्हणत आहेत",
+    "proof.quote1": "TurboFix आधी, माझे मेंटेनन्स लोक कोणती मशीन बिघडली हे शोधण्यातच एक तास वाया घालवायचे. आता ऑपरेटर जाण्याआधीच त्यांच्या फोनवर नोटिफिकेशन येतो.",
+    "proof.quote2": "मला महाग सॉफ्टवेअर घ्यायचे नव्हते कारण माझे फ्लोर वर्कर्स ते वापरणार नाहीत. पण WhatsApp सगळे वापरतात. एका दुपारी 40 मशीनवर लावलं.",
+    "proof.author1.name": "फॅक्टरी मालक",
+    "proof.author1.role": "संचालक, MIDC ऑटो पार्ट्स",
+    "proof.author2.name": "फॅक्टरी मालक",
+    "proof.author2.role": "मालक, फॅब्रिकेशन युनिट",
 
     "cta.title": "डाउनटाइमची गळती थांबवायला तयार?",
     "cta.sub": "TurboFix MSME बजेटसाठी बनवलेले आहे. दर महिन्याला अनरेकॉर्डेड डाउनटाइममुळे हजारो रुपये गमावणे थांबवा.",
+    "cta.btn": "WhatsApp वर सुरू करा",
 
     "faq.title": "सतत विचारले जाणारे प्रश्न",
     "faq.q1": "मला कोणतेही ॲप इन्स्टॉल करावे लागेल का?",
@@ -354,6 +392,10 @@ export const translations = {
     "lead.company": "कंपनीचे नाव",
     "lead.machines": "मशीन्सची संख्या",
     "lead.submit": "फ्री सेटअप विनंती करा",
+    "lead.or": "किंवा थेट संपर्क साधा:",
+    "lead.note": "कोणताही स्पॅम नाही. आम्ही फक्त तुमच्या पायलट सेटअपबद्दल WhatsApp करू.",
+    "lead.success.title": "मेसेज पाठवला!",
+    "lead.success.desc": "आम्ही तुमच्या माहितीसह WhatsApp उघडला आहे. आमची टीम 24 तासांत संपर्क करेल.",
 
     "demo.title": "हे काम करताना पहा",
     "demo.sub": "एक खरे ब्रेकडाउन तिकीट पहा — QR स्कॅनपासून सुपरवायझर नोटिफिकेशनपर्यंत — 60 सेकंदांपेक्षा कमी वेळात.",
@@ -361,6 +403,8 @@ export const translations = {
     "demo.mock.out": "स्पिंडल बेअरिंगमध्ये सकाळच्या शिफ्टपासून आवाज येत आहे",
     "demo.mock.in": "तिकीट T-1042 तयार. सुपरवायझर पाटील यांना कळवले. ETA: 12 मिनिटे.",
     "demo.note": "पूर्ण व्हिडिओ वॉकथ्रू लवकरच. लाईव्ह डेमोसाठी WhatsApp वर चॅट करा.",
+    "demo.play": "डेमो व्हिडिओ चालवा",
+    "demo.coming": "पूर्ण व्हिडिओ लवकरच! लाईव्ह डेमोसाठी WhatsApp वर चॅट करा.",
 
     "compare.title": "TurboFix विरुद्ध पर्याय",
     "compare.sub": "बहुतेक MSME फॅक्टरी आज जे वापरतात त्याच्या तुलनेत आम्ही कुठे आहोत ते पहा.",
@@ -405,13 +449,14 @@ export const translations = {
     "footer.gstin": "GSTIN: 27AAACT1234F1ZP",
     "footer.rights": "सर्व हक्क राखीव.",
 
+    "footer.tagline": "शून्य अनियोजित डाउनटाइम.",
     "footer.product": "उत्पादन",
     "footer.how": "हे कसे काम करते",
     "footer.faq": "सतत विचारले जाणारे प्रश्न",
     "footer.contact": "संपर्क साधा",
     "footer.chat": "WhatsApp वर चॅट करा",
-    "footer.callback": "📩 कॉल बॅकची विनंती करा",
-    
+    "footer.callback": "कॉल बॅकची विनंती करा",
+
     "vault.title": "ॲडमिन व्हॉल्ट",
     "vault.subtitle": "सुरक्षित स्टाफ पोर्टल",
     "vault.email": "ईमेल आयडी",
