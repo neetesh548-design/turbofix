@@ -28,42 +28,6 @@ export default function Home() {
       <div dangerouslySetInnerHTML={{ __html: `
 
 <!-- ============ LANGUAGE GATE ============ -->
-<div class="lang-gate" id="langGate">
-  <div class="lang-gate-blob lang-gate-blob-1" aria-hidden="true"></div>
-  <div class="lang-gate-blob lang-gate-blob-2" aria-hidden="true"></div>
-  <div class="lang-gate-card">
-    <span class="brand-mark lang-gate-mark">⚡</span>
-    <h2 class="lang-gate-title">Choose your language<br>अपनी भाषा चुनें · तुमची भाषा निवडा</h2>
-    <p class="lang-gate-sub">We'll load the page and float the live demo onto your screen automatically.</p>
-    <div class="lang-gate-options">
-      <button class="lang-gate-btn" data-lang="en" style="--i:0">
-        <span class="lang-gate-badge">A</span>
-        <span class="lang-gate-text">
-          <span class="lang-gate-native">English</span>
-          <span class="lang-gate-hint">Continue in English</span>
-        </span>
-        <span class="lang-gate-check">✓</span>
-      </button>
-      <button class="lang-gate-btn" data-lang="hi" style="--i:1">
-        <span class="lang-gate-badge">अ</span>
-        <span class="lang-gate-text">
-          <span class="lang-gate-native">हिंदी</span>
-          <span class="lang-gate-hint">हिंदी में जारी रखें</span>
-        </span>
-        <span class="lang-gate-check">✓</span>
-      </button>
-      <button class="lang-gate-btn" data-lang="mr" style="--i:2">
-        <span class="lang-gate-badge">म</span>
-        <span class="lang-gate-text">
-          <span class="lang-gate-native">मराठी</span>
-          <span class="lang-gate-hint">मराठीत सुरू ठेवा</span>
-        </span>
-        <span class="lang-gate-check">✓</span>
-      </button>
-    </div>
-    <p class="lang-gate-footnote">✨ Takes 2 seconds — you can change this anytime from the menu bar</p>
-  </div>
-</div>
 
 <!-- ============ NAV ============ -->
 

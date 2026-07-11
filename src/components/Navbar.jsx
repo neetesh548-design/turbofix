@@ -10,8 +10,17 @@ export default function Navbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
     };
+    const handleLangSync = (e) => {
+      setLang(e.detail);
+    };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('languageChanged', handleLangSync);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('languageChanged', handleLangSync);
+    };
   }, []);
 
   const handleLangChange = (e) => {
