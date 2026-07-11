@@ -3,7 +3,23 @@ import React, { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
-    // Basic script execution simulation can go here
+    const scriptI18n = document.createElement('script');
+    scriptI18n.src = '/assets/i18n.js';
+    scriptI18n.onload = () => {
+      const scriptMain = document.createElement('script');
+      scriptMain.src = '/assets/script.js';
+      scriptMain.onload = () => {
+        if (window.initVanillaHome) window.initVanillaHome();
+      };
+      document.body.appendChild(scriptMain);
+    };
+    document.body.appendChild(scriptI18n);
+    
+    return () => {
+      // Cleanup dynamically added scripts when navigating away
+      const scripts = document.querySelectorAll('script[src^="/assets/"]');
+      scripts.forEach(s => s.remove());
+    };
   }, []);
 
   return (

@@ -515,7 +515,7 @@ function initFooterYear() {
   if (el) el.textContent = new Date().getFullYear();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+window.initVanillaHome = () => {
   initI18n();
   wireWhatsAppLinks();
   initNav();
@@ -526,5 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTrialRedirect();
   const demo = initDemo();
   initFooterYear();
-  initLangGate(demo);
-});
+  if (typeof initLangGate === 'function') {
+    initLangGate(demo);
+  }
+};
