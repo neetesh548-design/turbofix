@@ -6,6 +6,13 @@ export default function Vault() {
   useEffect(() => {
     // Scroll to top on mount
     window.scrollTo(0, 0);
+    const script = document.createElement('script');
+    script.src = '/assets/vault.js';
+    document.body.appendChild(script);
+    
+    return () => {
+      script.remove();
+    };
   }, []);
 
   return (

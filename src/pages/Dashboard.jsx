@@ -1,42 +1,29 @@
 
 import React, { useEffect } from 'react';
+import MainLayout from '../layouts/MainLayout';
 
 export default function Dashboard() {
   useEffect(() => {
-    // Basic script execution simulation can go here
+    // Scroll to top
+    window.scrollTo(0, 0);
+    // Load dashboard script
+    const script = document.createElement('script');
+    script.src = '/assets/vault-dashboard.js';
+    script.onload = () => {
+      // Initialize if needed
+    };
+    document.body.appendChild(script);
+    
+    return () => {
+      script.remove();
+    };
   }, []);
 
   return (
-    <div dangerouslySetInnerHTML={{ __html: `
-
-<div class="dash-topbar">
-  <a href="index.html" class="brand">
-    <svg class="brand-logo-svg" viewBox="0 0 100 100" width="36" height="36">
-      <path d="M 50 10 C 50 10, 85 20, 85 50 C 85 75, 50 90, 50 90 C 50 90, 15 75, 15 50 C 15 20, 50 10, 50 10 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" />
-      <path d="M 50 15 C 50 15, 80 24, 80 50 C 80 72, 50 85, 50 85 C 50 85, 20 72, 20 50 C 20 24, 50 15, 50 15 Z" fill="#0f172a" />
-      <g transform="translate(50,50)" fill="#475569">
-        <circle cx="0" cy="0" r="18" fill="none" stroke="#475569" stroke-width="4" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
-        <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
-      </g>
-      <circle cx="50" cy="50" r="12" fill="#0f172a" />
-      <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-    </svg>
-    <span class="brand-name"><span class="brand-turbo">TURBO</span><span class="brand-fix">FIX</span></span>
-    <span class="brand-section">Dashboard</span>
-  </a>
-  <div class="topbar-nav">
-    <a href="vault.html">Document Vault</a>
-    <a href="index.html">← Back to site</a>
-    <button id="logoutBtn" class="btn-signout">Sign Out</button>
-  </div>
-</div>
+    <MainLayout>
+      <div dangerouslySetInnerHTML={{ __html: `
+<section style="padding: 80px 0;">
+  <div class="container dash-wrap">
 
 <div class="container">
   <!-- Dashboard screen (auth via shared token from vault.html staff login) -->
@@ -209,9 +196,9 @@ export default function Dashboard() {
       </div>
     </div>
   </div>
-</div>
-
+</section>
 
 ` }} />
+    </MainLayout>
   );
 }
