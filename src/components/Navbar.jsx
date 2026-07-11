@@ -6,10 +6,14 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
+  const [isAuth, setIsAuth] = useState(!!localStorage.getItem('tf_token'));
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
 
   useEffect(() => {
+    const handleAuth = () => setIsAuth(!!localStorage.getItem('tf_token'));
+    window.addEventListener('authChanged', handleAuth);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
       
@@ -33,6 +37,7 @@ export default function Navbar() {
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('authChanged', handleAuth);
     };
   }, [location.pathname]);
 
@@ -99,7 +104,11 @@ export default function Navbar() {
             <option value="hi">हिंदी</option>
             <option value="mr">मराठी</option>
           </select>
-          <Link to="/vault.html" className="login-link">{t('nav.login')}</Link>
+          {isAuth ? (
+            <Link to="/dashboard.html" className="login-link">Dashboard</Link>
+          ) : (
+            <Link to="/vault.html" className="login-link">{t('nav.login')}</Link>
+          )}
           <button className={`nav-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
             <span></span><span></span><span></span>
           </button>
