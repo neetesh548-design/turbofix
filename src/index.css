@@ -58,6 +58,21 @@ h1, h2, h3, h4 {
 }
 p { margin: 0; }
 
+/* Global Form Defaults */
+input, select, textarea {
+  background-color: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
 .container {
   max-width: var(--container);
   margin: 0 auto;
