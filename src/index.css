@@ -4,37 +4,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@600;700;800&display=swap');
 
 :root {
-  --brand: #2563eb; /* Vibrant professional blue */
-  --brand-hover: #1d4ed8;
-  --green: #2563eb; /* Reusing existing variables to not break components */
-  --green-dark: #1e40af;
-  --green-light: rgba(37, 99, 235, 0.12);
-  --cyan: #3b82f6;
-  
-  /* Light mode structure */
-  --navy: #ffffff;
-  --navy-2: #f8fafc;
-  --navy-3: #f1f5f9;
-  
-  /* Text */
-  --ink: #0f172a;
-  --slate: #475569;
-  --slate-light: #64748b;
-  
-  /* Surfaces */
-  --bg: #ffffff;
-  --card: #ffffff;
-  --border: rgba(15, 23, 42, 0.1);
-  
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --ok: #10b981;
+  --green: #f59e0b; /* Gold/Amber */
+  --green-dark: #d97706; /* Dark gold/amber */
+  --green-light: rgba(245, 158, 11, 0.12);
+  --cyan: #f59e0b;
+  --navy: #0B1120;
+  --navy-2: #111C33;
+  --navy-3: #2D230F;
+  --ink: #EDF2FA;
+  --slate: #9AA8C0;
+  --slate-light: #5E6B84;
+  --bg: #0a0f1d; /* Deep slate background */
+  --card: #0f172a; /* Card surface background */
+  --border: rgba(148, 163, 184, 0.16);
+  --amber: #FBBF24;
+  --red: #F87171;
+  --ok: #f59e0b;
 
-  --radius: 8px;
+  --radius: 8px; /* Square/slightly rounded corners */
   --radius-sm: 6px;
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --container: 1160px;
 }
@@ -1673,7 +1664,30 @@ p { margin: 0; }
   .float-wa-ico { font-size: 1.5rem; }
 }
 
-/* Clean modern background applied globally via variables */
+/* ===========================================================
+   Futuristic theme layer — aurora background, grid overlay,
+   glassmorphism surfaces, neon glow accents, gradient text
+   =========================================================== */
+body {
+  background:
+    radial-gradient(900px 620px at 88% -8%, rgba(34, 211, 238, 0.1), transparent 60%),
+    radial-gradient(1000px 720px at -12% 28%, rgba(37, 211, 102, 0.09), transparent 60%),
+    radial-gradient(820px 620px at 55% 115%, rgba(99, 102, 241, 0.08), transparent 60%),
+    var(--bg);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 0%, black 25%, transparent 78%);
+}
 main, .footer { position: relative; z-index: 1; }
 ::selection { background: rgba(37, 211, 102, 0.35); }
 

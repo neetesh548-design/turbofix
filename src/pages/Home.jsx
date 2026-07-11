@@ -1,11 +1,8 @@
+
 import React, { useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
-import Hero from '../components/Hero';
-import ServiceCards from '../components/ServiceCards';
 
 export default function Home() {
-  // We can keep the legacy script loaders just in case other vanilla elements are still used on this page
-  // but we are migrating heavily into pure React components.
   useEffect(() => {
     const scriptI18n = document.createElement('script');
     scriptI18n.src = '/assets/i18n.js';
@@ -20,6 +17,7 @@ export default function Home() {
     document.body.appendChild(scriptI18n);
     
     return () => {
+      // Cleanup dynamically added scripts when navigating away
       const scripts = document.querySelectorAll('script[src^="/assets/"]');
       scripts.forEach(s => s.remove());
     };
@@ -27,21 +25,701 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <Hero />
-      <ServiceCards />
+      <div dangerouslySetInnerHTML={{ __html: `
+
+<!-- ============ LANGUAGE GATE ============ -->
+
+<!-- ============ NAV ============ -->
+
+
+
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container">
+      <!-- Hero Header -->
+      <div class="hero-header" style="text-align: center; max-width: 780px; margin: 0 auto 40px;">
+        <p class="eyebrow" data-i18n="hero.eyebrow">🏭 Built for Pune MIDC factories</p>
+        <h1 data-i18n="hero.title">ZERO UNPLANNED DOWNTIME</h1>
+        <p class="lede" style="max-width: 100%; margin: 18px auto 0;" data-i18n="hero.lede">
+          Adjust the sliders below to calculate your factory's exact downtime leak and annual savings with TurboFix.
+        </p>
+      </div>
+
+      <!-- 3-Card Equal-Height Row -->
+      <div class="hero-cards-row hero-comparison">
+
+        <!-- CARD 1: ROI Calculator -->
+        <div class="hero-card-item roi-card">
+          <h3 style="font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; margin-top: 0;">⚡ Downtime Leak &amp; Savings Calculator</h3>
+          
+          <div class="slider-group" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--slate-light); margin-bottom: 6px;">
+              <span>Number of Machines:</span>
+              <strong id="machinesVal" style="color: white; font-weight: 700;">15</strong>
+            </div>
+            <input type="range" id="machinesSlider" min="1" max="100" value="15" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
+          </div>
+
+          <div class="slider-group" style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--slate-light); margin-bottom: 6px;">
+              <span>Avg Monthly Breakdowns (Per Machine):</span>
+              <strong id="breakdownsVal" style="color: white; font-weight: 700;">3</strong>
+            </div>
+            <input type="range" id="breakdownsSlider" min="1" max="10" value="3" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
+          </div>
+
+          <div id="advancedParams" style="display: block; border-top: 1px dashed rgba(148, 163, 184, 0.12); padding-top: 16px; margin-bottom: 20px; margin-top: 16px;">
+            <div class="slider-group" style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
+                <span>Downtime Cost (Per Hour):</span>
+                <strong style="color: white; font-weight: 700;">₹<span id="rateVal">5,000</span></strong>
+              </div>
+              <input type="range" id="rateSlider" min="1000" max="25000" step="500" value="5000" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
+            </div>
+            <div class="slider-group" style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
+                <span>Current Resolution Delay:</span>
+                <strong style="color: white; font-weight: 700;"><span id="tradHoursVal">3.0</span> hrs</strong>
+              </div>
+              <input type="range" id="tradHoursSlider" min="1" max="10" step="0.5" value="3.0" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
+            </div>
+            <div class="slider-group" style="margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--slate-light); margin-bottom: 6px;">
+                <span>TurboFix Dispatch Speed:</span>
+                <strong style="color: white; font-weight: 700;"><span id="turboMinsVal">45</span> mins</strong>
+              </div>
+              <input type="range" id="turboMinsSlider" min="15" max="120" step="5" value="45" style="width: 100%; accent-color: #f59e0b; cursor: pointer;">
+            </div>
+          </div>
+
+          <div class="roi-results" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border-top: 1px solid rgba(148, 163, 184, 0.16); padding-top: 20px; margin-bottom: 16px;">
+            <div>
+              <span style="font-size: 0.75rem; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">🔴 Loss (Traditional)</span>
+              <span id="lossWithout" style="font-size: 1.25rem; font-weight: 700; color: #ef4444;">₹8,10,000</span>
+              <span id="tradHoursLabel" style="font-size: 0.68rem; color: var(--slate-light); display: block; margin-top: 2px;">at ~3.0 hrs per breakdown</span>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">🏆 Savings with TurboFix</span>
+              <span id="savingsVal" style="font-size: 1.25rem; font-weight: 800; color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);">₹6,07,500</span>
+              <span style="font-size: 0.68rem; color: #10b981; display: block; margin-top: 2px;">at &lt;60s dispatch speed</span>
+            </div>
+          </div>
+          <p id="downtimeRateLabel" style="font-size: 0.72rem; color: var(--slate-light); margin: 0; text-align: center; border-top: 1px dashed rgba(148, 163, 184, 0.1); padding-top: 10px;">Calculated using local Pune MIDC operational rates (avg. ₹5,000/hr downtime loss).</p>
+        </div>
+
+        <!-- CARD 2: WITHOUT TURBOFIX -->
+        <div class="hero-card-item side-card without">
+          <div class="side-label" data-i18n="comparison.withoutLabel">WITHOUT TURBOFIX</div>
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Machine with red warning light -->
+                <rect x="8" y="16" width="28" height="22" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <rect x="12" y="20" width="8" height="6" rx="1" fill="#0f172a"/>
+                <rect x="22" y="20" width="10" height="3" rx="1" fill="#334155"/>
+                <rect x="22" y="25" width="7" height="2" rx="1" fill="#334155"/>
+                <circle cx="30" cy="12" r="5" fill="#ef4444" opacity="0.9"/>
+                <circle cx="30" cy="12" r="5" fill="#ef4444" opacity="0.4"><animate attributeName="r" values="5;8;5" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.1;0.4" dur="1s" repeatCount="indefinite"/></circle>
+                <line x1="30" y1="17" x2="30" y2="16" stroke="#ef4444" stroke-width="1.5"/>
+                <rect x="38" y="24" width="6" height="14" rx="1" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.without1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Worker walking confused on shop floor -->
+                <rect x="0" y="38" width="52" height="6" rx="1" fill="#0f172a"/>
+                <circle cx="20" cy="12" r="5" fill="#f59e0b"/>
+                <rect x="16" y="18" width="8" height="12" rx="2" fill="#334155"/>
+                <line x1="14" y1="22" x2="10" y2="28" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="24" y1="22" x2="28" y2="26" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="18" y1="30" x2="14" y2="38" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="22" y1="30" x2="26" y2="38" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <text x="32" y="16" font-size="10" fill="#ef4444" font-weight="bold">?</text>
+                <text x="38" y="10" font-size="8" fill="#ef4444" font-weight="bold">?</text>
+                <!-- footprints -->
+                <ellipse cx="36" cy="40" rx="3" ry="1.5" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+                <ellipse cx="44" cy="39" rx="3" ry="1.5" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.without2">Someone walks around looking</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Supervisor on phone, frustrated -->
+                <circle cx="18" cy="12" r="5" fill="#f59e0b"/>
+                <rect x="14" y="18" width="8" height="12" rx="2" fill="#475569"/>
+                <line x1="12" y1="22" x2="8" y2="28" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+                <line x1="22" y1="20" x2="26" y2="14" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+                <!-- phone at ear -->
+                <rect x="25" y="10" width="4" height="8" rx="1" fill="#94a3b8"/>
+                <!-- frustration lines -->
+                <line x1="30" y1="6" x2="34" y2="4" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="31" y1="10" x2="36" y2="9" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="30" y1="14" x2="34" y2="16" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/>
+                <!-- speech bubble -->
+                <rect x="36" y="2" width="14" height="10" rx="3" fill="#1e293b" stroke="#ef4444" stroke-width="1"/>
+                <text x="40" y="10" font-size="7" fill="#ef4444">!@#</text>
+                <line x1="18" y1="30" x2="14" y2="38" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+                <line x1="18" y1="30" x2="22" y2="38" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.without3">Calls and more calls</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Explaining issue again on call -->
+                <circle cx="14" cy="14" r="5" fill="#f59e0b"/>
+                <rect x="10" y="20" width="8" height="10" rx="2" fill="#475569"/>
+                <!-- speech bubbles stacking up -->
+                <rect x="24" y="2" width="24" height="9" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+                <text x="28" y="9" font-size="6" fill="#94a3b8">belt jams</text>
+                <rect x="26" y="14" width="22" height="9" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+                <text x="29" y="21" font-size="6" fill="#94a3b8">again??</text>
+                <rect x="24" y="26" width="26" height="9" rx="3" fill="#1e293b" stroke="#ef4444" stroke-width="1"/>
+                <text x="27" y="33" font-size="6" fill="#ef4444">explain!</text>
+                <!-- repeat arrow -->
+                <path d="M 14 34 Q 8 40, 14 42 Q 20 40, 14 34" fill="none" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.without4">"Can you explain again?"</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Technician finally arriving late -->
+                <rect x="30" y="14" width="18" height="20" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <rect x="34" y="18" width="5" height="4" rx="1" fill="#0f172a"/>
+                <circle cx="14" cy="14" r="5" fill="#3b82f6"/>
+                <rect x="10" y="20" width="8" height="12" rx="2" fill="#334155"/>
+                <!-- wrench in hand -->
+                <line x1="22" y1="24" x2="28" y2="20" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="29" cy="19" r="2" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <line x1="12" y1="32" x2="8" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="16" y1="32" x2="20" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <!-- clock showing late -->
+                <circle cx="44" cy="8" r="6" fill="#0f172a" stroke="#ef4444" stroke-width="1.2"/>
+                <line x1="44" y1="8" x2="44" y2="5" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
+                <line x1="44" y1="8" x2="47" y2="9" stroke="#ef4444" stroke-width="1" stroke-linecap="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.without5">Tech finally starts fixing</span>
+            </div>
+          </div>
+          <div class="bottom-result bad">
+            <p class="big-number" data-i18n="comparison.withoutTime">30+ minutes</p>
+            <p class="small-text" data-i18n="comparison.withoutCost">₹10,000+ lost</p>
+          </div>
+        </div>
+
+        <!-- CARD 3: WITH TURBOFIX -->
+        <div class="hero-card-item side-card with">
+          <div class="side-label" data-i18n="comparison.withLabel">WITH TURBOFIX</div>
+          <div class="timeline-slim">
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Same machine with red warning light -->
+                <rect x="8" y="16" width="28" height="22" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <rect x="12" y="20" width="8" height="6" rx="1" fill="#0f172a"/>
+                <rect x="22" y="20" width="10" height="3" rx="1" fill="#334155"/>
+                <rect x="22" y="25" width="7" height="2" rx="1" fill="#334155"/>
+                <circle cx="30" cy="12" r="5" fill="#ef4444" opacity="0.9"/>
+                <circle cx="30" cy="12" r="5" fill="#ef4444" opacity="0.4"><animate attributeName="r" values="5;8;5" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.1;0.4" dur="1s" repeatCount="indefinite"/></circle>
+                <line x1="30" y1="17" x2="30" y2="16" stroke="#ef4444" stroke-width="1.5"/>
+                <rect x="38" y="24" width="6" height="14" rx="1" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.with1">Machine stops</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Worker scanning QR on machine -->
+                <rect x="30" y="12" width="18" height="22" rx="3" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                <!-- QR code on machine -->
+                <rect x="35" y="16" width="10" height="10" rx="1" fill="white"/>
+                <rect x="36" y="17" width="3" height="3" fill="#0f172a"/>
+                <rect x="41" y="17" width="3" height="3" fill="#0f172a"/>
+                <rect x="36" y="22" width="3" height="3" fill="#0f172a"/>
+                <rect x="40" y="21" width="2" height="2" fill="#0f172a"/>
+                <!-- worker with phone -->
+                <circle cx="16" cy="12" r="5" fill="#f59e0b"/>
+                <rect x="12" y="18" width="8" height="12" rx="2" fill="#334155"/>
+                <line x1="20" y1="20" x2="26" y2="18" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <!-- phone in hand pointing at QR -->
+                <rect x="24" y="15" width="5" height="8" rx="1" fill="#10b981" stroke="#22c55e" stroke-width="0.8"/>
+                <!-- scan lines -->
+                <line x1="28" y1="18" x2="35" y2="20" stroke="#22c55e" stroke-width="0.8" stroke-dasharray="2,1" opacity="0.7"/>
+                <line x1="28" y1="21" x2="35" y2="22" stroke="#22c55e" stroke-width="0.8" stroke-dasharray="2,1" opacity="0.7"/>
+                <line x1="14" y1="30" x2="10" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="18" y1="30" x2="22" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.with2">Worker scans QR</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Worker speaking into WhatsApp voice note -->
+                <circle cx="14" cy="14" r="5" fill="#f59e0b"/>
+                <rect x="10" y="20" width="8" height="12" rx="2" fill="#334155"/>
+                <line x1="20" y1="22" x2="24" y2="18" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <!-- phone with WhatsApp -->
+                <rect x="22" y="14" width="6" height="10" rx="1.5" fill="#25d366"/>
+                <circle cx="25" cy="18" r="2" fill="white" opacity="0.9"/>
+                <!-- voice waves -->
+                <path d="M 30 16 Q 33 14, 30 12" fill="none" stroke="#25d366" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M 32 18 Q 36 14, 32 10" fill="none" stroke="#25d366" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                <path d="M 34 20 Q 40 14, 34 8" fill="none" stroke="#25d366" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+                <!-- mic icon -->
+                <rect x="39" y="12" width="4" height="8" rx="2" fill="#25d366"/>
+                <path d="M 37 18 Q 37 24, 41 24 Q 45 24, 45 18" fill="none" stroke="#25d366" stroke-width="1" stroke-linecap="round"/>
+                <line x1="41" y1="24" x2="41" y2="28" stroke="#25d366" stroke-width="1"/>
+                <line x1="12" y1="32" x2="8" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="16" y1="32" x2="20" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.with3">Speaks into WhatsApp</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- AI analyzing the issue -->
+                <rect x="10" y="6" width="32" height="28" rx="4" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+                <!-- screen glow -->
+                <rect x="14" y="10" width="24" height="18" rx="2" fill="#0f172a"/>
+                <!-- AI brain/circuit lines -->
+                <circle cx="26" cy="19" r="6" fill="none" stroke="#f59e0b" stroke-width="1.2"/>
+                <line x1="26" y1="13" x2="26" y2="10" stroke="#f59e0b" stroke-width="0.8"/>
+                <line x1="32" y1="19" x2="36" y2="19" stroke="#f59e0b" stroke-width="0.8"/>
+                <line x1="20" y1="19" x2="16" y2="19" stroke="#f59e0b" stroke-width="0.8"/>
+                <line x1="30" y1="15" x2="33" y2="12" stroke="#f59e0b" stroke-width="0.8"/>
+                <line x1="22" y1="15" x2="19" y2="12" stroke="#f59e0b" stroke-width="0.8"/>
+                <!-- lightning bolt in center -->
+                <path d="M 27 16 L 24 20 L 26 20 L 25 24 L 29 19 L 27 19 Z" fill="#f59e0b"/>
+                <!-- processing dots -->
+                <circle cx="18" cy="26" r="1.2" fill="#22c55e"><animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
+                <circle cx="22" cy="26" r="1.2" fill="#22c55e"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite"/></circle>
+                <circle cx="26" cy="26" r="1.2" fill="#22c55e"><animate attributeName="opacity" values="1;0.3;1" dur="1.2s" begin="0.4s" repeatCount="indefinite"/></circle>
+                <!-- base -->
+                <rect x="22" y="34" width="8" height="2" rx="1" fill="#475569"/>
+                <rect x="18" y="36" width="16" height="2" rx="1" fill="#475569"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.with4">AI figures it out</span>
+            </div>
+            <div class="timeline-arrow">↓</div>
+            <div class="timeline-item highlight-item">
+              <span class="t-icon"><svg viewBox="0 0 52 44" xmlns="http://www.w3.org/2000/svg">
+                <!-- Technician already fixing it -->
+                <rect x="28" y="12" width="18" height="22" rx="3" fill="#1e293b" stroke="#22c55e" stroke-width="1.5"/>
+                <rect x="32" y="16" width="5" height="4" rx="1" fill="#0f172a"/>
+                <!-- technician working on machine -->
+                <circle cx="16" cy="12" r="5" fill="#3b82f6"/>
+                <rect x="12" y="18" width="8" height="12" rx="2" fill="#334155"/>
+                <line x1="20" y1="20" x2="28" y2="18" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <!-- wrench actively turning -->
+                <line x1="26" y1="18" x2="30" y2="16" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                <!-- sparks -->
+                <line x1="32" y1="14" x2="34" y2="12" stroke="#f59e0b" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="34" y1="16" x2="37" y2="15" stroke="#f59e0b" stroke-width="1" stroke-linecap="round"/>
+                <line x1="31" y1="12" x2="32" y2="9" stroke="#f59e0b" stroke-width="1" stroke-linecap="round"/>
+                <line x1="14" y1="30" x2="10" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <line x1="18" y1="30" x2="22" y2="40" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <!-- green checkmark -->
+                <circle cx="44" cy="8" r="6" fill="#22c55e"/>
+                <polyline points="41,8 43,10.5 47,5.5" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg></span>
+              <span class="t-text" data-i18n="comparison.with5">Tech is already on it</span>
+            </div>
+          </div>
+          <div class="bottom-result good">
+            <p class="big-number" data-i18n="comparison.withTime">60 seconds</p>
+            <p class="small-text" data-i18n="comparison.withSave">Save ₹10,000+</p>
+          </div>
+        </div>
+
+      </div>
+
       
-      {/* Testimonials / CTA could go here */}
-      <section style={{padding: '80px 0', background: 'var(--brand)', color: 'white', textAlign: 'center'}}>
-        <div className="container">
-          <h2 style={{fontSize: '36px', marginBottom: '24px'}}>Ready to get your device fixed?</h2>
-          <p style={{fontSize: '18px', opacity: 0.9, maxWidth: '600px', margin: '0 auto 32px'}}>
-            Drop by our store or mail your device in. We offer free diagnostics and a 90-day warranty on all repairs.
-          </p>
-          <a href="#contact" className="btn" style={{background: 'white', color: 'var(--brand)', padding: '16px 32px', borderRadius: '4px', fontWeight: 700, fontSize: '18px', display: 'inline-block'}}>
-            Schedule Repair Now
+
+      <!-- Hero Bottom -->
+      <div style="text-align: center; margin-top: 40px;">
+        <div class="hero-relief" style="max-width: 700px; margin: 0 auto 24px;">
+          <p class="hero-relief-before" data-i18n="hero.reliefBefore">😩 Right now: minutes lost walking the floor, more lost guessing which technician to call.</p>
+          <p class="hero-relief-after" data-i18n="hero.reliefAfter">⚡ With TurboFix: technician notified in under 60 seconds — straight from a voice note, automatically.</p>
+        </div>
+        <div class="hero-actions" style="justify-content: center;">
+          <a class="btn btn-whatsapp btn-lg" href="#contact">
+            <span class="ico">💬</span> <span data-i18n="hero.ctaTrial">Start Your Free 1-Month Trial</span>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#demo" data-i18n="hero.ctaDemo">▶ Watch Live Demo</a>
+        </div>
+        <p class="hero-fineprint" data-i18n="hero.fineprint">No credit card. No app installs. Cancel anytime.</p>
+        <div class="hero-stats" style="justify-content: center; margin-top: 36px;">
+          <div class="stat">
+            <span class="stat-num" data-count="60" data-prefix="&lt; " data-suffix=" sec">&lt; 0 sec</span>
+            <span class="stat-label" data-i18n="hero.stat1">report to technician notified</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="5" data-suffix=" min">0 min</span>
+            <span class="stat-label" data-i18n="hero.stat2">setup per machine</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num" data-count="0">0</span>
+            <span class="stat-label" data-i18n="hero.stat3">apps for workers to install</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE DEMO ============ -->
+  <section class="section demo-section" id="demo">
+    <div class="container">
+      <h2 class="section-title" data-i18n="demo.title">See TurboFix in action</h2>
+      <p class="section-sub" data-i18n="demo.sub">This is a simulated walkthrough — no sign-up needed. Tap play to watch a real ticket flow through the system, end to end.</p>
+
+      <div class="demo-grid">
+        <!-- Phone / chat simulation -->
+        <div class="demo-phone-wrap">
+          <!-- Step tracker: narrates what's happening in plain language -->
+          <div class="demo-steps" id="demoSteps">
+            <div class="demo-step" data-step="1">
+              <span class="demo-step-dot">📷</span>
+              <span class="demo-step-label" data-i18n="demo.step1Label">Scan</span>
+            </div>
+            <div class="demo-step" data-step="2">
+              <span class="demo-step-dot">🎙️</span>
+              <span class="demo-step-label" data-i18n="demo.step2Label">Report</span>
+            </div>
+            <div class="demo-step" data-step="3">
+              <span class="demo-step-dot">🤖</span>
+              <span class="demo-step-label" data-i18n="demo.step3Label">AI Triage</span>
+            </div>
+            <div class="demo-step" data-step="4">
+              <span class="demo-step-dot">🔔</span>
+              <span class="demo-step-label" data-i18n="demo.step4Label">Notify</span>
+            </div>
+            <div class="demo-step" data-step="5">
+              <span class="demo-step-dot">✅</span>
+              <span class="demo-step-label" data-i18n="demo.step5Label">Resolved</span>
+            </div>
+          </div>
+          <p class="demo-step-desc" id="demoStepDesc" data-i18n="demo.step0Desc">Tap the QR or press play to watch a real ticket move from "machine down" to "technician on it" — start to finish, in under a minute.</p>
+
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="chat-header">
+              <span class="chat-avatar">🏭</span>
+              <div>
+                <div class="chat-title">TurboFix</div>
+                <div class="chat-sub" id="demoStatus" data-i18n="demo.tapToStart">tap play to start</div>
+              </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+              <div class="chat-placeholder" id="chatPlaceholder">
+                <div class="qr-tap" id="qrTap">
+                  <div class="qr-icon">▦</div>
+                  <p data-i18n="demo.qrTap">Tap the QR to simulate a worker scanning it</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-replay" id="replayBtn" data-i18n="demo.playBtn">▶ Play Demo</button>
+          <p class="demo-autoreplay-note" data-i18n="demo.autoReplayNote">This demo loops automatically — feel free to replay it anytime.</p>
+        </div>
+
+        <!-- Dashboard simulation -->
+        <div class="demo-dashboard">
+          <div class="dash-card">
+            <div class="dash-head">
+              <h3 data-i18n="demo.dashboardTitle">Live Dashboard</h3>
+              <span class="dash-live" data-i18n="demo.liveBadge">● live</span>
+            </div>
+            <div class="dash-kpis">
+              <div class="kpi">
+                <span class="kpi-num" id="kpiOpen">2</span>
+                <span class="kpi-label" data-i18n="demo.kpiOpen">Open Tickets</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiDown">1</span>
+                <span class="kpi-label" data-i18n="demo.kpiDown">Machines Down</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiHealth">86%</span>
+                <span class="kpi-label" data-i18n="demo.kpiHealth">Plant Health</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi-num" id="kpiAvg">4.2h</span>
+                <span class="kpi-label" data-i18n="demo.kpiAvg">Avg. Time to Fix</span>
+              </div>
+            </div>
+            <div class="dash-feed" id="dashFeed">
+              <p class="dash-feed-empty" data-i18n="demo.feedEmpty">Activity will appear here once the demo starts…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROBLEM ============ -->
+  <section class="section problem">
+    <div class="container">
+      <h2 class="section-title" data-i18n="problem.title">Three silent leaks draining your factory every month</h2>
+      <p class="section-sub" data-i18n="problem.sub">They never show up as a single line item — which is exactly why they never get fixed.</p>
+      <div class="grid grid-3">
+        <div class="card leak-card">
+          <div class="leak-ico">⏱️</div>
+          <h3 data-i18n="problem.leak1.title">Downtime search cost</h3>
+          <p data-i18n="problem.leak1.body">Hours lost between "something's wrong" and "the right technician knows about it" — not fixing it, just <em>finding out</em>.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">⚡</div>
+          <h3 data-i18n="problem.leak2.title">Ghost power</h3>
+          <p data-i18n="problem.leak2.body">Machines idling, leaking air, or running inefficiently for days because nobody logged the small issue before it became a big one.</p>
+        </div>
+        <div class="card leak-card">
+          <div class="leak-ico">📦</div>
+          <h3 data-i18n="problem.leak3.title">Dead stock</h3>
+          <p data-i18n="problem.leak3.body">Emergency spare-part orders at premium prices because failures were never tracked long enough to see the pattern coming.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="section how" id="how">
+    <div class="container">
+      <h2 class="section-title" data-i18n="how.title">From "it's broken" to "it's assigned" in under a minute</h2>
+      <p class="section-sub" data-i18n="how.sub">Four steps. Zero new habits for your shop-floor team.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-ico">📱</div>
+          <h3 data-i18n="how.step1.title">Scan the QR tag</h3>
+          <p data-i18n="how.step1.body">Every machine has a printed tag. Scanning it opens WhatsApp with the machine's ID already filled in.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-ico">🎙️</div>
+          <h3 data-i18n="how.step2.title">Speak the issue</h3>
+          <p data-i18n="how.step2.body">The worker just talks — in whatever language is natural. No forms, no typing, no app to learn.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-ico">🤖</div>
+          <h3 data-i18n="how.step3.title">AI triages instantly</h3>
+          <p data-i18n="how.step3.body">Voice is transcribed and summarised into likely cause, urgency, and a suggested first action.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-ico">✅</div>
+          <h3 data-i18n="how.step4.title">Right people notified</h3>
+          <p data-i18n="how.step4.body">The assigned technician and anyone who needs to know get pinged on WhatsApp. Your dashboard updates itself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CMMS COMPARISON ============ -->
+  <section class="section comparison-cmms" id="comparison-cmms">
+    <div class="container">
+      <h2 class="section-title" data-i18n="comparison.cmms.title">Built for Pune MIDC: Why TurboFix Wins Over Traditional CMMS</h2>
+      <p class="section-sub" data-i18n="comparison.cmms.sub">Standard software (like MaintainX) works in clean tech hubs. TurboFix is engineered for the realities of Indian shop floors.</p>
+      
+      <div class="grid grid-2">
+        <div class="card comparison-card traditional-cmms">
+          <div class="card-badge badge-red">TRADITIONAL CMMS</div>
+          <h3 data-i18n="comparison.cmms.tradTitle">The App-First Approach</h3>
+          <p class="desc" data-i18n="comparison.cmms.tradDesc">Requires high-end smartphones and active training.</p>
+          <ul class="comparison-list">
+            <li data-i18n="comparison.cmms.trad1"><span class="x-mark">❌</span> <strong>App Downloads:</strong> Workers must download and update a dedicated app.</li>
+            <li data-i18n="comparison.cmms.trad2"><span class="x-mark">❌</span> <strong>English-First:</strong> Requires typing details in English, leading to incomplete logging.</li>
+            <li data-i18n="comparison.cmms.trad3"><span class="x-mark">❌</span> <strong>Worker Resistance:</strong> Operators avoid using it because it feels like extra paperwork.</li>
+            <li data-i18n="comparison.cmms.trad4"><span class="x-mark">❌</span> <strong>High License Cost:</strong> Expensive per-user fees that don't scale for large factories.</li>
+          </ul>
+        </div>
+        
+        <div class="card comparison-card turbofix-cmms highlight-border">
+          <div class="card-badge badge-gold">TURBOFIX</div>
+          <h3 data-i18n="comparison.cmms.turboTitle">The WhatsApp-Native Approach</h3>
+          <p class="desc" data-i18n="comparison.cmms.turboDesc">Zero training, zero app installs, 100% adoption.</p>
+          <ul class="comparison-list">
+            <li data-i18n="comparison.cmms.turbo1"><span class="check-mark">⚡</span> <strong>WhatsApp Native:</strong> Workers report issues instantly using the app they already use daily.</li>
+            <li data-i18n="comparison.cmms.turbo2"><span class="check-mark">⚡</span> <strong>Voice in Hindi/Marathi:</strong> Operators just speak a voice note; AI transcribes and translates it.</li>
+            <li data-i18n="comparison.cmms.turbo3"><span class="check-mark">⚡</span> <strong>Zero Training:</strong> If they can send a voice note on WhatsApp, they know how to use TurboFix.</li>
+            <li data-i18n="comparison.cmms.turbo4"><span class="check-mark">⚡</span> <strong>Flat Factory Pricing:</strong> Unlimited workers, unlimited scans, pay only per active machine.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRIAL ============ -->
+  <section class="section trial-section" id="trial">
+    <div class="container trial-inner">
+      <div class="trial-copy">
+        <p class="eyebrow eyebrow-light" data-i18n="trial.eyebrow">🎁 Zero-risk pilot</p>
+        <h2 data-i18n="trial.title">Try TurboFix free for a full month</h2>
+        <p class="lede-light" data-i18n="trial.lede">
+          Bring your own machines, your own team, your own WhatsApp number. We'll help you
+          tag your first machines and get your first tickets flowing — free for 30 days.
+        </p>
+        <ul class="check-list">
+          <li data-i18n="trial.check1">Unlimited tickets for up to 20 machines</li>
+          <li data-i18n="trial.check2">AI voice-note transcription &amp; triage included</li>
+          <li data-i18n="trial.check3">Live dashboard for your whole team</li>
+          <li data-i18n="trial.check4">WhatsApp setup support, not a support ticket queue</li>
+          <li data-i18n="trial.check5">No credit card required to start</li>
+        </ul>
+        <a class="btn btn-whatsapp btn-lg" href="#contact">
+          <span class="ico">💬</span> <span data-i18n="trial.cta">Claim Your Free Trial on WhatsApp</span>
+        </a>
+        <p class="hero-fineprint hero-fineprint-light" data-i18n="trial.fineprint">We'll reply on WhatsApp within one business day.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section class="section why">
+    <div class="container">
+      <h2 class="section-title" data-i18n="why.title">Why factories switch to TurboFix</h2>
+      <div class="grid grid-3">
+        <div class="card why-card">
+          <div class="why-ico">🚫📲</div>
+          <h3 data-i18n="why.card1.title">No app, ever</h3>
+          <p data-i18n="why.card1.body">Workers already know how to use WhatsApp. That's the entire training required.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🤖</div>
+          <h3 data-i18n="why.card2.title">AI-powered triage</h3>
+          <p data-i18n="why.card2.body">Every voice note becomes a structured brief: likely cause, urgency, suggested first action.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">🏢</div>
+          <h3 data-i18n="why.card3.title">Multi-tenant &amp; secure</h3>
+          <p data-i18n="why.card3.body">Every machine ID is scoped to your company code — your tickets never mix with anyone else's.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">📊</div>
+          <h3 data-i18n="why.card4.title">Live dashboard</h3>
+          <p data-i18n="why.card4.body">Open tickets, machines down, plant health — updated the moment a ticket is logged, not at end of shift.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">⚡</div>
+          <h3 data-i18n="why.card5.title">Same-day setup</h3>
+          <p data-i18n="why.card5.body">Print QR tags, stick them on, done. Most pilots go live the same day they sign up.</p>
+        </div>
+        <div class="card why-card">
+          <div class="why-ico">💰</div>
+          <h3 data-i18n="why.card6.title">Pay for tickets, not seats</h3>
+          <p data-i18n="why.card6.body">No per-user licensing. Cost scales with how much your team actually reports, not headcount.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section faq-section" id="faq">
+    <div class="container">
+      <h2 class="section-title" data-i18n="faq.title">Frequently asked questions</h2>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q1">Do workers need to install anything?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a1">No. Everything runs over WhatsApp, which almost every worker already has and uses daily. There is nothing to download or log into.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q2">What happens after the free trial ends?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a2">We'll check in with you on WhatsApp before it ends. If TurboFix is working for you, you move to pay-per-ticket pricing — no auto-billing surprises, no lock-in contract.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q3">Can workers speak in their own language?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a3">Yes — workers just speak naturally into a voice note. Our AI layer transcribes and summarises it into a clear brief for the technician.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q4">Is our data isolated from other companies?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a4">Yes. Every machine ID is scoped to your unique company code, and every ticket, dashboard view, and notification is filtered to your company only.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q5">What if we have more than 20 machines?</span> <span class="faq-toggle">+</span></button>
+          <div class="faq-a"><p data-i18n="faq.a5">No problem — the 20-machine cap only applies to the free trial. Message us on WhatsApp and we'll size a plan for your full factory floor.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEAD CAPTURE ============ -->
+  <section class="section lead-section" id="contact">
+    <div class="container lead-inner">
+      <div class="lead-copy">
+        <p class="eyebrow" data-i18n="lead.eyebrow">📞 Get started</p>
+        <h2 class="lead-title" data-i18n="lead.title">Ready to stop losing hours to breakdowns?</h2>
+        <p class="lead-sub" data-i18n="lead.sub">
+          Leave your details and we'll message you on WhatsApp within one business day to set up
+          your free 1-month pilot — QR tags, dashboard, everything.
+        </p>
+        <div class="lead-alt">
+          <p data-i18n="lead.or">Prefer to talk right away?</p>
+          <a class="btn btn-ghost" data-wa="general" target="_blank" rel="noopener">
+            <span class="ico">💬</span> <span data-i18n="lead.chatNow">Chat with us now</span>
           </a>
         </div>
-      </section>
+      </div>
+
+      <form class="lead-form" id="leadForm" novalidate>
+        <div class="lead-field">
+          <label for="leadName" data-i18n="lead.name">Your name</label>
+          <input type="text" id="leadName" name="name" autocomplete="name" required>
+        </div>
+        <div class="lead-field">
+          <label for="leadCompany" data-i18n="lead.company">Factory / company name</label>
+          <input type="text" id="leadCompany" name="company" autocomplete="organization" required>
+        </div>
+        <div class="lead-row">
+          <div class="lead-field">
+            <label for="leadCity" data-i18n="lead.city">City</label>
+            <input type="text" id="leadCity" name="city" autocomplete="address-level2">
+          </div>
+          <div class="lead-field">
+            <label for="leadMachines" data-i18n="lead.machines">Machines (approx.)</label>
+            <input type="number" id="leadMachines" name="machines" min="1" inputmode="numeric">
+          </div>
+        </div>
+        <div class="lead-field">
+          <label for="leadPhone" data-i18n="lead.phone">Your WhatsApp number</label>
+          <input type="tel" id="leadPhone" name="phone" autocomplete="tel" inputmode="tel" required>
+        </div>
+        <button type="submit" class="btn btn-whatsapp btn-lg lead-submit">
+          <span class="ico">📩</span> <span data-i18n="lead.submit">Send my details on WhatsApp</span>
+        </button>
+        <p class="lead-note" data-i18n="lead.note">
+          The button opens WhatsApp with your details pre-filled — you just press send.
+          Nothing is stored on this website.
+        </p>
+        <p class="lead-error" id="leadError" hidden data-i18n="lead.error">Please fill in your name, company, and WhatsApp number.</p>
+      </form>
+    </div>
+  </section>
+
+
+
+<!-- ============ FLOATING WHATSAPP BUTTON ============ -->
+<a class="float-wa" data-wa="general" target="_blank" rel="noopener" aria-label="Chat with TurboFix on WhatsApp">
+  <span class="float-wa-ico">💬</span>
+  <span class="float-wa-label" data-i18n="float.label">Chat on WhatsApp</span>
+</a>
+
+<!-- ============ FOOTER ============ -->
+
+
+
+
+
+` }} />
     </MainLayout>
   );
 }
