@@ -1,8 +1,13 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
+import { useLanguage } from '../LanguageContext';
 
 export default function Vault() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { t } = useLanguage();
+
   useEffect(() => {
     // Scroll to top on mount
     window.scrollTo(0, 0);
