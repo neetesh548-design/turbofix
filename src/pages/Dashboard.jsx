@@ -146,7 +146,7 @@ export default function Dashboard() {
     </div>
 
     <div class="footer-link">
-      <a href="vault.html">Manage Documents & Spare Parts →</a>
+      <a href="#/vault.html">Manage Documents & Spare Parts →</a>
     </div>
 
     <!-- KPI Settings Modal -->

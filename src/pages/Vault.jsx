@@ -48,7 +48,7 @@ export default function Vault() {
     </form>
 
     <div style="text-align:center; margin-top:10px">
-      <a href="reset-password.html" style="color:var(--slate-light); font-size:13px">Forgot password?</a>
+      <a href="#/reset-password.html" style="color:var(--slate-light); font-size:13px">Forgot password?</a>
     </div>
 
     <details class="vault-advanced" style="display:none">
