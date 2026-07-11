@@ -62,46 +62,29 @@ export default function Navbar() {
     <header className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="nav">
       <div className="container nav-inner">
         <Link to="/" className="brand" onClick={() => setIsOpen(false)}>
-          <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
-            <defs>
-              <linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100">
-                <stop offset="0%" stopColor="#22a35a" />
-                <stop offset="100%" stopColor="#125c31" />
-              </linearGradient>
-            </defs>
-            <g fill="#0f172a" opacity="0.15">
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
-            </g>
-            <circle cx="50" cy="50" r="12" fill="#0f172a" />
-            <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
+          <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{width: '32px', height: '32px'}}>
+            <rect width="100" height="100" rx="20" fill="var(--brand)" />
+            <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#ffffff" />
           </svg>
-          <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+          <span className="brand-name" style={{color: 'var(--ink)'}}>Fixpro</span>
         </Link>
 
         <nav className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
-          <Link to="/why-turbofix.html" className={isActive('/why-turbofix.html') ? 'active' : ''} onClick={() => setIsOpen(false)}>Why TurboFix</Link>
+          <Link to="/why-turbofix.html" className={isActive('/why-turbofix.html') ? 'active' : ''} onClick={() => setIsOpen(false)}>Services</Link>
           {location.pathname === '/' ? (
             <>
               <a href="#demo" className={isActive('#demo') ? 'active' : ''} onClick={() => setIsOpen(false)}>Live Demo</a>
-              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>How Does It Work</a>
+              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>How It Works</a>
             </>
           ) : (
             <>
               <Link to="/#demo" onClick={() => setIsOpen(false)}>Live Demo</Link>
-              <Link to="/#how" onClick={() => setIsOpen(false)}>How Does It Work</Link>
+              <Link to="/#how" onClick={() => setIsOpen(false)}>How It Works</Link>
             </>
           )}
-          <a href="/#contact" className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)}>
-            <span className="nav-btn-primary">Get Started</span>
-            <span className="nav-btn-sub">Free Trial</span>
+          <a href="/#contact" className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)} style={{background: 'var(--brand)', color: 'white', border: 'none', borderRadius: '4px'}}>
+            <span className="nav-btn-primary">Book Repair</span>
+            <span className="nav-btn-sub">Get a Free Quote</span>
           </a>
         </nav>
 
