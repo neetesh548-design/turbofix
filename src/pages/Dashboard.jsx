@@ -70,8 +70,8 @@ export default function Dashboard() {
     // 2. Fetch User Profile
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
+      .select('*, factories(name)')
+      .eq('user_id', session.user.id)
       .single();
       
     setUser(profile);
@@ -94,12 +94,15 @@ export default function Dashboard() {
       });
 
       // 4. Fetch Analytics (SQL Views)
-      // Safely attempt to fetch views. If views don't exist yet, it will fail gracefully.
-      const [{ data: mttrData }, { data: mtbfData }, { data: paretoData }] = await Promise.all([
+      const results = await Promise.allSettled([
         supabase.from('analytics_mttr_monthly').select('*').limit(1),
         supabase.from('analytics_machine_mtbf').select('*').limit(1),
         supabase.from('analytics_downtime_pareto').select('*').limit(1)
       ]);
+
+      const mttrData = results[0].status === 'fulfilled' ? results[0].value.data : null;
+      const mtbfData = results[1].status === 'fulfilled' ? results[1].value.data : null;
+      const paretoData = results[2].status === 'fulfilled' ? results[2].value.data : null;
 
       setInsights({
         mttr: mttrData?.[0]?.avg_hours_to_resolve?.toFixed(1) || '—',
@@ -114,7 +117,7 @@ export default function Dashboard() {
           id, 
           status, 
           urgency,
-          description,
+          issue_text,
           created_at,
           machines ( name )
         `)
@@ -144,7 +147,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-48)' }}>
             <div>
               <h1 style={{ fontSize: 'var(--text-31)', fontWeight: '700', fontFamily: 'var(--font-industrial)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--n-4)' }}>
-                {user ? `${user.company_id} Control Room` : 'Loading...'}
+                {user?.factories?.name ? `${user.factories.name} Control Room` : 'Loading...'}
               </h1>
               <p style={{ margin: 'var(--space-4) 0 0', color: 'var(--n-3)', fontSize: 'var(--text-14)' }}>
                 {user ? `${user.full_name} (${user.role})` : 'Authenticating...'}
@@ -198,7 +201,7 @@ export default function Dashboard() {
                         <MachineNameplate machineName={ticket.machines?.name || 'Unknown'} status={ticket.status === 'open' ? 'down' : 'healthy'} />
                       </td>
                       <td style={{ padding: 'var(--space-16)', borderBottom: 'var(--border-weight) solid var(--n-2)', color: 'var(--n-4)' }}>
-                        {ticket.description}
+                        {ticket.issue_text}
                       </td>
                       <td style={{ padding: 'var(--space-16)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>
                         <span style={{ 

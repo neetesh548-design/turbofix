@@ -2,6 +2,8 @@
 -- 1. TENANCY & ROLE LAYER
 -- ==========================================
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Enum for factory plans
 CREATE TYPE factory_plan AS ENUM ('pilot', 'paid');
 
@@ -32,7 +34,7 @@ CREATE TABLE public.machine_qr_codes (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   machine_id uuid NOT NULL REFERENCES public.machines(id) ON DELETE CASCADE,
   factory_id uuid NOT NULL REFERENCES public.factories(id) ON DELETE CASCADE,
-  token text UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(16), 'hex'),
+  token text UNIQUE NOT NULL DEFAULT encode(extensions.gen_random_bytes(16), 'hex'),
   created_at timestamp with time zone DEFAULT now()
 );
 
@@ -50,12 +52,19 @@ BEGIN
   VALUES ('TurboFix Demo Factory', 'Pune', 'pilot')
   RETURNING id INTO demo_factory_id;
 
+  -- Add columns without DEFAULT reference to variable
+  ALTER TABLE public.machines ADD COLUMN factory_id uuid REFERENCES public.factories(id) ON DELETE CASCADE;
+  ALTER TABLE public.tickets ADD COLUMN factory_id uuid REFERENCES public.factories(id) ON DELETE CASCADE;
+  ALTER TABLE public.parts ADD COLUMN factory_id uuid REFERENCES public.factories(id) ON DELETE CASCADE;
+  ALTER TABLE public.consumables ADD COLUMN factory_id uuid REFERENCES public.factories(id) ON DELETE CASCADE;
+  ALTER TABLE public.suppliers ADD COLUMN factory_id uuid REFERENCES public.factories(id) ON DELETE CASCADE;
+
   -- Backfill existing tables
-  ALTER TABLE public.machines ADD COLUMN factory_id uuid DEFAULT demo_factory_id REFERENCES public.factories(id) ON DELETE CASCADE;
-  ALTER TABLE public.tickets ADD COLUMN factory_id uuid DEFAULT demo_factory_id REFERENCES public.factories(id) ON DELETE CASCADE;
-  ALTER TABLE public.parts ADD COLUMN factory_id uuid DEFAULT demo_factory_id REFERENCES public.factories(id) ON DELETE CASCADE;
-  ALTER TABLE public.consumables ADD COLUMN factory_id uuid DEFAULT demo_factory_id REFERENCES public.factories(id) ON DELETE CASCADE;
-  ALTER TABLE public.suppliers ADD COLUMN factory_id uuid DEFAULT demo_factory_id REFERENCES public.factories(id) ON DELETE CASCADE;
+  UPDATE public.machines SET factory_id = demo_factory_id;
+  UPDATE public.tickets SET factory_id = demo_factory_id;
+  UPDATE public.parts SET factory_id = demo_factory_id;
+  UPDATE public.consumables SET factory_id = demo_factory_id;
+  UPDATE public.suppliers SET factory_id = demo_factory_id;
   
   -- Make factory_id NOT NULL after backfilling
   ALTER TABLE public.machines ALTER COLUMN factory_id SET NOT NULL;

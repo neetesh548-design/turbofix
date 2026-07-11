@@ -41,7 +41,7 @@ export default function Vault() {
   }, []);
 
   useEffect(() => {
-    if (user && user.company_id) {
+    if (user && user.factory_id) {
       fetchMachines();
     }
   }, [user]);
@@ -54,9 +54,9 @@ export default function Vault() {
 
   async function fetchUserData(userId) {
     const { data, error } = await supabase
-      .from('users')
-      .select('*, companies(name, status)')
-      .eq('id', userId)
+      .from('profiles')
+      .select('*, factories(name, plan)')
+      .eq('user_id', userId)
       .single();
     if (data) setUser(data);
   }
@@ -82,6 +82,17 @@ export default function Vault() {
       setPanelData(prev => ({ ...prev, consumables: data || [] }));
     }
     setIsLoading(false);
+  }
+
+  function handleDocumentAction(item) {
+    if (activeTab === 'documents') {
+      const url = item.file_url;
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        alert("Document URL not found.");
+      }
+    }
   }
 
   async function handleLogin(e) {
@@ -141,7 +152,7 @@ export default function Vault() {
                 {user?.name || 'Loading...'}
                 <span style={{ fontSize: 'var(--text-12)', fontWeight: '600', padding: '2px 8px', background: 'var(--n-2)', borderRadius: '999px', marginLeft: 'var(--space-12)', textTransform: 'uppercase' }}>{user?.role}</span>
               </div>
-              <div style={{ color: 'var(--n-3)', fontSize: 'var(--text-14)', marginTop: 'var(--space-4)' }}>{user?.companies?.name}</div>
+              <div style={{ color: 'var(--n-3)', fontSize: 'var(--text-14)', marginTop: 'var(--space-4)' }}>{user?.factories?.name}</div>
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-12)' }}>
               <button onClick={() => navigate('/dashboard')} style={{ background: 'var(--color-brand)', color: 'white', border: 'none', padding: 'var(--space-8) var(--space-16)', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>Dashboard</button>
@@ -204,11 +215,14 @@ export default function Vault() {
                     </div>
                     <div style={{ fontSize: 'var(--text-14)', color: 'var(--n-3)' }}>
                       {activeTab === 'documents' && <span style={{ background: 'var(--n-2)', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--text-12)', marginRight: 'var(--space-8)' }}>{item.category}</span>}
-                      {activeTab === 'parts' && `Stock: ${item.qty_on_hand} ${item.unit || ''} | Reorder: ${item.reorder_level}`}
-                      {activeTab === 'consumables' && `Stock: ${item.qty_on_hand} ${item.unit || ''} | Reorder: ${item.reorder_level}`}
+                      {activeTab === 'parts' && `Stock: ${item.stock_qty} ${item.unit || ''} | Reorder: ${item.reorder_level}`}
+                      {activeTab === 'consumables' && `Stock: ${item.stock_qty} ${item.unit || ''} | Reorder: ${item.reorder_level}`}
                     </div>
                   </div>
-                  <button style={{ background: 'transparent', color: 'var(--color-brand)', border: 'var(--border-weight) solid var(--color-brand)', padding: 'var(--space-8) var(--space-16)', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>
+                  <button 
+                    onClick={() => handleDocumentAction(item)}
+                    style={{ background: 'transparent', color: 'var(--color-brand)', border: 'var(--border-weight) solid var(--color-brand)', padding: 'var(--space-8) var(--space-16)', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}
+                  >
                     {activeTab === 'documents' ? 'View' : 'Manage'}
                   </button>
                 </div>
