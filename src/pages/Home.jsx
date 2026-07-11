@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import MainLayout from '../layouts/MainLayout';
 
 export default function Home() {
   useEffect(() => {
@@ -23,7 +24,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div dangerouslySetInnerHTML={{ __html: `
+    <MainLayout>
+      <div dangerouslySetInnerHTML={{ __html: `
 
 <!-- ============ LANGUAGE GATE ============ -->
 <div class="lang-gate" id="langGate">
@@ -64,59 +66,9 @@ export default function Home() {
 </div>
 
 <!-- ============ NAV ============ -->
-<header class="nav" id="nav">
-  <div class="nav-inner container">
-    <a href="#top" class="brand">
-      <svg class="brand-logo-svg" viewBox="0 0 100 100" width="36" height="36" style="vertical-align: middle;">
-        <!-- Shield Border -->
-        <path d="M 50 10 C 50 10, 85 20, 85 50 C 85 75, 50 90, 50 90 C 50 90, 15 75, 15 50 C 15 20, 50 10, 50 10 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" />
-        <!-- Inner dark fill -->
-        <path d="M 50 15 C 50 15, 80 24, 80 50 C 80 72, 50 85, 50 85 C 50 85, 20 72, 20 50 C 20 24, 50 15, 50 15 Z" fill="#0f172a" />
-        <!-- Gear teeth (8 outer cogs) -->
-        <g transform="translate(50,50)" fill="#475569">
-          <circle cx="0" cy="0" r="18" fill="none" stroke="#475569" stroke-width="4" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
-          <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
-        </g>
-        <!-- Gear inner core circle -->
-        <circle cx="50" cy="50" r="12" fill="#0f172a" />
-        <!-- Gold Lightning Bolt -->
-        <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-      </svg>
-      <span class="brand-name"><span class="brand-turbo">TURBO</span><span class="brand-fix">FIX</span></span>
-    </a>
 
-    <nav class="nav-links" id="navLinks">
-      <a href="why-turbofix.html">Why TurboFix</a>
-      <a href="#demo" data-i18n="nav.demo">Live Demo</a>
-      <a href="#how" data-i18n="nav.how">How Does It Work</a>
-      <a href="#contact" class="btn btn-sm" style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; padding: 6px 16px;">
-        <span style="font-weight: 700; font-size: 14px;">Get Started</span>
-        <span style="font-size: 10px; font-weight: 400; opacity: 0.9;">Free Trial</span>
-      </a>
-    </nav>
 
-    <div class="nav-cta">
-      <select class="lang-switch" id="langSwitch" aria-label="Choose language">
-        <option value="en">English</option>
-        <option value="hi">हिंदी</option>
-        <option value="mr">मराठी</option>
-      </select>
-      <a href="vault.html" style="font-weight: 600; color: var(--text-dark); text-decoration: none; margin-left: 12px; font-size: 15px;">Login</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
-</header>
 
-<main id="top">
 
   <!-- ============ HERO ============ -->
   <section class="hero">
@@ -789,7 +741,7 @@ export default function Home() {
     </div>
   </section>
 
-</main>
+
 
 <!-- ============ FLOATING WHATSAPP BUTTON ============ -->
 <a class="float-wa" data-wa="general" target="_blank" rel="noopener" aria-label="Chat with TurboFix on WhatsApp">
@@ -798,58 +750,12 @@ export default function Home() {
 </a>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <a href="#top" class="brand">
-        <svg class="brand-logo-svg" viewBox="0 0 100 100" width="36" height="36" style="vertical-align: middle;">
-          <!-- Shield Border -->
-          <path d="M 50 10 C 50 10, 85 20, 85 50 C 85 75, 50 90, 50 90 C 50 90, 15 75, 15 50 C 15 20, 50 10, 50 10 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" />
-          <!-- Inner dark fill -->
-          <path d="M 50 15 C 50 15, 80 24, 80 50 C 80 72, 50 85, 50 85 C 50 85, 20 72, 20 50 C 20 24, 50 15, 50 15 Z" fill="#0f172a" />
-          <!-- Gear teeth (8 outer cogs) -->
-          <g transform="translate(50,50)" fill="#475569">
-            <circle cx="0" cy="0" r="18" fill="none" stroke="#475569" stroke-width="4" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
-            <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
-          </g>
-          <!-- Gear inner core circle -->
-          <circle cx="50" cy="50" r="12" fill="#0f172a" />
-          <!-- Gold Lightning Bolt -->
-          <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-        </svg>
-        <span class="brand-name"><span class="brand-turbo">TURBO</span><span class="brand-fix">FIX</span></span>
-      </a>
-      <p data-i18n="footer.tagline">Machines fixed at turbo speed. AI-powered, WhatsApp-native maintenance ticketing for factories.</p>
-    </div>
-    <div class="footer-links">
-      <h4 data-i18n="footer.product">Product</h4>
-      <a href="#how" data-i18n="nav.how">How it works</a>
-      <a href="#demo" data-i18n="nav.demo">Live demo</a>
-      <a href="#trial" data-i18n="nav.trial">Free Trial</a>
-      <a href="#faq" data-i18n="nav.faq">FAQ</a>
-    </div>
-    <div class="footer-links">
-      <h4 data-i18n="footer.contact">Get in touch</h4>
-      <a data-wa="general" target="_blank" rel="noopener"><span data-i18n="footer.chat">💬 Chat on WhatsApp</span></a>
-      <a href="#contact"><span data-i18n="footer.callback">📩 Request a callback</span></a>
-    </div>
-  </div>
-  <div class="container footer-bottom">
-    <p><span data-i18n="footer.copyrightPrefix">&copy;</span> <span id="year"></span> <span data-i18n="footer.copyrightSuffix">TurboFix. Built for the Pune MIDC industrial belt — and beyond.</span></p>
-    <a href="#" id="teamAdminLink" class="team-admin-link" title="TurboFix team — internal">TurboFix team</a>
-  </div>
-</footer>
+
 
 
 
 
 ` }} />
+    </MainLayout>
   );
 }

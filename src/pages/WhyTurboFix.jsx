@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import MainLayout from '../layouts/MainLayout';
 
 export default function WhyTurboFix() {
   useEffect(() => {
@@ -7,14 +8,10 @@ export default function WhyTurboFix() {
   }, []);
 
   return (
-    <div dangerouslySetInnerHTML={{ __html: `
+    <MainLayout>
+      <div dangerouslySetInnerHTML={{ __html: `
 
-  <nav class="top-nav">
-    <a href="index.html" class="brand-logo">TurboFix</a>
-    <div class="nav-actions">
-      <a href="vault.html" class="btn-outline">Sign In</a>
-    </div>
-  </nav>
+  
 
   <section class="hero">
     <div class="container">
@@ -271,5 +268,6 @@ export default function WhyTurboFix() {
   </section>
 
 ` }} />
+    </MainLayout>
   );
 }
