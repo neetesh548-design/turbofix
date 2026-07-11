@@ -59,7 +59,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="nav">
+    <header className={`nav ${isScrolled ? 'scrolled' : ''}`} id="nav">
       <div className="container nav-inner">
         <Link to="/" className="brand" onClick={() => setIsOpen(false)}>
           <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
