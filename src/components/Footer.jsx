@@ -40,10 +40,10 @@ export default function Footer() {
         </div>
         <div className="footer-links">
           <h4 data-i18n="footer.product">Product</h4>
-          <a href="/#how" data-i18n="nav.how">How it works</a>
-          <a href="/#demo" data-i18n="nav.demo">Live demo</a>
-          <a href="/#trial" data-i18n="nav.trial">Free Trial</a>
-          <a href="/#faq" data-i18n="nav.faq">FAQ</a>
+          <a href={import.meta.env.BASE_URL + '#how'} data-i18n="nav.how">How it works</a>
+          <a href={import.meta.env.BASE_URL + '#demo'} data-i18n="nav.demo">Live demo</a>
+          <a href={import.meta.env.BASE_URL + '#trial'} data-i18n="nav.trial">Free Trial</a>
+          <a href={import.meta.env.BASE_URL + '#faq'} data-i18n="nav.faq">FAQ</a>
         </div>
         <div className="footer-links">
           <h4 data-i18n="footer.contact">Get in touch</h4>
@@ -53,7 +53,7 @@ export default function Footer() {
             </svg>
             Chat on WhatsApp
           </a>
-          <a href="/#contact"><span data-i18n="footer.callback">📩 Request a callback</span></a>
+          <a href={import.meta.env.BASE_URL + '#contact'}><span data-i18n="footer.callback">📩 Request a callback</span></a>
         </div>
       </div>
       <div className="container footer-bottom">

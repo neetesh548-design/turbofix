@@ -99,7 +99,7 @@ export default function Navbar() {
               <Link to="/#how" onClick={() => setIsOpen(false)}>How Does It Work</Link>
             </>
           )}
-          <a href="/#contact" className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)}>
+          <a href={import.meta.env.BASE_URL + '#contact'} className="btn btn-sm nav-get-started" onClick={() => setIsOpen(false)}>
             <span className="nav-btn-primary">Get Started</span>
             <span className="nav-btn-sub">Free Trial</span>
           </a>
