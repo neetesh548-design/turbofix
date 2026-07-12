@@ -90,6 +90,8 @@ async def receive_webhook(
 
     for message in _iter_messages(payload):
         phone = message.get("from", "")
+        if phone and not phone.startswith("+"):
+            phone = "+" + phone
         msg_type = message.get("type")
 
         if msg_type == "text":

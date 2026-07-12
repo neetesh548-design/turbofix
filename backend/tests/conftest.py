@@ -49,6 +49,8 @@ def vault_client(tmp_path, monkeypatch):
     doc_store_dir.mkdir()
     monkeypatch.setattr(config, "DOCUMENT_STORE_DIR", doc_store_dir)
 
+    rewrite_document_paths(dest, doc_store_dir)
+
     # Clear DI caches so they pick up the monkeypatched config values.
     _clear_di_caches()
 
@@ -68,3 +70,18 @@ def login(client, identifier: str, password: str) -> str:
 
 def auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+def rewrite_document_paths(dest_path: Path, doc_store_dir: Path):
+    import openpyxl
+    wb = openpyxl.load_workbook(dest_path)
+    if "Documents" in wb.sheetnames:
+        ws = wb["Documents"]
+        for r in range(2, ws.max_row + 1):
+            val = ws.cell(row=r, column=7).value
+            if val:
+                filename = Path(val).name
+                new_path = doc_store_dir / filename
+                new_path.write_bytes(b"dummy manual content")
+                ws.cell(row=r, column=7).value = str(new_path)
+        wb.save(dest_path)

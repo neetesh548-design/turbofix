@@ -10,8 +10,8 @@ SELECT cron.schedule(
   '0 3 1-7 * 1', -- 03:00 UTC on the first Monday of the month
   $$
     SELECT net.http_post(
-      url:='https://your-project-ref.supabase.co/functions/v1/monthly_report',
-      headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
+      url:='http://localhost:54321/functions/v1/monthly_report',
+      headers:='{"Content-Type": "application/json"}'::jsonb
     ) as request_id;
   $$
 );

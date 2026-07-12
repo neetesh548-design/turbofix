@@ -29,7 +29,7 @@ def test_onboard_company_success(vault_client):
         "admin_contact_phone": "+919900099000",
         "owner_name": "Test Owner",
         "owner_email": "owner@test.com",
-        "owner_password": "owner-password-123",
+        "owner_password": "Owner-password-123",
         "machine_quota": 8
     }
     
@@ -41,7 +41,7 @@ def test_onboard_company_success(vault_client):
     assert "owner_user_id" in data
     
     # Try to log in with the new owner credentials
-    token = login(vault_client, "owner@test.com", "owner-password-123")
+    token = login(vault_client, "owner@test.com", "Owner-password-123")
     assert token is not None
 
 
@@ -55,7 +55,7 @@ def test_onboard_company_duplicate_rejected(vault_client):
         "admin_contact_phone": "+919900099001",
         "owner_name": "Duplicate Owner",
         "owner_email": "dupe@acme.com",
-        "owner_password": "dupe-password-123",
+        "owner_password": "Dupe-password-123",
         "machine_quota": 5
     }
     

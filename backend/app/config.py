@@ -141,11 +141,17 @@ _INSECURE_JWT_DEFAULT = "dev-insecure-secret-change-in-production"
 _running_tests = "pytest" in os.getenv("_", "") or os.getenv("PYTEST_CURRENT_TEST")
 if not _running_tests:
     import logging as _log
+    is_prod = os.getenv("ENVIRONMENT") == "production"
+    
     if PLATFORM_ADMIN_PASSWORD == _INSECURE_ADMIN_DEFAULT:
+        if is_prod:
+            raise RuntimeError("PLATFORM_ADMIN_PASSWORD is using the insecure default! Set a secure value in production env vars.")
         _log.getLogger("turbofix.config").warning(
             "PLATFORM_ADMIN_PASSWORD is the insecure default — set it in env vars before deploying."
         )
     if JWT_SECRET_KEY == _INSECURE_JWT_DEFAULT:
+        if is_prod:
+            raise RuntimeError("JWT_SECRET_KEY is using the insecure default! Set a secure value in production env vars.")
         _log.getLogger("turbofix.config").warning(
             "JWT_SECRET_KEY is the insecure default — set it in env vars before deploying."
         )

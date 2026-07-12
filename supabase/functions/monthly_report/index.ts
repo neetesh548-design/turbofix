@@ -29,20 +29,20 @@ serve(async (req) => {
       // Actually, since this runs as service_role, and service_role has access to the views, we MUST filter by factory_id)
       
       const { data: mttrData } = await supabase
-        .from('mttr_monthly')
+        .from('analytics_mttr_monthly')
         .select('mttr_hours, ticket_count')
         .eq('factory_id', factory.id)
         .order('month', { ascending: false })
         .limit(2);
         
       const { data: paretoData } = await supabase
-        .from('downtime_pareto')
+        .from('analytics_downtime_pareto')
         .select('machine_name')
         .eq('factory_id', factory.id)
         .limit(1);
         
       const { data: prevData } = await supabase
-        .from('preventive_ratio_monthly')
+        .from('analytics_preventive_ratio_monthly')
         .select('preventive_percent')
         .eq('factory_id', factory.id)
         .order('month', { ascending: false })

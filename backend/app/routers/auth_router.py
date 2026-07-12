@@ -155,6 +155,13 @@ def add_supervisor(
 
     if not body.phone and not body.email:
         raise HTTPException(status_code=400, detail="phone or email is required")
+    if body.phone:
+        import re
+        if not re.match(r"^\+[1-9]\d{1,14}$", body.phone):
+            raise HTTPException(
+                status_code=400,
+                detail="phone number must be in E.164 format (e.g., +919876543210)",
+            )
     pw_err = validate_password_strength(body.password)
     if pw_err:
         raise HTTPException(status_code=400, detail=pw_err)

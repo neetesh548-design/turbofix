@@ -50,7 +50,7 @@ class Role(str, Enum):
 # Roles allowed to create/modify/delete documents, spare parts, and consumables.
 # Supervisors can view everything but not change it - matches how they're described
 # elsewhere in the product as "informed users" rather than machine owners.
-WRITE_ROLES = {Role.OWNER, Role.MAINTENANCE_HEAD, Role.SUPERVISOR}
+WRITE_ROLES = {Role.OWNER, Role.MAINTENANCE_HEAD}
 
 
 def hash_password(plain_password: str) -> str:

@@ -68,6 +68,13 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "TRACKER_XLSX_PATH", str(dest))
     monkeypatch.setattr(config, "WHATSAPP_VERIFY_TOKEN", "test-verify-token")
 
+    doc_store_dir = tmp_path / "document_store"
+    doc_store_dir.mkdir()
+    monkeypatch.setattr(config, "DOCUMENT_STORE_DIR", doc_store_dir)
+
+    from tests.conftest import rewrite_document_paths
+    rewrite_document_paths(dest, doc_store_dir)
+
     from app import dependencies
     dependencies.get_tickets.cache_clear()
     dependencies.get_machines.cache_clear()
@@ -119,9 +126,9 @@ class TestImageSupport:
 class TestTicketClosure:
     def test_close_command_closes_ticket(self, client):
         test_client, tracker_path = client
-        # T001 is a sample Open ticket
+        # T001 is a sample Open ticket; +919812340001 is the assigned technician
         test_client.post("/webhook", json=_text_payload(
-            "919820012345", "Close T001"
+            "919812340001", "Close T001"
         ))
         wb = openpyxl.load_workbook(str(tracker_path), data_only=True)
         ws = wb["Tickets"]
@@ -130,33 +137,33 @@ class TestTicketClosure:
             if row[0] == "T001":
                 ticket = dict(zip(TICKETS_HEADER, list(row) + [None] * (len(TICKETS_HEADER) - len(row))))
                 assert ticket["status"] == "Closed"
-                assert ticket["closed_by"] == "919820012345"
+                assert ticket["closed_by"] == "+919812340001"
                 break
 
     def test_close_already_closed_is_noop(self, client):
         test_client, tracker_path = client
         # T002 is already Closed in sample data
         resp = test_client.post("/webhook", json=_text_payload(
-            "919820012345", "Close T002"
+            "919812340001", "Close T002"
         ))
         assert resp.status_code == 200
 
     def test_close_nonexistent_ticket_is_noop(self, client):
         test_client, _ = client
         resp = test_client.post("/webhook", json=_text_payload(
-            "919820012345", "Close T999"
+            "919812340001", "Close T999"
         ))
         assert resp.status_code == 200
 
     def test_close_creates_event(self, client):
         test_client, tracker_path = client
         test_client.post("/webhook", json=_text_payload(
-            "919820012345", "Resolve T001"
+            "919812340001", "Resolve T001"
         ))
         events = _events_for_machine(tracker_path, "TF-ACME3-M001")
         close_events = [e for e in events if e["event_type"] == "ticket_closed"]
         assert len(close_events) >= 1
-        assert close_events[-1]["actor_phone"] == "919820012345"
+        assert close_events[-1]["actor_phone"] == "+919812340001"
 
 
 # ---- Machine Events ----
@@ -169,7 +176,7 @@ class TestMachineEvents:
         ))
         events = _events_for_machine(tracker_path, "TF-ACME3-M002")
         created_events = [e for e in events if e["event_type"] == "ticket_created"
-                          and e.get("actor_phone") == "919900099999"]
+                          and e.get("actor_phone") == "+919900099999"]
         assert len(created_events) >= 1
 
     def test_events_endpoint_returns_machine_events(self, client):
@@ -286,30 +293,38 @@ class TestReports:
         assert resp.json()["status"] == "skipped"
 
 
-# ---- Signup phone normalization ----
+# ---- Onboarding phone validation ----
 
-class TestSignupPhoneNormalization:
-    def test_signup_with_plus_prefix(self, client):
+class TestOnboardingPhoneValidation:
+    def test_onboard_supervisor_with_e164(self, client):
         test_client, _ = client
-        resp = test_client.post("/auth/signup", json={
-            "company_code": "ACME3",
-            "admin_contact_phone": "+919820012345",
-            "name": "New Supervisor",
-            "phone": "+910000000001",
-            "email": "",
-            "password": "testpass1234",
-        })
+        token = login(test_client, *ACME_OWNER)
+        resp = test_client.post(
+            "/auth/supervisors",
+            json={
+                "name": "New Supervisor",
+                "phone": "+919900055599",
+                "email": "sup@example.com",
+                "password": "SecurePassword123",
+                "role": "supervisor",
+            },
+            headers=auth_headers(token),
+        )
         assert resp.status_code == 201
-        assert resp.json()["user"]["role"] == "supervisor"
 
-    def test_signup_without_plus_prefix(self, client):
+    def test_onboard_supervisor_with_invalid_phone(self, client):
         test_client, _ = client
-        resp = test_client.post("/auth/signup", json={
-            "company_code": "ACME3",
-            "admin_contact_phone": "919820012345",
-            "name": "Another Supervisor",
-            "phone": "+910000000002",
-            "email": "",
-            "password": "testpass1234",
-        })
-        assert resp.status_code == 201
+        token = login(test_client, *ACME_OWNER)
+        resp = test_client.post(
+            "/auth/supervisors",
+            json={
+                "name": "New Supervisor",
+                "phone": "9900055599",  # No plus prefix
+                "email": "sup2@example.com",
+                "password": "SecurePassword123",
+                "role": "supervisor",
+            },
+            headers=auth_headers(token),
+        )
+        assert resp.status_code == 400
+        assert "E.164" in resp.json()["detail"]

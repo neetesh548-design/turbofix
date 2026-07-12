@@ -25,7 +25,7 @@ serve(async (req) => {
       
       const { data: consumables, error } = await supabase
         .from('consumables')
-        .select('*, machines(name, assigned_technician_phone, informed_phones)')
+        .select('*, machines(name, assigned_technician_phone, informed_phone_1)')
         .eq('factory_id', factory.id) // <--- Mandatory Tenant Filter
         .not('next_due_at', 'is', null);
 

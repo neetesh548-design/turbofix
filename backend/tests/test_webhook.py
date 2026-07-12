@@ -114,7 +114,7 @@ def test_text_message_with_known_machine_logs_ticket(client):
     assert row[1] == "TF-ACME3-M001"
     assert row[2] == "ACME3"
     assert row[3] == "CNC Lathe 1"
-    assert row[5] == "919900012345"
+    assert row[5] == "+919900012345"
     assert row[6] == "spindle making loud noise"
     assert row[9] == "Open"
     assert row[12] in ("", None)
@@ -383,7 +383,7 @@ def test_sweep_fans_out_orphaned_bare_id_session(client, monkeypatch):
 
     # simulate the session having expired without a follow-up voice note
     sessions = get_sessions()
-    session = sessions._sessions["919900054321"]
+    session = sessions._sessions["+919900054321"]
     session.created_at -= config.SESSION_TTL_SECONDS + 1
 
     from app import dependencies
@@ -393,7 +393,7 @@ def test_sweep_fans_out_orphaned_bare_id_session(client, monkeypatch):
     assert len(calls) == 1
     machine, ticket = calls[0]
     assert ticket["machine_id"] == "TF-ACME3-M001"
-    assert "919900054321" not in sessions._sessions
+    assert "+919900054321" not in sessions._sessions
 
 
 def test_sweep_does_not_refanout_already_notified_sessions(client, monkeypatch):
@@ -416,7 +416,7 @@ def test_sweep_does_not_refanout_already_notified_sessions(client, monkeypatch):
     assert len(calls) == 1  # already fanned out via typed description
 
     sessions = get_sessions()
-    session = sessions._sessions["919900054322"]
+    session = sessions._sessions["+919900054322"]
     session.created_at -= config.SESSION_TTL_SECONDS + 1
 
     from app import dependencies

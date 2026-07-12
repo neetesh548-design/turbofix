@@ -50,7 +50,7 @@ def test_supervisor_cannot_upload_document(vault_client):
         "/vault/documents",
         headers=auth_headers(token),
         data={"machine_id": "TF-ACME3-M001", "category": "manual", "title": "Test Manual"},
-        files={"file": ("test-manual.pdf", b"fake bytes", "application/pdf")},
+        files={"file": ("test-manual.pdf", b"%PDF-1.4 fake bytes", "application/pdf")},
     )
     assert resp.status_code == 403
 
@@ -72,14 +72,14 @@ def test_upload_rejects_machine_from_another_company(vault_client):
         "/vault/documents",
         headers=auth_headers(token),
         data={"machine_id": "TF-BETA1-M001", "category": "manual", "title": "Wrong Company"},
-        files={"file": ("m.pdf", b"bytes", "application/pdf")},
+        files={"file": ("m.pdf", b"%PDF-1.4 bytes", "application/pdf")},
     )
     assert resp.status_code == 404
 
 
 def test_upload_then_download_roundtrips_content(vault_client):
     token = login(vault_client, *ACME_MAINTENANCE_HEAD)
-    content = b"the real manual content"
+    content = b"%PDF-1.4 the real manual content"
     upload = vault_client.post(
         "/vault/documents",
         headers=auth_headers(token),
