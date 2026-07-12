@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
+import { getCurrentEscalationLevel } from '@/lib/escalation';
 
 export default function Tickets() {
   const [tickets, setTickets] = useState([]);
@@ -63,42 +64,6 @@ export default function Tickets() {
     } catch (_) {
       return dtStr;
     }
-  };
-
-  // Helper to calculate elapsed hours since reporting
-  const getElapsedHours = (reportedAtStr) => {
-    if (!reportedAtStr) return 0;
-    try {
-      const reported = new Date(reportedAtStr.replace(' ', 'T'));
-      const now = new Date();
-      const diffMs = now - reported;
-      return Math.max(0, diffMs / (1000 * 60 * 60));
-    } catch (_) {
-      return 0;
-    }
-  };
-
-  // Map elapsed ticket duration to active escalation level
-  const getCurrentEscalationLevel = (ticket) => {
-    if (ticket.status !== 'Open' || escalationPath.length === 0) return null;
-    const elapsed = getElapsedHours(ticket.reported_at);
-    
-    let accumulated = 0;
-    for (let i = 0; i < escalationPath.length; i++) {
-      const step = escalationPath[i];
-      const isLast = i === escalationPath.length - 1;
-      
-      if (isLast || elapsed < accumulated + (step.threshold_hours || 0)) {
-        return {
-          level: i,
-          label: step.label,
-          role: step.role,
-          hoursLeft: isLast ? null : Math.max(0, (accumulated + (step.threshold_hours || 0)) - elapsed)
-        };
-      }
-      accumulated += (step.threshold_hours || 0);
-    }
-    return null;
   };
 
   return (
@@ -171,7 +136,7 @@ export default function Tickets() {
               </thead>
               <tbody>
                 {tickets.map((t) => {
-                  const currentTier = getCurrentEscalationLevel(t);
+                  const currentTier = getCurrentEscalationLevel(t, escalationPath);
                   const isOwnerAlerted = currentTier && currentTier.level === escalationPath.length - 1;
 
                   return (

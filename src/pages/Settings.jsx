@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Trash2, Plus, AlertCircle, CheckCircle2, Settings2, Building2, Shield, Users } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
+import { defaultRoles, getRoleLabel } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,14 +24,6 @@ export default function Settings() {
 
   const [newRoleLabel, setNewRoleLabel] = useState('');
 
-
-  const defaultRoles = [
-    { value: 'maintenance_technician', label: 'Maintenance Technician' },
-    { value: 'supervisor', label: 'Maintenance Supervisor' },
-    { value: 'maintenance_engineer', label: 'Maintenance Engineer' },
-    { value: 'maintenance_head', label: 'Maintenance Head' },
-    { value: 'owner', label: 'Owner / Plant Director' }
-  ];
 
   useEffect(() => {
     fetchSettings();
@@ -66,13 +59,7 @@ export default function Settings() {
     }
   };
 
-  const getRoleLabel = (roleVal) => {
-    const defaultFound = defaultRoles.find((r) => r.value === roleVal);
-    if (defaultFound) return defaultFound.label;
-    const customFound = customRoles.find((r) => r.role_name === roleVal);
-    if (customFound) return customFound.role_label;
-    return roleVal.replace('_', ' ');
-  };
+  const getLabel = (roleVal) => getRoleLabel(roleVal, customRoles);
 
   const moveUp = (index) => {
     if (index === 0) return;
@@ -107,7 +94,7 @@ export default function Settings() {
   const handleRoleChange = (index, roleVal) => {
     const updated = [...escalationPath];
     updated[index].role = roleVal;
-    updated[index].label = getRoleLabel(roleVal);
+    updated[index].label = getLabel(roleVal);
     setEscalationPath(updated);
   };
 

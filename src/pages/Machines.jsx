@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
 
@@ -1035,12 +1036,9 @@ export default function Machines() {
                   <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '16px' }}>Scan with WhatsApp to report breakdown events directly.</p>
                   
                   <div style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                        selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}: `
-                      )}`} 
-                      alt="Machine QR Code" 
-                      style={{ display: 'block' }}
+                    <QRCodeSVG
+                      value={selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}: `}
+                      size={180}
                     />
                   </div>
 

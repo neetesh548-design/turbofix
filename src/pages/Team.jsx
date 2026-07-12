@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
+import { defaultRoles, getRoleLabel } from '@/lib/roles';
 
 export default function Team() {
   const [team, setTeam] = useState([]);
@@ -18,14 +19,6 @@ export default function Team() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('maintenance_technician');
 
-
-  const defaultRoles = [
-    { value: 'maintenance_technician', label: 'Maintenance Technician' },
-    { value: 'supervisor', label: 'Maintenance Supervisor' },
-    { value: 'maintenance_engineer', label: 'Maintenance Engineer' },
-    { value: 'maintenance_head', label: 'Maintenance Head' },
-    { value: 'owner', label: 'Owner / Plant Director' }
-  ];
 
   useEffect(() => {
     try {
@@ -79,7 +72,7 @@ export default function Team() {
         throw new Error(errData.detail || 'Failed to onboard team member');
       }
 
-      setSuccess(`Account for "${name}" successfully onboarded as ${getRoleLabel(role)}.`);
+      setSuccess(`Account for "${name}" successfully onboarded as ${getLabel(role)}.`);
       setShowAddForm(false);
       
       // Reset form
@@ -95,15 +88,7 @@ export default function Team() {
     }
   };
 
-  const getRoleLabel = (roleVal) => {
-    const defaultFound = defaultRoles.find((r) => r.value === roleVal);
-    if (defaultFound) return defaultFound.label;
-    
-    const customFound = customRoles.find((r) => r.role_name === roleVal);
-    if (customFound) return customFound.role_label;
-    
-    return roleVal.replace('_', ' ');
-  };
+  const getLabel = (roleVal) => getRoleLabel(roleVal, customRoles);
 
   const isOwner = currentUser && currentUser.role === 'owner';
 
@@ -198,7 +183,7 @@ export default function Team() {
                               u.role === 'maintenance_engineer' ? { background: '#F3E8FF', color: '#6B21A8' } :
                               { background: '#E2E8F0', color: '#334155' }
                             }>
-                        {getRoleLabel(u.role)}
+                        {getLabel(u.role)}
                       </span>
                     </td>
                     <td>{u.created_at || '—'}</td>
