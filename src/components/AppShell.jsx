@@ -69,8 +69,12 @@ export default function AppShell({ children, active }) {
     window.location.href = BASE + 'vault.html';
   };
 
-  // Pre-auth (login / register / expired) — render bare, no shell chrome.
+  // Pre-auth: protected pages redirect to login; vault/bare pages render children.
   if (!authed) {
+    if (active && active !== 'vault') {
+      window.location.href = BASE + 'vault.html';
+      return null;
+    }
     return <div className="app-bare">{children}</div>;
   }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
+import { apiFetch } from '@/lib/api';
 
 export default function Tickets() {
   const [tickets, setTickets] = useState([]);
@@ -7,9 +8,6 @@ export default function Tickets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const token = localStorage.getItem('tf_token');
-  const apiBase = localStorage.getItem('tf_api_base') || (['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:8000' : 'https://turbofix-backend-ehxb.onrender.com');
 
   useEffect(() => {
     fetchTicketsAndEscalation();
@@ -19,16 +17,14 @@ export default function Tickets() {
     setLoading(true);
     setError('');
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
       // Fetch escalation configuration
-      const escResp = await fetch(`${apiBase}/vault/escalation`, { headers });
+      const escResp = await apiFetch('/vault/escalation');
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
 
       // Fetch tickets
-      const resp = await fetch(`${apiBase}/vault/tickets`, { headers });
+      const resp = await apiFetch('/vault/tickets');
       if (!resp.ok) throw new Error('Failed to load tickets');
       const data = await resp.json();
       setTickets(data);
@@ -43,11 +39,8 @@ export default function Tickets() {
     setError('');
     setSuccess('');
     try {
-      const resp = await fetch(`${apiBase}/vault/tickets/${ticketId}/close`, {
+      const resp = await apiFetch(`/vault/tickets/${ticketId}/close`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (!resp.ok) {

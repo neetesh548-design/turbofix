@@ -26,6 +26,7 @@ function requireAuth() {
 }
 
 var dashFirstLoad = true;
+var _dashPollTimer = null;
 
 async function loadDashboard() {
   const token = localStorage.getItem("tf_token");
@@ -208,11 +209,10 @@ function showDashboard() {
   window.tfDashPollingStarted = true;
 
   let pollInterval = 5000;
-  let pollTimer = null;
   let failures = 0;
 
   function schedulePoll() {
-    pollTimer = setTimeout(async () => {
+    _dashPollTimer = setTimeout(async () => {
       if (document.hidden) { schedulePoll(); return; }
       try {
         await loadDashboard();
@@ -226,9 +226,17 @@ function showDashboard() {
     }, pollInterval);
   }
 
+  window.__tfDashStop = function() {
+    if (_dashPollTimer) {
+      clearTimeout(_dashPollTimer);
+      _dashPollTimer = null;
+    }
+    window.tfDashPollingStarted = false;
+  };
+
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && pollTimer) {
-      clearTimeout(pollTimer);
+    if (!document.hidden && _dashPollTimer) {
+      clearTimeout(_dashPollTimer);
       loadDashboard();
       schedulePoll();
     }

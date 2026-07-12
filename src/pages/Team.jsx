@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
+import { apiFetch } from '@/lib/api';
 
 export default function Team() {
   const [team, setTeam] = useState([]);
@@ -17,8 +18,6 @@ export default function Team() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('maintenance_technician');
 
-  const token = localStorage.getItem('tf_token');
-  const apiBase = localStorage.getItem('tf_api_base') || (['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:8000' : 'https://turbofix-backend-ehxb.onrender.com');
 
   const defaultRoles = [
     { value: 'maintenance_technician', label: 'Maintenance Technician' },
@@ -40,16 +39,14 @@ export default function Team() {
     setLoading(true);
     setError('');
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
       // Load team
-      const tResp = await fetch(`${apiBase}/vault/team`, { headers });
+      const tResp = await apiFetch('/vault/team');
       if (!tResp.ok) throw new Error('Failed to load team list');
       const tData = await tResp.json();
       setTeam(tData);
 
       // Load custom roles
-      const crResp = await fetch(`${apiBase}/vault/custom-roles`, { headers });
+      const crResp = await apiFetch('/vault/custom-roles');
       if (crResp.ok) {
         setCustomRoles(await crResp.json());
       }
@@ -65,12 +62,9 @@ export default function Team() {
     setError('');
     setSuccess('');
     try {
-      const resp = await fetch(`${apiBase}/auth/supervisors`, {
+      const resp = await apiFetch('/auth/supervisors', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           phone: phone || '',

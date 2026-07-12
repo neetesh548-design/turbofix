@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
+import { apiFetch } from '@/lib/api';
 
 export default function Machines() {
   const [machines, setMachines] = useState([]);
@@ -47,11 +48,9 @@ export default function Machines() {
   const [newConsLastRep, setNewConsLastRep] = useState(new Date().toISOString().split('T')[0]);
 
   // Calendar Year/Month
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(6); // July (0-indexed, 6)
+  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
 
-  const token = localStorage.getItem('tf_token');
-  const apiBase = localStorage.getItem('tf_api_base') || (['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:8000' : 'https://turbofix-backend-ehxb.onrender.com');
 
   useEffect(() => {
     fetchData();
@@ -67,10 +66,8 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
       // Load team
-      const tResp = await fetch(`${apiBase}/vault/team`, { headers });
+      const tResp = await apiFetch('/vault/team');
       let teamData = [];
       if (tResp.ok) {
         teamData = await tResp.json();
@@ -78,13 +75,13 @@ export default function Machines() {
       }
 
       // Load escalation path settings
-      const escResp = await fetch(`${apiBase}/vault/escalation`, { headers });
+      const escResp = await apiFetch('/vault/escalation');
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
 
       // Load machines
-      const mResp = await fetch(`${apiBase}/vault/machines`, { headers });
+      const mResp = await apiFetch('/vault/machines');
       if (!mResp.ok) throw new Error('Failed to load machines');
       const mData = await mResp.json();
       setMachines(mData);
@@ -96,12 +93,10 @@ export default function Machines() {
   };
 
   const loadMachineAssets = async (machineId) => {
-    const headers = { Authorization: `Bearer ${token}` };
-    
     // Load docs
     setDocsLoading(true);
     try {
-      const r = await fetch(`${apiBase}/vault/documents?machine_id=${machineId}`, { headers });
+      const r = await apiFetch(`/vault/documents?machine_id=${machineId}`);
       if (r.ok) setDocs(await r.json());
     } catch (_) {}
     setDocsLoading(false);
@@ -109,7 +104,7 @@ export default function Machines() {
     // Load parts
     setPartsLoading(true);
     try {
-      const r = await fetch(`${apiBase}/vault/spare-parts?machine_id=${machineId}`, { headers });
+      const r = await apiFetch(`/vault/spare-parts?machine_id=${machineId}`);
       if (r.ok) setParts(await r.json());
     } catch (_) {}
     setPartsLoading(false);
@@ -117,7 +112,7 @@ export default function Machines() {
     // Load consumables
     setConsumablesLoading(true);
     try {
-      const r = await fetch(`${apiBase}/vault/consumables?machine_id=${machineId}`, { headers });
+      const r = await apiFetch(`/vault/consumables?machine_id=${machineId}`);
       if (r.ok) setConsumables(await r.json());
     } catch (_) {}
     setConsumablesLoading(false);
@@ -128,12 +123,9 @@ export default function Machines() {
     setError('');
     setSuccess('');
     try {
-      const resp = await fetch(`${apiBase}/vault/machines`, {
+      const resp = await apiFetch('/vault/machines', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           machine_name: name,
           location,
@@ -184,9 +176,8 @@ export default function Machines() {
       formData.append('machine_id', selectedMachine.machine_id);
       formData.append('file', uploadFile);
 
-      const r = await fetch(`${apiBase}/vault/documents`, {
+      const r = await apiFetch('/vault/documents', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!r.ok) throw new Error('Upload failed');
@@ -199,12 +190,29 @@ export default function Machines() {
     }
   };
 
+  const downloadDoc = async (docId, filename) => {
+    try {
+      const resp = await apiFetch(`/vault/documents/${docId}/download`);
+      if (!resp.ok) throw new Error('Download failed');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'document';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Download failed: ' + err.message);
+    }
+  };
+
   const handleDeleteDoc = async (docId) => {
     if (!window.confirm('Delete this document?')) return;
     try {
-      const r = await fetch(`${apiBase}/vault/documents/${docId}`, {
+      const r = await apiFetch(`/vault/documents/${docId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
     } catch (_) {}
@@ -215,12 +223,9 @@ export default function Machines() {
     if (!selectedMachine) return;
     setPartsLoading(true);
     try {
-      const r = await fetch(`${apiBase}/vault/spare-parts`, {
+      const r = await apiFetch('/vault/spare-parts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           machine_id: selectedMachine.machine_id,
           part_name: newPartName,
@@ -247,9 +252,8 @@ export default function Machines() {
   const handleDeletePart = async (partId) => {
     if (!window.confirm('Delete this spare part?')) return;
     try {
-      const r = await fetch(`${apiBase}/vault/spare-parts/${partId}`, {
+      const r = await apiFetch(`/vault/spare-parts/${partId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
     } catch (_) {}
@@ -268,12 +272,9 @@ export default function Machines() {
         last_replaced: newConsLastRep,
       };
 
-      const r = await fetch(`${apiBase}/vault/consumables`, {
+      const r = await apiFetch('/vault/consumables', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           machine_id: selectedMachine.machine_id,
           name: newConsName,
@@ -297,9 +298,8 @@ export default function Machines() {
   const handleDeleteConsumable = async (id) => {
     if (!window.confirm('Delete this consumable?')) return;
     try {
-      const r = await fetch(`${apiBase}/vault/consumables/${id}`, {
+      const r = await apiFetch(`/vault/consumables/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
     } catch (_) {}
@@ -817,9 +817,9 @@ export default function Machines() {
                             <td style={{ fontWeight: 'bold', color: 'white' }}>{d.filename}</td>
                             <td style={{ color: 'var(--slate)' }}>{d.uploaded_at ? new Date(d.uploaded_at.replace(' ', 'T')).toLocaleString() : '—'}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <a href={`${apiBase}/vault/documents/${d.doc_id}/download?token=${token}`} target="_blank" rel="noopener noreferrer" className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+                              <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} onClick={() => downloadDoc(d.doc_id, d.filename)}>
                                 Download
-                              </a>
+                              </button>
                               <button className="vault-btn vault-btn-danger" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => handleDeleteDoc(d.doc_id)}>
                                 Delete
                               </button>

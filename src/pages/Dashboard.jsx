@@ -27,6 +27,7 @@ export default function Dashboard() {
     document.head.appendChild(styleDash);
     
     return () => {
+      if (window.__tfDashStop) window.__tfDashStop();
       script.remove();
       style.remove();
       styleDash.remove();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Trash2, Plus, AlertCircle, CheckCircle2, Settings2, Building2, Shield, Users } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,8 +23,6 @@ export default function Settings() {
 
   const [newRoleLabel, setNewRoleLabel] = useState('');
 
-  const token = localStorage.getItem('tf_token');
-  const apiBase = localStorage.getItem('tf_api_base') || (['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:8000' : 'https://turbofix-backend-ehxb.onrender.com');
 
   const defaultRoles = [
     { value: 'maintenance_technician', label: 'Maintenance Technician' },
@@ -41,9 +40,7 @@ export default function Settings() {
     setLoading(true);
     setError('');
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const dResp = await fetch(`${apiBase}/vault/dashboard`, { headers });
+      const dResp = await apiFetch('/vault/dashboard');
       if (!dResp.ok) throw new Error('Failed to load company details');
       const dData = await dResp.json();
       setCompanyInfo({
@@ -53,12 +50,12 @@ export default function Settings() {
         machinesUsed: dData.kpis?.total_machines || 0,
       });
 
-      const rolesResp = await fetch(`${apiBase}/vault/custom-roles`, { headers });
+      const rolesResp = await apiFetch('/vault/custom-roles');
       if (rolesResp.ok) {
         setCustomRoles(await rolesResp.json());
       }
 
-      const escResp = await fetch(`${apiBase}/vault/escalation`, { headers });
+      const escResp = await apiFetch('/vault/escalation');
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
@@ -131,12 +128,9 @@ export default function Settings() {
         threshold_hours: idx === escalationPath.length - 1 ? null : (step.threshold_hours || 2)
       }));
 
-      const resp = await fetch(`${apiBase}/vault/escalation`, {
+      const resp = await apiFetch('/vault/escalation', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -155,12 +149,9 @@ export default function Settings() {
     setSuccess('');
     try {
       const roleName = newRoleLabel.trim().toLowerCase().replace(/\s+/g, '_');
-      const resp = await fetch(`${apiBase}/vault/custom-roles`, {
+      const resp = await apiFetch('/vault/custom-roles', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           role_name: roleName,
           role_label: newRoleLabel.trim(),
@@ -186,9 +177,8 @@ export default function Settings() {
     setError('');
     setSuccess('');
     try {
-      const resp = await fetch(`${apiBase}/vault/custom-roles/${roleName}`, {
+      const resp = await apiFetch(`/vault/custom-roles/${roleName}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!resp.ok) throw new Error('Failed to delete custom role');
