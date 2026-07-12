@@ -1,231 +1,243 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import MainLayout from '../layouts/MainLayout';
 
-function MachineNameplate({ machineName, status }) {
-  const statusClass = status === 'down' ? 'critical' : status === 'warning' ? 'warning' : 'healthy';
-  return (
-    <div className="machine-nameplate">
-      <div className={`status-lamp ${statusClass}`}></div>
-      {machineName}
-    </div>
-  );
-}
-
-function KpiCard({ value, label, loading }) {
-  return (
-    <div className="kpi-card" style={{ 
-      background: 'var(--n-1)', 
-      border: 'var(--border-weight) solid var(--n-2)', 
-      borderRadius: 'var(--radius-md)', 
-      padding: 'var(--space-24)',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-    }}>
-      <div className="kpi-number" style={{ fontSize: 'var(--text-31)', fontWeight: '700', color: 'var(--n-4)', marginBottom: 'var(--space-4)' }}>
-        {loading ? <span style={{ opacity: 0.5 }}>...</span> : value}
-      </div>
-      <div className="kpi-label" style={{ fontSize: 'var(--text-12)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--n-3)' }}>
-        {label}
-      </div>
-    </div>
-  );
-}
+import React, { useEffect } from 'react';
+import AppShell from '../components/AppShell';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  
-  // Dashboard Data State
-  const [kpis, setKpis] = useState({
-    machinesDown: 0,
-    totalMachines: 0,
-    openTickets: 0,
-    urgentOpen: 0
-  });
-
-  const [insights, setInsights] = useState({
-    mttr: null,
-    mtbf: null,
-    topProblem: null
-  });
-
-  const [recentTickets, setRecentTickets] = useState([]);
-
   useEffect(() => {
-    fetchDashboardData();
+    // Scroll to top
+    window.scrollTo(0, 0);
+    // Inject Supabase Config for static assets
+    window.supabaseConfig = {
+      url: import.meta.env.VITE_SUPABASE_URL,
+      key: import.meta.env.VITE_SUPABASE_ANON_KEY
+    };
+    // Load dashboard script
+    const script = document.createElement('script');
+    script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
+    document.body.appendChild(script);
+
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = `${import.meta.env.BASE_URL}assets/vault.css`;
+    document.head.appendChild(style);
+
+    const styleDash = document.createElement('link');
+    styleDash.rel = 'stylesheet';
+    styleDash.href = `${import.meta.env.BASE_URL}assets/vault-dashboard.css`;
+    document.head.appendChild(styleDash);
+    
+    return () => {
+      script.remove();
+      style.remove();
+      styleDash.remove();
+    };
   }, []);
 
-  async function fetchDashboardData() {
-    setLoading(true);
-    
-    // 1. Auth Check
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate('/vault');
-      return;
-    }
-    
-    // 2. Fetch User Profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*, factories(name)')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    setUser(profile);
-
-    // 3. Fetch Core KPIs (Machines and Tickets)
-    // NOTE: This relies on RLS to only return the tenant's data
-    try {
-      const [{ count: totalMachines }, { count: machinesDown }, { count: openTickets }, { count: urgentOpen }] = await Promise.all([
-        supabase.from('machines').select('*', { count: 'exact', head: true }),
-        supabase.from('machines').select('*', { count: 'exact', head: true }).eq('status', 'down'),
-        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open').eq('urgency', 'high')
-      ]);
-
-      setKpis({
-        machinesDown: machinesDown || 0,
-        totalMachines: totalMachines || 0,
-        openTickets: openTickets || 0,
-        urgentOpen: urgentOpen || 0
-      });
-
-      // 4. Fetch Analytics (SQL Views)
-      const results = await Promise.allSettled([
-        supabase.from('analytics_mttr_monthly').select('*').limit(1),
-        supabase.from('analytics_machine_mtbf').select('*').limit(1),
-        supabase.from('analytics_downtime_pareto').select('*').limit(1)
-      ]);
-
-      const mttrData = results[0].status === 'fulfilled' ? results[0].value.data : null;
-      const mtbfData = results[1].status === 'fulfilled' ? results[1].value.data : null;
-      const paretoData = results[2].status === 'fulfilled' ? results[2].value.data : null;
-
-      setInsights({
-        mttr: mttrData?.[0]?.avg_hours_to_resolve?.toFixed(1) || '—',
-        mtbf: mtbfData?.[0]?.avg_days_between_faults?.toFixed(1) || '—',
-        topProblem: paretoData?.[0]?.machine_name || '—'
-      });
-
-      // 5. Fetch Recent Activity
-      const { data: tickets } = await supabase
-        .from('tickets')
-        .select(`
-          id, 
-          status, 
-          urgency,
-          issue_text,
-          created_at,
-          machines ( name )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5);
-        
-      setRecentTickets(tickets || []);
-
-    } catch (e) {
-      console.error("Dashboard data fetch error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    navigate('/vault');
-  }
-
   return (
-    <MainLayout>
-      <section style={{ padding: 'var(--space-64) 0', backgroundColor: 'var(--n-0)', minHeight: '100vh' }}>
-        <div style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: '0 var(--space-24)' }}>
-          
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-48)' }}>
-            <div>
-              <h1 style={{ fontSize: 'var(--text-31)', fontWeight: '700', fontFamily: 'var(--font-industrial)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--n-4)' }}>
-                {user?.factories?.name ? `${user.factories.name} Control Room` : 'Loading...'}
-              </h1>
-              <p style={{ margin: 'var(--space-4) 0 0', color: 'var(--n-3)', fontSize: 'var(--text-14)' }}>
-                {user ? `${user.full_name} (${user.role})` : 'Authenticating...'}
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: 'var(--space-12)' }}>
-              <button onClick={() => navigate('/vault')} style={{ background: 'var(--color-brand)', color: 'white', border: 'none', padding: 'var(--space-12) var(--space-24)', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>
-                Document Vault
-              </button>
-              <button onClick={handleLogout} style={{ background: 'transparent', color: 'var(--n-4)', border: 'var(--border-weight) solid var(--n-2)', padding: 'var(--space-12) var(--space-24)', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>
-                Log out
-              </button>
-            </div>
-          </div>
+    <AppShell active="overview">
+      <div dangerouslySetInnerHTML={{ __html: `
+<section style="padding: 80px 0;">
+  <div class="container dash-wrap">
 
-          {/* Real-time KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-16)', marginBottom: 'var(--space-48)' }}>
-            <KpiCard loading={loading} label="Machines Down" value={`${kpis.machinesDown} / ${kpis.totalMachines}`} />
-            <KpiCard loading={loading} label="Urgent Open Tickets" value={kpis.urgentOpen} />
-            <KpiCard loading={loading} label="Total Open Tickets" value={kpis.openTickets} />
-          </div>
-
-          {/* Analytics / Insights */}
-          <h2 style={{ fontSize: 'var(--text-20)', fontWeight: '600', color: 'var(--n-4)', marginBottom: 'var(--space-16)' }}>Factory Analytics (Last 30 Days)</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-16)', marginBottom: 'var(--space-48)' }}>
-            <KpiCard loading={loading} label="MTTR (Hours)" value={insights.mttr} />
-            <KpiCard loading={loading} label="MTBF (Days)" value={insights.mtbf} />
-            <KpiCard loading={loading} label="#1 Problem Machine" value={insights.topProblem} />
-          </div>
-
-          {/* Recent Activity List */}
-          <h2 style={{ fontSize: 'var(--text-20)', fontWeight: '600', color: 'var(--n-4)', marginBottom: 'var(--space-16)' }}>Recent Breakdowns</h2>
-          <div style={{ background: 'var(--n-1)', border: 'var(--border-weight) solid var(--n-2)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {loading ? (
-              <div style={{ padding: 'var(--space-24)', textAlign: 'center', color: 'var(--n-3)' }}>Loading activity...</div>
-            ) : recentTickets.length === 0 ? (
-              <div style={{ padding: 'var(--space-24)', textAlign: 'center', color: 'var(--n-3)' }}>No open tickets. Plant is healthy.</div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums' }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-12) var(--space-16)', fontSize: 'var(--text-12)', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--n-3)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>Machine</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-12) var(--space-16)', fontSize: 'var(--text-12)', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--n-3)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>Issue</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-12) var(--space-16)', fontSize: 'var(--text-12)', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--n-3)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTickets.map(ticket => (
-                    <tr key={ticket.id}>
-                      <td style={{ padding: 'var(--space-16)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>
-                        <MachineNameplate machineName={ticket.machines?.name || 'Unknown'} status={ticket.status === 'open' ? 'down' : 'healthy'} />
-                      </td>
-                      <td style={{ padding: 'var(--space-16)', borderBottom: 'var(--border-weight) solid var(--n-2)', color: 'var(--n-4)' }}>
-                        {ticket.issue_text}
-                      </td>
-                      <td style={{ padding: 'var(--space-16)', borderBottom: 'var(--border-weight) solid var(--n-2)' }}>
-                        <span style={{ 
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          fontSize: 'var(--text-12)',
-                          fontWeight: '700',
-                          backgroundColor: ticket.status === 'open' ? 'var(--color-status-critical-bg)' : 'var(--color-status-healthy-bg)',
-                          color: ticket.status === 'open' ? 'var(--color-status-critical)' : 'var(--color-status-healthy)',
-                          textTransform: 'uppercase'
-                        }}>
-                          {ticket.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
+<div class="container">
+  <!-- Dashboard screen (auth via shared token from vault.html staff login) -->
+  <div id="dashScreen" class="screen">
+    <div class="dash-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div>
+          <h1 id="companyName" style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 26px; text-transform: uppercase; color: white; margin: 0;">Loading...</h1>
+          <p id="userRole" class="user-role" style="margin: 4px 0 0;"></p>
         </div>
-      </section>
-    </MainLayout>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="vault.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Document Vault</a>
+        <button class="vault-btn vault-btn-ghost" id="logoutBtn" style="border: 1px solid var(--border); color: #fff;">Log out</button>
+      </div>
+    </div>
+
+    <!-- TIER 1 — NEEDS ACTION NOW -->
+    <div class="tier-head tier-head--alert">
+      <span class="tier-label">Needs action now</span>
+      <span class="dash-updated" id="dashUpdated"></span>
+    </div>
+    <div class="tier1-grid">
+      <div class="kpi-card kpi-hero">
+        <div class="kpi-number" id="machinesDown">—</div>
+        <div class="kpi-label">Machines Down</div>
+      </div>
+      <div class="kpi-card kpi-hero">
+        <div class="kpi-number" id="urgentOpen">—</div>
+        <div class="kpi-label">Urgent Issues</div>
+      </div>
+      <div class="kpi-card kpi-hero">
+        <div class="kpi-number" id="staleMachines">—</div>
+        <div class="kpi-label">No Data / Stale</div>
+      </div>
+    </div>
+
+    <!-- TIER 2 — THROUGHPUT -->
+    <div class="tier-head">
+      <span class="tier-label">Throughput</span>
+    </div>
+    <div class="tier2-grid">
+      <div class="kpi-card kpi-compact">
+        <div class="kpi-number" id="openTickets">—</div>
+        <div class="kpi-label">Open Tickets</div>
+      </div>
+      <div class="kpi-card kpi-compact">
+        <div class="kpi-number" id="closedToday">—</div>
+        <div class="kpi-label">Closed Today</div>
+      </div>
+      <div class="kpi-card kpi-compact">
+        <div class="kpi-number" id="avgHours">—</div>
+        <div class="kpi-label">Avg Hours to Fix</div>
+      </div>
+      <div class="kpi-card kpi-compact">
+        <div class="kpi-number" id="plantHealth">—</div>
+        <div class="kpi-label">Plant Health</div>
+      </div>
+      <div class="kpi-card kpi-compact">
+        <div class="kpi-number" id="totalTickets">—</div>
+        <div class="kpi-label">Total Tickets</div>
+      </div>
+    </div>
+
+    <!-- TIER 3 — AUTO-DERIVED INSIGHT -->
+    <div class="tier-head">
+      <span class="tier-label">Auto-derived insight</span>
+    </div>
+    <div class="tier3-grid" id="autoInsights">
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="mtbfHours">—</div>
+        <div class="kpi-label">MTBF (hrs)</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="mttrHours">—</div>
+        <div class="kpi-label">MTTR (hrs)</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="repeatPct">—</div>
+        <div class="kpi-label">Repeat Breakdown %</div>
+      </div>
+      <div class="kpi-card insight-card">
+        <div class="kpi-number" id="topProblem" style="font-size:18px;">—</div>
+        <div class="kpi-label">#1 Problem Machine</div>
+      </div>
+    </div>
+
+    <!-- Custom KPIs (Owner-Defined) -->
+    <div class="section-divider">
+      <span class="section-divider-label">Your Custom KPIs</span>
+      <button class="btn-icon" id="openKpiSettings" title="Configure KPIs">⚙</button>
+    </div>
+    <div class="kpis-grid" id="customKpiGrid">
+      <div class="kpi-card kpi-add-card" id="addKpiPlaceholder">
+        <div class="kpi-number" style="font-size:24px; cursor:pointer;" onclick="document.getElementById('openKpiSettings').click()">+</div>
+        <div class="kpi-label">Add Custom KPI</div>
+      </div>
+    </div>
+
+    <!-- Manual Data Entry -->
+    <div class="activity-section" id="manualEntrySection" style="margin-top:24px; display:none;">
+      <h2>Log Daily Data</h2>
+      <div class="manual-entry-form" id="manualEntryForm"></div>
+    </div>
+
+    <!-- Supervisor Ownership (Owner-Only) -->
+    <div class="activity-section" id="supervisorOwnershipSection" style="margin-top:24px; display:none;">
+      <h2>Supervisor Machine Ownership</h2>
+      <div id="supervisorListGrid" class="supervisor-list-grid"></div>
+    </div>
+
+    <div class="activity-section">
+      <h2>Needs Attention Now</h2>
+      <div id="attentionList" class="activity-list">
+        <p class="placeholder">Nothing open — plant is healthy</p>
+      </div>
+    </div>
+
+    <div class="activity-section" id="consumablesCalendarSection" style="margin-top:24px;">
+      <h2>Upcoming Consumable Replacements</h2>
+      <div id="consumablesCalendarList" class="activity-list">
+        <p class="placeholder">No schedules loaded</p>
+      </div>
+    </div>
+
+    <div class="activity-section" style="margin-top:24px;">
+      <h2>Breakdowns Per Week</h2>
+      <div id="trendChart" class="trend-chart"></div>
+    </div>
+
+    <div class="activity-section" style="margin-top:24px;">
+      <h2>Recent Tickets</h2>
+      <div id="activityList" class="activity-list">
+        <p class="placeholder">No recent tickets</p>
+      </div>
+    </div>
+
+    <div class="footer-link">
+      <a href="vault.html">Manage Documents & Spare Parts →</a>
+    </div>
+
+    <!-- KPI Settings Modal -->
+    <div class="modal-overlay" id="kpiModal" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Configure Custom KPIs</h2>
+          <button class="btn-icon" id="closeKpiModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="kpiConfigList"></div>
+          <div class="kpi-add-form" id="kpiAddForm">
+            <h3 style="margin:20px 0 12px; font-size:15px; color:var(--brand);">Add New KPI</h3>
+            <div class="form-row">
+              <div class="form-group" style="flex:2;">
+                <label for="newKpiName">KPI Name</label>
+                <input type="text" id="newKpiName" placeholder="e.g. Production Units/Shift">
+              </div>
+              <div class="form-group" style="flex:1;">
+                <label for="newKpiType">Type</label>
+                <select id="newKpiType">
+                  <option value="manual">Manual Input</option>
+                  <option value="auto">Auto-Tracked</option>
+                  <option value="calc">Calculated</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newKpiUnit">Unit</label>
+                <input type="text" id="newKpiUnit" placeholder="e.g. units, kWh, Rs, %">
+              </div>
+              <div class="form-group">
+                <label for="newKpiTarget">Target Value</label>
+                <input type="text" id="newKpiTarget" placeholder="e.g. 450">
+              </div>
+              <div class="form-group">
+                <label for="newKpiCost">Cost/Hour (if calc)</label>
+                <input type="text" id="newKpiCost" placeholder="e.g. 5000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newKpiWarning">Warning Threshold</label>
+                <input type="text" id="newKpiWarning" placeholder="e.g. 400">
+              </div>
+              <div class="form-group">
+                <label for="newKpiCritical">Critical Threshold</label>
+                <input type="text" id="newKpiCritical" placeholder="e.g. 300">
+              </div>
+            </div>
+            <button class="btn-primary" id="saveNewKpi" style="margin-top:12px;">Add KPI</button>
+            <div id="kpiFormError" class="error-msg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+` }} />
+    </AppShell>
   );
 }

@@ -369,6 +369,119 @@ body {
 .kpi-number.kpi-danger { color: var(--danger); }
 .kpi-number.kpi-warning { color: var(--warning); }
 
+/* ===========================================================
+   Dashboard tiers (Redesign P2) — triage, not a wall
+   =========================================================== */
+.tier-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 26px 0 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+.tier-head:first-of-type { margin-top: 0; }
+.tier-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.tier-head--alert .tier-label { color: var(--danger); }
+
+/* live "updated" cue */
+.dash-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--slate-lt);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.dash-updated.show { opacity: 1; }
+.dash-updated .u-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--brand); flex: none;
+}
+.dash-updated.flash .u-dot { animation: uDotFlash .9s ease; }
+@keyframes uDotFlash {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 60%, transparent); }
+  70% { box-shadow: 0 0 0 6px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* Tier 1 — big hero cards */
+.tier1-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.kpi-hero {
+  text-align: left;
+  padding: 22px 24px;
+  transition: border-color .2s ease, background .2s ease;
+}
+.kpi-hero .kpi-number {
+  font-size: 46px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.kpi-hero .kpi-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.kpi-hero:has(.kpi-danger) {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+.kpi-hero:has(.kpi-warning) {
+  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+
+/* Tier 2 — compact throughput row */
+.tier2-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.kpi-compact { padding: 15px 16px; }
+.kpi-compact .kpi-number { font-size: 26px; margin-bottom: 4px; }
+.kpi-compact .kpi-label { font-size: 12px; }
+
+/* Tier 3 — insight row */
+.tier3-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+/* change-flash on any KPI number that updated on a poll */
+.kpi-number.kpi-flash { animation: kpiFlash .55s ease; }
+@keyframes kpiFlash {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .tier1-grid { grid-template-columns: 1fr; }
+  .tier2-grid { grid-template-columns: repeat(2, 1fr); }
+  .tier3-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-hero .kpi-number { font-size: 40px; }
+}
+
 /* Owner view: needs-attention rows tinted by urgency */
 .activity-row.attention-high { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 .activity-row.attention-medium { border-left-color: var(--warning); background: rgba(245, 158, 11, 0.05); }

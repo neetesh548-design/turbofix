@@ -155,6 +155,7 @@ function logout() {
   localStorage.removeItem("dashUser");
   $("vaultShell").style.display = "none";
   $("loginCard").style.display = "block";
+  try { window.dispatchEvent(new Event("authChanged")); } catch (_) {}
 }
 
 function setSession(body) {
@@ -162,6 +163,7 @@ function setSession(body) {
   state.user = body.user;
   localStorage.setItem("tf_token", state.token);
   localStorage.setItem("tf_user", JSON.stringify(state.user));
+  try { window.dispatchEvent(new Event("authChanged")); } catch (_) {}
 }
 
 async function login(identifier, password) {
