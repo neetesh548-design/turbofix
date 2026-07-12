@@ -5,6 +5,10 @@ import QRGenerator from './pages/QRGenerator';
 import Vault from './pages/Vault';
 import Dashboard from './pages/Dashboard';
 import ResetPassword from './pages/ResetPassword';
+import Machines from './pages/Machines';
+import Tickets from './pages/Tickets';
+import Team from './pages/Team';
+import Settings from './pages/Settings';
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
@@ -17,6 +21,10 @@ function App() {
         <Route path="/vault.html" element={<Vault />} />
         <Route path="/dashboard.html" element={<Dashboard />} />
         <Route path="/reset-password.html" element={<ResetPassword />} />
+        <Route path="/machines.html" element={<Machines />} />
+        <Route path="/tickets.html" element={<Tickets />} />
+        <Route path="/team.html" element={<Team />} />
+        <Route path="/settings.html" element={<Settings />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

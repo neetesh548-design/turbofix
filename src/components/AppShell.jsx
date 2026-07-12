@@ -29,18 +29,15 @@ function readAuth() {
   try { user = JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch (_) {}
   return { authed: true, user };
 }
-
 const NAV_LIVE = [
   { id: 'overview', label: 'Overview', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
-  { id: 'vault', label: 'Vault', href: BASE + 'vault.html', icon: 'M4 4h16v4H4V4zm0 6h16v10H4V10zm4 3v4h8v-4H8z' },
+  { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
+  { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
+  { id: 'team', label: 'Team', href: BASE + 'team.html', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
+  { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
 ];
 
-const NAV_SOON = [
-  { id: 'machines', label: 'Machines', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
-  { id: 'tickets', label: 'Tickets', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
-  { id: 'team', label: 'Team', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
-  { id: 'settings', label: 'Settings', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
-];
+const NAV_SOON = [];
 
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
@@ -51,9 +48,17 @@ export default function AppShell({ children, active }) {
   useEffect(() => {
     window.addEventListener('authChanged', refresh);
     window.addEventListener('storage', refresh);
+
+    // Dynamic injection of vault.css
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${import.meta.env.BASE_URL}assets/vault.css`;
+    document.head.appendChild(link);
+
     return () => {
       window.removeEventListener('authChanged', refresh);
       window.removeEventListener('storage', refresh);
+      link.remove();
     };
   }, [refresh]);
 
@@ -100,14 +105,18 @@ export default function AppShell({ children, active }) {
             </a>
           ))}
 
-          <div className="app-nav-group">Coming soon</div>
-          {NAV_SOON.map((item) => (
-            <span key={item.id} className="app-nav-item soon" aria-disabled="true">
-              <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d={item.icon} /></svg>
-              <span>{item.label}</span>
-              <span className="nav-soon-tag">soon</span>
-            </span>
-          ))}
+          {NAV_SOON.length > 0 && (
+            <>
+              <div className="app-nav-group">Coming soon</div>
+              {NAV_SOON.map((item) => (
+                <span key={item.id} className="app-nav-item soon" aria-disabled="true">
+                  <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d={item.icon} /></svg>
+                  <span>{item.label}</span>
+                  <span className="nav-soon-tag">soon</span>
+                </span>
+              ))}
+            </>
+          )}
         </nav>
 
         <div className="app-rail-foot">

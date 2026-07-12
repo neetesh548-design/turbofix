@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html dist/404.html && cp dist/index.html dist/why-turbofix.html && cp dist/index.html dist/vault.html && cp dist/index.html dist/dashboard.html && cp dist/index.html dist/qr-generator.html && cp dist/index.html dist/reset-password.html",
+    "build": "vite build && cp dist/index.html dist/404.html && cp dist/index.html dist/why-turbofix.html && cp dist/index.html dist/vault.html && cp dist/index.html dist/dashboard.html && cp dist/index.html dist/qr-generator.html && cp dist/index.html dist/reset-password.html && cp dist/index.html dist/machines.html && cp dist/index.html dist/tickets.html && cp dist/index.html dist/team.html && cp dist/index.html dist/settings.html",
     "lint": "oxlint",
     "preview": "vite preview",
     "predeploy": "npm run build",
