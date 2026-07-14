@@ -2766,3 +2766,54 @@ details.faq-item p {
   .app-company-name { max-width: 40vw; }
   .app-user-name { display: none; }
 }
+
+/* Settings workspace */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.settings-subnav {
+  position: sticky;
+  top: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  background: linear-gradient(160deg, rgba(31, 41, 55, .96), rgba(17, 24, 39, .96));
+  box-shadow: var(--shadow-sm);
+}
+.settings-subnav-heading { display: flex; align-items: center; gap: 11px; }
+.settings-subnav-icon {
+  display: grid; place-items: center; width: 38px; height: 38px;
+  border-radius: 10px; color: var(--primary); background: rgba(34, 197, 94, .12);
+}
+.settings-subnav-heading h2 { margin: 0; color: var(--foreground); font-size: 1.12rem; font-weight: 800; }
+.settings-kicker { margin: 0 0 2px; color: var(--primary); font-size: .66rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.settings-subnav-copy { margin: 16px 0 18px; color: var(--muted-foreground); font-size: .78rem; line-height: 1.55; }
+.settings-subnav-list { display: grid; gap: 6px; }
+.settings-subnav-item {
+  display: flex; width: 100%; gap: 11px; align-items: center; padding: 11px 10px;
+  border: 1px solid transparent; border-radius: 10px; color: var(--muted-foreground);
+  background: transparent; text-align: left; cursor: pointer; transition: .18s ease;
+}
+.settings-subnav-item:hover { color: var(--foreground); background: rgba(255, 255, 255, .05); }
+.settings-subnav-item.active { color: var(--primary); border-color: rgba(34, 197, 94, .24); background: rgba(34, 197, 94, .1); }
+.settings-subnav-item span { display: grid; gap: 2px; }
+.settings-subnav-item strong { color: inherit; font-size: .84rem; font-weight: 750; }
+.settings-subnav-item small { color: var(--muted-foreground); font-size: .7rem; }
+.settings-subnav-note { display: flex; gap: 7px; align-items: flex-start; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: .7rem; line-height: 1.4; }
+.settings-subnav-note svg { color: var(--primary); flex: none; margin-top: 1px; }
+.settings-content { min-width: 0; }
+.settings-mobile-tabs { display: none; }
+.vault-session-active #loginCard,
+.vault-session-active #registerCard { display: none !important; }
+.vault-session-active #vaultShell { display: block !important; }
+
+@media (max-width: 780px) {
+  .settings-layout { display: block; }
+  .settings-subnav { display: none; }
+  .settings-mobile-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 18px; padding: 4px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+  .settings-mobile-tabs button { min-height: 40px; padding: 0 13px; border: 0; border-radius: 8px; color: var(--muted-foreground); background: transparent; white-space: nowrap; font-size: .78rem; font-weight: 750; cursor: pointer; }
+  .settings-mobile-tabs button.active { color: var(--primary-foreground); background: var(--primary); }
+}

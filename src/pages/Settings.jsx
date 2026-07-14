@@ -215,6 +215,12 @@ export default function Settings() {
     return acc + (step.threshold_hours || 0);
   }, 0);
 
+  const settingTabs = [
+    { value: 'overview', label: 'Workspace', description: 'Health and preferences', icon: Settings2 },
+    { value: 'escalation', label: 'Who gets called', description: 'Breakdown response', icon: Shield },
+    { value: 'roles', label: 'Team roles', description: 'Access and responsibilities', icon: Users },
+  ];
+
   return (
     <AppShell active="settings">
       <div className="mx-auto max-w-[1000px] px-6 pt-5 pb-20">
@@ -255,27 +261,39 @@ export default function Settings() {
             </div>
           </div>
         ) : (
-          <>
-            <div className="mb-6 flex gap-2 overflow-x-auto rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Settings sections">
-              {[
-                ['overview', 'Overview'],
-                ['escalation', 'Who gets called'],
-                ['roles', 'Team roles'],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === value}
-                  onClick={() => setActiveTab(value)}
-                  className={`min-h-11 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold transition ${activeTab === value ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          <div className="settings-layout">
+            <aside className="settings-subnav" aria-label="Settings sections">
+              <div className="settings-subnav-heading">
+                <div className="settings-subnav-icon"><Settings2 className="size-5" /></div>
+                <div><p className="settings-kicker">Workspace setup</p><h2>Settings</h2></div>
+              </div>
+              <p className="settings-subnav-copy">Make one change at a time. TurboFix saves each section when you submit it.</p>
+              <div className="settings-subnav-list" role="tablist" aria-label="Settings sections">
+                {settingTabs.map(({ value, label, description, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === value}
+                    onClick={() => setActiveTab(value)}
+                    className={`settings-subnav-item${activeTab === value ? ' active' : ''}`}
+                  >
+                    <Icon className="size-5 shrink-0" />
+                    <span><strong>{label}</strong><small>{description}</small></span>
+                  </button>
+                ))}
+              </div>
+              <div className="settings-subnav-note"><CheckCircle2 className="size-4" /><span>Your settings are private to this plant.</span></div>
+            </aside>
 
-            {activeTab === 'overview' && <div className="flex flex-col gap-6">
+            <main className="settings-content">
+              <div className="settings-mobile-tabs" role="tablist" aria-label="Settings sections">
+                {settingTabs.map(({ value, label }) => (
+                  <button key={value} type="button" role="tab" aria-selected={activeTab === value} onClick={() => setActiveTab(value)} className={activeTab === value ? 'active' : ''}>{label}</button>
+                ))}
+              </div>
+
+              {activeTab === 'overview' && <div className="flex flex-col gap-6">
 
             {/* Operational overview */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
@@ -535,7 +553,8 @@ export default function Settings() {
               </CardContent>
             </Card>}
 
-          </>
+            </main>
+          </div>
         )}
       </div>
     </AppShell>

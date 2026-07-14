@@ -7,7 +7,19 @@ export default function Vault() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { t } = useLanguage();
-  const hasSession = Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user'));
+  const [hasSession, setHasSession] = useState(() => Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user')));
+
+  useEffect(() => {
+    const syncSessionVisibility = () => {
+      setHasSession(Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user')));
+    };
+    window.addEventListener('authChanged', syncSessionVisibility);
+    window.addEventListener('storage', syncSessionVisibility);
+    return () => {
+      window.removeEventListener('authChanged', syncSessionVisibility);
+      window.removeEventListener('storage', syncSessionVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     // Inject Supabase Config for static assets
@@ -35,13 +47,14 @@ export default function Vault() {
 
   return (
     <AppShell active="vault">
-      <div dangerouslySetInnerHTML={{ __html: `
+      <div className={hasSession ? 'vault-session-active' : ''}>
+        <div dangerouslySetInnerHTML={{ __html: `
 <section style="padding: 80px 0;">
   <div class="container vault-wrap">
 
 
   <!-- ============ LOGIN SCREEN ============ -->
-  <div class="vault-login-card" id="loginCard"${hasSession ? ' style="display:none"' : ''}>
+  <div class="vault-login-card" id="loginCard">
     <h1>Staff sign-in</h1>
     <p class="sub">Manuals, circuit/hydraulic diagrams, spare parts (BOM) and consumables — for owner, supervisor, and maintenance head accounts only.</p>
 
@@ -120,7 +133,7 @@ export default function Vault() {
   </div>
 
   <!-- ============ AUTHENTICATED SHELL ============ -->
-  <div id="vaultShell" style="display:${hasSession ? 'block' : 'none'}">
+  <div id="vaultShell" style="display:none">
 
     <div class="vault-userbar">
       <div class="who">
@@ -355,7 +368,8 @@ export default function Vault() {
 
 <div id="printTag" class="print-only"></div>
 
-` }} />
+      ` }} />
+      </div>
     </AppShell>
   );
 }
