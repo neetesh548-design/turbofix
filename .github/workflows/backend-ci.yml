@@ -1,0 +1,37 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run tests
+        run: pytest backend/tests/ -q --tb=short
+        env:
+          # Use local Excel store for tests — no Google credentials needed.
+          TICKET_STORE: local
+          TRACKER_XLSX_PATH: /tmp/test-tracker.xlsx
+          DOCUMENT_STORE: local
+          JWT_SECRET_KEY: test-secret-not-for-production
+          PLATFORM_ADMIN_PASSWORD: test-admin-password
