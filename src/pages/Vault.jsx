@@ -7,6 +7,7 @@ export default function Vault() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { t } = useLanguage();
+  const hasSession = Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user'));
 
   useEffect(() => {
     // Inject Supabase Config for static assets
@@ -40,7 +41,7 @@ export default function Vault() {
 
 
   <!-- ============ LOGIN SCREEN ============ -->
-  <div class="vault-login-card" id="loginCard">
+  <div class="vault-login-card" id="loginCard"${hasSession ? ' style="display:none"' : ''}>
     <h1>Staff sign-in</h1>
     <p class="sub">Manuals, circuit/hydraulic diagrams, spare parts (BOM) and consumables — for owner, supervisor, and maintenance head accounts only.</p>
 
@@ -119,7 +120,7 @@ export default function Vault() {
   </div>
 
   <!-- ============ AUTHENTICATED SHELL ============ -->
-  <div id="vaultShell" style="display:none">
+  <div id="vaultShell" style="display:${hasSession ? 'block' : 'none'}">
 
     <div class="vault-userbar">
       <div class="who">
