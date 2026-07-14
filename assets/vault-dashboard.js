@@ -26,6 +26,7 @@ function requireAuth() {
 }
 
 var dashFirstLoad = true;
+var _dashPollTimer = null;
 
 async function loadDashboard() {
   const token = localStorage.getItem("tf_token");
@@ -65,25 +66,25 @@ async function loadDashboard() {
     const roleText = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
     document.getElementById("userRole").textContent = `${user.name} (${roleText})`;
 
-    document.getElementById("openTickets").textContent = data.kpis.open_tickets;
-    document.getElementById("closedToday").textContent = data.kpis.closed_today;
-    document.getElementById("totalTickets").textContent = data.kpis.total_tickets;
-    document.getElementById("avgHours").textContent = data.kpis.avg_hours_to_fix;
-    document.getElementById("plantHealth").textContent = data.kpis.plant_health_pct + "%";
+    setKpiText(document.getElementById("openTickets"), data.kpis.open_tickets);
+    setKpiText(document.getElementById("closedToday"), data.kpis.closed_today);
+    setKpiText(document.getElementById("totalTickets"), data.kpis.total_tickets);
+    setKpiText(document.getElementById("avgHours"), data.kpis.avg_hours_to_fix);
+    setKpiText(document.getElementById("plantHealth"), data.kpis.plant_health_pct + "%");
 
     const downEl = document.getElementById("machinesDown");
-    downEl.textContent = `${data.kpis.machines_down} of ${data.kpis.total_machines}`;
+    setKpiText(downEl, `${data.kpis.machines_down} of ${data.kpis.total_machines}`);
     downEl.classList.toggle("kpi-danger", data.kpis.machines_down > 0);
 
     const urgentEl = document.getElementById("urgentOpen");
-    urgentEl.textContent = data.kpis.urgent_open ?? "—";
+    setKpiText(urgentEl, data.kpis.urgent_open ?? "—");
     urgentEl.classList.toggle("kpi-warning", (data.kpis.urgent_open || 0) > 0);
 
     // Stale machines KPI
     const staleEl = document.getElementById("staleMachines");
     if (staleEl) {
       const stale = data.kpis.stale_machines || 0;
-      staleEl.textContent = stale;
+      setKpiText(staleEl, stale);
       staleEl.classList.toggle("kpi-warning", stale > 0);
     }
 
@@ -112,6 +113,8 @@ async function loadDashboard() {
         </div>
       `).join("");
     }
+
+    markUpdated();
   } catch (e) {
     console.error("Dashboard fetch error:", e);
     if (dashFirstLoad) {
@@ -124,6 +127,32 @@ async function loadDashboard() {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// Set a KPI number, flashing it only when the value actually changes on a poll.
+function setKpiText(el, value) {
+  if (!el) return;
+  const v = String(value);
+  const prev = el.dataset.val;
+  if (prev !== undefined && prev !== v) {
+    el.classList.remove("kpi-flash");
+    void el.offsetWidth; // restart the animation
+    el.classList.add("kpi-flash");
+    setTimeout(() => el.classList.remove("kpi-flash"), 600);
+  }
+  el.textContent = v;
+  el.dataset.val = v;
+}
+
+// Live "updated just now" cue — pulses the dot each successful poll.
+function markUpdated() {
+  const el = document.getElementById("dashUpdated");
+  if (!el) return;
+  el.innerHTML = '<span class="u-dot"></span> Updated just now';
+  el.classList.add("show");
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
 }
 
 function daysAgo(reportedAt) {
@@ -180,11 +209,10 @@ function showDashboard() {
   window.tfDashPollingStarted = true;
 
   let pollInterval = 5000;
-  let pollTimer = null;
   let failures = 0;
 
   function schedulePoll() {
-    pollTimer = setTimeout(async () => {
+    _dashPollTimer = setTimeout(async () => {
       if (document.hidden) { schedulePoll(); return; }
       try {
         await loadDashboard();
@@ -198,9 +226,17 @@ function showDashboard() {
     }, pollInterval);
   }
 
+  window.__tfDashStop = function() {
+    if (_dashPollTimer) {
+      clearTimeout(_dashPollTimer);
+      _dashPollTimer = null;
+    }
+    window.tfDashPollingStarted = false;
+  };
+
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && pollTimer) {
-      clearTimeout(pollTimer);
+    if (!document.hidden && _dashPollTimer) {
+      clearTimeout(_dashPollTimer);
       loadDashboard();
       schedulePoll();
     }
@@ -217,11 +253,11 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 
 // ===== Auto Insights =====
 function renderAutoInsights(insights) {
-  document.getElementById("mtbfHours").textContent = insights.mtbf_hours || "—";
-  document.getElementById("mttrHours").textContent = insights.mttr_hours || "—";
+  setKpiText(document.getElementById("mtbfHours"), insights.mtbf_hours || "—");
+  setKpiText(document.getElementById("mttrHours"), insights.mttr_hours || "—");
 
   const rpEl = document.getElementById("repeatPct");
-  rpEl.textContent = (insights.repeat_breakdown_pct ?? "—") + (insights.repeat_breakdown_pct != null ? "%" : "");
+  setKpiText(rpEl, (insights.repeat_breakdown_pct ?? "—") + (insights.repeat_breakdown_pct != null ? "%" : ""));
   rpEl.classList.toggle("kpi-danger", (insights.repeat_breakdown_pct || 0) > 15);
   rpEl.classList.toggle("kpi-warning", (insights.repeat_breakdown_pct || 0) > 5 && (insights.repeat_breakdown_pct || 0) <= 15);
 
