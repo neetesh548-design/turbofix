@@ -160,6 +160,44 @@ input:focus, select:focus, textarea:focus {
   padding: 0 24px;
 }
 
+/* AI maintenance decision center */
+.decision-page, .assistant-page, .planner-page { max-width: 1240px; margin: 0 auto; padding: 42px 34px 80px; }
+.decision-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; }
+.decision-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 8px 0 10px; }
+.decision-heading p { color: var(--slate); max-width: 680px; }
+.decision-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.decision-alert { padding: 13px 16px; margin-bottom: 20px; color: #fed7aa; background: rgba(234, 88, 12, .14); border: 1px solid rgba(251, 146, 60, .35); border-radius: 10px; }
+.decision-hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; margin-bottom: 32px; }
+.decision-health-card, .decision-next-card, .decision-panel, .assistant-chat, .assistant-side { background: linear-gradient(145deg, rgba(32, 38, 44, .98), rgba(24, 29, 34, .98)); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); }
+.decision-health-card, .decision-next-card { padding: 26px; min-height: 190px; }
+.decision-health-card.success { border-color: rgba(37, 211, 102, .35); }
+.decision-health-card.warning { border-color: rgba(251, 191, 36, .35); }
+.decision-health-card.danger { border-color: rgba(248, 113, 113, .35); }
+.decision-card-kicker { color: var(--slate); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.decision-health-value { font: 800 clamp(3rem, 7vw, 5.5rem)/1 'Rajdhani', sans-serif; margin: 12px 0 6px; }
+.decision-health-card p, .decision-next-card p { color: var(--slate); font-size: .92rem; }
+.decision-progress { height: 7px; background: rgba(255,255,255,.08); margin-top: 22px; border-radius: 99px; overflow: hidden; }
+.decision-progress span { display: block; height: 100%; background: var(--brand); border-radius: inherit; }
+.decision-next-card h2 { margin: 16px 0 10px; font-size: 1.55rem; }
+.text-link { color: var(--brand); font-weight: 700; font-size: .86rem; display: inline-block; margin-top: 18px; }
+.decision-section-label { color: var(--slate); text-transform: uppercase; letter-spacing: .12em; font-size: .74rem; font-weight: 700; margin: 30px 0 12px; }
+.decision-kpi-grid, .decision-insight-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.decision-metric, .decision-insight { padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.metric-value { display: block; font: 800 2.1rem/1 'Rajdhani', sans-serif; margin-bottom: 8px; }
+.metric-value.danger { color: var(--red); }.metric-value.warning { color: var(--amber); }
+.metric-label, .decision-insight span:last-child { color: var(--slate); font-size: .82rem; }
+.decision-insight strong { display: block; margin: 12px 0 6px; font-size: 1.25rem; }
+.decision-columns { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; margin-top: 18px; }
+.decision-panel { padding: 22px; }
+.decision-panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 18px; }.decision-panel-heading h2 { margin-top: 6px; font-size: 1.45rem; }.trend-caption { color: var(--slate); font-size: .78rem; }
+.attention-row, .planner-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); }.attention-row > div, .planner-row > div { flex: 1; min-width: 0; }.attention-row strong, .attention-row span, .planner-row strong, .planner-row span { display: block; }.attention-row span, .planner-row span { color: var(--slate); font-size: .8rem; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.attention-row b { font-size: .72rem; color: var(--slate); }.status-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }.status-dot.danger { background: var(--red); box-shadow: 0 0 10px var(--red); }.status-dot.warning { background: var(--amber); }.status-dot.success { background: var(--brand); }
+.decision-empty { color: var(--slate); padding: 18px 0 4px; font-size: .9rem; }
+.trend-bars { height: 170px; display: flex; gap: 10px; align-items: flex-end; border-bottom: 1px solid var(--border); padding: 10px 2px 0; }.trend-bar-wrap { height: 100%; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; }.trend-bar { width: 100%; max-width: 34px; min-height: 8px; background: linear-gradient(180deg, var(--brand), #128c7e); border-radius: 5px 5px 0 0; }.trend-bar-wrap span { color: var(--slate); font-size: .64rem; }
+.assistant-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; }.assistant-chat, .assistant-side { padding: 30px; }.assistant-chat { text-align: center; }.assistant-orb { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 16px; color: #0f172a; background: var(--brand); border-radius: 16px; font-size: 1.7rem; }.assistant-chat h2, .assistant-side h2 { font-size: 1.7rem; margin-bottom: 8px; }.assistant-helper { color: var(--slate); max-width: 560px; margin: 0 auto; }.assistant-suggestions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 24px 0; }.assistant-suggestions button { color: var(--slate); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; cursor: pointer; font: inherit; font-size: .78rem; }.assistant-suggestions button:hover { border-color: var(--brand); color: var(--ink); }.assistant-form { display: grid; gap: 12px; text-align: left; }.assistant-form select, .assistant-form textarea, .planner-controls input { width: 100%; }.assistant-form textarea { resize: vertical; }.assistant-answer { text-align: left; margin-top: 20px; padding: 18px; border: 1px solid rgba(37, 211, 102, .3); background: rgba(37, 211, 102, .06); border-radius: 10px; }.assistant-answer p { white-space: pre-wrap; margin-top: 10px; color: var(--ink); }.assistant-prompt { display: grid; gap: 4px; padding: 16px 0; border-top: 1px solid var(--border); }.assistant-prompt span, .assistant-disclaimer { color: var(--slate); font-size: .84rem; }.assistant-disclaimer { margin-top: 30px; line-height: 1.6; }
+.planner-controls { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; margin-bottom: 18px; }.planner-controls label { color: var(--slate); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }.planner-controls input { display: block; margin-top: 8px; }.planner-summary { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; }.planner-summary strong { display: block; font: 800 1.5rem/1 'Rajdhani', sans-serif; }.planner-summary span { color: var(--slate); font-size: .72rem; }.planner-order { display: grid; place-items: center; width: 30px; height: 30px; background: rgba(245,158,11,.14); color: var(--amber); border-radius: 50%; font-weight: 800; }.planner-priority { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }.planner-priority.critical { color: var(--red); }.planner-priority.recommended { color: var(--amber); }.planner-priority.preventive { color: var(--brand); }.planner-estimate { min-width: 44px; text-align: right; }.planner-note { margin-top: 18px; padding: 16px; border-left: 3px solid var(--brand); background: rgba(37,211,102,.06); color: var(--slate); font-size: .88rem; }.planner-note strong, .planner-note a { color: var(--ink); }
+@media (max-width: 800px) { .decision-page, .assistant-page, .planner-page { padding: 28px 18px 60px; }.decision-heading { align-items: flex-start; flex-direction: column; }.decision-hero-grid, .decision-columns, .assistant-layout { grid-template-columns: 1fr; }.decision-kpi-grid, .decision-insight-grid { grid-template-columns: repeat(2, 1fr); }.planner-controls { grid-template-columns: repeat(2, 1fr); }.planner-summary { grid-column: span 1; } }
+@media (max-width: 480px) { .decision-kpi-grid, .decision-insight-grid { grid-template-columns: 1fr; }.planner-controls { grid-template-columns: 1fr; }.planner-row { flex-wrap: wrap; }.planner-estimate { margin-left: 42px; } }
+
 .section { padding: 100px 0; }
 .section-title {
   font-size: clamp(1.7rem, 3.2vw, 2.6rem);
@@ -435,6 +473,78 @@ input:focus, select:focus, textarea:focus {
     flex-direction: column;
     gap: 16px;
   }
+}
+
+/* Operator-first usability pass: larger controls, clearer hierarchy, stronger contrast. */
+:root {
+  --slate: #b7c2d0;
+  --slate-light: #8f9daf;
+  --border: rgba(203, 213, 225, 0.18);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 16px 42px rgba(0, 0, 0, 0.34);
+}
+
+body { font-size: 16px; }
+button, input, select, textarea { font-size: 1rem; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid rgba(37, 211, 102, .8); outline-offset: 3px; }
+.skip-link { position: fixed; left: 16px; top: -60px; z-index: 10000; padding: 12px 16px; border-radius: 8px; background: var(--brand); color: #092014; font-weight: 800; transition: top .2s ease; }
+.skip-link:focus { top: 16px; }
+.app-nav-group { font-size: .72rem; padding-top: 20px; color: #aab6c5; }
+.app-nav-item { min-height: 44px; padding: 11px 13px; font-size: 15px; border-radius: 10px; }
+.app-rail { width: 260px; }
+.app-rail-brand { min-height: 72px; padding: 18px 20px; }
+.app-brand-name { font-size: 21px; }
+.app-topbar { min-height: 68px; height: auto; padding: 12px 28px; }
+.app-company-name { font-size: 18px; }
+.app-live, .app-role-badge { font-size: 12px; }
+.app-avatar { width: 38px; height: 38px; font-size: 15px; }
+.app-user-name { font-size: 15px; }
+.app-content { min-height: calc(100vh - 68px); }
+.app-content h1, .app-content h2, .app-content h3, .app-content h4 { text-transform: none; letter-spacing: 0; }
+.btn, .vault-btn { min-height: 44px; padding-inline: 18px; }
+.btn-sm { min-height: 42px; }
+.decision-page, .assistant-page, .planner-page { padding-top: 50px; }
+.decision-panel, .decision-health-card, .decision-next-card, .assistant-chat, .assistant-side, .decision-metric, .decision-insight { border-radius: 16px; }
+.decision-heading p, .decision-health-card p, .decision-next-card p { font-size: 1rem; line-height: 1.65; }
+.decision-card-kicker { font-size: .78rem; }
+.decision-section-label { font-size: .82rem; margin-top: 36px; }
+.metric-label, .decision-insight span:last-child { font-size: .9rem; }
+.attention-row { min-height: 70px; padding: 16px 0; }
+.attention-row span, .planner-row span { font-size: .9rem; }
+.assistant-suggestions button { min-height: 44px; font-size: .9rem; }
+.assistant-form select, .assistant-form textarea, .planner-controls input { min-height: 48px; }
+.planner-row { min-height: 72px; padding: 16px 0; }
+
+/* Vault and legacy authenticated screens share the same larger interaction language. */
+.app-shell .vault-wrap { max-width: 1180px; padding: 42px 34px 100px; }
+.app-shell .vault-card { border-radius: 14px; padding: 24px; }
+.app-shell .vault-field label { color: #c7d1dd; font-size: .9rem; margin-bottom: 8px; }
+.app-shell .vault-field input, .app-shell .vault-field select, .app-shell .vault-field textarea { min-height: 48px; font-size: 1rem; }
+.app-shell .vault-btn { min-height: 44px; font-size: .95rem; text-transform: none; letter-spacing: .01em; }
+.app-shell .vault-btn-danger { min-height: 40px; }
+.app-shell .vault-tabs { gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.app-shell .vault-tab { min-height: 48px; padding: 14px 18px; font-size: .95rem; white-space: nowrap; }
+.app-shell .vault-table { font-size: .95rem; }
+.app-shell .vault-table th { font-size: .8rem; color: #c3cedb; padding: 12px; }
+.app-shell .vault-table td { padding: 14px 12px; }
+
+@media (max-width: 900px) {
+  .app-rail { width: min(290px, 86vw); }
+  .app-topbar { padding: 10px 18px; }
+  .app-content .decision-page, .app-content .assistant-page, .app-content .planner-page { padding-top: 34px; }
+}
+@media (max-width: 560px) {
+  .app-topbar { min-height: 64px; }
+  .app-company-name { max-width: 34vw; font-size: 16px; }
+  .app-role-badge { display: none; }
+  .app-content .vault-wrap { padding: 28px 16px 80px; }
+  .decision-heading h1 { font-size: 2.35rem; }
+  .decision-actions { width: 100%; }
+  .decision-actions .btn { flex: 1; }
+  .assistant-chat, .assistant-side, .decision-panel { padding: 22px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 .hero h1 { font-size: clamp(2.6rem, 4.8vw, 4rem); letter-spacing: -0.035em; }
 .accent { color: var(--green-dark); }

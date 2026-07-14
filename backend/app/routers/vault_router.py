@@ -16,6 +16,7 @@ from app.dependencies import get_documents, get_machines, get_parts, get_tickets
 from app.infrastructure.file_storage import FileStorage, get_file_storage
 from app.repositories.base import DocumentRepository, MachineRepository, PartsRepository, TicketRepository, UserRepository
 from app.services import vault_service
+from app.services.machine_data_service import build_machine_data, machine_data_path
 
 from app.infrastructure.logging import get_logger
 
@@ -131,13 +132,64 @@ async def upload_document(
     user: CurrentUser = Depends(get_current_user),
     machines: MachineRepository = Depends(get_machines),
     documents: DocumentRepository = Depends(get_documents),
+    parts: PartsRepository = Depends(get_parts),
 ):
     content = await file.read()
     storage = get_file_storage()
-    return await vault_service.upload_document(
+    row = await vault_service.upload_document(
         user=user, machine_id=machine_id, category=category, title=title,
         filename=file.filename, content=content,
         machines=machines, documents=documents, storage=storage,
+    )
+    machine = machines.get(machine_id)
+    machine = {**machine, "machine_id": machine_id}
+    machine_data = await build_machine_data(
+        machine=machine, documents=documents, parts=parts, storage=storage,
+    )
+    return {**row, "machine_data": machine_data}
+
+
+@router.get("/machines/{machine_id}/machine-data")
+async def get_machine_data(
+    machine_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    machines: MachineRepository = Depends(get_machines),
+    documents: DocumentRepository = Depends(get_documents),
+    parts: PartsRepository = Depends(get_parts),
+):
+    machine = machines.get(machine_id)
+    if machine is None or machine.get("company_code") != user.company_code:
+        raise HTTPException(status_code=404, detail="machine not found")
+    machine = {**machine, "machine_id": machine_id}
+    path = machine_data_path(machine)
+    data = await build_machine_data(
+        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+    )
+    return {**data, "exists": path.exists(), "approval_required": bool(data["missing_sections"])}
+
+
+class MachineDataEnrichmentApproval(BaseModel):
+    approved: bool
+
+
+@router.post("/machines/{machine_id}/machine-data/enrich")
+async def enrich_machine_data(
+    machine_id: str,
+    body: MachineDataEnrichmentApproval,
+    user: CurrentUser = Depends(get_current_user),
+    machines: MachineRepository = Depends(get_machines),
+    documents: DocumentRepository = Depends(get_documents),
+    parts: PartsRepository = Depends(get_parts),
+):
+    if not body.approved:
+        raise HTTPException(status_code=400, detail="explicit approval is required before internet enrichment")
+    machine = machines.get(machine_id)
+    if machine is None or machine.get("company_code") != user.company_code:
+        raise HTTPException(status_code=404, detail="machine not found")
+    machine = {**machine, "machine_id": machine_id}
+    return await build_machine_data(
+        machine=machine, documents=documents, parts=parts,
+        storage=get_file_storage(), internet=True,
     )
 
 
@@ -212,20 +264,25 @@ def list_spare_parts(
 
 
 @router.post("/spare-parts", status_code=201)
-def create_spare_part(
+async def create_spare_part(
     body: SparePartIn,
     user: CurrentUser = Depends(get_current_user),
     machines: MachineRepository = Depends(get_machines),
     parts: PartsRepository = Depends(get_parts),
+    documents: DocumentRepository = Depends(get_documents),
 ):
     user.assert_can_write()
     machine = machines.get(body.machine_id)
+    machine = {**machine, "machine_id": body.machine_id}
     if machine is None or machine["company_code"] != user.company_code:
         raise HTTPException(status_code=404, detail="machine not found")
     part_id = parts.next_item_id("spare_parts")
     row = {"part_id": part_id, "company_code": user.company_code, **body.model_dump()}
     parts.add_item("spare_parts", row)
-    return row
+    machine_data = await build_machine_data(
+        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+    )
+    return {**row, "machine_data": machine_data}
 
 
 @router.patch("/spare-parts/{part_id}")
@@ -291,20 +348,25 @@ def list_consumables(
 
 
 @router.post("/consumables", status_code=201)
-def create_consumable(
+async def create_consumable(
     body: ConsumableIn,
     user: CurrentUser = Depends(get_current_user),
     machines: MachineRepository = Depends(get_machines),
     parts: PartsRepository = Depends(get_parts),
+    documents: DocumentRepository = Depends(get_documents),
 ):
     user.assert_can_write()
     machine = machines.get(body.machine_id)
+    machine = {**machine, "machine_id": body.machine_id}
     if machine is None or machine["company_code"] != user.company_code:
         raise HTTPException(status_code=404, detail="machine not found")
     consumable_id = parts.next_item_id("consumables")
     row = {"consumable_id": consumable_id, "company_code": user.company_code, **body.model_dump()}
     parts.add_item("consumables", row)
-    return row
+    machine_data = await build_machine_data(
+        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+    )
+    return {**row, "machine_data": machine_data}
 
 
 @router.patch("/consumables/{consumable_id}")
@@ -490,5 +552,3 @@ def delete_custom_role(role_name: str, user: CurrentUser = Depends(get_current_u
     cfg["custom_roles"] = new_roles
     _write_config(cfg)
     return {"status": "success"}
-
-

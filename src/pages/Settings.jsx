@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronUp, ChevronDown, Trash2, Plus, AlertCircle, CheckCircle2, Settings2, Building2, Shield, Users } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2, Plus, AlertCircle, CheckCircle2, Settings2, Building2, Shield, Users, BrainCircuit, Wrench, FileText, ArrowUpRight, BellRing } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
@@ -20,7 +20,13 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
   const [showAddRole, setShowAddRole] = useState(false);
+  const [knowledgeStats, setKnowledgeStats] = useState({ total: 0, ready: 0, gaps: 0 });
+  const [preferences, setPreferences] = useState(() => ({
+    autoRefresh: localStorage.getItem('tf_settings_auto_refresh') !== 'false',
+    approvalMode: localStorage.getItem('tf_settings_approval_mode') || 'always-ask',
+  }));
 
   const [newRoleLabel, setNewRoleLabel] = useState('');
 
@@ -52,11 +58,33 @@ export default function Settings() {
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
+
+      const machinesResp = await apiFetch('/vault/machines');
+      if (machinesResp.ok) {
+        const machines = await machinesResp.json();
+        const machineData = await Promise.all(machines.map(async (machine) => {
+          try {
+            const response = await apiFetch(`/vault/machines/${machine.machine_id}/machine-data`);
+            return response.ok ? response.json() : null;
+          } catch (_) { return null; }
+        }));
+        setKnowledgeStats({
+          total: machines.length,
+          ready: machineData.filter((data) => data?.exists && !data?.approval_required).length,
+          gaps: machineData.filter((data) => data?.approval_required).length,
+        });
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while loading settings.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const updatePreference = (key, value) => {
+    setPreferences((current) => ({ ...current, [key]: value }));
+    localStorage.setItem(key === 'autoRefresh' ? 'tf_settings_auto_refresh' : 'tf_settings_approval_mode', value);
+    setSuccess('Workspace preference saved locally.');
   };
 
   const getLabel = (roleVal) => getRoleLabel(roleVal, customRoles);
@@ -199,7 +227,7 @@ export default function Settings() {
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Configure company limits, ticket escalation paths, and factory roles.
+            Configure response operations, machine intelligence, team roles, and workspace behavior.
           </p>
         </div>
 
@@ -227,7 +255,61 @@ export default function Settings() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <>
+            <div className="mb-6 flex gap-2 overflow-x-auto rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Settings sections">
+              {[
+                ['overview', 'Overview'],
+                ['escalation', 'Who gets called'],
+                ['roles', 'Team roles'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === value}
+                  onClick={() => setActiveTab(value)}
+                  className={`min-h-11 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold transition ${activeTab === value ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === 'overview' && <div className="flex flex-col gap-6">
+
+            {/* Operational overview */}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
+              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card">
+                <CardContent className="p-5">
+                  <div className="mb-5 flex items-start justify-between gap-4">
+                    <div>
+                      <Badge className="mb-3 bg-primary/15 text-primary hover:bg-primary/15">Workspace health</Badge>
+                      <h2 className="font-[Rajdhani,sans-serif] text-2xl font-extrabold uppercase tracking-wide text-foreground">Your control room is ready</h2>
+                      <p className="mt-2 max-w-lg text-sm text-muted-foreground">Keep machine knowledge complete so TurboFix can make safer recommendations before the next breakdown.</p>
+                    </div>
+                    <BrainCircuit className="size-9 shrink-0 text-primary" />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <a href="machines.html" className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Manage machine data <ArrowUpRight className="size-4" /></a>
+                    <a href="assistant.html" className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-semibold text-foreground">Ask AI Assistant</a>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card><CardContent className="p-5"><div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><FileText className="size-4 text-primary" />Machine knowledge</div><div className="text-3xl font-extrabold text-foreground">{knowledgeStats.ready}<span className="text-base font-medium text-muted-foreground"> / {knowledgeStats.total}</span></div><p className="mt-1 text-xs text-muted-foreground">machines ready for AI context</p><div className="mt-4 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${knowledgeStats.total ? (knowledgeStats.ready / knowledgeStats.total) * 100 : 0}%` }} /></div></CardContent></Card>
+              <Card><CardContent className="p-5"><div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><Wrench className="size-4 text-amber-400" />Data gaps</div><div className="text-3xl font-extrabold text-foreground">{knowledgeStats.gaps}</div><p className="mt-1 text-xs text-muted-foreground">machines need document review</p><a href="machines.html" className="mt-4 inline-flex text-xs font-semibold text-primary">Review missing data →</a></CardContent></Card>
+            </div>
+
+            {/* Workspace preferences */}
+            <Card>
+              <CardHeader><div className="flex items-center gap-2"><BellRing className="size-5 text-primary" /><div><CardTitle className="font-[Rajdhani,sans-serif] text-base uppercase tracking-wide">Workspace Preferences</CardTitle><CardDescription className="mt-1">These preferences are stored in this browser and affect the local workspace only.</CardDescription></div></div></CardHeader>
+              <CardContent><div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <button type="button" onClick={() => updatePreference('autoRefresh', !preferences.autoRefresh)} className="flex items-center justify-between rounded-lg border border-border bg-background/50 p-4 text-left"><span><span className="block text-sm font-semibold text-foreground">Refresh live plant data</span><span className="mt-1 block text-xs text-muted-foreground">Keep dashboard data current when returning to a page.</span></span><span className={`relative h-6 w-11 rounded-full transition ${preferences.autoRefresh ? 'bg-primary' : 'bg-muted'}`}><span className={`absolute top-1 size-4 rounded-full bg-white transition ${preferences.autoRefresh ? 'left-6' : 'left-1'}`} /></span></button>
+                <label className="rounded-lg border border-border bg-background/50 p-4"><span className="block text-sm font-semibold text-foreground">Internet enrichment approval</span><span className="mt-1 block text-xs text-muted-foreground">TurboFix always asks before using external references.</span><select className="mt-3 w-full" value={preferences.approvalMode} onChange={(e) => updatePreference('approvalMode', e.target.value)}><option value="always-ask">Always ask (recommended)</option><option value="disabled">Disable internet enrichment</option></select></label>
+              </div></CardContent>
+            </Card>
+
+            {/* Shortcuts */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><QuickLink href="machines.html" icon={<Wrench className="size-5" />} title="Machine workspace" description="Manuals, BOM, spares, QR tags" /><QuickLink href="shutdown-planner.html" icon={<Settings2 className="size-5" />} title="Shutdown planner" description="Prioritize the next planned stop" /><QuickLink href="team.html" icon={<Users className="size-5" />} title="Team access" description="Manage maintenance responsibilities" /></div>
 
             {/* Section 1: Company Profile */}
             <Card>
@@ -259,8 +341,10 @@ export default function Settings() {
               </CardContent>
             </Card>
 
+            </div>}
+
             {/* Section 2: Escalation Path Designer */}
-            <Card>
+            {activeTab === 'escalation' && <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Shield className="size-5 text-primary" />
@@ -373,10 +457,10 @@ export default function Settings() {
                   </div>
                 </form>
               </CardContent>
-            </Card>
+            </Card>}
 
             {/* Section 3: Custom Role Configurations */}
-            <Card>
+            {activeTab === 'roles' && <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -449,11 +533,15 @@ export default function Settings() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card>}
 
-          </div>
+          </>
         )}
       </div>
     </AppShell>
   );
+}
+
+function QuickLink({ href, icon, title, description }) {
+  return <a href={href} className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition hover:border-primary/50 hover:bg-primary/5"><span className="text-primary">{icon}</span><span><span className="block text-sm font-semibold text-foreground">{title}</span><span className="mt-1 block text-xs text-muted-foreground">{description}</span></span><ArrowUpRight className="ml-auto size-4 text-muted-foreground transition group-hover:text-primary" /></a>;
 }

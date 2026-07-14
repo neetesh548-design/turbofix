@@ -9,6 +9,8 @@ import Machines from './pages/Machines';
 import Tickets from './pages/Tickets';
 import Team from './pages/Team';
 import Settings from './pages/Settings';
+import Assistant from './pages/Assistant';
+import ShutdownPlanner from './pages/ShutdownPlanner';
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
@@ -25,6 +27,8 @@ function App() {
         <Route path="/tickets.html" element={<Tickets />} />
         <Route path="/team.html" element={<Team />} />
         <Route path="/settings.html" element={<Settings />} />
+        <Route path="/assistant.html" element={<Assistant />} />
+        <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

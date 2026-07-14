@@ -15,6 +15,7 @@ from app.infrastructure.logging import get_logger
 from app.parser import parse_message
 from app.repositories.base import EventRepository, MachineRepository, TicketRepository, new_event_id
 from app.services import ai_service, fanout_service
+from app.services.machine_data_service import read_machine_data
 from app.sessions import Session, SessionStore
 
 log = get_logger("turbofix.ticket")
@@ -90,12 +91,23 @@ async def _summarize_and_store(
     description: str,
     tickets: TicketRepository,
     new_description: Optional[str] = None,
+    machine_id: Optional[str] = None,
 ) -> None:
     if not ai_service.ai_enabled():
         log.info("ai.skipped", reason="not_configured", ticket_id=ticket_id)
         return
     try:
-        brief = await ai_service.summarize_issue(description)
+        ai_input = description
+        if machine_id:
+            ticket = tickets.get(ticket_id) or {}
+            machine_context = read_machine_data({
+                "company_code": ticket.get("company_code", ""),
+                "machine_id": machine_id,
+                "machine_name": ticket.get("machine_name", machine_id),
+            })
+            if machine_context:
+                ai_input = f"Machine knowledge file:\n{machine_context}\n\nReported issue:\n{description}"
+        brief = await ai_service.summarize_issue(ai_input)
         tickets.update_ai_fields(
             ticket_id,
             ai_summary=brief.as_ai_summary(),
@@ -144,7 +156,7 @@ async def finish_text_ticket(
 ) -> None:
     """Background tail for a text-triggered ticket: language detection + AI summary + fan-out + event log."""
     lang = await _detect_and_store_language(ticket_id, description, tickets)
-    await _summarize_and_store(ticket_id, description, tickets)
+    await _summarize_and_store(ticket_id, description, tickets, machine_id=machine_id)
 
     ticket = tickets.get(ticket_id)
     machine = machines.get(machine_id)
@@ -248,7 +260,7 @@ async def finish_audio_ticket(
             existing = tickets.get(session.ticket_id)
             existing_desc = existing["description"] if existing else ""
             merged = _merge_description(existing_desc, transcript)
-            await _summarize_and_store(session.ticket_id, merged, tickets, new_description=merged)
+            await _summarize_and_store(session.ticket_id, merged, tickets, new_description=merged, machine_id=session.machine_id)
         except Exception as exc:
             log.error("transcription.failed", ticket_id=session.ticket_id, error=str(exc))
     else:
@@ -326,7 +338,7 @@ async def finish_image_ticket(
             existing = tickets.get(session.ticket_id)
             existing_desc = existing["description"] if existing else ""
             merged = _merge_description(existing_desc, f"[Photo analysis] {image_description}")
-            await _summarize_and_store(session.ticket_id, merged, tickets, new_description=merged)
+            await _summarize_and_store(session.ticket_id, merged, tickets, new_description=merged, machine_id=session.machine_id)
         except Exception as exc:
             log.error("image.analysis_failed", ticket_id=session.ticket_id, error=str(exc))
 

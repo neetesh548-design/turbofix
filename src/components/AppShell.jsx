@@ -33,6 +33,8 @@ const NAV_LIVE = [
   { id: 'overview', label: 'Overview', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
   { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
   { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
+  { id: 'assistant', label: 'AI Assistant', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
+  { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: 'M12 3v9l6 3M12 21a9 9 0 100-18 9 9 0 000 18z' },
   { id: 'team', label: 'Team', href: BASE + 'team.html', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
   { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
 ];
@@ -86,6 +88,7 @@ export default function AppShell({ children, active }) {
 
   return (
     <div className={`app-shell${railOpen ? ' rail-open' : ''}`}>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <aside className="app-rail">
@@ -96,7 +99,8 @@ export default function AppShell({ children, active }) {
           <span className="app-brand-name"><b>TURBO</b>FIX</span>
         </a>
 
-        <nav className="app-nav">
+        <nav className="app-nav" aria-label="Main navigation">
+          <div className="app-nav-group">Workspace</div>
           {NAV_LIVE.map((item) => (
             <a
               key={item.id}
@@ -149,7 +153,7 @@ export default function AppShell({ children, active }) {
           </div>
         </header>
 
-        <div className="app-content">{children}</div>
+        <div className="app-content" id="main-content" tabIndex="-1">{children}</div>
       </div>
     </div>
   );

@@ -31,9 +31,13 @@ export default function Machines() {
   const [docsLoading, setDocsLoading] = useState(false);
   const [partsLoading, setPartsLoading] = useState(false);
   const [consumablesLoading, setConsumablesLoading] = useState(false);
+  const [machineData, setMachineData] = useState(null);
+  const [machineDataLoading, setMachineDataLoading] = useState(false);
+  const [enrichingMachineData, setEnrichingMachineData] = useState(false);
 
   // Sub-tab Form inputs
   const [uploadFile, setUploadFile] = useState(null);
+  const [uploadCategory, setUploadCategory] = useState('manual');
   const [newPartName, setNewPartName] = useState('');
   const [newPartNum, setNewPartNum] = useState('');
   const [newPartQty, setNewPartQty] = useState('');
@@ -94,6 +98,13 @@ export default function Machines() {
   };
 
   const loadMachineAssets = async (machineId) => {
+    setMachineDataLoading(true);
+    try {
+      const r = await apiFetch(`/vault/machines/${machineId}/machine-data`);
+      if (r.ok) setMachineData(await r.json());
+    } catch (_) {}
+    setMachineDataLoading(false);
+
     // Load docs
     setDocsLoading(true);
     try {
@@ -175,6 +186,8 @@ export default function Machines() {
     try {
       const formData = new FormData();
       formData.append('machine_id', selectedMachine.machine_id);
+      formData.append('category', uploadCategory);
+      formData.append('title', uploadFile.name.replace(/\.[^.]+$/, ''));
       formData.append('file', uploadFile);
 
       const r = await apiFetch('/vault/documents', {
@@ -182,6 +195,8 @@ export default function Machines() {
         body: formData,
       });
       if (!r.ok) throw new Error('Upload failed');
+      const uploaded = await r.json();
+      setMachineData(uploaded.machine_data || null);
       setUploadFile(null);
       loadMachineAssets(selectedMachine.machine_id);
     } catch (err) {
@@ -189,6 +204,19 @@ export default function Machines() {
     } finally {
       setDocsLoading(false);
     }
+  };
+
+  const handleInternetEnrichment = async () => {
+    if (!selectedMachine || !window.confirm('Approve an internet lookup for missing machine data?')) return;
+    setEnrichingMachineData(true);
+    try {
+      const r = await apiFetch(`/vault/machines/${selectedMachine.machine_id}/machine-data/enrich`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approved: true }),
+      });
+      if (!r.ok) throw new Error('Internet enrichment failed');
+      setMachineData(await r.json());
+    } catch (err) { alert(err.message); }
+    finally { setEnrichingMachineData(false); }
   };
 
   const downloadDoc = async (docId, filename) => {
@@ -791,7 +819,28 @@ export default function Machines() {
               {/* TAB 2: MANUALS & DOCUMENTS */}
               {wsTab === 'docs' && (
                 <div>
+                  <div style={{ marginBottom: '16px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(37, 211, 102, 0.25)', background: 'rgba(37, 211, 102, 0.06)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div>
+                        <strong style={{ color: 'white' }}>Machine knowledge file</strong>
+                        <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '4px' }}>{machineDataLoading ? 'Refreshing…' : machineData?.file_name || 'Generated after the first upload'}</div>
+                      </div>
+                      {machineData?.approval_required && <button type="button" className="vault-btn vault-btn-ghost" onClick={handleInternetEnrichment} disabled={enrichingMachineData}>{enrichingMachineData ? 'Researching…' : 'Approve internet enrichment'}</button>}
+                    </div>
+                    {machineData?.missing_sections?.length > 0 && <div style={{ color: '#FBBF24', fontSize: '0.78rem', marginTop: '10px' }}>Missing: {machineData.missing_sections.join(', ')}. TurboFix will only use internet data after your approval.</div>}
+                    {machineData?.internet && <div style={{ color: '#25D366', fontSize: '0.78rem', marginTop: '10px' }}>Internet-enriched file created with approved reference data.</div>}
+                  </div>
                   <form onSubmit={handleUploadDoc} style={{ display: 'flex', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ width: '190px' }}>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--slate)' }}>Document type</label>
+                      <select value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value)} style={{ width: '100%' }}>
+                        <option value="manual">Machine manual</option>
+                        <option value="circuit_diagram">Wiring diagram</option>
+                        <option value="hydraulic_diagram">Hydraulic diagram</option>
+                        <option value="spare_parts_catalog">BOM / spare list</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
                     <div style={{ flex: 1 }}>
                       <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--slate)' }}>Upload Manual / Schematic (PDF/Images)</label>
                       <input type="file" onChange={(e) => setUploadFile(e.target.files[0])} required />
@@ -814,14 +863,14 @@ export default function Machines() {
                       </thead>
                       <tbody>
                         {docs.map((d) => (
-                          <tr key={d.doc_id}>
-                            <td style={{ fontWeight: 'bold', color: 'white' }}>{d.filename}</td>
+                          <tr key={d.document_id || d.doc_id}>
+                            <td style={{ fontWeight: 'bold', color: 'white' }}>{d.file_name || d.filename}</td>
                             <td style={{ color: 'var(--slate)' }}>{d.uploaded_at ? new Date(d.uploaded_at.replace(' ', 'T')).toLocaleString() : '—'}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} onClick={() => downloadDoc(d.doc_id, d.filename)}>
+                              <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} onClick={() => downloadDoc(d.document_id || d.doc_id, d.file_name || d.filename)}>
                                 Download
                               </button>
-                              <button className="vault-btn vault-btn-danger" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => handleDeleteDoc(d.doc_id)}>
+                              <button className="vault-btn vault-btn-danger" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => handleDeleteDoc(d.document_id || d.doc_id)}>
                                 Delete
                               </button>
                             </td>

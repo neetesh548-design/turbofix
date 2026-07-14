@@ -1,244 +1,99 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell';
+import { apiFetch } from '@/lib/api';
+
+const fallback = {
+  kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0 },
+  auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
+  needs_attention: [], recent_activity: [], weekly_trend: [],
+};
 
 export default function Dashboard() {
+  const [data, setData] = useState(fallback);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    // Scroll to top
-    window.scrollTo(0, 0);
-    // Inject Supabase Config for static assets
-    window.supabaseConfig = {
-      url: import.meta.env.VITE_SUPABASE_URL,
-      key: import.meta.env.VITE_SUPABASE_ANON_KEY
-    };
-    // Load dashboard script
-    const script = document.createElement('script');
-    script.src = `${import.meta.env.BASE_URL}assets/vault-dashboard.js`;
-    document.body.appendChild(script);
-
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = `${import.meta.env.BASE_URL}assets/vault.css`;
-    document.head.appendChild(style);
-
-    const styleDash = document.createElement('link');
-    styleDash.rel = 'stylesheet';
-    styleDash.href = `${import.meta.env.BASE_URL}assets/vault-dashboard.css`;
-    document.head.appendChild(styleDash);
-    
-    return () => {
-      if (window.__tfDashStop) window.__tfDashStop();
-      script.remove();
-      style.remove();
-      styleDash.remove();
-    };
+    let mounted = true;
+    apiFetch('/vault/dashboard')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Unable to load the decision center');
+        const next = await response.json();
+        if (mounted) setData({ ...fallback, ...next, kpis: { ...fallback.kpis, ...next.kpis }, auto_insights: { ...fallback.auto_insights, ...next.auto_insights } });
+      })
+      .catch((err) => mounted && setError(err.message))
+      .finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
   }, []);
+
+  const { kpis, auto_insights: insights } = data;
+  const topMachine = insights.top_problem_machines?.[0];
+  const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
 
   return (
     <AppShell active="overview">
-      <div dangerouslySetInnerHTML={{ __html: `
-<section style="padding: 80px 0;">
-  <div class="container dash-wrap">
-
-<div class="container">
-  <!-- Dashboard screen (auth via shared token from vault.html staff login) -->
-  <div id="dashScreen" class="screen">
-    <div class="dash-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div>
-          <h1 id="companyName" style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 26px; text-transform: uppercase; color: white; margin: 0;">Loading...</h1>
-          <p id="userRole" class="user-role" style="margin: 4px 0 0;"></p>
-        </div>
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <a href="vault.html" class="vault-btn vault-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; background: var(--brand); color: #000;">Document Vault</a>
-        <button class="vault-btn vault-btn-ghost" id="logoutBtn" style="border: 1px solid var(--border); color: #fff;">Log out</button>
-      </div>
-    </div>
-
-    <!-- TIER 1 — NEEDS ACTION NOW -->
-    <div class="tier-head tier-head--alert">
-      <span class="tier-label">Needs action now</span>
-      <span class="dash-updated" id="dashUpdated"></span>
-    </div>
-    <div class="tier1-grid">
-      <div class="kpi-card kpi-hero">
-        <div class="kpi-number" id="machinesDown">—</div>
-        <div class="kpi-label">Machines Down</div>
-      </div>
-      <div class="kpi-card kpi-hero">
-        <div class="kpi-number" id="urgentOpen">—</div>
-        <div class="kpi-label">Urgent Issues</div>
-      </div>
-      <div class="kpi-card kpi-hero">
-        <div class="kpi-number" id="staleMachines">—</div>
-        <div class="kpi-label">No Data / Stale</div>
-      </div>
-    </div>
-
-    <!-- TIER 2 — THROUGHPUT -->
-    <div class="tier-head">
-      <span class="tier-label">Throughput</span>
-    </div>
-    <div class="tier2-grid">
-      <div class="kpi-card kpi-compact">
-        <div class="kpi-number" id="openTickets">—</div>
-        <div class="kpi-label">Open Tickets</div>
-      </div>
-      <div class="kpi-card kpi-compact">
-        <div class="kpi-number" id="closedToday">—</div>
-        <div class="kpi-label">Closed Today</div>
-      </div>
-      <div class="kpi-card kpi-compact">
-        <div class="kpi-number" id="avgHours">—</div>
-        <div class="kpi-label">Avg Hours to Fix</div>
-      </div>
-      <div class="kpi-card kpi-compact">
-        <div class="kpi-number" id="plantHealth">—</div>
-        <div class="kpi-label">Plant Health</div>
-      </div>
-      <div class="kpi-card kpi-compact">
-        <div class="kpi-number" id="totalTickets">—</div>
-        <div class="kpi-label">Total Tickets</div>
-      </div>
-    </div>
-
-    <!-- TIER 3 — AUTO-DERIVED INSIGHT -->
-    <div class="tier-head">
-      <span class="tier-label">Auto-derived insight</span>
-    </div>
-    <div class="tier3-grid" id="autoInsights">
-      <div class="kpi-card insight-card">
-        <div class="kpi-number" id="mtbfHours">—</div>
-        <div class="kpi-label">MTBF (hrs)</div>
-      </div>
-      <div class="kpi-card insight-card">
-        <div class="kpi-number" id="mttrHours">—</div>
-        <div class="kpi-label">MTTR (hrs)</div>
-      </div>
-      <div class="kpi-card insight-card">
-        <div class="kpi-number" id="repeatPct">—</div>
-        <div class="kpi-label">Repeat Breakdown %</div>
-      </div>
-      <div class="kpi-card insight-card">
-        <div class="kpi-number" id="topProblem" style="font-size:18px;">—</div>
-        <div class="kpi-label">#1 Problem Machine</div>
-      </div>
-    </div>
-
-    <!-- Custom KPIs (Owner-Defined) -->
-    <div class="section-divider">
-      <span class="section-divider-label">Your Custom KPIs</span>
-      <button class="btn-icon" id="openKpiSettings" title="Configure KPIs">⚙</button>
-    </div>
-    <div class="kpis-grid" id="customKpiGrid">
-      <div class="kpi-card kpi-add-card" id="addKpiPlaceholder">
-        <div class="kpi-number" style="font-size:24px; cursor:pointer;" onclick="document.getElementById('openKpiSettings').click()">+</div>
-        <div class="kpi-label">Add Custom KPI</div>
-      </div>
-    </div>
-
-    <!-- Manual Data Entry -->
-    <div class="activity-section" id="manualEntrySection" style="margin-top:24px; display:none;">
-      <h2>Log Daily Data</h2>
-      <div class="manual-entry-form" id="manualEntryForm"></div>
-    </div>
-
-    <!-- Supervisor Ownership (Owner-Only) -->
-    <div class="activity-section" id="supervisorOwnershipSection" style="margin-top:24px; display:none;">
-      <h2>Supervisor Machine Ownership</h2>
-      <div id="supervisorListGrid" class="supervisor-list-grid"></div>
-    </div>
-
-    <div class="activity-section">
-      <h2>Needs Attention Now</h2>
-      <div id="attentionList" class="activity-list">
-        <p class="placeholder">Nothing open — plant is healthy</p>
-      </div>
-    </div>
-
-    <div class="activity-section" id="consumablesCalendarSection" style="margin-top:24px;">
-      <h2>Upcoming Consumable Replacements</h2>
-      <div id="consumablesCalendarList" class="activity-list">
-        <p class="placeholder">No schedules loaded</p>
-      </div>
-    </div>
-
-    <div class="activity-section" style="margin-top:24px;">
-      <h2>Breakdowns Per Week</h2>
-      <div id="trendChart" class="trend-chart"></div>
-    </div>
-
-    <div class="activity-section" style="margin-top:24px;">
-      <h2>Recent Tickets</h2>
-      <div id="activityList" class="activity-list">
-        <p class="placeholder">No recent tickets</p>
-      </div>
-    </div>
-
-    <div class="footer-link">
-      <a href="vault.html">Manage Documents & Spare Parts →</a>
-    </div>
-
-    <!-- KPI Settings Modal -->
-    <div class="modal-overlay" id="kpiModal" style="display:none;">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>Configure Custom KPIs</h2>
-          <button class="btn-icon" id="closeKpiModal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div id="kpiConfigList"></div>
-          <div class="kpi-add-form" id="kpiAddForm">
-            <h3 style="margin:20px 0 12px; font-size:15px; color:var(--brand);">Add New KPI</h3>
-            <div class="form-row">
-              <div class="form-group" style="flex:2;">
-                <label for="newKpiName">KPI Name</label>
-                <input type="text" id="newKpiName" placeholder="e.g. Production Units/Shift">
-              </div>
-              <div class="form-group" style="flex:1;">
-                <label for="newKpiType">Type</label>
-                <select id="newKpiType">
-                  <option value="manual">Manual Input</option>
-                  <option value="auto">Auto-Tracked</option>
-                  <option value="calc">Calculated</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="newKpiUnit">Unit</label>
-                <input type="text" id="newKpiUnit" placeholder="e.g. units, kWh, Rs, %">
-              </div>
-              <div class="form-group">
-                <label for="newKpiTarget">Target Value</label>
-                <input type="text" id="newKpiTarget" placeholder="e.g. 450">
-              </div>
-              <div class="form-group">
-                <label for="newKpiCost">Cost/Hour (if calc)</label>
-                <input type="text" id="newKpiCost" placeholder="e.g. 5000">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="newKpiWarning">Warning Threshold</label>
-                <input type="text" id="newKpiWarning" placeholder="e.g. 400">
-              </div>
-              <div class="form-group">
-                <label for="newKpiCritical">Critical Threshold</label>
-                <input type="text" id="newKpiCritical" placeholder="e.g. 300">
-              </div>
-            </div>
-            <button class="btn-primary" id="saveNewKpi" style="margin-top:12px;">Add KPI</button>
-            <div id="kpiFormError" class="error-msg"></div>
+      <div className="decision-page">
+        <div className="decision-heading">
+          <div>
+            <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
+            <h1>Decision Center</h1>
+            <p>See what needs attention, why it matters, and what to do next.</p>
+          </div>
+          <div className="decision-actions">
+            <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
+            <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-` }} />
+        {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
+        <section className="decision-hero-grid">
+          <div className={`decision-health-card ${healthTone}`}>
+            <div className="decision-card-kicker">Plant health</div>
+            <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
+            <p>{kpis.machines_down || 0} machines currently need attention out of {kpis.total_machines || 0}.</p>
+            <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
+          </div>
+          <div className="decision-next-card">
+            <div className="decision-card-kicker">Recommended next action</div>
+            <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
+            <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
+            <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace →</a>
+          </div>
+        </section>
+
+        <div className="decision-section-label">Needs action now</div>
+        <section className="decision-kpi-grid">
+          <Metric label="Machines down" value={kpis.machines_down} tone="danger" />
+          <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" />
+          <Metric label="Open work" value={kpis.open_tickets} />
+          <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} />
+        </section>
+
+        <div className="decision-section-label">Maintenance intelligence</div>
+        <section className="decision-insight-grid">
+          <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
+          <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
+          <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
+          <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
+        </section>
+
+        <section className="decision-columns">
+          <div className="decision-panel">
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
+            {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
+              <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
+            )) : <Empty text="No open issues. Your plant is clear." />}
+          </div>
+          <div className="decision-panel">
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
+            {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
+          </div>
+        </section>
+      </div>
     </AppShell>
   );
 }
+
+function Metric({ label, value, tone = '' }) { return <div className="decision-metric"><span className={`metric-value ${tone}`}>{value ?? '—'}</span><span className="metric-label">{label}</span></div>; }
+function Insight({ label, value, detail }) { return <div className="decision-insight"><span className="decision-card-kicker">{label}</span><strong>{value}</strong><span>{detail}</span></div>; }
+function Empty({ text }) { return <p className="decision-empty">{text}</p>; }

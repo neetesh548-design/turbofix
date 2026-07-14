@@ -7,6 +7,7 @@ from app.dependencies import get_custom_kpis, get_events, get_machines, get_tick
 from app.repositories.base import CustomKpiRepository, EventRepository, MachineRepository, TicketRepository, UserRepository
 from app.services import ai_service
 from app.services.dashboard_service import build_custom_kpi_values, compute_kpis
+from app.services.machine_data_service import read_machine_data
 
 router = APIRouter(prefix="/vault")
 
@@ -69,11 +70,18 @@ async def get_root_cause_analysis(
     machine = machines.get(machine_id.upper())
     if machine is None or machine.get("company_code") != user.company_code:
         raise HTTPException(status_code=404, detail="machine not found")
+    machine = {**machine, "machine_id": machine_id.upper()}
 
     if not ai_service.ai_enabled():
         raise HTTPException(status_code=503, detail="AI service not configured")
 
     machine_events = events.get_machine_events(machine_id.upper())
+    machine_data = read_machine_data(machine)
+    if machine_data:
+        machine_events = [
+            *machine_events,
+            {"timestamp": "machine-data", "event_type": "canonical_machine_context", "description": machine_data},
+        ]
     if not machine_events:
         return {"machine_id": machine_id.upper(), "analysis": "No events recorded yet for this machine."}
 
