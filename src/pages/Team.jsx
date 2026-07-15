@@ -36,12 +36,13 @@ export default function Team() {
       const tResp = await apiFetch('/vault/team');
       if (!tResp.ok) throw new Error('Failed to load team list');
       const tData = await tResp.json();
-      setTeam(tData);
+      setTeam(Array.isArray(tData) ? tData : []);
 
       // Load custom roles
       const crResp = await apiFetch('/vault/custom-roles');
       if (crResp.ok) {
-        setCustomRoles(await crResp.json());
+        const roleData = await crResp.json();
+        setCustomRoles(Array.isArray(roleData) ? roleData : []);
       }
     } catch (err) {
       setError(err.message || 'An error occurred while loading team list.');
@@ -166,7 +167,9 @@ export default function Team() {
                 </tr>
               </thead>
               <tbody>
-                {team.map((u) => (
+                {team.length === 0 ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No team members found for this plant.</td></tr>
+                ) : team.map((u) => (
                   <tr key={u.user_id}>
                     <td style={{ fontFamily: 'monospace', color: 'var(--slate-light)' }}>{u.user_id}</td>
                     <td style={{ fontWeight: '600' }}>{u.name}</td>

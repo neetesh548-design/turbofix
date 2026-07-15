@@ -2774,6 +2774,13 @@ details.faq-item p {
   gap: 28px;
   align-items: start;
 }
+.settings-page { color: #f4f7fb; }
+.settings-page .text-muted-foreground { color: #a9b7c8; }
+.settings-page .text-foreground { color: #f4f7fb; }
+.settings-page .bg-card { background: #1d2631; }
+.settings-page .border-border { border-color: #3a4858; }
+.settings-page .bg-muted { background: #2a3644; }
+.settings-page .bg-background\/50 { background: #18212b; }
 .settings-subnav {
   position: sticky;
   top: 24px;

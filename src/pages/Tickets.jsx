@@ -28,7 +28,7 @@ export default function Tickets() {
       const resp = await apiFetch('/vault/tickets');
       if (!resp.ok) throw new Error('Failed to load tickets');
       const data = await resp.json();
-      setTickets(data);
+      setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
@@ -136,12 +136,14 @@ export default function Tickets() {
               </thead>
               <tbody>
                 {tickets.map((t) => {
-                  const currentTier = getCurrentEscalationLevel(t, escalationPath);
+                  const ticketId = t.ticket_id || t.id || '—';
+                  const status = String(t.status || 'Open').toLowerCase();
+                  const currentTier = getCurrentEscalationLevel({ ...t, status: status === 'open' ? 'Open' : 'Closed' }, escalationPath);
                   const isOwnerAlerted = currentTier && currentTier.level === escalationPath.length - 1;
 
                   return (
-                    <tr key={t.ticket_id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--slate-light)' }}>{t.ticket_id.split('-')[0] || t.ticket_id}</td>
+                    <tr key={ticketId}>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--slate-light)' }}>{ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId}</td>
                       <td style={{ fontWeight: '600', color: 'white' }}>{t.machine_name || t.machine_id}</td>
                       <td style={{ whiteSpace: 'nowrap', color: '#cbd5e1' }}>{formatDateTime(t.reported_at)}</td>
                       <td>
@@ -158,7 +160,7 @@ export default function Tickets() {
                         {t.description || (t.ai_summary && t.ai_summary.predicted_issue) || '—'}
                       </td>
                       <td>
-                        {t.status === 'Open' && currentTier ? (
+                        {status === 'open' && currentTier ? (
                           isOwnerAlerted ? (
                             <span className="vault-role-badge read-only" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(239, 68, 68, 0.15)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
                               <span className="glow-dot down" /> Owner Alerted
@@ -178,7 +180,7 @@ export default function Tickets() {
                         )}
                       </td>
                       <td>
-                        {t.status === 'Open' ? (
+                        {status === 'open' ? (
                           <span className="vault-role-badge read-only" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(239, 68, 68, 0.12)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                             <span className="glow-dot down" /> Open
                           </span>
@@ -189,8 +191,8 @@ export default function Tickets() {
                         )}
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        {t.status === 'Open' ? (
-                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={() => handleCloseTicket(t.ticket_id)}>
+                        {status === 'open' ? (
+                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={() => handleCloseTicket(ticketId)}>
                             Close Ticket
                           </button>
                         ) : (

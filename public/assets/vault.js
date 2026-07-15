@@ -581,7 +581,7 @@ function initVault() {
     btn.disabled = true;
     try {
       await login($("loginIdentifier").value.trim(), $("loginPassword").value);
-      await enterVault();
+      window.location.href = `${window.location.pathname.replace(/vault\.html$/, "dashboard.html")}`;
     } catch (err) {
       showError(errEl, err.message);
     } finally {

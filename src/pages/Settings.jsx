@@ -223,7 +223,7 @@ export default function Settings() {
 
   return (
     <AppShell active="settings">
-      <div className="mx-auto max-w-[1000px] px-6 pt-5 pb-20">
+      <div className="settings-page mx-auto max-w-[1000px] px-6 pt-5 pb-20">
         {/* Page Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
