@@ -1,406 +1,408 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  BrainCircuit,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  ClipboardCheck,
+  Database,
+  Factory,
+  FileSearch,
+  Gauge,
+  LayoutDashboard,
+  LockKeyhole,
+  MessageSquareText,
+  ScanLine,
+  ShieldCheck,
+  Sparkles,
+  TicketCheck,
+  Upload,
+  UserCheck,
+  UsersRound,
+  Wrench,
+} from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import MainLayout from '../layouts/MainLayout';
 
+const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919876543210';
+
+const contentByLanguage = {
+  en: {
+    eyebrow: 'AI maintenance decision platform for manufacturing SMEs',
+    heroTitle: 'Know what to fix next—before downtime decides for you.',
+    heroBody: 'TurboFix turns machine records, manuals, breakdowns, preventive work, and shutdown capacity into one clear maintenance workflow.',
+    bookDemo: 'Book a guided demo',
+    explore: 'Explore the product',
+    trust: ['Machine-specific knowledge', 'Approval before internet enrichment', 'Built for practical plant teams'],
+    previewQuestion: 'What should we service this Sunday?',
+    previewScope: 'Plant-wide question • 2 machines reviewed',
+    previewFinding: 'Hydraulic Press needs attention first',
+    previewReason: 'Overdue inspection, repeated oil leak, and spare seal available.',
+    previewAction: 'Add to shutdown plan',
+    previewSafe: 'Recommendation uses approved machine context',
+    strip: ['One machine register', 'AI across one or all machines', 'Guided shutdown planning', 'Closed-loop technician work'],
+    platformEyebrow: 'One maintenance operating system',
+    platformTitle: 'Move from scattered records to confident decisions',
+    platformBody: 'Every module feeds the next step, so knowledge becomes action instead of another dashboard nobody follows.',
+    workflowEyebrow: 'A complete maintenance loop',
+    workflowTitle: 'From machine data to verified work',
+    workflowBody: 'Start with the information you already have. TurboFix organizes it, supports the decision, and keeps execution visible.',
+    knowledgeEyebrow: 'Machine intelligence that stays useful',
+    knowledgeTitle: 'Every machine gets its own approved knowledge file',
+    knowledgeBody: 'Upload manuals, wiring diagrams, hydraulic diagrams, BOMs, or spare lists. TurboFix creates a machine-specific Markdown knowledge file used by AI capabilities. If data is missing, internet enrichment is proposed only after user approval.',
+    knowledgeItems: ['Manuals and technical documents', 'BOM, spares, and consumables', 'Maintenance history and open risks', 'Approved internet-enriched context'],
+    demoEyebrow: 'See the workflow',
+    demoTitle: 'A practical product—not an AI presentation',
+    demoBody: 'Explore the same screens maintenance heads, technicians, and owners use to decide, execute, and review work.',
+    demoLogin: 'Open demo sign-in',
+    demoList: ['Ask one-machine or plant-wide questions', 'Adjust shutdown effort and available hours', 'Review technician evidence and closure status', 'Configure escalation roles and AI approval'],
+    fitEyebrow: 'Built for the real factory floor',
+    fitTitle: 'Start where maintenance is hardest today',
+    fitBody: 'TurboFix fits teams that have outgrown paper, spreadsheets, calls, and disconnected files—but do not want a complex enterprise rollout.',
+    faqTitle: 'Questions maintenance leaders ask first',
+    contactEyebrow: 'Guided onboarding',
+    contactTitle: 'Show us your maintenance reality',
+    contactBody: 'Tell us about your plant and biggest maintenance challenge. We will use the walkthrough to map TurboFix to your current process—not force a generic software demo.',
+    contactPoints: ['Review your present breakdown and PM flow', 'Map one representative machine', 'Identify the first useful workflow to launch'],
+    formTitle: 'Book your plant walkthrough',
+    name: 'Your name',
+    phone: 'Phone / WhatsApp',
+    company: 'Company name',
+    machines: 'Approximate machines',
+    challenge: 'Biggest maintenance challenge',
+    challengePlaceholder: 'Select one',
+    challengeOptions: ['Unplanned breakdowns', 'Shutdown planning', 'Missing machine knowledge', 'Technician follow-through', 'Maintenance visibility', 'Other'],
+    submit: 'Request guided demo',
+    formNote: 'We use these details only to plan your walkthrough.',
+    successTitle: 'Your request is ready',
+    successBody: 'A WhatsApp message has opened with your details. Send it to confirm the walkthrough.',
+  },
+  hi: {
+    eyebrow: 'मैन्युफैक्चरिंग SMEs के लिए AI मेंटेनेंस निर्णय प्लेटफॉर्म',
+    heroTitle: 'डाउनटाइम से पहले जानें—अगला काम क्या होना चाहिए।',
+    heroBody: 'TurboFix मशीन रिकॉर्ड, मैनुअल, ब्रेकडाउन, PM और शटडाउन क्षमता को एक सरल मेंटेनेंस वर्कफ़्लो में जोड़ता है।',
+    bookDemo: 'गाइडेड डेमो बुक करें',
+    explore: 'प्रोडक्ट देखें',
+    trust: ['हर मशीन का अलग ज्ञान', 'इंटरनेट डेटा से पहले अनुमति', 'व्यावहारिक प्लांट टीमों के लिए'],
+    previewQuestion: 'इस रविवार किस मशीन की सर्विस करें?',
+    previewScope: 'पूरे प्लांट का प्रश्न • 2 मशीनों की समीक्षा',
+    previewFinding: 'Hydraulic Press पर पहले ध्यान दें',
+    previewReason: 'निरीक्षण लंबित है, तेल रिसाव दोहराया गया है और सील उपलब्ध है।',
+    previewAction: 'शटडाउन प्लान में जोड़ें',
+    previewSafe: 'सिफारिश अनुमोदित मशीन संदर्भ पर आधारित है',
+    strip: ['एक मशीन रजिस्टर', 'एक या सभी मशीनों पर AI', 'गाइडेड शटडाउन प्लानिंग', 'क्लोज़्ड-लूप तकनीशियन कार्य'],
+    platformEyebrow: 'एक मेंटेनेंस ऑपरेटिंग सिस्टम',
+    platformTitle: 'बिखरे रिकॉर्ड से स्पष्ट निर्णय तक',
+    platformBody: 'हर मॉड्यूल अगले कदम को जानकारी देता है, ताकि डेटा वास्तविक कार्रवाई में बदले।',
+    workflowEyebrow: 'पूरा मेंटेनेंस लूप',
+    workflowTitle: 'मशीन डेटा से सत्यापित कार्य तक',
+    workflowBody: 'अपनी मौजूदा जानकारी से शुरू करें। TurboFix उसे व्यवस्थित करता है, निर्णय में मदद करता है और काम को दिखाई देने योग्य रखता है।',
+    knowledgeEyebrow: 'उपयोगी मशीन इंटेलिजेंस',
+    knowledgeTitle: 'हर मशीन की अपनी अनुमोदित नॉलेज फाइल',
+    knowledgeBody: 'मैनुअल, वायरिंग, हाइड्रोलिक डायग्राम, BOM या स्पेयर सूची अपलोड करें। TurboFix AI के लिए मशीन-विशिष्ट Markdown नॉलेज फाइल बनाता है। डेटा न होने पर इंटरनेट सहायता केवल अनुमति के बाद प्रस्तावित होती है।',
+    knowledgeItems: ['मैनुअल और तकनीकी दस्तावेज', 'BOM, स्पेयर और कंज्यूमेबल', 'मेंटेनेंस इतिहास और जोखिम', 'अनुमोदित इंटरनेट संदर्भ'],
+    demoEyebrow: 'वर्कफ़्लो देखें',
+    demoTitle: 'सिर्फ AI प्रस्तुति नहीं—एक व्यावहारिक प्रोडक्ट',
+    demoBody: 'वे स्क्रीन देखें जिनसे मेंटेनेंस हेड, तकनीशियन और मालिक काम तय, पूरा और समीक्षा करते हैं।',
+    demoLogin: 'डेमो साइन-इन खोलें',
+    demoList: ['एक या सभी मशीनों पर प्रश्न', 'शटडाउन समय और क्षमता बदलें', 'तकनीशियन प्रमाण और क्लोज़र देखें', 'एस्केलेशन और AI अनुमति सेट करें'],
+    fitEyebrow: 'असल फैक्ट्री फ्लोर के लिए',
+    fitTitle: 'आज की सबसे बड़ी मेंटेनेंस समस्या से शुरू करें',
+    fitBody: 'उन टीमों के लिए जो कागज़, Excel, कॉल और बिखरी फाइलों से आगे बढ़ना चाहती हैं—बिना भारी enterprise rollout के।',
+    faqTitle: 'मेंटेनेंस लीडर के शुरुआती सवाल',
+    contactEyebrow: 'गाइडेड ऑनबोर्डिंग',
+    contactTitle: 'हमें अपनी मेंटेनेंस स्थिति बताएं',
+    contactBody: 'अपने प्लांट और सबसे बड़ी चुनौती बताएं। डेमो आपके वर्तमान काम के अनुसार होगा, किसी सामान्य सॉफ्टवेयर प्रस्तुति जैसा नहीं।',
+    contactPoints: ['मौजूदा breakdown और PM flow की समीक्षा', 'एक प्रतिनिधि मशीन की mapping', 'पहला उपयोगी workflow पहचानना'],
+    formTitle: 'प्लांट walkthrough बुक करें',
+    name: 'आपका नाम', phone: 'फोन / WhatsApp', company: 'कंपनी का नाम', machines: 'लगभग मशीनें', challenge: 'सबसे बड़ी मेंटेनेंस चुनौती', challengePlaceholder: 'एक चुनें',
+    challengeOptions: ['अनियोजित breakdown', 'Shutdown planning', 'मशीन जानकारी की कमी', 'Technician follow-through', 'मेंटेनेंस visibility', 'अन्य'],
+    submit: 'गाइडेड डेमो माँगें', formNote: 'इन विवरणों का उपयोग केवल walkthrough की योजना के लिए होगा।',
+    successTitle: 'आपका अनुरोध तैयार है', successBody: 'आपकी जानकारी के साथ WhatsApp खुल गया है। walkthrough की पुष्टि के लिए संदेश भेजें।',
+  },
+  mr: {
+    eyebrow: 'उत्पादन SMEs साठी AI मेंटेनन्स निर्णय प्लॅटफॉर्म',
+    heroTitle: 'डाउनटाइम ठरवण्याआधी जाणून घ्या—पुढे काय दुरुस्त करायचे.',
+    heroBody: 'TurboFix मशीन नोंदी, मॅन्युअल, ब्रेकडाउन, PM आणि शटडाउन क्षमता एका सोप्या मेंटेनन्स वर्कफ्लोमध्ये जोडतो.',
+    bookDemo: 'मार्गदर्शित डेमो बुक करा', explore: 'प्रॉडक्ट पाहा',
+    trust: ['प्रत्येक मशीनचे स्वतंत्र ज्ञान', 'इंटरनेट डेटापूर्वी मंजुरी', 'प्रत्यक्ष प्लांट टीमसाठी'],
+    previewQuestion: 'या रविवारी कोणत्या मशीनची सर्व्हिस करावी?', previewScope: 'संपूर्ण प्लांट प्रश्न • 2 मशीन तपासल्या', previewFinding: 'Hydraulic Press ला प्रथम प्राधान्य', previewReason: 'तपासणी बाकी, वारंवार तेल गळती आणि सील उपलब्ध.', previewAction: 'शटडाउन प्लॅनमध्ये जोडा', previewSafe: 'शिफारस मंजूर मशीन संदर्भ वापरते',
+    strip: ['एक मशीन रजिस्टर', 'एका किंवा सर्व मशीनसाठी AI', 'मार्गदर्शित शटडाउन नियोजन', 'क्लोज्ड-लूप तंत्रज्ञ काम'],
+    platformEyebrow: 'एक मेंटेनन्स ऑपरेटिंग सिस्टम', platformTitle: 'विखुरलेल्या नोंदींपासून स्पष्ट निर्णयापर्यंत', platformBody: 'प्रत्येक मॉड्यूल पुढील टप्प्याला माहिती देते, त्यामुळे डेटा प्रत्यक्ष कृतीत बदलतो.',
+    workflowEyebrow: 'पूर्ण मेंटेनन्स लूप', workflowTitle: 'मशीन डेटापासून पडताळलेल्या कामापर्यंत', workflowBody: 'तुमच्याकडील माहितीपासून सुरुवात करा. TurboFix ती व्यवस्थित करतो, निर्णयाला मदत करतो आणि काम स्पष्ट ठेवतो.',
+    knowledgeEyebrow: 'उपयुक्त मशीन इंटेलिजन्स', knowledgeTitle: 'प्रत्येक मशीनची स्वतंत्र मंजूर नॉलेज फाइल', knowledgeBody: 'मॅन्युअल, वायरिंग, हायड्रॉलिक डायग्राम, BOM किंवा स्पेअर सूची अपलोड करा. TurboFix AI साठी मशीन-विशिष्ट Markdown फाइल बनवतो. इंटरनेट सहाय्य फक्त वापरकर्त्याच्या मंजुरीनंतर सुचवले जाते.', knowledgeItems: ['मॅन्युअल आणि तांत्रिक कागदपत्रे', 'BOM, स्पेअर्स आणि कंझ्युमेबल्स', 'मेंटेनन्स इतिहास आणि धोके', 'मंजूर इंटरनेट संदर्भ'],
+    demoEyebrow: 'वर्कफ्लो पाहा', demoTitle: 'फक्त AI सादरीकरण नाही—प्रत्यक्ष उपयोगी प्रॉडक्ट', demoBody: 'मेंटेनन्स हेड, तंत्रज्ञ आणि मालक निर्णय, काम आणि समीक्षा करण्यासाठी वापरतात त्या स्क्रीन पाहा.', demoLogin: 'डेमो साइन-इन उघडा', demoList: ['एका किंवा सर्व मशीनवर प्रश्न', 'शटडाउन वेळ आणि क्षमता बदला', 'तंत्रज्ञ पुरावा आणि क्लोजर तपासा', 'एस्केलेशन आणि AI मंजुरी सेट करा'],
+    fitEyebrow: 'खऱ्या फॅक्टरी फ्लोअरसाठी', fitTitle: 'आजच्या सर्वात कठीण मेंटेनन्स समस्येपासून सुरू करा', fitBody: 'कागद, Excel, कॉल आणि विखुरलेल्या फाइल्समधून पुढे जाणाऱ्या टीमसाठी—जटिल enterprise rollout शिवाय.',
+    faqTitle: 'मेंटेनन्स लीडरचे पहिले प्रश्न',
+    contactEyebrow: 'मार्गदर्शित ऑनबोर्डिंग', contactTitle: 'तुमची मेंटेनन्स स्थिती आम्हाला सांगा', contactBody: 'तुमचा प्लांट आणि मोठी समस्या सांगा. walkthrough तुमच्या प्रक्रियेनुसार असेल—सामान्य सॉफ्टवेअर डेमोसारखा नाही.', contactPoints: ['सध्याच्या breakdown आणि PM flow ची समीक्षा', 'एका प्रतिनिधी मशीनचे mapping', 'पहिला उपयुक्त workflow ओळखणे'],
+    formTitle: 'प्लांट walkthrough बुक करा', name: 'तुमचे नाव', phone: 'फोन / WhatsApp', company: 'कंपनीचे नाव', machines: 'अंदाजे मशीन', challenge: 'सर्वात मोठी मेंटेनन्स समस्या', challengePlaceholder: 'एक निवडा', challengeOptions: ['अनियोजित breakdown', 'Shutdown planning', 'मशीन ज्ञानाची कमतरता', 'Technician follow-through', 'मेंटेनन्स visibility', 'इतर'], submit: 'मार्गदर्शित डेमो मागवा', formNote: 'ही माहिती फक्त walkthrough नियोजनासाठी वापरली जाईल.', successTitle: 'तुमची विनंती तयार आहे', successBody: 'तुमच्या माहितीसह WhatsApp उघडले आहे. walkthrough निश्चित करण्यासाठी संदेश पाठवा.',
+  },
+};
+
+const platformFeatures = [
+  { icon: BrainCircuit, title: 'AI Maintenance Assistant', body: 'Ask about one machine or the entire plant. Get recommendations grounded in machine knowledge, history, and current work.' },
+  { icon: CalendarClock, title: 'Shutdown Planner', body: 'Prioritize the right machines, edit effort assumptions, compare work with available hours, and prepare an achievable sequence.' },
+  { icon: Database, title: 'Machine Workspace', body: 'Keep manuals, wiring and hydraulic diagrams, BOMs, spares, maintenance history, and QR identity together.' },
+  { icon: ClipboardCheck, title: 'Technician Workspace', body: 'Give technicians a focused work queue with checklists, notes, parts, evidence, and supervisor review.' },
+  { icon: TicketCheck, title: 'Breakdown & Escalation', body: 'Capture issues quickly, assign responsibility, track response status, and escalate using plant-defined rules.' },
+  { icon: LayoutDashboard, title: 'Maintenance Control View', body: 'See machine attention, PM status, open work, knowledge gaps, and operational priorities without chasing updates.' },
+];
+
+const workflowSteps = [
+  { icon: ScanLine, number: '01', title: 'Register the machine', body: 'Create the machine record, QR identity, location, ownership, and preventive context.' },
+  { icon: Upload, number: '02', title: 'Build machine knowledge', body: 'Upload technical documents and create an approved machine-specific knowledge file.' },
+  { icon: MessageSquareText, number: '03', title: 'Ask or report', body: 'Raise a breakdown or ask AI about one machine, a group, or the whole plant.' },
+  { icon: Wrench, number: '04', title: 'Plan and execute', body: 'Prioritize work, assign the technician, adjust effort, record parts, and add evidence.' },
+  { icon: UserCheck, number: '05', title: 'Review and learn', body: 'Supervisor review closes the loop and keeps future recommendations connected to actual work.' },
+];
+
+const roleCards = [
+  { icon: Wrench, title: 'Maintenance teams', body: 'A simpler daily queue, faster access to machine information, and fewer decisions made from memory.' },
+  { icon: UsersRound, title: 'Plant leadership', body: 'One view of attention, accountability, shutdown readiness, and where maintenance effort is going.' },
+  { icon: Factory, title: 'Growing factories', body: 'A practical step beyond paper and spreadsheets without starting with a heavy enterprise implementation.' },
+];
+
+const faqs = [
+  { question: 'Does TurboFix replace our maintenance engineer?', answer: 'No. TurboFix organizes plant knowledge, highlights risk, and supports decisions. Your authorized team remains responsible for approval, safety procedures, and execution.' },
+  { question: 'How does AI use our manuals and machine data?', answer: 'Each machine can have an approved MachineData knowledge file generated from uploaded manuals, diagrams, BOMs, spare lists, and maintenance information. AI uses that plant-scoped context when answering relevant questions.' },
+  { question: 'What happens when machine information is missing?', answer: 'TurboFix identifies the gap and can propose internet enrichment. External information is used only after the user approves it, and the source remains distinguishable from uploaded plant data.' },
+  { question: 'Do we need to digitize the whole factory first?', answer: 'No. Start with a small set of representative machines and one useful workflow—such as breakdown response, machine knowledge, or shutdown planning—then expand.' },
+  { question: 'Can technicians and managers have different responsibilities?', answer: 'Yes. The product includes role-aware work areas, technician execution, supervisor review, maintenance leadership controls, and configurable escalation responsibilities.' },
+];
+
 export default function Home() {
-  const { t } = useLanguage();
+  const { lang } = useLanguage();
+  const copy = contentByLanguage[lang] || contentByLanguage.en;
   const [formSent, setFormSent] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const formRef = useRef(null);
   const videoRef = useRef(null);
 
-  const handleLeadSubmit = (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const name = fd.get('name')?.trim();
-    const phone = fd.get('phone')?.trim();
-    const company = fd.get('company')?.trim();
-    const machines = fd.get('machines')?.trim();
+  useEffect(() => {
+    if (!window.location.hash) return;
+    const sectionId = window.location.hash.slice(1);
+    window.setTimeout(() => document.getElementById(sectionId)?.scrollIntoView(), 80);
+  }, []);
+
+  const handleLeadSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name')?.trim();
+    const phone = formData.get('phone')?.trim();
     if (!name || !phone) return;
-    const msg = `Hi, I'd like to set up TurboFix.\n\nName: ${name}\nPhone: ${phone}\nCompany: ${company || '—'}\nMachines: ${machines || '—'}`;
-    window.open(`https://wa.me/919876543210?text=${encodeURIComponent(msg)}`, '_blank');
+
+    const message = [
+      'Hi, I would like a guided TurboFix plant walkthrough.',
+      '',
+      `Name: ${name}`,
+      `Phone: ${phone}`,
+      `Company: ${formData.get('company')?.trim() || '—'}`,
+      `Approx. machines: ${formData.get('machines')?.trim() || '—'}`,
+      `Biggest challenge: ${formData.get('challenge') || '—'}`,
+    ].join('\n');
+
+    window.open(`https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
     setFormSent(true);
   };
 
-  const handlePlayClick = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-      setVideoPlaying(true);
-    }
+  const handlePlay = () => {
+    videoRef.current?.play();
+    setVideoPlaying(true);
   };
 
   return (
     <MainLayout>
-      <div className="home-page">
-
-        {/* HERO */}
-        <section className="hero">
-          <div className="container hero-center">
-            <h1 className="hero-headline">
-              {t('hero.title1')} <br />
-              <span className="text-brand">{t('hero.title2')}</span>
-            </h1>
-            <p className="hero-lede">{t('hero.lede')}</p>
-            <div className="hero-cta-row">
-              <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-whatsapp btn-lg">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a5.227 5.227 0 00-.571-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                {t('hero.btn')}
-              </a>
+      <div className="marketing-home">
+        <section className="marketing-hero">
+          <div className="container marketing-hero-grid">
+            <div className="marketing-hero-copy">
+              <span className="marketing-eyebrow"><Sparkles />{copy.eyebrow}</span>
+              <h1>{copy.heroTitle}</h1>
+              <p>{copy.heroBody}</p>
+              <div className="marketing-actions">
+                <a className="marketing-btn marketing-btn-primary" href="#contact">{copy.bookDemo}<ArrowRight /></a>
+                <Link className="marketing-btn marketing-btn-secondary" to="/vault.html">{copy.explore}</Link>
+              </div>
+              <div className="marketing-trust-row">
+                {copy.trust.map((item) => <span key={item}><CheckCircle2 />{item}</span>)}
+              </div>
             </div>
 
-            {/* Hero Flow Pipeline */}
-            <div className="hero-flow">
-              <div className="flow-step">
-                <div className="flow-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
+            <div className="marketing-product-preview" aria-label="TurboFix AI recommendation preview">
+              <div className="marketing-preview-top">
+                <span><span className="marketing-live-dot" />ACME3 LIVE</span>
+                <span className="marketing-preview-role">Maintenance head</span>
+              </div>
+              <div className="marketing-preview-question">
+                <span className="marketing-preview-icon"><BrainCircuit /></span>
+                <div>
+                  <small>{copy.previewScope}</small>
+                  <strong>{copy.previewQuestion}</strong>
                 </div>
-                <span className="flow-label">{t('hero.step1')}</span>
               </div>
-              <div className="flow-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </div>
-              <div className="flow-step">
-                <div className="flow-icon flow-icon--machine">
-                  <span>🏭</span>
+              <div className="marketing-preview-answer">
+                <div className="marketing-preview-priority">
+                  <span>01</span>
+                  <div><small>Priority recommendation</small><strong>{copy.previewFinding}</strong></div>
+                  <b>High</b>
                 </div>
-                <span className="flow-label">{t('hero.step2')}</span>
-                <span className="flow-detail">CNC Lathe #3</span>
-              </div>
-              <div className="flow-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </div>
-              <div className="flow-step">
-                <div className="flow-icon flow-icon--voice">
-                  <span>🎙️</span>
+                <p>{copy.previewReason}</p>
+                <div className="marketing-preview-metrics">
+                  <span><b>2.5h</b> estimated work</span>
+                  <span><b>1</b> spare confirmed</span>
+                  <span><b>3</b> context sources</span>
                 </div>
-                <span className="flow-label">{t('hero.step3')}</span>
+                <button type="button">{copy.previewAction}<ArrowRight /></button>
               </div>
-              <div className="flow-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </div>
-              <div className="flow-step">
-                <div className="flow-icon flow-icon--ai">
-                  <span>🤖</span>
-                </div>
-                <span className="flow-label">{t('hero.step4')}</span>
-                <span className="flow-detail">"Spindle bearing wear"</span>
-              </div>
-              <div className="flow-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </div>
-              <div className="flow-step">
-                <div className="flow-icon flow-icon--notify">
-                  <span>🔔</span>
-                </div>
-                <span className="flow-label">{t('hero.step5')}</span>
-              </div>
+              <div className="marketing-preview-safe"><ShieldCheck />{copy.previewSafe}</div>
             </div>
           </div>
         </section>
 
-        {/* THE PROBLEM */}
-        <section className="section" id="problem">
+        <div className="marketing-capability-strip">
           <div className="container">
-            <h2 className="section-title">{t('problem.title')}</h2>
-            <p className="section-sub">{t('problem.sub')}</p>
-            <div className="problem-grid">
-              <div className="problem-card card">
-                <div className="problem-icon">🗣️</div>
-                <h3>{t('problem.card1.title')}</h3>
-                <p>{t('problem.card1.desc')}</p>
-              </div>
-              <div className="problem-card card">
-                <div className="problem-icon">🤷‍♂️</div>
-                <h3>{t('problem.card2.title')}</h3>
-                <p>{t('problem.card2.desc')}</p>
-              </div>
-              <div className="problem-card card">
-                <div className="problem-icon">🔁</div>
-                <h3>{t('problem.card3.title')}</h3>
-                <p>{t('problem.card3.desc')}</p>
-              </div>
-            </div>
+            {copy.strip.map((item) => <span key={item}><Check />{item}</span>)}
           </div>
-        </section>
+        </div>
 
-        {/* HOW IT WORKS */}
-        <section className="section" id="how" style={{ background: 'var(--navy-2)' }}>
+        <section className="marketing-section" id="platform">
           <div className="container">
-            <h2 className="section-title">{t('how.title') || 'How It Works'}</h2>
-            <p className="section-sub">{t('how.sub') || 'Zero training required. If they can use WhatsApp, they can use TurboFix.'}</p>
-            <div className="how-steps">
-              <div className="how-step">
-                <div className="how-num">1</div>
-                <div className="how-content">
-                  <h4>{t('how.step1.title') || 'Scan the Machine QR'}</h4>
-                  <p>{t('how.step1.desc') || 'Operator scans the QR code sticker placed on the faulty machine.'}</p>
-                </div>
-              </div>
-              <div className="how-step">
-                <div className="how-num">2</div>
-                <div className="how-content">
-                  <h4>{t('how.step2.title') || 'Send a WhatsApp Message'}</h4>
-                  <p>{t('how.step2.desc') || 'WhatsApp opens automatically with the Machine ID pre-filled. They just type the issue or send a voice note.'}</p>
-                </div>
-              </div>
-              <div className="how-step">
-                <div className="how-num">3</div>
-                <div className="how-content">
-                  <h4>{t('how.step3.title') || 'Ticket is Auto-Logged'}</h4>
-                  <p>{t('how.step3.desc') || 'The backend logs the exact time, alerts the maintenance supervisor immediately, and starts the SLA clock.'}</p>
-                </div>
-              </div>
-              <div className="how-step">
-                <div className="how-num">4</div>
-                <div className="how-content">
-                  <h4>{t('how.step4.title') || 'Owner Tracks Everything'}</h4>
-                  <p>{t('how.step4.desc') || 'Check your live dashboard to see response times, pending fixes, and historic machine health.'}</p>
-                </div>
-              </div>
+            <div className="marketing-section-heading">
+              <span>{copy.platformEyebrow}</span>
+              <h2>{copy.platformTitle}</h2>
+              <p>{copy.platformBody}</p>
+            </div>
+            <div className="marketing-feature-grid">
+              {platformFeatures.map(({ icon: Icon, title, body }, index) => (
+                <article className="marketing-feature-card" key={title}>
+                  <div className="marketing-feature-icon"><Icon /></div>
+                  <span>0{index + 1}</span>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                </article>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* FEATURES GRID */}
-        <section className="section">
+        <section className="marketing-section marketing-workflow" id="how">
+          <div className="container marketing-workflow-grid">
+            <div className="marketing-workflow-intro">
+              <span>{copy.workflowEyebrow}</span>
+              <h2>{copy.workflowTitle}</h2>
+              <p>{copy.workflowBody}</p>
+              <div className="marketing-workflow-callout">
+                <Gauge />
+                <div><strong>One visible next step</strong><small>Everyone knows what needs attention, who owns it, and what evidence closes it.</small></div>
+              </div>
+            </div>
+            <div className="marketing-workflow-list">
+              {workflowSteps.map(({ icon: Icon, number, title, body }) => (
+                <article key={number}>
+                  <span>{number}</span>
+                  <div className="marketing-workflow-icon"><Icon /></div>
+                  <div><h3>{title}</h3><p>{body}</p></div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="marketing-section marketing-knowledge-section">
+          <div className="container marketing-knowledge-grid">
+            <div className="marketing-knowledge-visual">
+              <div className="marketing-file-card marketing-file-card-back">
+                <FileSearch /><span>HydraulicPress_MachineDataInet.md</span><small>External context • approval recorded</small>
+              </div>
+              <div className="marketing-file-card">
+                <Database /><span>HydraulicPress_MachineData.md</span><small>Manuals • BOM • maintenance history</small>
+                <div className="marketing-file-lines"><i /><i /><i /><i /></div>
+                <b><LockKeyhole />Plant-approved AI context</b>
+              </div>
+            </div>
+            <div className="marketing-knowledge-copy">
+              <span>{copy.knowledgeEyebrow}</span>
+              <h2>{copy.knowledgeTitle}</h2>
+              <p>{copy.knowledgeBody}</p>
+              <ul>{copy.knowledgeItems.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
+              <Link to="/vault.html" className="marketing-text-link">See machine workspace <ArrowRight /></Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="marketing-section marketing-demo-section" id="demo">
           <div className="container">
-            <h2 className="section-title">{t('features.title')}</h2>
-            <p className="section-sub">{t('features.sub')}</p>
-            <div className="features-grid">
-              <div className="feature-card card">
-                <h3>{t('features.whatsapp.title')}</h3>
-                <p>{t('features.whatsapp.desc')}</p>
+            <div className="marketing-section-heading">
+              <span>{copy.demoEyebrow}</span>
+              <h2>{copy.demoTitle}</h2>
+              <p>{copy.demoBody}</p>
+            </div>
+            <div className="marketing-demo-grid">
+              <div className="marketing-video-wrap">
+                <video ref={videoRef} src={`${import.meta.env.BASE_URL}demo.mp4`} preload="metadata" playsInline controls={videoPlaying} onEnded={() => setVideoPlaying(false)} />
+                {!videoPlaying && <button type="button" onClick={handlePlay} aria-label="Play TurboFix product demo"><span>▶</span><b>Watch product overview</b><small>See the maintenance flow in action</small></button>}
               </div>
-              <div className="feature-card card">
-                <h3>{t('features.qr.title')}</h3>
-                <p>{t('features.qr.desc')}</p>
-              </div>
-              <div className="feature-card card">
-                <h3>{t('features.sheets.title')}</h3>
-                <p>{t('features.sheets.desc')}</p>
-              </div>
-              <div className="feature-card card">
-                <h3>{t('features.offline.title')}</h3>
-                <p>{t('features.offline.desc')}</p>
-              </div>
+              <aside className="marketing-demo-checklist">
+                <span>What you can explore</span>
+                <h3>Follow a real maintenance decision</h3>
+                <ul>{copy.demoList.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
+                <Link className="marketing-btn marketing-btn-primary" to="/vault.html">{copy.demoLogin}<ArrowRight /></Link>
+              </aside>
             </div>
           </div>
         </section>
 
-        {/* VIDEO DEMO */}
-        <section className="section demo-video-section" id="demo" style={{ background: 'var(--navy-2)' }}>
+        <section className="marketing-section marketing-fit-section">
           <div className="container">
-            <h2 className="section-title">{t('demo.title')}</h2>
-            <p className="section-sub">{t('demo.sub')}</p>
-            <div className="demo-video-wrap">
-              <div className="demo-video-player">
-                <video
-                  ref={videoRef}
-                  src={import.meta.env.BASE_URL + 'demo.mp4'}
-                  preload="metadata"
-                  playsInline
-                  controls={videoPlaying}
-                  onEnded={() => setVideoPlaying(false)}
-                  onClick={handlePlayClick}
-                />
-                {!videoPlaying && (
-                  <button type="button" className="demo-video-play" onClick={handlePlayClick} aria-label={t('demo.play')}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  </button>
-                )}
-              </div>
+            <div className="marketing-section-heading">
+              <span>{copy.fitEyebrow}</span>
+              <h2>{copy.fitTitle}</h2>
+              <p>{copy.fitBody}</p>
+            </div>
+            <div className="marketing-role-grid">
+              {roleCards.map(({ icon: Icon, title, body }) => <article key={title}><Icon /><h3>{title}</h3><p>{body}</p></article>)}
             </div>
           </div>
         </section>
 
-        {/* COMPARISON TABLE */}
-        <section className="section compare-section" id="compare">
-          <div className="container">
-            <h2 className="section-title">{t('compare.title')}</h2>
-            <p className="section-sub">{t('compare.sub')}</p>
-            <div className="compare-table-wrap">
-              <table className="compare-table">
-                <thead>
-                  <tr>
-                    <th>{t('compare.col.feature')}</th>
-                    <th className="compare-col-old">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-                      {t('compare.col.register')}
-                    </th>
-                    <th className="compare-col-cmms">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                      {t('compare.col.cmms')}
-                    </th>
-                    <th className="compare-col-tf">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                      TurboFix
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{t('compare.row.setup')}</td>
-                    <td>{t('compare.register.setup')}</td>
-                    <td>{t('compare.cmms.setup')}</td>
-                    <td className="compare-highlight">{t('compare.tf.setup')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.training')}</td>
-                    <td>{t('compare.register.training')}</td>
-                    <td>{t('compare.cmms.training')}</td>
-                    <td className="compare-highlight">{t('compare.tf.training')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.cost')}</td>
-                    <td>{t('compare.register.cost')}</td>
-                    <td>{t('compare.cmms.cost')}</td>
-                    <td className="compare-highlight">{t('compare.tf.cost')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.records')}</td>
-                    <td><span className="compare-no">{t('compare.register.records')}</span></td>
-                    <td>{t('compare.cmms.records')}</td>
-                    <td className="compare-highlight">{t('compare.tf.records')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.alerts')}</td>
-                    <td><span className="compare-no">{t('compare.register.alerts')}</span></td>
-                    <td>{t('compare.cmms.alerts')}</td>
-                    <td className="compare-highlight">{t('compare.tf.alerts')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.export')}</td>
-                    <td><span className="compare-no">{t('compare.register.export')}</span></td>
-                    <td>{t('compare.cmms.export')}</td>
-                    <td className="compare-highlight">{t('compare.tf.export')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.offline')}</td>
-                    <td>{t('compare.register.offline')}</td>
-                    <td><span className="compare-no">{t('compare.cmms.offline')}</span></td>
-                    <td className="compare-highlight">{t('compare.tf.offline')}</td>
-                  </tr>
-                  <tr>
-                    <td>{t('compare.row.accountability')}</td>
-                    <td><span className="compare-no">{t('compare.register.accountability')}</span></td>
-                    <td>{t('compare.cmms.accountability')}</td>
-                    <td className="compare-highlight">{t('compare.tf.accountability')}</td>
-                  </tr>
-                </tbody>
-              </table>
+        <section className="marketing-section marketing-faq" id="faq">
+          <div className="container marketing-faq-grid">
+            <div><span>Clear before you commit</span><h2>{copy.faqTitle}</h2><p>TurboFix is designed to support maintenance judgment, preserve accountability, and make plant knowledge easier to use.</p></div>
+            <div className="marketing-faq-list">
+              {faqs.map(({ question, answer }, index) => <details key={question} open={index === 0}><summary>{question}<span>+</span></summary><p>{answer}</p></details>)}
             </div>
           </div>
         </section>
 
-        {/* SOCIAL PROOF */}
-        <section className="section" style={{ background: 'var(--navy-2)' }}>
-          <div className="container">
-            <h2 className="section-title">{t('proof.title') || 'What Owners Are Saying'}</h2>
-            <div className="proof-grid">
-              <div className="proof-card card">
-                <div className="proof-quote">"</div>
-                <p className="proof-text">{t('proof.quote1')}</p>
-                <div className="proof-author">
-                  <strong>{t('proof.author1.name')}</strong>
-                  <span>{t('proof.author1.role')}</span>
-                </div>
-              </div>
-              <div className="proof-card card">
-                <div className="proof-quote">"</div>
-                <p className="proof-text">{t('proof.quote2')}</p>
-                <div className="proof-author">
-                  <strong>{t('proof.author2.name')}</strong>
-                  <span>{t('proof.author2.role')}</span>
-                </div>
-              </div>
+        <section className="marketing-section marketing-contact" id="contact">
+          <div className="container marketing-contact-grid">
+            <div className="marketing-contact-copy">
+              <span>{copy.contactEyebrow}</span>
+              <h2>{copy.contactTitle}</h2>
+              <p>{copy.contactBody}</p>
+              <ul>{copy.contactPoints.map((item) => <li key={item}><Check />{item}</li>)}</ul>
             </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="section cta-section" id="trial">
-          <div className="container cta-center">
-            <h2 className="section-title">{t('cta.title') || 'Ready to stop the downtime leak?'}</h2>
-            <p className="section-sub">{t('cta.sub') || 'TurboFix is built for MSME budgets. Stop losing thousands of rupees to unrecorded downtime every month.'}</p>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-whatsapp btn-lg">
-              {t('cta.btn')}
-            </a>
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="section" id="faq" style={{ background: 'var(--navy-2)' }}>
-          <div className="container">
-            <h2 className="section-title">{t('faq.title') || 'Frequently Asked Questions'}</h2>
-            <div className="faq-list">
-              <details className="faq-item">
-                <summary>{t('faq.q1') || 'Do I need to install any apps?'}</summary>
-                <p>{t('faq.a1') || 'No. Your workers only need the standard WhatsApp app that is already on their phones. Scanning the QR code automatically opens a chat with the TurboFix bot.'}</p>
-              </details>
-              <details className="faq-item">
-                <summary>{t('faq.q2') || 'What if the WiFi on the factory floor is bad?'}</summary>
-                <p>{t('faq.a2') || 'WhatsApp is highly optimized for low-bandwidth environments. If they have a basic 2G or 3G signal, the text message will go through.'}</p>
-              </details>
-              <details className="faq-item">
-                <summary>{t('faq.q3') || 'Where is my data stored?'}</summary>
-                <p>{t('faq.a3') || 'All ticket data is synced instantly to a private Google Sheet that you own. You can view, export, or analyze it anytime.'}</p>
-              </details>
-              <details className="faq-item">
-                <summary>{t('faq.q4') || 'How much does it cost?'}</summary>
-                <p>{t('faq.a4') || 'Our pricing is designed for MSMEs, not massive enterprises. Contact us on WhatsApp for a quick demo and a flat-rate quote based on your factory size.'}</p>
-              </details>
-            </div>
-          </div>
-        </section>
-
-        {/* LEAD CAPTURE */}
-        <section className="section lead-section" id="contact">
-          <div className="container lead-inner">
-            <div className="lead-copy">
-              <h2 className="section-title" style={{ textAlign: 'left' }}>{t('lead.title') || 'Start Your Free Pilot'}</h2>
-              <p className="lead-sub">{t('lead.sub') || 'Fill in your details and our team will set up your factory within 24 hours. No credit card required.'}</p>
-              <div className="lead-alt">
-                <p>{t('lead.or')}</p>
-                <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
-                  {t('footer.chat')}
-                </a>
-              </div>
-            </div>
-            {formSent ? (
-              <div className="lead-form lead-success">
-                <div className="lead-success-icon">✅</div>
-                <h3>{t('lead.success.title')}</h3>
-                <p>{t('lead.success.desc')}</p>
-              </div>
-            ) : (
-              <form className="lead-form" ref={formRef} onSubmit={handleLeadSubmit}>
-                <div className="lead-row">
-                  <div className="lead-field">
-                    <label>{t('lead.name')}</label>
-                    <input type="text" name="name" required placeholder="Rajesh Patil" />
+            <div className="marketing-lead-card">
+              {formSent ? (
+                <div className="marketing-success"><CheckCircle2 /><h3>{copy.successTitle}</h3><p>{copy.successBody}</p><button type="button" onClick={() => setFormSent(false)}>Send another request</button></div>
+              ) : (
+                <form onSubmit={handleLeadSubmit}>
+                  <div className="marketing-form-heading"><span><Factory /></span><div><h3>{copy.formTitle}</h3><p>{copy.formNote}</p></div></div>
+                  <div className="marketing-form-grid">
+                    <label><span>{copy.name}</span><input name="name" type="text" placeholder="Rakesh Shah" autoComplete="name" required /></label>
+                    <label><span>{copy.phone}</span><input name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" required /></label>
+                    <label><span>{copy.company}</span><input name="company" type="text" placeholder="Acme Forge Pvt Ltd" autoComplete="organization" /></label>
+                    <label><span>{copy.machines}</span><input name="machines" type="number" min="1" placeholder="25" /></label>
+                    <label className="marketing-form-wide"><span>{copy.challenge}</span><select name="challenge" defaultValue=""><option value="" disabled>{copy.challengePlaceholder}</option>{copy.challengeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
                   </div>
-                  <div className="lead-field">
-                    <label>{t('lead.phone')}</label>
-                    <input type="tel" name="phone" required placeholder="+91 98765 43210" />
-                  </div>
-                </div>
-                <div className="lead-field">
-                  <label>{t('lead.company')}</label>
-                  <input type="text" name="company" placeholder="Shree Industries Pvt Ltd" />
-                </div>
-                <div className="lead-field">
-                  <label>{t('lead.machines')}</label>
-                  <input type="number" name="machines" placeholder="e.g. 15" />
-                </div>
-                <button type="submit" className="btn btn-whatsapp btn-lg lead-submit">
-                  {t('lead.submit')}
-                </button>
-                <p className="lead-note">{t('lead.note')}</p>
-              </form>
-            )}
+                  <button className="marketing-btn marketing-btn-primary marketing-submit" type="submit">{copy.submit}<ArrowRight /></button>
+                  <small className="marketing-privacy"><LockKeyhole />{copy.formNote}</small>
+                </form>
+              )}
+            </div>
           </div>
         </section>
-
       </div>
     </MainLayout>
   );

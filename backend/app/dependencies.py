@@ -31,6 +31,8 @@ from app.repositories.base import (
     EventRepository,
     MachineRepository,
     PartsRepository,
+    SettingsRepository,
+    TechnicianWorkRepository,
     TicketRepository,
     UserRepository,
 )
@@ -155,3 +157,25 @@ def get_custom_kpis() -> CustomKpiRepository:
         return SheetsCustomKpiRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
     from app.repositories.local.kpi_repo import LocalCustomKpiRepository
     return LocalCustomKpiRepository()
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> SettingsRepository:
+    """Return company-scoped settings using the active store backend."""
+    if _should_use_sheets():
+        from app.repositories.sheets.settings_repo import SheetsSettingsRepository
+        return SheetsSettingsRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
+    from app.repositories.local.settings_repo import LocalSettingsRepository
+    return LocalSettingsRepository(config.TRACKER_XLSX_PATH)
+
+
+@lru_cache(maxsize=1)
+def get_technician_work() -> TechnicianWorkRepository:
+    """Return persistent technician work records using the active store backend."""
+    if _should_use_sheets():
+        from app.repositories.sheets.technician_work_repo import SheetsTechnicianWorkRepository
+        return SheetsTechnicianWorkRepository(
+            config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID
+        )
+    from app.repositories.local.technician_work_repo import LocalTechnicianWorkRepository
+    return LocalTechnicianWorkRepository(config.TRACKER_XLSX_PATH)

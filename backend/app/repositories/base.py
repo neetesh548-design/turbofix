@@ -108,6 +108,16 @@ KPI_DATA_HEADER = [
     "recorded_at", "recorded_by",
 ]
 
+SETTINGS_HEADER = [
+    "company_code", "escalation_path_json", "custom_roles_json", "updated_at",
+]
+
+TECHNICIAN_WORK_HEADER = [
+    "ticket_id", "company_code", "machine_id", "technician_user_id", "status",
+    "checklist_json", "notes", "parts_used", "evidence_json", "started_at",
+    "submitted_at", "reviewed_at", "reviewed_by", "updated_at",
+]
+
 
 # ---------------------------------------------------------------------------
 # Abstract repository interfaces
@@ -340,3 +350,31 @@ class CustomKpiRepository(ABC):
     @abstractmethod
     def add_data(self, row: dict) -> None:
         """Append a new KPI data entry row."""
+
+
+class SettingsRepository(ABC):
+    """Read/write access to company-scoped operational settings."""
+
+    @abstractmethod
+    def get(self, company_code: str) -> Optional[dict]:
+        """Return the settings row for a company, or None when not configured."""
+
+    @abstractmethod
+    def upsert(self, row: dict) -> None:
+        """Create or replace the settings row for one company."""
+
+
+class TechnicianWorkRepository(ABC):
+    """Persistent closed-loop technician work records keyed by ticket."""
+
+    @abstractmethod
+    def get(self, ticket_id: str) -> Optional[dict]:
+        """Return one technician work record, or None."""
+
+    @abstractmethod
+    def list_company(self, company_code: str) -> List[dict]:
+        """Return all technician work records for a company."""
+
+    @abstractmethod
+    def upsert(self, row: dict) -> None:
+        """Create or replace the work record for one ticket."""

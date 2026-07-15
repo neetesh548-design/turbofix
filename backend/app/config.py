@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
 
 # "local" writes tickets straight into TurboFix-Tracker.xlsx (no credentials needed,
 # used for dev/testing). "sheets" writes to a live Google Sheet via a service account
@@ -109,7 +110,11 @@ ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".dwg",
 _cors_raw = os.getenv("VAULT_CORS_ORIGINS", "")
 VAULT_CORS_ORIGINS = [
     o.strip() for o in _cors_raw.split(",") if o.strip()
-] if _cors_raw.strip() else ["http://localhost:8080", "http://127.0.0.1:8080"]
+] if _cors_raw.strip() else [
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:5174", "http://127.0.0.1:5174",
+    "http://localhost:5175", "http://127.0.0.1:5175",
+]
 
 # Password reset (Phase 5). Same "runs locally with zero credentials, real service
 # for production" split used by TICKET_STORE and DOCUMENT_STORE:
@@ -141,7 +146,7 @@ _INSECURE_JWT_DEFAULT = "dev-insecure-secret-change-in-production"
 _running_tests = "pytest" in os.getenv("_", "") or os.getenv("PYTEST_CURRENT_TEST")
 if not _running_tests:
     import logging as _log
-    is_prod = os.getenv("ENVIRONMENT") == "production"
+    is_prod = ENVIRONMENT == "production"
     
     if PLATFORM_ADMIN_PASSWORD == _INSECURE_ADMIN_DEFAULT:
         if is_prod:
@@ -154,4 +159,14 @@ if not _running_tests:
             raise RuntimeError("JWT_SECRET_KEY is using the insecure default! Set a secure value in production env vars.")
         _log.getLogger("turbofix.config").warning(
             "JWT_SECRET_KEY is the insecure default — set it in env vars before deploying."
+        )
+    if is_prod and WHATSAPP_ACCESS_TOKEN and not WHATSAPP_APP_SECRET:
+        raise RuntimeError(
+            "WHATSAPP_APP_SECRET is required in production when WhatsApp delivery is enabled."
+        )
+    if is_prod and RESET_LINK_BASE.startswith(("http://localhost", "http://127.0.0.1")):
+        raise RuntimeError("RESET_LINK_BASE must point to the deployed frontend in production.")
+    if is_prod and EMAIL_PROVIDER == "console":
+        _log.getLogger("turbofix.config").warning(
+            "EMAIL_PROVIDER=console logs password-reset links; configure SMTP before enabling resets."
         )

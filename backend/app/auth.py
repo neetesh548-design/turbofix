@@ -45,12 +45,15 @@ class Role(str, Enum):
     OWNER = "owner"
     SUPERVISOR = "supervisor"
     MAINTENANCE_HEAD = "maintenance_head"
+    MAINTENANCE_ENGINEER = "maintenance_engineer"
+    MAINTENANCE_TECHNICIAN = "maintenance_technician"
 
 
 # Roles allowed to create/modify/delete documents, spare parts, and consumables.
 # Supervisors can view everything but not change it - matches how they're described
 # elsewhere in the product as "informed users" rather than machine owners.
 WRITE_ROLES = {Role.OWNER, Role.MAINTENANCE_HEAD}
+CLOSE_TICKET_ROLES = {Role.OWNER, Role.SUPERVISOR, Role.MAINTENANCE_HEAD}
 
 
 def hash_password(plain_password: str) -> str:
@@ -67,12 +70,13 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
         return False
 
 
-def create_access_token(*, user_id: str, company_code: str, role: str) -> str:
+def create_access_token(*, user_id: str, company_code: str, role: str, name: str = "") -> str:
     now = int(time.time())
     payload = {
         "sub": user_id,
         "company_code": company_code,
         "role": role,
+        "name": name,
         "iat": now,
         "exp": now + config.JWT_EXPIRE_MINUTES * 60,
     }
@@ -136,10 +140,11 @@ class CurrentUser:
     """The authenticated caller's identity, parsed straight from the JWT - no extra
     lookup against the Users tab needed for every request."""
 
-    def __init__(self, user_id: str, company_code: str, role: str):
+    def __init__(self, user_id: str, company_code: str, role: str, name: str = ""):
         self.user_id = user_id
         self.company_code = company_code
         self.role = role
+        self.name = name
 
     def can_write(self) -> bool:
         return self.role in {r.value for r in WRITE_ROLES}
@@ -165,6 +170,13 @@ class CurrentUser:
                 detail="only the owner can delete",
             )
 
+    def assert_can_close_ticket(self) -> None:
+        if self.role not in {role.value for role in CLOSE_TICKET_ROLES}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="final ticket closure requires a supervisor, maintenance head, or owner",
+            )
+
 
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
@@ -181,6 +193,7 @@ def get_current_user(
         user_id=payload["sub"],
         company_code=payload["company_code"],
         role=payload["role"],
+        name=payload.get("name", ""),
     )
 
 

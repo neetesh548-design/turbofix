@@ -61,3 +61,9 @@ async def root_cause_analysis(machine_name: str, events: List[dict]) -> str:
     if active_provider() == "gemini":
         return await gemini.root_cause_analysis(machine_name, events)
     raise NotImplementedError("Root cause analysis requires Gemini provider")
+
+
+async def maintenance_assistant(question: str, scope_label: str, context: str) -> str:
+    if active_provider() == "gemini":
+        return await gemini.maintenance_assistant(question, scope_label, context)
+    return await openai_summarize.maintenance_assistant(question, scope_label, context)

@@ -178,6 +178,11 @@ export default function Machines() {
     return found ? found.name : phone;
   };
 
+  const technicians = team.filter((member) => member.role === 'maintenance_technician');
+  const supervisors = team.filter((member) => member.role === 'supervisor');
+  const engineers = team.filter((member) => member.role === 'maintenance_engineer');
+  const maintenanceHeads = team.filter((member) => member.role === 'maintenance_head');
+
   // Sub-tab handlers
   const handleUploadDoc = async (e) => {
     e.preventDefault();
@@ -609,12 +614,12 @@ export default function Machines() {
         {/* VIEW 1: MACHINES DIRECTORY TABLE (when selectedMachine is null) */}
         {!selectedMachine ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div className="machines-directory-header">
               <div>
                 <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines Directory</h1>
                 <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Click any machine to access its operational workspace (manuals, BOM, consumables, and replenishment calendar).</p>
               </div>
-              <button className="vault-btn vault-btn-ghost" style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'white' }} onClick={() => setShowAddForm(!showAddForm)}>
+              <button className="vault-btn vault-btn-ghost machines-onboard-toggle" onClick={() => setShowAddForm(!showAddForm)}>
                 {showAddForm ? 'Cancel' : '+ Onboard Machine'}
               </button>
             </div>
@@ -624,56 +629,85 @@ export default function Machines() {
 
             {/* Onboard machine form */}
             {showAddForm && (
-              <div className="vault-card" style={{ marginBottom: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Onboard New Machine Asset</h3>
-                <form onSubmit={handleAddSubmit}>
-                  <div className="vault-form-grid">
-                    <div className="vault-field" style={{ gridColumn: 'span 2' }}>
-                      <label htmlFor="machineName">Machine Name</label>
-                      <input type="text" id="machineName" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. CNC Turning Center" required />
-                    </div>
-                    <div className="vault-field">
-                      <label htmlFor="machineLoc">Location</label>
-                      <input type="text" id="machineLoc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Bay 2" />
-                    </div>
-                    <div className="vault-field">
-                      <label htmlFor="techPhone">Assigned Maintenance Technician</label>
-                      <select id="techPhone" value={techPhone} onChange={(e) => setTechPhone(e.target.value)} required>
-                        <option value="">-- Select Technician --</option>
-                        {team.map((u) => (
-                          <option key={u.user_id} value={u.phone}>{u.name} ({u.role.replace('_', ' ')})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="vault-field">
-                      <label htmlFor="supervisorPhone">Assigned Supervisor</label>
-                      <select id="supervisorPhone" value={supervisorPhone} onChange={(e) => setSupervisorPhone(e.target.value)}>
-                        <option value="">-- Select Supervisor --</option>
-                        {team.map((u) => (
-                          <option key={u.user_id} value={u.phone}>{u.name} ({u.role.replace('_', ' ')})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="vault-field">
-                      <label htmlFor="engineerPhone">Assigned Maintenance Engineer</label>
-                      <select id="engineerPhone" value={engineerPhone} onChange={(e) => setEngineerPhone(e.target.value)}>
-                        <option value="">-- Select Engineer --</option>
-                        {team.map((u) => (
-                          <option key={u.user_id} value={u.phone}>{u.name} ({u.role.replace('_', ' ')})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="vault-field" style={{ gridColumn: 'span 2' }}>
-                      <label htmlFor="headPhone">Assigned Maintenance Head</label>
-                      <select id="headPhone" value={headPhone} onChange={(e) => setHeadPhone(e.target.value)}>
-                        <option value="">-- Select Maintenance Head --</option>
-                        {team.map((u) => (
-                          <option key={u.user_id} value={u.phone}>{u.name} ({u.role.replace('_', ' ')})</option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="vault-card machine-onboard-card">
+                <div className="machine-onboard-header">
+                  <div>
+                    <span className="machine-onboard-kicker">New machine</span>
+                    <h2>Add a machine to your plant</h2>
+                    <p>Enter the machine identity, then assign the people who respond when it needs attention.</p>
                   </div>
-                  <button type="submit" className="vault-btn vault-btn-primary" style={{ marginTop: '14px', width: 'auto', padding: '10px 24px', background: 'var(--brand)', color: '#000' }}>Onboard Machine</button>
+                  <span className="machine-onboard-time">About 2 minutes</span>
+                </div>
+                <form onSubmit={handleAddSubmit} className="machine-onboard-form">
+                  <section className="machine-form-section">
+                    <div className="machine-form-section-heading">
+                      <span>1</span>
+                      <div><h3>Machine details</h3><p>Use the name technicians recognise on the shop floor.</p></div>
+                    </div>
+                    <div className="machine-form-grid">
+                      <div className="vault-field machine-field-wide">
+                        <label htmlFor="machineName">Machine name <strong aria-hidden="true">*</strong></label>
+                        <input type="text" id="machineName" value={name} onChange={(e) => setName(e.target.value)} placeholder="Example: CNC Turning Center" required />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="machineLoc">Plant location</label>
+                        <input type="text" id="machineLoc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Example: Bay 2" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="machine-form-section">
+                    <div className="machine-form-section-heading">
+                      <span>2</span>
+                      <div><h3>Response team</h3><p>Choose who performs the work and who should be informed.</p></div>
+                    </div>
+                    {technicians.length === 0 && (
+                      <div className="machine-team-notice">
+                        <strong>No maintenance technician is available.</strong>
+                        <span>Onboard a technician in Team before adding this machine.</span>
+                        <a href="team.html">Open Team →</a>
+                      </div>
+                    )}
+                    <div className="machine-role-grid">
+                      <div className="vault-field">
+                        <label htmlFor="techPhone">Primary technician <strong aria-hidden="true">*</strong></label>
+                        <select id="techPhone" value={techPhone} onChange={(e) => setTechPhone(e.target.value)} required disabled={technicians.length === 0}>
+                          <option value="">Select a technician</option>
+                          {technicians.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                        </select>
+                        <small>Receives the job and completes the repair checklist.</small>
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="supervisorPhone">Supervisor <span>Optional</span></label>
+                        <select id="supervisorPhone" value={supervisorPhone} onChange={(e) => setSupervisorPhone(e.target.value)}>
+                          <option value="">No supervisor selected</option>
+                          {supervisors.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                        </select>
+                        <small>Reviews progress and approves closure.</small>
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="engineerPhone">Maintenance engineer <span>Optional</span></label>
+                        <select id="engineerPhone" value={engineerPhone} onChange={(e) => setEngineerPhone(e.target.value)}>
+                          <option value="">No engineer selected</option>
+                          {engineers.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                        </select>
+                        <small>Supports diagnosis and complex repairs.</small>
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="headPhone">Maintenance head <span>Optional</span></label>
+                        <select id="headPhone" value={headPhone} onChange={(e) => setHeadPhone(e.target.value)}>
+                          <option value="">No maintenance head selected</option>
+                          {maintenanceHeads.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                        </select>
+                        <small>Receives escalation and plant-risk updates.</small>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="machine-form-actions">
+                    <div><strong>TurboFix creates the machine ID and QR tag automatically.</strong><span>You can upload manuals, BOM, and diagrams after onboarding.</span></div>
+                    <button type="submit" className="vault-btn vault-btn-primary machine-submit" disabled={technicians.length === 0}>Add machine</button>
+                  </div>
                 </form>
               </div>
             )}

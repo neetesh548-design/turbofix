@@ -3,7 +3,9 @@
 Thin HTTP adapter; all business logic lives in services/vault_service.py.
 """
 
+import json
 import mimetypes
+from datetime import datetime, timezone
 from typing import Optional, List
 from urllib.parse import quote
 
@@ -12,9 +14,9 @@ from pydantic import BaseModel
 
 from app import config
 from app.auth import CurrentUser, get_current_user
-from app.dependencies import get_documents, get_machines, get_parts, get_tickets, get_users
+from app.dependencies import get_documents, get_machines, get_parts, get_settings, get_tickets, get_users
 from app.infrastructure.file_storage import FileStorage, get_file_storage
-from app.repositories.base import DocumentRepository, MachineRepository, PartsRepository, TicketRepository, UserRepository
+from app.repositories.base import DocumentRepository, MachineRepository, PartsRepository, SettingsRepository, TicketRepository, UserRepository
 from app.services import vault_service
 from app.services.machine_data_service import build_machine_data, machine_data_path
 
@@ -420,6 +422,7 @@ def close_ticket_endpoint(
     user: CurrentUser = Depends(get_current_user),
     tickets: TicketRepository = Depends(get_tickets),
 ):
+    user.assert_can_close_ticket()
     ticket = tickets.get(ticket_id)
     if ticket is None or ticket.get("company_code") != user.company_code:
         raise HTTPException(status_code=404, detail="ticket not found")
@@ -427,7 +430,9 @@ def close_ticket_endpoint(
     if ticket.get("status") == "Closed":
         return {"status": "already_closed", "ticket_id": ticket_id}
 
-    tickets.close_ticket(ticket_id, user.name)
+    closed_by = user.name.strip() if user.name else user.user_id
+    if not tickets.close_ticket(ticket_id, closed_by):
+        raise HTTPException(status_code=409, detail="ticket could not be closed")
     return {"status": "closed", "ticket_id": ticket_id}
 
 
@@ -451,51 +456,53 @@ def list_team(
 
 
 # ---------------------------------------------------------------------------
-# Custom Roles & Escalation Path Configuration
+# Company-scoped roles and escalation configuration
 # ---------------------------------------------------------------------------
-import json
-import os
 
-CONFIG_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "escalation_config.json"
-)
+DEFAULT_ESCALATION_PATH = [
+    {"role": "maintenance_technician", "label": "Maintenance Technician", "threshold_hours": 2},
+    {"role": "supervisor", "label": "Maintenance Supervisor", "threshold_hours": 2},
+    {"role": "maintenance_engineer", "label": "Maintenance Engineer", "threshold_hours": 2},
+    {"role": "maintenance_head", "label": "Maintenance Head", "threshold_hours": 2},
+    {"role": "owner", "label": "Owner / Plant Director", "threshold_hours": None},
+]
 
-def _read_config():
-    if not os.path.exists(CONFIG_PATH):
-        return {
-            "escalation_path": [
-                {"role": "maintenance_technician", "label": "Maintenance Technician", "threshold_hours": 2},
-                {"role": "supervisor", "label": "Maintenance Supervisor", "threshold_hours": 2},
-                {"role": "maintenance_engineer", "label": "Maintenance Engineer", "threshold_hours": 2},
-                {"role": "maintenance_head", "label": "Maintenance Head", "threshold_hours": 2},
-                {"role": "owner", "label": "Owner / Plant Director", "threshold_hours": None}
-            ],
-            "custom_roles": []
-        }
+
+def _read_company_settings(settings: SettingsRepository, company_code: str) -> dict:
+    row = settings.get(company_code)
+    if row is None:
+        return {"escalation_path": DEFAULT_ESCALATION_PATH, "custom_roles": []}
     try:
-        with open(CONFIG_PATH, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {
-            "escalation_path": [
-                {"role": "maintenance_technician", "label": "Maintenance Technician", "threshold_hours": 2},
-                {"role": "supervisor", "label": "Maintenance Supervisor", "threshold_hours": 2},
-                {"role": "maintenance_engineer", "label": "Maintenance Engineer", "threshold_hours": 2},
-                {"role": "maintenance_head", "label": "Maintenance Head", "threshold_hours": 2},
-                {"role": "owner", "label": "Owner / Plant Director", "threshold_hours": None}
-            ],
-            "custom_roles": []
-        }
+        escalation_path = json.loads(row.get("escalation_path_json") or "[]")
+        custom_roles = json.loads(row.get("custom_roles_json") or "[]")
+    except (TypeError, ValueError):
+        log.warning("settings.invalid_json", company_code=company_code)
+        return {"escalation_path": DEFAULT_ESCALATION_PATH, "custom_roles": []}
+    return {
+        "escalation_path": escalation_path or DEFAULT_ESCALATION_PATH,
+        "custom_roles": custom_roles if isinstance(custom_roles, list) else [],
+    }
 
-def _write_config(data):
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+
+def _write_company_settings(
+    settings: SettingsRepository,
+    company_code: str,
+    payload: dict,
+) -> None:
+    settings.upsert({
+        "company_code": company_code,
+        "escalation_path_json": json.dumps(payload["escalation_path"]),
+        "custom_roles_json": json.dumps(payload["custom_roles"]),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 @router.get("/escalation")
-def get_escalation_path(user: CurrentUser = Depends(get_current_user)):
-    cfg = _read_config()
+def get_escalation_path(
+    user: CurrentUser = Depends(get_current_user),
+    settings: SettingsRepository = Depends(get_settings),
+):
+    cfg = _read_company_settings(settings, user.company_code)
     return cfg.get("escalation_path", [])
 
 
@@ -506,24 +513,35 @@ class EscalationStep(BaseModel):
 
 
 @router.post("/escalation")
-def update_escalation_path(body: List[EscalationStep], user: CurrentUser = Depends(get_current_user)):
+def update_escalation_path(
+    body: List[EscalationStep],
+    user: CurrentUser = Depends(get_current_user),
+    settings: SettingsRepository = Depends(get_settings),
+):
     user.assert_owner()
-    cfg = _read_config()
-    cfg["escalation_path"] = [step.dict() for step in body]
-    _write_config(cfg)
+    cfg = _read_company_settings(settings, user.company_code)
+    cfg["escalation_path"] = [step.model_dump() for step in body]
+    _write_company_settings(settings, user.company_code, cfg)
     return {"status": "success", "escalation_path": cfg["escalation_path"]}
 
 
 @router.get("/custom-roles")
-def get_custom_roles(user: CurrentUser = Depends(get_current_user)):
-    cfg = _read_config()
+def get_custom_roles(
+    user: CurrentUser = Depends(get_current_user),
+    settings: SettingsRepository = Depends(get_settings),
+):
+    cfg = _read_company_settings(settings, user.company_code)
     return cfg.get("custom_roles", [])
 
 
 @router.post("/custom-roles")
-def add_custom_role(body: dict, user: CurrentUser = Depends(get_current_user)):
+def add_custom_role(
+    body: dict,
+    user: CurrentUser = Depends(get_current_user),
+    settings: SettingsRepository = Depends(get_settings),
+):
     user.assert_owner()
-    cfg = _read_config()
+    cfg = _read_company_settings(settings, user.company_code)
     role_name = body.get("role_name", "").strip().lower().replace(" ", "_")
     role_label = body.get("role_label", "").strip()
     if not role_name or not role_label:
@@ -537,18 +555,22 @@ def add_custom_role(body: dict, user: CurrentUser = Depends(get_current_user)):
         "role_name": role_name,
         "role_label": role_label
     })
-    _write_config(cfg)
+    _write_company_settings(settings, user.company_code, cfg)
     return cfg["custom_roles"]
 
 
 @router.delete("/custom-roles/{role_name}")
-def delete_custom_role(role_name: str, user: CurrentUser = Depends(get_current_user)):
+def delete_custom_role(
+    role_name: str,
+    user: CurrentUser = Depends(get_current_user),
+    settings: SettingsRepository = Depends(get_settings),
+):
     user.assert_owner()
-    cfg = _read_config()
+    cfg = _read_company_settings(settings, user.company_code)
     roles = cfg.get("custom_roles", [])
     new_roles = [r for r in roles if r["role_name"] != role_name]
     if len(roles) == len(new_roles):
         raise HTTPException(status_code=404, detail="Role not found")
     cfg["custom_roles"] = new_roles
-    _write_config(cfg)
+    _write_company_settings(settings, user.company_code, cfg)
     return {"status": "success"}

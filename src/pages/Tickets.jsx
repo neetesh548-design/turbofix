@@ -61,7 +61,7 @@ export default function Tickets() {
     try {
       const d = new Date(dtStr.replace(' ', 'T'));
       return d.toLocaleString();
-    } catch (_) {
+    } catch {
       return dtStr;
     }
   };

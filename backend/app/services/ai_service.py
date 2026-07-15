@@ -66,3 +66,11 @@ async def root_cause_analysis(machine_name: str, events: List[dict]) -> str:
     result = await _ai_provider.root_cause_analysis(machine_name, events)
     log.info("ai.root_cause.done", length=len(result))
     return result
+
+
+async def maintenance_assistant(question: str, scope_label: str, context: str) -> str:
+    """Answer an exact user question using machine or plant-wide context."""
+    log.info("ai.assistant.start", scope=scope_label, question_len=len(question), context_len=len(context))
+    result = await _ai_provider.maintenance_assistant(question, scope_label, context)
+    log.info("ai.assistant.done", length=len(result))
+    return result

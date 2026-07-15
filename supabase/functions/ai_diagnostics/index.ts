@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { requireServiceRole } from '../_shared/security.ts'
 
 // You would store your OpenAI API key in Supabase Secrets
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 serve(async (req) => {
+  const authError = requireServiceRole(req);
+  if (authError) return authError;
   try {
     const { ticket_id } = await req.json();
     if (!ticket_id) throw new Error("Missing ticket_id");
@@ -72,7 +75,7 @@ serve(async (req) => {
     let aiSummary = {};
     try {
       aiSummary = JSON.parse(aiSummaryText);
-    } catch (e) {
+    } catch {
       aiSummary = { raw: aiSummaryText };
     }
 

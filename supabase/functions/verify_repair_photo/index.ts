@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { requireServiceRole } from '../_shared/security.ts'
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 serve(async (req) => {
+  const authError = requireServiceRole(req);
+  if (authError) return authError;
   try {
     const body = await req.json();
     const { record } = body; // This is a webhook payload from Supabase Storage or Database
@@ -48,7 +51,7 @@ serve(async (req) => {
     try {
       const parsed = JSON.parse(aiText);
       if (parsed.is_valid) isVerified = 'verified';
-    } catch (e) {
+    } catch {
       console.error("AI parse failed");
     }
 

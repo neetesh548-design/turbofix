@@ -30,6 +30,7 @@ from app.routers.dashboard_router import router as dashboard_router
 from app.routers.kpi_router import router as kpi_router
 from app.routers.vault_router import router as vault_router
 from app.routers.webhook_router import get_sessions, router as webhook_router
+from app.routers.technician_router import router as technician_router
 from app.services.ticket_service import sweep_expired_unnotified
 from app.dependencies import get_events, get_tickets, get_machines
 
@@ -111,6 +112,7 @@ app.include_router(dashboard_router)
 app.include_router(kpi_router)
 app.include_router(admin_router)
 app.include_router(report_router)
+app.include_router(technician_router)
 
 
 @app.get("/health", tags=["ops"])

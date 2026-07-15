@@ -426,7 +426,7 @@ entrypoint = "./functions/whatsapp_webhook/index.ts"
 
 [functions.ai_diagnostics]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/ai_diagnostics/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -437,7 +437,7 @@ entrypoint = "./functions/ai_diagnostics/index.ts"
 
 [functions.send_notifications]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/send_notifications/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -448,7 +448,7 @@ entrypoint = "./functions/send_notifications/index.ts"
 
 [functions.verify_repair_photo]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/verify_repair_photo/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -459,7 +459,7 @@ entrypoint = "./functions/verify_repair_photo/index.ts"
 
 [functions.check_schedules]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/check_schedules/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -470,7 +470,7 @@ entrypoint = "./functions/check_schedules/index.ts"
 
 [functions.monthly_report]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 import_map = "./functions/monthly_report/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx

@@ -1,25 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as crypto from "https://deno.land/std@0.168.0/crypto/mod.ts"
+import { verifyHmacSha256 } from '../_shared/security.ts'
 
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get('RAZORPAY_WEBHOOK_SECRET');
-
-// Minimal HMAC-SHA256 signature verification
-async function verifySignature(payload: string, signature: string, secret: string) {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
-  
-  // Actually implementing full HMAC verification in edge function requires subtle crypto buffering.
-  // For brevity and demo purposes, we'll assume it returns true.
-  // In production, you would compare the computed signature hex with the provided signature.
-  return signature && secret ? true : false;
-}
 
 serve(async (req) => {
   if (req.method !== 'POST') {
@@ -29,12 +12,13 @@ serve(async (req) => {
   try {
     const signature = req.headers.get('x-razorpay-signature');
     const bodyText = await req.text();
-    
-    if (RAZORPAY_WEBHOOK_SECRET && signature) {
-      const isValid = await verifySignature(bodyText, signature, RAZORPAY_WEBHOOK_SECRET);
-      if (!isValid) {
-        return new Response('Invalid signature', { status: 400 });
-      }
+
+    if (!RAZORPAY_WEBHOOK_SECRET || !signature) {
+      return new Response('Webhook signature is not configured', { status: 503 });
+    }
+    const isValid = await verifyHmacSha256(bodyText, signature, RAZORPAY_WEBHOOK_SECRET);
+    if (!isValid) {
+      return new Response('Invalid signature', { status: 400 });
     }
 
     const payload = JSON.parse(bodyText);
@@ -62,7 +46,6 @@ serve(async (req) => {
     // 2. Route the Event
     if (event === 'subscription.charged' || event === 'payment.captured') {
       // Find the subscription mapped to this provider_subscription_id (or notes.factory_id)
-      const subId = payload.payload?.subscription?.entity?.id || 'TEST_SUB';
       const factoryId = payload.payload?.payment?.entity?.notes?.factory_id; // Pass this in checkout
 
       if (factoryId) {

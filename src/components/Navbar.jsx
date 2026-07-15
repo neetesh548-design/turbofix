@@ -12,7 +12,12 @@ export default function Navbar() {
     catch { return null; }
   });
   const location = useLocation();
-  const { lang, setLang, t } = useLanguage();
+  const { lang, setLang } = useLanguage();
+  const labels = {
+    en: { platform: 'Platform', how: 'How it works', demo: 'Product demo', start: 'Book a demo', startSub: 'Guided walkthrough', login: 'Staff sign in', dashboard: 'Dashboard' },
+    hi: { platform: 'प्लेटफॉर्म', how: 'कैसे काम करता है', demo: 'प्रोडक्ट डेमो', start: 'डेमो बुक करें', startSub: 'गाइडेड वॉकथ्रू', login: 'स्टाफ साइन इन', dashboard: 'डैशबोर्ड' },
+    mr: { platform: 'प्लॅटफॉर्म', how: 'कसे काम करते', demo: 'प्रॉडक्ट डेमो', start: 'डेमो बुक करा', startSub: 'मार्गदर्शित वॉकथ्रू', login: 'स्टाफ साइन इन', dashboard: 'डॅशबोर्ड' },
+  }[lang] || { platform: 'Platform', how: 'How it works', demo: 'Product demo', start: 'Book a demo', startSub: 'Guided walkthrough', login: 'Staff sign in', dashboard: 'Dashboard' };
 
   useEffect(() => {
     const handleAuth = () => {
@@ -26,7 +31,7 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 8);
       
       if (location.pathname === '/') {
-        const sections = ['demo', 'how'];
+        const sections = ['platform', 'how', 'demo', 'contact'];
         let current = '';
         for (const section of sections) {
           const el = document.getElementById(section);
@@ -88,16 +93,17 @@ export default function Navbar() {
         </Link>
 
         <nav className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
-          <Link to="/why-turbofix.html" className={isActive('/why-turbofix.html') ? 'active' : ''} onClick={() => setIsOpen(false)}>{t('nav.why')}</Link>
           {location.pathname === '/' ? (
             <>
-              <a href="#demo" className={isActive('#demo') ? 'active' : ''} onClick={() => setIsOpen(false)}>{t('nav.demo')}</a>
-              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>{t('nav.how')}</a>
+              <a href="#platform" className={isActive('#platform') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.platform}</a>
+              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.how}</a>
+              <a href="#demo" className={isActive('#demo') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.demo}</a>
             </>
           ) : (
             <>
-              <Link to="/#demo" onClick={() => setIsOpen(false)}>{t('nav.demo')}</Link>
-              <Link to="/#how" onClick={() => setIsOpen(false)}>{t('nav.how')}</Link>
+              <Link to="/#platform" onClick={() => setIsOpen(false)}>{labels.platform}</Link>
+              <Link to="/#how" onClick={() => setIsOpen(false)}>{labels.how}</Link>
+              <Link to="/#demo" onClick={() => setIsOpen(false)}>{labels.demo}</Link>
             </>
           )}
           <a href="#contact" className="btn btn-sm nav-get-started" onClick={(e) => {
@@ -109,8 +115,8 @@ export default function Navbar() {
             }
             document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
           }}>
-            <span className="nav-btn-primary">{t('nav.start')}</span>
-            <span className="nav-btn-sub">{t('nav.trial')}</span>
+            <span className="nav-btn-primary">{labels.start}</span>
+            <span className="nav-btn-sub">{labels.startSub}</span>
           </a>
         </nav>
 
@@ -126,10 +132,10 @@ export default function Navbar() {
                 <span style={{fontSize: '13px', fontWeight: '600', color: '#f8fafc', lineHeight: '1.2'}}>{user?.name || 'Staff'}</span>
                 <span style={{fontSize: '11px', color: '#94a3b8', lineHeight: '1.2', textTransform: 'uppercase', letterSpacing: '0.05em'}}>{user?.company_code || 'TurboFix'}</span>
               </div>
-              <Link to="/dashboard.html" className="login-link" style={{padding: '6px 14px', fontSize: '13px'}}>Dashboard</Link>
+              <Link to="/dashboard.html" className="login-link" style={{padding: '6px 14px', fontSize: '13px'}}>{labels.dashboard}</Link>
             </div>
           ) : (
-            <Link to="/vault.html" className="login-link">{t('nav.login')}</Link>
+            <Link to="/vault.html" className="login-link">{labels.login}</Link>
           )}
           <button className={`nav-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
             <span></span><span></span><span></span>

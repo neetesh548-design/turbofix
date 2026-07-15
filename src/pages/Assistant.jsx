@@ -1,46 +1,116 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
 
-const suggestions = ['Which machines require attention today?', 'Which machine is most likely to fail?', 'Why is this machine overheating?', 'Show me the manual for this machine.'];
+const plantSuggestions = [
+  'Which machines require attention today?',
+  'What should we prioritize before the next shutdown?',
+  'Which open issue has the highest production risk?',
+];
+
+const machineSuggestions = [
+  'What should the technician check first?',
+  'What spare parts should we prepare?',
+  'Summarize this machine’s recent maintenance history.',
+];
 
 export default function Assistant() {
   const [machines, setMachines] = useState([]);
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState('all');
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
+  const [answerSource, setAnswerSource] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { apiFetch('/vault/machines').then((r) => r.ok ? r.json() : []).then(setMachines).catch(() => setMachines([])); }, []);
+  useEffect(() => {
+    apiFetch('/vault/machines')
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setMachines)
+      .catch(() => setMachines([]));
+  }, []);
+
+  const selectedMachine = useMemo(
+    () => machines.find((machine) => machine.machine_id === selected),
+    [machines, selected],
+  );
+  const isPlantWide = selected === 'all';
+  const suggestions = isPlantWide ? plantSuggestions : machineSuggestions;
+  const scopeHelp = isPlantWide
+    ? 'Uses data from every machine, open ticket, and maintenance event in this plant.'
+    : `Uses only ${selectedMachine?.machine_name || 'the selected machine'} and its maintenance history.`;
+
+  const clearResult = () => {
+    setAnswer('');
+    setAnswerSource('');
+    setError('');
+  };
+
+  const changeScope = (event) => {
+    setSelected(event.target.value);
+    clearResult();
+  };
+
+  const changeQuestion = (value) => {
+    setQuestion(value);
+    clearResult();
+  };
 
   const ask = async (event) => {
-    event?.preventDefault();
-    if (!question.trim()) return;
-    setLoading(true); setError(''); setAnswer('');
+    event.preventDefault();
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) return;
+
+    setLoading(true);
+    setError('');
+    setAnswer('');
+    setAnswerSource('');
     try {
-      if (!selected) {
-        setAnswer('Select a machine when your question is machine-specific. For a plant-wide answer, use the Decision Center and Priority Queue.');
-      } else {
-        const response = await apiFetch(`/vault/machines/${encodeURIComponent(selected)}/root-cause`);
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.detail || 'The AI service is unavailable');
-        setAnswer(result.analysis || 'No recommendation was returned for this machine.');
-      }
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+      const response = await apiFetch('/vault/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: trimmedQuestion,
+          machine_id: isPlantWide ? null : selected,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.detail || 'The maintenance assistant is unavailable');
+      setAnswer(result.answer || 'No recommendation was returned.');
+      setAnswerSource(result.source || 'live_data');
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return <AppShell active="assistant"><div className="assistant-page">
-    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Maintenance Assistant</h1><p>Ask questions in plain language and turn machine history into a next action.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
+    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Maintenance Assistant</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
     <section className="assistant-layout">
       <div className="assistant-chat">
-        <div className="assistant-orb">✦</div><h2>What do you need to decide?</h2><p className="assistant-helper">Choose a machine for diagnostic questions, then ask anything about its recent history.</p>
-        <div className="assistant-suggestions">{suggestions.map((item) => <button key={item} type="button" onClick={() => setQuestion(item)}>{item}</button>)}</div>
-        <form onSubmit={ask} className="assistant-form"><select value={selected} onChange={(event) => setSelected(event.target.value)}><option value="">Select a machine</option>{machines.map((machine) => <option key={machine.machine_id} value={machine.machine_id}>{machine.machine_name} · {machine.machine_id}</option>)}</select><textarea value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a maintenance question…" rows="4" /><button className="btn btn-primary" disabled={loading}>{loading ? 'Analyzing…' : 'Get recommendation'}</button></form>
-        {error && <div className="decision-alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">AI recommendation</div><p>{answer}</p></div>}
+        <div className="assistant-orb">✦</div><h2>What do you need to decide?</h2><p className="assistant-helper">Choose the scope, then ask your question. TurboFix uses the matching maintenance data automatically.</p>
+        <form onSubmit={ask} className="assistant-form">
+          <label className="assistant-field">
+            <span>Answer using</span>
+            <select aria-label="Answer using" value={selected} onChange={changeScope}>
+              <option value="all">All machines — plant-wide</option>
+              {machines.length > 0 && <optgroup label="One machine">
+                {machines.map((machine) => <option key={machine.machine_id} value={machine.machine_id}>{machine.machine_name} · {machine.machine_id}</option>)}
+              </optgroup>}
+            </select>
+            <small>{scopeHelp}</small>
+          </label>
+          <div className="assistant-suggestions" aria-label="Suggested questions">{suggestions.map((item) => <button key={item} type="button" onClick={() => changeQuestion(item)}>{item}</button>)}</div>
+          <label className="assistant-field">
+            <span>Your maintenance question</span>
+            <textarea value={question} onChange={(event) => changeQuestion(event.target.value)} placeholder={isPlantWide ? 'For example: Which machines should we service this weekend?' : 'For example: What should the technician inspect first?'} rows="4" />
+          </label>
+          <button className="btn btn-primary assistant-submit" disabled={loading || !question.trim()}>{loading ? 'Checking maintenance data…' : 'Get recommendation'}</button>
+        </form>
+        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p></div>}
       </div>
-      <aside className="assistant-side"><div className="decision-card-kicker">Useful prompts</div><h2>Make the next call faster</h2><div className="assistant-prompt"><strong>Diagnose</strong><span>“What should the technician check first?”</span></div><div className="assistant-prompt"><strong>Plan</strong><span>“What spare parts should we prepare?”</span></div><div className="assistant-prompt"><strong>Prioritize</strong><span>“Which issue has the highest production risk?”</span></div><p className="assistant-disclaimer">AI recommendations are decision support. Confirm safety procedures and machine manuals before work begins.</p></aside>
+      <aside className="assistant-side"><div className="decision-card-kicker">How scope works</div><h2>Start broad, then focus</h2><div className="assistant-prompt"><strong>All machines</strong><span>Prioritize plant-wide risks, shutdown work, and open issues.</span></div><div className="assistant-prompt"><strong>One machine</strong><span>Diagnose symptoms, review history, manuals, and likely spares.</span></div><p className="assistant-disclaimer">Recommendations are decision support. Confirm isolation procedures and the approved machine manual before work begins.</p></aside>
     </section>
   </div></AppShell>;
 }

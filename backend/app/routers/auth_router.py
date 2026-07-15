@@ -56,7 +56,10 @@ def login(request: Request, body: LoginRequest, users: UserRepository = Depends(
         )
 
     token = create_access_token(
-        user_id=user["user_id"], company_code=user["company_code"], role=user["role"]
+        user_id=user["user_id"],
+        company_code=user["company_code"],
+        role=user["role"],
+        name=user.get("name", ""),
     )
     log.info("auth.login", user_id=user["user_id"], company=user["company_code"])
     return {

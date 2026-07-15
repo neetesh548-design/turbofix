@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { verifyHmacSha256 } from '../_shared/security.ts'
 
 const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
+const WHATSAPP_APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET');
 
 serve(async (req) => {
   if (req.method === 'GET') {
@@ -18,7 +20,23 @@ serve(async (req) => {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const body = await req.json();
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+  const signatureHeader = req.headers.get('x-hub-signature-256');
+  if (!WHATSAPP_APP_SECRET || !signatureHeader?.startsWith('sha256=')) {
+    return new Response('Webhook signature is not configured', { status: 503 });
+  }
+  const bodyText = await req.text();
+  const signatureValid = await verifyHmacSha256(
+    bodyText,
+    signatureHeader.slice('sha256='.length),
+    WHATSAPP_APP_SECRET,
+  );
+  if (!signatureValid) {
+    return new Response('Invalid signature', { status: 401 });
+  }
+  const body = JSON.parse(bodyText);
   
   if (body.object) {
     const entry = body.entry?.[0];

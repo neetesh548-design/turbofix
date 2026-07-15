@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell';
-import { useLanguage } from '../LanguageContext';
 
 export default function Vault() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { t } = useLanguage();
   const [hasSession, setHasSession] = useState(() => Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user')));
 
   useEffect(() => {

@@ -19,6 +19,12 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: VAULT_CORS_ORIGINS
+        value: https://neetesh548-design.github.io
+      - key: RESET_LINK_BASE
+        value: https://neetesh548-design.github.io/turbofix/reset-password.html
       - key: TICKET_STORE
         value: sheets
       - key: GOOGLE_SERVICE_ACCOUNT_FILE
@@ -35,11 +41,27 @@ services:
         sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
+      - key: PLATFORM_ADMIN_PASSWORD
+        generateValue: true
+      - key: EMAIL_PROVIDER
+        value: smtp
+      - key: EMAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
       # WhatsApp (leave blank until Meta credentials exist — the backend degrades
       # gracefully: tickets still log + summarize, fan-out is skipped)
       - key: WHATSAPP_VERIFY_TOKEN
         sync: false
       - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
         sync: false
       - key: WHATSAPP_PHONE_NUMBER_ID
         sync: false

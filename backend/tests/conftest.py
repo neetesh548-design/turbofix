@@ -35,6 +35,16 @@ def _clear_di_caches():
     dependencies.get_users.cache_clear()
     dependencies.get_documents.cache_clear()
     dependencies.get_parts.cache_clear()
+    dependencies.get_settings.cache_clear()
+    dependencies.get_technician_work.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def isolated_machine_data_store(tmp_path, monkeypatch):
+    """Prevent generated MachineData files from leaking across tests or into source data."""
+    document_store = tmp_path / "isolated_document_store"
+    document_store.mkdir()
+    monkeypatch.setattr(config, "DOCUMENT_STORE_DIR", document_store)
 
 
 @pytest.fixture

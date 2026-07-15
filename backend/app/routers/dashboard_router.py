@@ -1,6 +1,7 @@
 """Dashboard router — per-company KPI dashboard + root cause analysis endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser, get_current_user
 from app.dependencies import get_custom_kpis, get_events, get_machines, get_tickets, get_users
@@ -8,8 +9,94 @@ from app.repositories.base import CustomKpiRepository, EventRepository, MachineR
 from app.services import ai_service
 from app.services.dashboard_service import build_custom_kpi_values, compute_kpis
 from app.services.machine_data_service import read_machine_data
+from app.infrastructure.logging import get_logger
 
 router = APIRouter(prefix="/vault")
+log = get_logger("turbofix.assistant")
+MAX_ASSISTANT_CONTEXT = 45_000
+
+
+class AssistantQuestion(BaseModel):
+    question: str = Field(min_length=3, max_length=1200)
+    machine_id: str | None = None
+
+
+def _ticket_line(ticket: dict) -> str:
+    return (
+        f"- {ticket.get('ticket_id', 'ticket')} | {ticket.get('status', 'Open')} | "
+        f"urgency {ticket.get('urgency') or 'not set'} | {ticket.get('description') or 'no description'}"
+    )
+
+
+def _event_line(event: dict) -> str:
+    return (
+        f"- {event.get('timestamp') or '?'} | {event.get('event_type') or 'event'} | "
+        f"{event.get('description') or 'no description'}"
+    )
+
+
+def _machine_context(machine: dict, tickets: list[dict], events: list[dict]) -> str:
+    machine_id = machine["machine_id"]
+    machine_tickets = [ticket for ticket in tickets if ticket.get("machine_id") == machine_id]
+    machine_events = [event for event in events if event.get("machine_id") == machine_id]
+    knowledge = read_machine_data(machine)
+    return "\n".join([
+        f"Machine: {machine.get('machine_name') or machine_id} ({machine_id})",
+        f"Location: {machine.get('location') or 'not recorded'}",
+        f"Assigned technician: {machine.get('assigned_technician_phone') or 'not assigned'}",
+        "Tickets:",
+        *(list(map(_ticket_line, machine_tickets[-20:])) or ["- No tickets recorded"]),
+        "Recent events:",
+        *(list(map(_event_line, machine_events[-25:])) or ["- No events recorded"]),
+        "Canonical MachineData:",
+        knowledge[:10_000] if knowledge else "No MachineData file is available.",
+    ])
+
+
+def _plant_context(machines: list[dict], tickets: list[dict], events: list[dict]) -> str:
+    sections = [
+        f"Plant summary: {len(machines)} machines, "
+        f"{sum(str(ticket.get('status') or 'Open').lower() == 'open' for ticket in tickets)} open tickets."
+    ]
+    for machine in machines:
+        section = _machine_context(machine, tickets, events)
+        remaining = MAX_ASSISTANT_CONTEXT - len("\n\n".join(sections))
+        if remaining <= 400:
+            sections.append("Additional machine context omitted because the context limit was reached.")
+            break
+        sections.append(section[:remaining])
+    return "\n\n".join(sections)[:MAX_ASSISTANT_CONTEXT]
+
+
+def _live_data_answer(machines: list[dict], tickets: list[dict], events: list[dict]) -> str:
+    open_tickets = [ticket for ticket in tickets if str(ticket.get("status") or "Open").lower() == "open"]
+    if len(machines) == 1:
+        machine = machines[0]
+        machine_open = [ticket for ticket in open_tickets if ticket.get("machine_id") == machine["machine_id"]]
+        if not machine_open:
+            return (
+                f"{machine.get('machine_name') or machine['machine_id']} has no open maintenance tickets. "
+                f"TurboFix found {len(events)} recorded events. Add manuals and service history if you need a deeper recommendation."
+            )
+        priorities = sorted(machine_open, key=lambda item: {"High": 0, "Medium": 1, "Low": 2}.get(item.get("urgency"), 3))
+        top = priorities[0]
+        return (
+            f"{machine.get('machine_name') or machine['machine_id']} has {len(machine_open)} open ticket(s). "
+            f"Start with {top.get('ticket_id')}: {top.get('description') or 'maintenance issue'} "
+            f"({top.get('urgency') or 'unrated'} urgency). Confirm isolation and the machine manual before work."
+        )
+    if not open_tickets:
+        return (
+            f"All {len(machines)} machines are currently clear with no open maintenance tickets. "
+            "Use preventive schedules and complete MachineData files to keep plant-wide recommendations reliable."
+        )
+    priorities = sorted(open_tickets, key=lambda item: {"High": 0, "Medium": 1, "Low": 2}.get(item.get("urgency"), 3))
+    top = priorities[0]
+    return (
+        f"Plant-wide view: {len(open_tickets)} open ticket(s) across {len(machines)} machines. "
+        f"Prioritize {top.get('machine_name') or top.get('machine_id')}: {top.get('description') or 'maintenance issue'} "
+        f"({top.get('urgency') or 'unrated'} urgency). Review the remaining open tickets after this risk is controlled."
+    )
 
 
 @router.get("/dashboard")
@@ -43,6 +130,68 @@ def get_dashboard(
         result["custom_kpis"] = []
 
     return result
+
+
+@router.post("/assistant")
+async def ask_maintenance_assistant(
+    body: AssistantQuestion,
+    user: CurrentUser = Depends(get_current_user),
+    machines: MachineRepository = Depends(get_machines),
+    tickets: TicketRepository = Depends(get_tickets),
+    events: EventRepository = Depends(get_events),
+):
+    """Answer a maintenance question for one machine or the entire plant."""
+    question = body.question.strip()
+    if len(question) < 3:
+        raise HTTPException(status_code=422, detail="question must contain at least 3 characters")
+    company_tickets = tickets.get_company_tickets(user.company_code)
+    company_events = events.get_company_events(user.company_code)
+
+    normalized_machine_id = (body.machine_id or "").strip().upper() or None
+    if normalized_machine_id:
+        machine = machines.get(normalized_machine_id)
+        if machine is None or machine.get("company_code") != user.company_code:
+            raise HTTPException(status_code=404, detail="machine not found")
+        scoped_machines = [{**machine, "machine_id": normalized_machine_id}]
+        scoped_tickets = [
+            ticket for ticket in company_tickets
+            if ticket.get("machine_id") == normalized_machine_id
+        ]
+        scoped_events = [
+            event for event in company_events
+            if event.get("machine_id") == normalized_machine_id
+        ]
+        scope_label = f"{machine.get('machine_name') or normalized_machine_id} ({normalized_machine_id})"
+        context = _machine_context(scoped_machines[0], company_tickets, company_events)
+        scope = "machine"
+    else:
+        scoped_machines = machines.get_company_machines(user.company_code)
+        scoped_tickets = company_tickets
+        scoped_events = company_events
+        scope_label = f"all machines in plant {user.company_code}"
+        context = _plant_context(scoped_machines, company_tickets, company_events)
+        scope = "all"
+
+    answer = _live_data_answer(scoped_machines, scoped_tickets, scoped_events)
+    source = "live_data"
+    if ai_service.ai_enabled():
+        try:
+            answer = await ai_service.maintenance_assistant(question, scope_label, context)
+            source = "ai"
+        except Exception as exc:
+            log.warning(
+                "assistant.ai_failed",
+                company_code=user.company_code,
+                machine_id=normalized_machine_id,
+                error=str(exc),
+            )
+
+    return {
+        "answer": answer,
+        "scope": scope,
+        "machine_id": normalized_machine_id,
+        "source": source,
+    }
 
 
 @router.get("/machines/{machine_id}/events")

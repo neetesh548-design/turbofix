@@ -24,7 +24,7 @@ export default function Team() {
     try {
       const u = JSON.parse(localStorage.getItem('tf_user') || 'null');
       setCurrentUser(u);
-    } catch (_) {}
+    } catch {}
     fetchData();
   }, []);
 
