@@ -1,147 +1,187 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  ArrowRight,
+  Globe2,
+  Layers3,
+  LogIn,
+  Menu,
+  PlayCircle,
+  Route,
+  X,
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
+
+const labelsByLanguage = {
+  en: {
+    platform: 'Platform', platformDesc: 'AI, machine data, planning, and execution',
+    how: 'How it works', howDesc: 'Follow the complete maintenance loop',
+    demo: 'Product demo', demoDesc: 'See the current workflow in action',
+    start: 'Book a guided demo', login: 'Staff sign in', dashboard: 'Open dashboard',
+    explore: 'Explore TurboFix', language: 'Choose language', signedIn: 'Signed in',
+  },
+  hi: {
+    platform: 'प्लेटफॉर्म', platformDesc: 'AI, मशीन डेटा, प्लानिंग और कार्य',
+    how: 'कैसे काम करता है', howDesc: 'पूरा मेंटेनेंस लूप देखें',
+    demo: 'प्रोडक्ट डेमो', demoDesc: 'वर्तमान वर्कफ़्लो देखें',
+    start: 'गाइडेड डेमो बुक करें', login: 'स्टाफ साइन इन', dashboard: 'डैशबोर्ड खोलें',
+    explore: 'TurboFix देखें', language: 'भाषा चुनें', signedIn: 'साइन इन',
+  },
+  mr: {
+    platform: 'प्लॅटफॉर्म', platformDesc: 'AI, मशीन डेटा, नियोजन आणि काम',
+    how: 'कसे काम करते', howDesc: 'पूर्ण मेंटेनन्स लूप पाहा',
+    demo: 'प्रॉडक्ट डेमो', demoDesc: 'सध्याचा वर्कफ्लो पाहा',
+    start: 'मार्गदर्शित डेमो बुक करा', login: 'स्टाफ साइन इन', dashboard: 'डॅशबोर्ड उघडा',
+    explore: 'TurboFix पाहा', language: 'भाषा निवडा', signedIn: 'साइन इन',
+  },
+};
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
-  const [isAuth, setIsAuth] = useState(!!localStorage.getItem('tf_token'));
+  const [isAuth, setIsAuth] = useState(() => Boolean(localStorage.getItem('tf_token')));
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('tf_user')) || null; }
     catch { return null; }
   });
   const location = useLocation();
   const { lang, setLang } = useLanguage();
-  const labels = {
-    en: { platform: 'Platform', how: 'How it works', demo: 'Product demo', start: 'Book a demo', startSub: 'Guided walkthrough', login: 'Staff sign in', dashboard: 'Dashboard' },
-    hi: { platform: 'प्लेटफॉर्म', how: 'कैसे काम करता है', demo: 'प्रोडक्ट डेमो', start: 'डेमो बुक करें', startSub: 'गाइडेड वॉकथ्रू', login: 'स्टाफ साइन इन', dashboard: 'डैशबोर्ड' },
-    mr: { platform: 'प्लॅटफॉर्म', how: 'कसे काम करते', demo: 'प्रॉडक्ट डेमो', start: 'डेमो बुक करा', startSub: 'मार्गदर्शित वॉकथ्रू', login: 'स्टाफ साइन इन', dashboard: 'डॅशबोर्ड' },
-  }[lang] || { platform: 'Platform', how: 'How it works', demo: 'Product demo', start: 'Book a demo', startSub: 'Guided walkthrough', login: 'Staff sign in', dashboard: 'Dashboard' };
+  const labels = labelsByLanguage[lang] || labelsByLanguage.en;
+
+  const navItems = [
+    { id: 'platform', label: labels.platform, description: labels.platformDesc, icon: Layers3 },
+    { id: 'how', label: labels.how, description: labels.howDesc, icon: Route },
+    { id: 'demo', label: labels.demo, description: labels.demoDesc, icon: PlayCircle },
+  ];
 
   useEffect(() => {
     const handleAuth = () => {
-      setIsAuth(!!localStorage.getItem('tf_token'));
+      setIsAuth(Boolean(localStorage.getItem('tf_token')));
       try { setUser(JSON.parse(localStorage.getItem('tf_user')) || null); }
       catch { setUser(null); }
     };
-    window.addEventListener('authChanged', handleAuth);
-
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 8);
-      
-      if (location.pathname === '/') {
-        const sections = ['platform', 'how', 'demo', 'contact'];
-        let current = '';
-        for (const section of sections) {
-          const el = document.getElementById(section);
-          if (el && window.scrollY >= (el.offsetTop - 150)) {
-            current = `#${section}`;
-          }
-        }
-        setActiveHash(current);
-      } else {
+      setIsScrolled(window.scrollY > 12);
+      if (location.pathname !== '/') {
         setActiveHash('');
+        return;
       }
+
+      let current = '';
+      for (const sectionId of ['platform', 'how', 'demo', 'contact']) {
+        const section = document.getElementById(sectionId);
+        if (section && window.scrollY >= section.offsetTop - 170) current = `#${sectionId}`;
+      }
+      setActiveHash(current);
     };
-    
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('authChanged', handleAuth);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('authChanged', handleAuth);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [location.pathname]);
 
-  const handleLangChange = (e) => {
-    setLang(e.target.value);
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname, location.hash]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  const scrollToContact = (event) => {
+    event.preventDefault();
+    setIsOpen(false);
+    if (location.pathname !== '/') {
+      window.location.href = `${import.meta.env.BASE_URL}#contact`;
+      return;
+    }
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const isActive = (path) => {
-    if (path.startsWith('#')) return activeHash === path;
-    if (path === '/' && location.pathname === '/' && activeHash === '') return true;
-    return location.pathname === path;
+  const sectionLink = ({ id, label, description, icon: Icon }) => {
+    const className = `public-nav-link ${activeHash === `#${id}` ? 'active' : ''}`;
+    const children = (
+      <>
+        <span className="public-nav-link-icon"><Icon /></span>
+        <span><strong>{label}</strong><small>{description}</small></span>
+      </>
+    );
+
+    return location.pathname === '/'
+      ? <a key={id} href={`#${id}`} className={className} onClick={() => setIsOpen(false)}>{children}</a>
+      : <Link key={id} to={`/#${id}`} className={className} onClick={() => setIsOpen(false)}>{children}</Link>;
   };
+
+  const accountLink = (
+    <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/vault.html'} onClick={() => setIsOpen(false)}>
+      <span className="public-nav-avatar">{isAuth ? (user?.name?.charAt(0) || 'S').toUpperCase() : <LogIn />}</span>
+      <span>
+        <small>{isAuth ? `${labels.signedIn} • ${user?.company_code || 'TurboFix'}` : 'TurboFix workspace'}</small>
+        <strong>{isAuth ? labels.dashboard : labels.login}</strong>
+      </span>
+    </Link>
+  );
 
   return (
-    <header className={`nav ${isScrolled ? 'scrolled' : ''}`} id="nav">
-      <div className="container nav-inner">
-        <Link to="/" className="brand" onClick={() => setIsOpen(false)}>
-          <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
+      <div className="container nav-inner public-nav-inner">
+        <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
+          <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
-            <defs>
-              <linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100">
-                <stop offset="0%" stopColor="#22a35a" />
-                <stop offset="100%" stopColor="#125c31" />
-              </linearGradient>
-            </defs>
-            <g fill="#0f172a" opacity="0.15">
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(0)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(45)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(90)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(135)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(180)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(225)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(270)" />
-              <rect x="-4" y="-22" width="8" height="6" rx="2" transform="rotate(315)" />
-            </g>
+            <defs><linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stopColor="#22a35a" /><stop offset="100%" stopColor="#125c31" /></linearGradient></defs>
             <circle cx="50" cy="50" r="12" fill="#0f172a" />
             <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
           </svg>
-          <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+          <span className="public-nav-brand-copy">
+            <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+            <small>AI maintenance decisions</small>
+          </span>
         </Link>
 
-        <nav className={`nav-links ${isOpen ? 'open' : ''}`} id="navLinks">
-          {location.pathname === '/' ? (
-            <>
-              <a href="#platform" className={isActive('#platform') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.platform}</a>
-              <a href="#how" className={isActive('#how') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.how}</a>
-              <a href="#demo" className={isActive('#demo') ? 'active' : ''} onClick={() => setIsOpen(false)}>{labels.demo}</a>
-            </>
-          ) : (
-            <>
-              <Link to="/#platform" onClick={() => setIsOpen(false)}>{labels.platform}</Link>
-              <Link to="/#how" onClick={() => setIsOpen(false)}>{labels.how}</Link>
-              <Link to="/#demo" onClick={() => setIsOpen(false)}>{labels.demo}</Link>
-            </>
-          )}
-          <a href="#contact" className="btn btn-sm nav-get-started" onClick={(e) => {
-            e.preventDefault();
-            setIsOpen(false);
-            if (location.pathname !== '/') {
-              window.location.href = import.meta.env.BASE_URL + '#contact';
-              return;
-            }
-            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-          }}>
-            <span className="nav-btn-primary">{labels.start}</span>
-            <span className="nav-btn-sub">{labels.startSub}</span>
-          </a>
+        <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
+          <div className="public-nav-mobile-heading">{labels.explore}</div>
+          <div className="public-nav-primary">{navItems.map(sectionLink)}</div>
+          <div className="public-nav-mobile-actions">
+            {accountLink}
+            {!isAuth && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{labels.start}<ArrowRight /></a>}
+          </div>
         </nav>
 
-        <div className="nav-cta">
-          <select className="lang-switch" id="langSwitch" aria-label="Choose language" value={lang} onChange={handleLangChange}>
-            <option value="en">English</option>
-            <option value="hi">हिंदी</option>
-            <option value="mr">मराठी</option>
-          </select>
-          {isAuth ? (
-            <div className="nav-user-info" style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-              <div style={{textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                <span style={{fontSize: '13px', fontWeight: '600', color: '#f8fafc', lineHeight: '1.2'}}>{user?.name || 'Staff'}</span>
-                <span style={{fontSize: '11px', color: '#94a3b8', lineHeight: '1.2', textTransform: 'uppercase', letterSpacing: '0.05em'}}>{user?.company_code || 'TurboFix'}</span>
-              </div>
-              <Link to="/dashboard.html" className="login-link" style={{padding: '6px 14px', fontSize: '13px'}}>{labels.dashboard}</Link>
-            </div>
-          ) : (
-            <Link to="/vault.html" className="login-link">{labels.login}</Link>
-          )}
-          <button className={`nav-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
-            <span></span><span></span><span></span>
+        <div className="public-nav-actions">
+          <label className="public-nav-language">
+            <Globe2 aria-hidden="true" />
+            <span className="sr-only">{labels.language}</span>
+            <select aria-label={labels.language} value={lang} onChange={(event) => setLang(event.target.value)}>
+              <option value="en">EN</option>
+              <option value="hi">हिंदी</option>
+              <option value="mr">मराठी</option>
+            </select>
+          </label>
+          <div className="public-nav-desktop-account">{accountLink}</div>
+          {!isAuth && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{labels.start}<ArrowRight /></a>}
+          <button
+            type="button"
+            className="public-nav-toggle"
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+            aria-controls="mainNavigation"
+            onClick={() => setIsOpen((open) => !open)}
+          >
+            {isOpen ? <X /> : <Menu />}
           </button>
         </div>
       </div>
+      {isOpen && <button type="button" className="public-nav-backdrop" aria-label="Close menu" onClick={() => setIsOpen(false)} />}
     </header>
   );
 }
