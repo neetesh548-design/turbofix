@@ -2774,7 +2774,24 @@ details.faq-item p {
   gap: 28px;
   align-items: start;
 }
-.settings-page { color: #f4f7fb; }
+.settings-page {
+  width: 100%;
+  max-width: none !important;
+  min-height: calc(100vh - 68px);
+  margin: 0 !important;
+  padding: 32px clamp(20px, 4vw, 56px) 80px;
+  color: #f4f7fb;
+  background: radial-gradient(circle at 18% 0%, rgba(34, 197, 94, .08), transparent 28%), linear-gradient(145deg, #111a28 0%, #151f2e 55%, #101722 100%);
+}
+.settings-page [data-slot="card"] {
+  border-color: #344255;
+  background: linear-gradient(145deg, #1c2736 0%, #172130 100%);
+  color: #f4f7fb;
+  box-shadow: 0 10px 28px rgba(4, 10, 18, .22);
+}
+.settings-page [data-slot="card"] [data-slot="card-description"] { color: #a9b7c8; }
+.settings-page [data-slot="card"] .border-border { border-color: #3a4858; }
+.settings-page [data-slot="card"] .bg-background\/50 { background: #172231; }
 .settings-page .text-muted-foreground { color: #a9b7c8; }
 .settings-page .text-foreground { color: #f4f7fb; }
 .settings-page .bg-card { background: #1d2631; }
