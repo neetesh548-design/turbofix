@@ -1,4 +1,4 @@
-from tests.conftest import ACME_OWNER, BETA_OWNER, auth_headers, login
+from tests.conftest import ACME_MAINTENANCE_HEAD, ACME_OWNER, BETA_OWNER, auth_headers, login
 
 
 def test_escalation_settings_are_isolated_by_company(vault_client):
@@ -20,6 +20,19 @@ def test_escalation_settings_are_isolated_by_company(vault_client):
     beta_path = vault_client.get("/vault/escalation", headers=auth_headers(beta_token)).json()
     assert beta_path != acme_path
     assert beta_path[-1]["role"] == "owner"
+
+
+def test_maintenance_head_can_manage_escalation(vault_client):
+    maintenance_head_token = login(vault_client, *ACME_MAINTENANCE_HEAD)
+    response = vault_client.post(
+        "/vault/escalation",
+        headers=auth_headers(maintenance_head_token),
+        json=[
+            {"role": "maintenance_technician", "label": "Maintenance Technician", "threshold_hours": 2},
+            {"role": "maintenance_head", "label": "Maintenance Head", "threshold_hours": None},
+        ],
+    )
+    assert response.status_code == 200, response.text
 
 
 def test_custom_roles_are_isolated_by_company(vault_client):

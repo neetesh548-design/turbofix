@@ -523,7 +523,7 @@ def update_escalation_path(
     user: CurrentUser = Depends(get_current_user),
     settings: SettingsRepository = Depends(get_settings),
 ):
-    user.assert_owner()
+    user.assert_can_manage_escalation()
     cfg = _read_company_settings(settings, user.company_code)
     cfg["escalation_path"] = [step.model_dump() for step in body]
     _write_company_settings(settings, user.company_code, cfg)

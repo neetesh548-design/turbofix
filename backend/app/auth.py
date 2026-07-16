@@ -184,6 +184,13 @@ class CurrentUser:
                 detail="only the owner can delete",
             )
 
+    def assert_can_manage_escalation(self) -> None:
+        if self.role not in {Role.OWNER.value, Role.MAINTENANCE_HEAD.value}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="only the owner or maintenance head can manage breakdown alerts",
+            )
+
     def assert_can_close_ticket(self) -> None:
         if self.role not in {role.value for role in CLOSE_TICKET_ROLES}:
             raise HTTPException(

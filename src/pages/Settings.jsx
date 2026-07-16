@@ -194,7 +194,16 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error('Breakdown alert path could not be saved.');
+      if (!response.ok) {
+        let message = 'Breakdown alert path could not be saved.';
+        try {
+          const responseBody = await response.json();
+          message = responseBody.detail || message;
+        } catch {
+          // Keep the friendly fallback when the server does not return JSON.
+        }
+        throw new Error(message);
+      }
       setEscalationDirty(false);
       setSuccess('Breakdown alert path saved.');
     } catch (requestError) {
