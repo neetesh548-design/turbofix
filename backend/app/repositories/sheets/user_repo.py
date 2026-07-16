@@ -32,14 +32,14 @@ class SheetsUserRepository(UserRepository):
     def get_by_identifier(self, identifier: str) -> Optional[dict]:
         ws = self._ss().worksheet("Users")
         target = _normalize(identifier)
-        for record in ws.get_all_records():
+        for record in ws.get_all_records(expected_headers=USERS_HEADER):
             if _normalize(record.get("phone")) == target or _normalize(record.get("email")) == target:
                 return record
         return None
 
     def get_by_id(self, user_id: str) -> Optional[dict]:
         ws = self._ss().worksheet("Users")
-        for record in ws.get_all_records():
+        for record in ws.get_all_records(expected_headers=USERS_HEADER):
             if record.get("user_id") == user_id:
                 return record
         return None
