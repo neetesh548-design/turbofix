@@ -88,9 +88,9 @@ export const translations = {
     "demo.mock.sys": "Machine ID: CNC-Lathe-03",
     "demo.mock.out": "Spindle bearing making noise since morning shift",
     "demo.mock.in": "Ticket T-1042 created. Supervisor Patil notified. ETA: 12 min.",
-    "demo.note": "Full video walkthrough coming soon. Chat on WhatsApp for a live 1-on-1 demo.",
+    "demo.note": "Watch the complete TurboFix workflow, from machine records to AI-assisted maintenance decisions.",
     "demo.play": "Play demo video",
-    "demo.coming": "Full video coming soon! Chat on WhatsApp for a live demo.",
+    "demo.coming": "Watch the complete TurboFix product walkthrough.",
 
     "compare.title": "TurboFix vs. the Alternatives",
     "compare.sub": "See how we stack up against what most MSME factories use today.",
