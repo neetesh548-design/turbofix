@@ -1,10 +1,13 @@
 const BASE = import.meta.env.BASE_URL || '/';
 
 export function getApiBase() {
-  return localStorage.getItem('tf_api_base')
-    || (['localhost', '127.0.0.1'].includes(window.location.hostname)
-        ? 'http://127.0.0.1:8000'
-        : 'https://turbofix-backend-ehxb.onrender.com');
+  const storedApiBase = localStorage.getItem('tf_api_base');
+  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const defaultApiBase = isLocal
+    ? 'http://127.0.0.1:8000'
+    : 'https://turbofix-backend-ehxb.onrender.com';
+  const pointsToLocalServer = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\b/i.test(storedApiBase || '');
+  return storedApiBase && (isLocal || !pointsToLocalServer) ? storedApiBase : defaultApiBase;
 }
 
 export async function apiFetch(path, options = {}) {

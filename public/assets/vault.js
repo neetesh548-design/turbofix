@@ -13,9 +13,10 @@ if (isLocal) {
   defaultApiBase = "http://127.0.0.1:8000";
 }
 var DEFAULT_API_BASE = defaultApiBase;
+var storedApiPointsToLocalServer = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\b/i.test(storedApiBase || "");
 
 var state = {
-  apiBase: (isLocal && storedApiBase === "https://turbofix-backend-ehxb.onrender.com") ? defaultApiBase : (storedApiBase || defaultApiBase),
+  apiBase: storedApiBase && (isLocal || !storedApiPointsToLocalServer) ? storedApiBase : defaultApiBase,
   token: localStorage.getItem("tf_token") || null,
   user: JSON.parse(localStorage.getItem("tf_user") || "null"),
   machines: [],
