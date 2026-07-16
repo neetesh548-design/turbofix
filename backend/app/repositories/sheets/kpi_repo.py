@@ -36,7 +36,7 @@ class SheetsCustomKpiRepository(CustomKpiRepository):
             return ws
 
     def list_kpis(self, company_code: str) -> List[dict]:
-        rows = self._ws_kpis().get_all_records()
+        rows = self._ws_kpis().get_all_records(expected_headers=CUSTOM_KPIS_HEADER)
         return [r for r in rows if r.get("company_code") == company_code]
 
     def get_kpi(self, kpi_id: str) -> Optional[dict]:
@@ -75,7 +75,7 @@ class SheetsCustomKpiRepository(CustomKpiRepository):
         return True
 
     def list_data(self, company_code: str, kpi_id: Optional[str] = None, limit: int = 30) -> List[dict]:
-        rows = self._ws_data().get_all_records()
+        rows = self._ws_data().get_all_records(expected_headers=KPI_DATA_HEADER)
         filtered = [r for r in rows if r.get("company_code") == company_code]
         if kpi_id:
             filtered = [r for r in filtered if r.get("kpi_id") == kpi_id]

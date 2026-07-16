@@ -37,7 +37,8 @@ class SheetsPartsRepository(PartsRepository):
     def list_items(
         self, kind: str, company_code: str, machine_id: Optional[str] = None
     ) -> List[dict]:
-        all_rows = self._ws(kind).get_all_records()
+        _, header = _SHEETS[kind]
+        all_rows = self._ws(kind).get_all_records(expected_headers=header)
         results = []
         for record in all_rows:
             if record.get("company_code") != company_code:

@@ -33,7 +33,7 @@ class SheetsTechnicianWorkRepository(TechnicianWorkRepository):
 
     def list_company(self, company_code: str) -> List[dict]:
         return [
-            row for row in self._worksheet().get_all_records()
+            row for row in self._worksheet().get_all_records(expected_headers=TECHNICIAN_WORK_HEADER)
             if row.get("company_code") == company_code
         ]
 

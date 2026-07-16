@@ -28,7 +28,7 @@ class SheetsDocumentRepository(DocumentRepository):
         return new_document_id()
 
     def list(self, company_code: str, machine_id: Optional[str] = None) -> List[dict]:
-        all_rows = self._ws().get_all_records()
+        all_rows = self._ws().get_all_records(expected_headers=DOCUMENTS_HEADER)
         results = []
         for record in all_rows:
             if record.get("company_code") != company_code:

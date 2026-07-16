@@ -36,7 +36,7 @@ class SheetsMachineRecordRepository(MachineRecordRepository):
         status: Optional[str] = None,
     ) -> List[dict]:
         records = []
-        for record in self._ws().get_all_records():
+        for record in self._ws().get_all_records(expected_headers=MACHINE_RECORDS_HEADER):
             if record.get("company_code") != company_code:
                 continue
             if machine_id is not None and record.get("machine_id") != machine_id:
