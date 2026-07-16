@@ -89,9 +89,9 @@ const contentByLanguage = {
     knowledgeTitle: 'Your old records become living machine memory',
     knowledgeBody: 'Approved historic records and technical documents are consolidated into a machine-specific knowledge file used across TurboFix. Plant data stays distinct from internet-enriched context, which still requires separate approval.',
     knowledgeItems: ['Approved service and breakdown history', 'Manuals and technical documents', 'BOM, spares, and consumables', 'Exportable MachineData knowledge'],
-    demoEyebrow: 'See the workflow',
-    demoTitle: 'A practical product—not an AI presentation',
-    demoBody: 'Explore the same screens maintenance heads, technicians, and owners use to decide, execute, and review work.',
+    demoEyebrow: 'AI-generated product walkthrough',
+    demoTitle: 'See the workflow before you explore the product',
+    demoBody: 'This illustrative video shows how TurboFix connects machine records, AI recommendations, and maintenance execution. Open the live demo to explore the actual product screens.',
     demoLogin: 'Open demo sign-in',
     demoList: ['Upload a handwritten or digital record', 'Review and approve AI-extracted machine data', 'Ask one-machine or plant-wide questions', 'Plan shutdown work and review technician closure'],
     fitEyebrow: 'Built for the real factory floor',
@@ -487,11 +487,11 @@ export default function Home() {
             <div className="marketing-demo-grid">
               <div className="marketing-video-wrap">
                 <video ref={videoRef} src={`${import.meta.env.BASE_URL}demo.mp4`} preload="metadata" playsInline controls={videoPlaying} onEnded={() => setVideoPlaying(false)} />
-                {!videoPlaying && <button type="button" onClick={handlePlay} aria-label="Play TurboFix product demo"><span>▶</span><b>Watch product overview</b><small>See the maintenance flow in action</small></button>}
+                {!videoPlaying && <button type="button" onClick={handlePlay} aria-label="Play AI-generated TurboFix walkthrough"><span>▶</span><b>Watch the AI-generated walkthrough</b><small>Illustrative video — explore the live product below</small></button>}
               </div>
               <aside className="marketing-demo-checklist">
                 <span>What you can explore</span>
-                <h3>Follow a real maintenance decision</h3>
+                <h3>See how TurboFix works in practice</h3>
                 <ul>{copy.demoList.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
                 <Link className="marketing-btn marketing-btn-primary" to="/vault.html">{copy.demoLogin}<ArrowRight /></Link>
               </aside>
