@@ -100,6 +100,37 @@ def test_admin_lists_companies_with_usage(vault_client):
     assert acme["approved"] is True
     assert acme["machine_quota"] == 5
     assert acme["machines_used"] == 2
+    assert acme["capacity_percent"] == 40
+    assert acme["user_count"] >= 1
+    assert acme["open_tickets"] >= 0
+    assert acme["document_count"] >= 0
+    assert acme["pending_records"] >= 0
+
+
+def test_admin_can_view_company_dashboard(vault_client):
+    at = admin_token(vault_client)
+    response = vault_client.get("/admin/companies/ACME3/dashboard", headers=auth_headers(at))
+    assert response.status_code == 200, response.text
+    dashboard = response.json()
+    assert dashboard["company_code"] == "ACME3"
+    assert "plant_health_pct" in dashboard["kpis"]
+    assert "recent_activity" in dashboard
+
+
+def test_admin_can_list_users_and_reset_password(vault_client):
+    at = admin_token(vault_client)
+    response = vault_client.get("/admin/companies/ACME3/users", headers=auth_headers(at))
+    assert response.status_code == 200, response.text
+    owner = next(user for user in response.json()["users"] if user["email"] == ACME_OWNER[0])
+    assert "password_hash" not in owner
+
+    reset = vault_client.post(
+        f"/admin/users/{owner['user_id']}/password",
+        json={"new_password": "RecoveredOwner@2026"},
+        headers=auth_headers(at),
+    )
+    assert reset.status_code == 200, reset.text
+    assert login(vault_client, ACME_OWNER[0], "RecoveredOwner@2026")
 
 
 def test_admin_update_unknown_company_404(vault_client):
@@ -112,4 +143,5 @@ def test_admin_page_served_as_html(vault_client):
     resp = vault_client.get("/admin")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    assert "TurboFix team admin" in resp.text
+    assert "Platform sign in" in resp.text
+    assert "Priority attention" in resp.text
