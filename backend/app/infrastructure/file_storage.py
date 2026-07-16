@@ -43,7 +43,10 @@ _MAGIC_SIGNATURES: dict[str, list[bytes]] = {
     ".jpeg": [b"\xff\xd8\xff"],
     ".webp": [b"RIFF"],
     ".xlsx": [b"PK\x03\x04"],
+    ".docx": [b"PK\x03\x04"],
     ".csv": [],
+    ".txt": [],
+    ".md": [],
     ".dwg": [b"AC10", b"AC10"],
     ".dxf": [],
 }

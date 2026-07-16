@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell';
+import Navbar from '../components/Navbar';
+
+function hasValidSession() {
+  const token = localStorage.getItem('tf_token');
+  const user = localStorage.getItem('tf_user');
+  if (!token || !user) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return !payload.exp || Date.now() < payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
 
 export default function Vault() {
-  const [hasSession, setHasSession] = useState(() => Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user')));
+  const navigate = useNavigate();
+  const [hasSession, setHasSession] = useState(hasValidSession);
 
   useEffect(() => {
     const syncSessionVisibility = () => {
-      setHasSession(Boolean(localStorage.getItem('tf_token') && localStorage.getItem('tf_user')));
+      setHasSession(hasValidSession());
     };
     window.addEventListener('authChanged', syncSessionVisibility);
     window.addEventListener('storage', syncSessionVisibility);
@@ -15,6 +30,10 @@ export default function Vault() {
       window.removeEventListener('storage', syncSessionVisibility);
     };
   }, []);
+
+  useEffect(() => {
+    if (hasSession) navigate('/dashboard.html', { replace: true });
+  }, [hasSession, navigate]);
 
   useEffect(() => {
     // Inject Supabase Config for static assets
@@ -41,8 +60,10 @@ export default function Vault() {
   }, []);
 
   return (
-    <AppShell active="vault">
-      <div className={hasSession ? 'vault-session-active' : ''}>
+    <>
+      {!hasSession && <Navbar />}
+      <AppShell active="vault">
+        <div className={hasSession ? 'vault-session-active' : ''}>
         <div dangerouslySetInnerHTML={{ __html: `
 <section style="padding: 80px 0;">
   <div class="container vault-wrap">
@@ -364,7 +385,8 @@ export default function Vault() {
 <div id="printTag" class="print-only"></div>
 
       ` }} />
-      </div>
-    </AppShell>
+        </div>
+      </AppShell>
+    </>
   );
 }

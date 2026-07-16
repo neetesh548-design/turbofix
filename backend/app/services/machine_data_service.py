@@ -1,7 +1,10 @@
 """Build the machine knowledge file used by all maintenance intelligence."""
 
 import html
+import base64
+import json
 import re
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -10,7 +13,7 @@ from urllib.request import Request, urlopen
 from app import config
 from app.infrastructure.file_storage import FileStorage
 from app.infrastructure.logging import get_logger
-from app.repositories.base import DocumentRepository, MachineRepository, PartsRepository
+from app.repositories.base import DocumentRepository, MachineRecordRepository, PartsRepository
 
 log = get_logger("turbofix.machine_data")
 
@@ -36,33 +39,57 @@ async def _document_text(doc: dict, storage: FileStorage) -> str:
         return f"Document metadata only: {doc.get('file_name', 'unnamed file')}."
 
 
-def _missing_sections(documents: list[dict], parts: list[dict]) -> list[str]:
+def _missing_sections(
+    documents: list[dict], parts: list[dict], approved_records: list[dict]
+) -> list[str]:
     categories = {str(doc.get("category", "")).lower() for doc in documents}
+    record_types = {str(record.get("record_type", "")).lower() for record in approved_records}
     missing = []
-    if not categories.intersection({"manual", "other"}):
+    if not categories.intersection({"manual", "other"}) and "manual" not in record_types:
         missing.append("operating manual")
-    if not categories.intersection({"circuit_diagram", "hydraulic_diagram"}):
+    if (
+        not categories.intersection({"circuit_diagram", "hydraulic_diagram"})
+        and not record_types.intersection({"wiring_diagram", "hydraulic_diagram"})
+    ):
         missing.append("wiring or hydraulic diagram")
-    if not categories.intersection({"spare_parts_catalog"}) and not parts:
+    if (
+        not categories.intersection({"spare_parts_catalog"})
+        and "spare_parts_bom" not in record_types
+        and not parts
+    ):
         missing.append("bill of material or spare part list")
     return missing
 
 
 async def build_machine_data(
     *, machine: dict, documents: DocumentRepository, parts: PartsRepository,
-    storage: FileStorage, internet: bool = False,
+    records: MachineRecordRepository, storage: FileStorage, internet: bool = False,
 ) -> dict:
-    docs = documents.list(machine["company_code"], machine["machine_id"])
+    all_records = records.list(machine["company_code"], machine["machine_id"])
+    approved_records = [record for record in all_records if record.get("status") == "approved"]
+    record_document_ids = {
+        record.get("document_id") for record in all_records if record.get("document_id")
+    }
+    approved_document_ids = {
+        record.get("document_id") for record in approved_records if record.get("document_id")
+    }
+    docs = [
+        document
+        for document in documents.list(machine["company_code"], machine["machine_id"])
+        if document.get("document_id") not in record_document_ids
+        or document.get("document_id") in approved_document_ids
+    ]
     spare_parts = parts.list_items("spare_parts", machine["company_code"], machine["machine_id"])
     consumables = parts.list_items("consumables", machine["company_code"], machine["machine_id"])
     sections = []
     for doc in docs:
         sections.append(f"### {doc.get('title') or doc.get('file_name')}\n\n{await _document_text(doc, storage)}")
 
-    missing = _missing_sections(docs, spare_parts)
-    source_note = "Uploaded factory documents and inventory records"
+    extracted_sections = [_approved_record_markdown(record) for record in approved_records]
+    missing = _missing_sections(docs, spare_parts, approved_records)
+    source_note = "Uploaded factory documents, approved extracted records, and inventory records"
     if internet:
-        source_note = "Uploaded factory documents, inventory records, and user-approved internet references"
+        source_note = "Uploaded factory documents, approved extracted records, inventory records, and user-approved internet references"
         sections.append(await _internet_reference(machine))
 
     content = f"""# {machine.get('machine_name', machine.get('machine_id'))} — Machine Data
@@ -86,6 +113,9 @@ async def build_machine_data(
 ## Uploaded Technical Knowledge
 {chr(10).join(sections) if sections else 'No technical documents uploaded yet.'}
 
+## Maintenance Head Approved Records
+{chr(10).join(extracted_sections) if extracted_sections else 'No AI-extracted records have been approved yet.'}
+
 ## Data Gaps
 {', '.join(missing) if missing else 'No known data gaps.'}
 """
@@ -94,6 +124,59 @@ async def build_machine_data(
     path.write_text(content, encoding="utf-8")
     log.info("machine_data.generated", machine_id=machine["machine_id"], path=str(path), internet=internet)
     return {"file_name": path.name, "path": str(path), "missing_sections": missing, "internet": internet}
+
+
+def _approved_record_markdown(record: dict) -> str:
+    try:
+        raw = record.get("extracted_json") or "{}"
+        if str(raw).startswith("zlib:"):
+            raw = zlib.decompress(base64.b64decode(str(raw)[5:])).decode("utf-8")
+        data = json.loads(raw)
+    except (TypeError, ValueError, zlib.error):
+        data = {}
+    lines = [
+        f"### {record.get('title') or record.get('record_type') or record.get('record_id')}",
+        "",
+        f"- Record ID: {record.get('record_id', '')}",
+        f"- Type: {record.get('record_type', '')}",
+        f"- Source: {record.get('source_kind', '')}",
+        f"- Approved by: {record.get('approved_by', '')}",
+        f"- Approved at: {record.get('approved_at', '')}",
+        f"- Extraction confidence: {record.get('overall_confidence', 0)}%",
+    ]
+    if data.get("summary"):
+        lines.extend(["", data["summary"]])
+    identity = data.get("machine_identity") if isinstance(data.get("machine_identity"), dict) else {}
+    identity_lines = []
+    for key, field in identity.items():
+        if isinstance(field, dict) and field.get("value"):
+            identity_lines.append(
+                f"- {key.replace('_', ' ').title()}: {field['value']} "
+                f"(confidence {field.get('confidence', 0)}%; source: {field.get('source', 'not stated')})"
+            )
+    if identity_lines:
+        lines.extend(["", "#### Machine Identity", *identity_lines])
+    labels = {
+        "specifications": "Specifications",
+        "maintenance_tasks": "Maintenance Tasks",
+        "spare_parts": "Spare Parts",
+        "consumables": "Consumables",
+        "service_history": "Service History",
+        "risks": "Risks and Actions",
+    }
+    for section, label in labels.items():
+        items = data.get(section) if isinstance(data.get(section), list) else []
+        if not items:
+            continue
+        lines.extend(["", f"#### {label}"])
+        for item in items:
+            details = "; ".join(
+                f"{key.replace('_', ' ')}: {value}"
+                for key, value in item.items()
+                if value not in (None, "")
+            )
+            lines.append(f"- {details}")
+    return "\n".join(lines)
 
 
 def _list_items(items: list[dict], fields: tuple[str, ...]) -> str:

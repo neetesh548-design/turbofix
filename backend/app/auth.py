@@ -163,6 +163,20 @@ class CurrentUser:
                 detail="only an owner or maintenance head can do this",
             )
 
+    def assert_can_upload_machine_records(self) -> None:
+        if self.role not in {role.value for role in Role}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="your role cannot upload machine records",
+            )
+
+    def assert_maintenance_head(self) -> None:
+        if self.role != Role.MAINTENANCE_HEAD.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="only the maintenance head can approve or reject extracted records",
+            )
+
     def assert_owner(self) -> None:
         if self.role != Role.OWNER.value:
             raise HTTPException(

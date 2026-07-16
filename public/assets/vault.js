@@ -581,7 +581,7 @@ function initVault() {
     btn.disabled = true;
     try {
       await login($("loginIdentifier").value.trim(), $("loginPassword").value);
-      window.location.href = `${window.location.pathname.replace(/vault\.html$/, "dashboard.html")}`;
+      window.location.replace(new URL("dashboard.html", window.location.href).href);
     } catch (err) {
       showError(errEl, err.message);
     } finally {
@@ -996,7 +996,7 @@ function initVault() {
       logout();
       showError($("loginError"), "Your session has expired — please sign in again.");
     } else {
-      enterVault();
+      window.location.replace(new URL("dashboard.html", window.location.href).href);
     }
   }
 }

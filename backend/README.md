@@ -146,6 +146,14 @@ WhatsApp never touch this; it's a completely separate login.
   stored via `app/file_storage.py` (`DOCUMENT_STORE=local`, the default, writes under
   `DOCUMENT_STORE_DIR`; `DOCUMENT_STORE=gcs` uploads to a Google Cloud Storage bucket —
   written but never exercised against a real bucket, same status as `store_sheets.py`).
+- **AI machine records** (`GET/POST /vault/records`, `PATCH /vault/records/{id}`,
+  `POST .../{id}/approve|reject`) — accepts handwritten/scanned and soft-copy records,
+  creates a structured draft with per-item confidence and source references, and keeps
+  the draft out of MachineData until a `maintenance_head` approves it. Operational
+  roles may upload and correct drafts; approval and backup restore are deliberately
+  Maintenance Head-only. `GET /vault/records/export` creates a portable ZIP with
+  originals, JSON, CSV, approval history, and MachineData; `POST /vault/records/import`
+  restores records to `needs_review` so imported knowledge is never trusted silently.
 - **Spare parts / BOM** (`GET/POST /vault/spare-parts`, `PATCH`/`DELETE .../{part_id}`)
   and **consumables** (same shape at `/vault/consumables`) — simple per-machine
   inventories (`quantity_on_hand`, `unit`, `reorder_level`, ...).

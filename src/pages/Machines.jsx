@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import {
+  Activity, ArrowLeft, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
+  ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
+  ShieldCheck, Upload, Users,
+} from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { apiFetch } from '@/lib/api';
+
+const WORKSPACE_TABS = [
+  { id: 'info', label: 'Overview', hint: 'Status and response', Icon: Activity },
+  { id: 'docs', label: 'Documents', hint: 'Manuals and diagrams', Icon: BookOpen },
+  { id: 'parts', label: 'Spare parts', hint: 'BOM and stock', Icon: PackageSearch },
+  { id: 'consumables', label: 'Consumables', hint: 'Usage and stock', Icon: Droplets },
+  { id: 'calendar', label: 'Calendar', hint: 'Order and replace', Icon: CalendarDays },
+  { id: 'qr', label: 'QR tag', hint: 'Report from machine', Icon: QrCode },
+];
 
 export default function Machines() {
   const [machines, setMachines] = useState([]);
@@ -102,7 +116,7 @@ export default function Machines() {
     try {
       const r = await apiFetch(`/vault/machines/${machineId}/machine-data`);
       if (r.ok) setMachineData(await r.json());
-    } catch (_) {}
+    } catch {}
     setMachineDataLoading(false);
 
     // Load docs
@@ -110,7 +124,7 @@ export default function Machines() {
     try {
       const r = await apiFetch(`/vault/documents?machine_id=${machineId}`);
       if (r.ok) setDocs(await r.json());
-    } catch (_) {}
+    } catch {}
     setDocsLoading(false);
 
     // Load parts
@@ -118,7 +132,7 @@ export default function Machines() {
     try {
       const r = await apiFetch(`/vault/spare-parts?machine_id=${machineId}`);
       if (r.ok) setParts(await r.json());
-    } catch (_) {}
+    } catch {}
     setPartsLoading(false);
 
     // Load consumables
@@ -126,7 +140,7 @@ export default function Machines() {
     try {
       const r = await apiFetch(`/vault/consumables?machine_id=${machineId}`);
       if (r.ok) setConsumables(await r.json());
-    } catch (_) {}
+    } catch {}
     setConsumablesLoading(false);
   };
 
@@ -249,7 +263,7 @@ export default function Machines() {
         method: 'DELETE',
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
-    } catch (_) {}
+    } catch {}
   };
 
   const handleAddPart = async (e) => {
@@ -290,7 +304,7 @@ export default function Machines() {
         method: 'DELETE',
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
-    } catch (_) {}
+    } catch {}
   };
 
   const handleAddConsumable = async (e) => {
@@ -336,7 +350,7 @@ export default function Machines() {
         method: 'DELETE',
       });
       if (r.ok) loadMachineAssets(selectedMachine.machine_id);
-    } catch (_) {}
+    } catch {}
   };
 
   // Mathematical Calculations for Calendar and Cover
@@ -353,7 +367,7 @@ export default function Machines() {
         const parsed = JSON.parse(c.notes);
         meta = { ...meta, ...parsed };
       }
-    } catch (_) {}
+    } catch {}
     return meta;
   };
 
@@ -464,10 +478,6 @@ export default function Machines() {
 
     return '—';
   };
-
-  // Color borders for visual step timeline
-  const borderColors = ['#25D366', '#FBBF24', '#A855F7', '#3B82F6', '#EF4444', '#EC4899'];
-  const textColors = ['var(--brand)', '#FBBF24', '#C084FC', '#60A5FA', '#F87171', '#F472B6'];
 
   return (
     <AppShell active="machines">
@@ -609,7 +619,7 @@ export default function Machines() {
         }
       ` }} />
 
-      <div className="vault-wrap" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
+      <div className="vault-wrap" style={{ maxWidth: selectedMachine ? '1380px' : '1100px', padding: '20px 24px 80px' }}>
         
         {/* VIEW 1: MACHINES DIRECTORY TABLE (when selectedMachine is null) */}
         {!selectedMachine ? (
@@ -770,83 +780,91 @@ export default function Machines() {
           </>
         ) : (
           /* VIEW 2: DEDICATED FULL-PAGE MACHINE WORKSPACE VIEW */
-          <div>
-            {/* Navigation Header */}
-            <button 
-              className="vault-btn vault-btn-ghost" 
-              style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'white', marginBottom: '20px', padding: '8px 18px' }}
-              onClick={() => setSelectedMachine(null)}
-            >
-              ← Back to Machines Directory
+          <div className="machine-workspace-page">
+            <button type="button" className="machine-workspace-back" onClick={() => setSelectedMachine(null)}>
+              <ArrowLeft /> Machines directory
             </button>
 
-            <div className="vault-card" style={{ border: '1px solid rgba(255, 255, 255, 0.1)', padding: '24px', position: 'relative' }}>
-              
-              {/* Workspace Header */}
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '14px', marginBottom: '18px' }}>
-                <span className="eyebrow eyebrow-light" style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 'bold' }}>{selectedMachine.machine_id}</span>
-                <h2 style={{ margin: '6px 0 0', fontSize: '1.6rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Workspace</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', fontSize: '0.85rem', color: 'var(--slate)' }}>
-                  <span>Location: {selectedMachine.location || '—'}</span>
-                  <span>|</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Status: {selectedMachine.has_open_tickets ? (
-                      <span style={{ color: '#F87171', fontWeight: '600', display: 'inline-flex', alignItems: 'center', marginLeft: '4px' }}><span className="glow-dot down" /> Breakdown</span>
-                    ) : (
-                      <span style={{ color: '#25D366', fontWeight: '600', display: 'inline-flex', alignItems: 'center', marginLeft: '4px' }}><span className="glow-dot healthy" /> Operational</span>
-                    )}
-                  </span>
+            <div className="machine-workspace-shell">
+              <header className="machine-workspace-hero">
+                <div className="machine-workspace-identity">
+                  <div className="machine-workspace-id-row">
+                    <span className="machine-workspace-id">{selectedMachine.machine_id}</span>
+                    <span className={`machine-workspace-state ${selectedMachine.has_open_tickets ? 'down' : 'healthy'}`}>
+                      <span />{selectedMachine.has_open_tickets ? 'Breakdown active' : 'Operational'}
+                    </span>
+                  </div>
+                  <h2>{selectedMachine.machine_name}</h2>
+                  <p><MapPin />{selectedMachine.location || 'Location not set'}</p>
                 </div>
-              </div>
+                <div className="machine-workspace-actions">
+                  <button type="button" className="machine-action secondary" onClick={() => setWsTab('docs')}><Upload />Add document</button>
+                  <a className="machine-action secondary" href={`records.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}&upload=1`}><FileCheck2 />Add old records</a>
+                  <a className="machine-action primary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Ask TurboFix AI</a>
+                </div>
+              </header>
 
-              {/* Sub-tab Selectors */}
-              <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px', marginBottom: '20px', overflowX: 'auto' }}>
-                {['info', 'docs', 'parts', 'consumables', 'calendar', 'qr'].map((t) => (
-                  <button key={t} 
-                          className={`vault-btn ${wsTab === t ? 'vault-btn-primary' : 'vault-btn-ghost'}`} 
-                          style={{ padding: '6px 14px', fontSize: '0.82rem', textTransform: 'uppercase' }}
-                          onClick={() => setWsTab(t)}>
-                    {t === 'info' ? 'Escalation Chain' : t === 'docs' ? 'Manuals & Docs' : t === 'parts' ? 'Spare Parts (BOM)' : t === 'consumables' ? 'Consumables' : t === 'calendar' ? 'Replenishment Calendar' : 'QR Tag'}
-                  </button>
-                ))}
-              </div>
+              <section className="machine-workspace-pulse" aria-label="Machine at a glance">
+                <div className={selectedMachine.has_open_tickets ? 'attention' : 'good'}><span><Activity /></span><p><small>Current condition</small><strong>{selectedMachine.has_open_tickets ? 'Needs attention' : 'Running normally'}</strong></p></div>
+                <div><span><BookOpen /></span><p><small>Technical documents</small><strong>{docs.length} available</strong></p></div>
+                <div className={parts.some((part) => Number(part.quantity_on_hand) <= Number(part.reorder_level)) ? 'warning' : ''}><span><PackageSearch /></span><p><small>Spare parts</small><strong>{parts.length} listed · {parts.filter((part) => Number(part.quantity_on_hand) <= Number(part.reorder_level)).length} low</strong></p></div>
+                <div className={machineData?.missing_sections?.length ? 'warning' : 'good'}><span><ShieldCheck /></span><p><small>AI knowledge</small><strong>{machineDataLoading ? 'Checking…' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} data gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready for decisions'}</strong></p></div>
+              </section>
+
+              <nav className="machine-workspace-tabs" aria-label={`${selectedMachine.machine_name} workspace sections`}>
+                {WORKSPACE_TABS.map(({ id, label, hint, Icon }) => {
+                  const count = id === 'docs' ? docs.length : id === 'parts' ? parts.length : id === 'consumables' ? consumables.length : null;
+                  return <button key={id} type="button" className={wsTab === id ? 'active' : ''} onClick={() => setWsTab(id)}>
+                    <span className="machine-tab-icon"><Icon /></span>
+                    <span><strong>{label}</strong><small>{hint}</small></span>
+                    {count !== null && <b>{count}</b>}
+                  </button>;
+                })}
+              </nav>
 
               {/* Workspace Contents */}
               
               {/* TAB 1: ESCALATION & ASSIGNEES (Dynamically loaded off escalationPath) */}
               {wsTab === 'info' && (
-                <div>
-                  <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.2rem', textTransform: 'uppercase', marginBottom: '12px', color: 'white' }}>Operational Escalation Chain</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '18px' }}>Tickets remaining open past the threshold time will cascade automatically up this chain of assignees.</p>
-                  
-                  <div className="flow" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {(() => {
-                      let accumulatedHours = 0;
-                      return escalationPath.map((step, idx) => {
-                        const isLast = idx === escalationPath.length - 1;
-                        const stepColor = borderColors[idx % borderColors.length];
-                        const stepText = textColors[idx % textColors.length];
-                        const tLabel = idx === 0 ? "T=0" : `T=${accumulatedHours}h`;
-                        
-                        const stepHtml = (
-                          <div key={`${step.role}-${idx}`} className="step" style={{ display: 'flex', alignItems: 'center', gap: '14px', borderLeft: `3.5px solid ${stepColor}`, background: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '6px' }}>
-                            <div className="num" style={{ width: '45px', background: stepColor, color: '#000', fontWeight: 'bold' }}>{tLabel}</div>
-                            <div style={{ flex: 1 }}>
-                              <div className="sn" style={{ color: stepText }}>{idx === 0 ? "Initial Response" : `Level ${idx} Escalation`}</div>
-                              <div className="st" style={{ color: 'white', fontWeight: 'bold' }}>{step.label}</div>
-                              <div className="sd" style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '2px' }}>Assigned: <b style={{ color: 'white' }}>{getAssigneeForStep(step, idx)}</b></div>
+                <div className="machine-overview-grid">
+                  <section className="machine-overview-main">
+                    <div className="machine-section-heading">
+                      <div><span><ClipboardList /></span><div><h3>Breakdown response path</h3><p>Who responds first, and when the issue moves to the next level.</p></div></div>
+                      <a href="settings.html#response">Change response rules <ChevronRight /></a>
+                    </div>
+                    <div className="machine-escalation-timeline">
+                      {(() => {
+                        let accumulatedHours = 0;
+                        return escalationPath.map((step, index) => {
+                          const triggerHour = accumulatedHours;
+                          accumulatedHours += Number(step.threshold_hours || 0);
+                          const isLast = index === escalationPath.length - 1;
+                          return <article key={`${step.role}-${index}`} className={index === 0 ? 'active' : ''}>
+                            <div className="machine-escalation-marker"><span>{index + 1}</span></div>
+                            <div className="machine-escalation-copy">
+                              <small>{index === 0 ? 'Immediately after reporting' : `If still open after ${triggerHour} hour${triggerHour === 1 ? '' : 's'}`}</small>
+                              <h4>{step.label}</h4>
+                              <p><Users />{getAssigneeForStep(step, index)}</p>
                             </div>
-                            <div style={{ color: 'var(--slate)', fontSize: '0.8rem', fontWeight: '600' }}>
-                              {isLast ? `Triggered at T = ${accumulatedHours}h` : `Duration: ${step.threshold_hours} Hours`}
-                            </div>
-                          </div>
-                        );
+                            <span className="machine-escalation-time">{isLast ? 'Final escalation' : `${step.threshold_hours || 0}h response window`}</span>
+                          </article>;
+                        });
+                      })()}
+                      {escalationPath.length === 0 && <div className="machine-workspace-empty"><CircleAlert /><strong>No response path configured</strong><span>Set the response order in Settings before a breakdown occurs.</span></div>}
+                    </div>
+                  </section>
 
-                        accumulatedHours += (step.threshold_hours || 0);
-                        return stepHtml;
-                      });
-                    })()}
-                  </div>
+                  <aside className="machine-overview-side">
+                    <section className={`machine-next-action ${selectedMachine.has_open_tickets ? 'urgent' : ''}`}>
+                      <span className="machine-side-kicker">Recommended next action</span>
+                      {selectedMachine.has_open_tickets ? <><CircleAlert /><h3>Review the open breakdown</h3><p>Confirm the assigned technician has started work and has the required manual and spares.</p><a href="tickets.html">Open breakdown tickets <ChevronRight /></a></> : machineData?.missing_sections?.length ? <><BookOpen /><h3>Complete machine knowledge</h3><p>Add {machineData.missing_sections[0]} so future AI guidance is safer and more specific.</p><button type="button" onClick={() => setWsTab('docs')}>Add missing document <ChevronRight /></button></> : <><ShieldCheck /><h3>Machine is ready</h3><p>Knowledge and response ownership are in place. Continue routine preventive maintenance.</p><a href="shutdown-planner.html">Review shutdown plan <ChevronRight /></a></>}
+                    </section>
+                    <section className="machine-response-team">
+                      <div className="machine-side-title"><span><Phone /></span><div><h3>Response team</h3><p>People connected to this machine</p></div></div>
+                      <div><span><b>T</b><p><small>Primary technician</small><strong>{getNameByPhone(selectedMachine.assigned_technician_phone)}</strong></p></span><span><b>S</b><p><small>Supervisor</small><strong>{getNameByPhone(selectedMachine.informed_phone_1)}</strong></p></span><span><b>E</b><p><small>Engineer</small><strong>{getNameByPhone(selectedMachine.informed_phone_2)}</strong></p></span><span><b>H</b><p><small>Maintenance head</small><strong>{getNameByPhone(selectedMachine.informed_phone_3)}</strong></p></span></div>
+                      <a href="team.html">Manage team assignments <ChevronRight /></a>
+                    </section>
+                  </aside>
                 </div>
               )}
 
@@ -919,6 +937,7 @@ export default function Machines() {
               {/* TAB 3: SPARE PARTS (BOM) */}
               {wsTab === 'parts' && (
                 <div>
+                  <div className="machine-workspace-section-intro"><span><PackageSearch /></span><div><h3>Spare parts and reorder levels</h3><p>Add critical BOM items and set the minimum stock that should trigger replenishment.</p></div><strong>{parts.length} part{parts.length === 1 ? '' : 's'} tracked</strong></div>
                   <form onSubmit={handleAddPart} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <div className="vault-field">
                       <label>Part Name</label>
@@ -981,6 +1000,7 @@ export default function Machines() {
               {/* TAB 4: CONSUMABLES */}
               {wsTab === 'consumables' && (
                 <div>
+                  <div className="machine-workspace-section-intro"><span><Droplets /></span><div><h3>Consumable usage and coverage</h3><p>Enter actual consumption and supplier lead time so TurboFix can calculate order-by dates.</p></div><strong>{consumables.length} item{consumables.length === 1 ? '' : 's'} tracked</strong></div>
                   <form onSubmit={handleAddConsumable} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <div className="vault-field" style={{ gridColumn: 'span 2' }}>
                       <label>Consumable Name</label>

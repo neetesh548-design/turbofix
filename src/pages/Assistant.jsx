@@ -16,7 +16,7 @@ const machineSuggestions = [
 
 export default function Assistant() {
   const [machines, setMachines] = useState([]);
-  const [selected, setSelected] = useState('all');
+  const [selected, setSelected] = useState(() => new URLSearchParams(window.location.search).get('machine_id') || 'all');
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [answerSource, setAnswerSource] = useState('');
@@ -29,6 +29,12 @@ export default function Assistant() {
       .then(setMachines)
       .catch(() => setMachines([]));
   }, []);
+
+  useEffect(() => {
+    if (selected !== 'all' && machines.length > 0 && !machines.some((machine) => machine.machine_id === selected)) {
+      setSelected('all');
+    }
+  }, [machines, selected]);
 
   const selectedMachine = useMemo(
     () => machines.find((machine) => machine.machine_id === selected),

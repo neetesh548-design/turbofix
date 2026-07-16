@@ -1,13 +1,24 @@
-# TurboFix Frontend (Supabase Migration)
+# TurboFix — AI Maintenance Decision Platform
 
-This is the React frontend for the TurboFix application, successfully migrated from a legacy Python backend to a 100% serverless **Supabase** backend architecture.
+TurboFix helps manufacturing SMEs turn machine history, preventive maintenance, breakdowns, spares, and factory records into practical maintenance decisions.
 
 ## Architecture Highlights
 - **Framework**: React + Vite
-- **Database**: Supabase PostgreSQL
-- **Authentication**: Supabase Auth (replaces legacy custom JWTs)
-- **Storage**: Supabase Storage (for document/manual uploads)
-- **Serverless API**: Supabase Edge Functions (Deno/TypeScript) to handle WhatsApp Webhooks and AI Diagnostics.
+- **Application API**: FastAPI with company-scoped JWT authentication
+- **Data store**: Local Excel for demos or Google Sheets for hosted pilots
+- **File storage**: Local disk for development or Google Drive for production
+- **AI providers**: Gemini or OpenAI, selected through backend configuration
+- **Integrations**: WhatsApp webhook flow plus retained Supabase migrations/functions
+
+## AI Records Workflow
+
+The **AI Records** workspace converts existing paper and digital machine records into approved machine knowledge:
+
+1. Technicians, supervisors, engineers, owners, or Maintenance Heads upload photos, scans, PDFs, Excel, Word, CSV, or text files.
+2. AI extracts machine identity, specifications, maintenance tasks, spares, consumables, service history, and risks with confidence and source references.
+3. Plant users correct the review draft; only the **Maintenance Head** can approve or reject it.
+4. Only approved facts are written into `{MachineName}MachineData.md` and used by TurboFix AI.
+5. Backup exports include originals, structured JSON, CSV, approval history, and MachineData files. Restored records require Maintenance Head re-approval.
 
 ---
 
@@ -34,8 +45,13 @@ VITE_SUPABASE_ANON_KEY=<YOUR-ANON-PUBLIC-KEY>
 ```
 
 ### Running the App
-Start the local Vite development server:
+Start the FastAPI backend and Vite frontend in separate terminals:
 ```bash
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+# From the repository root
 npm run dev
 ```
 

@@ -14,9 +14,9 @@ from pydantic import BaseModel
 
 from app import config
 from app.auth import CurrentUser, get_current_user
-from app.dependencies import get_documents, get_machines, get_parts, get_settings, get_tickets, get_users
+from app.dependencies import get_documents, get_machine_records, get_machines, get_parts, get_settings, get_tickets, get_users
 from app.infrastructure.file_storage import FileStorage, get_file_storage
-from app.repositories.base import DocumentRepository, MachineRepository, PartsRepository, SettingsRepository, TicketRepository, UserRepository
+from app.repositories.base import DocumentRepository, MachineRecordRepository, MachineRepository, PartsRepository, SettingsRepository, TicketRepository, UserRepository
 from app.services import vault_service
 from app.services.machine_data_service import build_machine_data, machine_data_path
 
@@ -135,6 +135,7 @@ async def upload_document(
     machines: MachineRepository = Depends(get_machines),
     documents: DocumentRepository = Depends(get_documents),
     parts: PartsRepository = Depends(get_parts),
+    records: MachineRecordRepository = Depends(get_machine_records),
 ):
     content = await file.read()
     storage = get_file_storage()
@@ -146,7 +147,7 @@ async def upload_document(
     machine = machines.get(machine_id)
     machine = {**machine, "machine_id": machine_id}
     machine_data = await build_machine_data(
-        machine=machine, documents=documents, parts=parts, storage=storage,
+        machine=machine, documents=documents, parts=parts, records=records, storage=storage,
     )
     return {**row, "machine_data": machine_data}
 
@@ -158,6 +159,7 @@ async def get_machine_data(
     machines: MachineRepository = Depends(get_machines),
     documents: DocumentRepository = Depends(get_documents),
     parts: PartsRepository = Depends(get_parts),
+    records: MachineRecordRepository = Depends(get_machine_records),
 ):
     machine = machines.get(machine_id)
     if machine is None or machine.get("company_code") != user.company_code:
@@ -165,7 +167,7 @@ async def get_machine_data(
     machine = {**machine, "machine_id": machine_id}
     path = machine_data_path(machine)
     data = await build_machine_data(
-        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+        machine=machine, documents=documents, parts=parts, records=records, storage=get_file_storage(),
     )
     return {**data, "exists": path.exists(), "approval_required": bool(data["missing_sections"])}
 
@@ -182,6 +184,7 @@ async def enrich_machine_data(
     machines: MachineRepository = Depends(get_machines),
     documents: DocumentRepository = Depends(get_documents),
     parts: PartsRepository = Depends(get_parts),
+    records: MachineRecordRepository = Depends(get_machine_records),
 ):
     if not body.approved:
         raise HTTPException(status_code=400, detail="explicit approval is required before internet enrichment")
@@ -190,7 +193,7 @@ async def enrich_machine_data(
         raise HTTPException(status_code=404, detail="machine not found")
     machine = {**machine, "machine_id": machine_id}
     return await build_machine_data(
-        machine=machine, documents=documents, parts=parts,
+        machine=machine, documents=documents, parts=parts, records=records,
         storage=get_file_storage(), internet=True,
     )
 
@@ -272,17 +275,18 @@ async def create_spare_part(
     machines: MachineRepository = Depends(get_machines),
     parts: PartsRepository = Depends(get_parts),
     documents: DocumentRepository = Depends(get_documents),
+    records: MachineRecordRepository = Depends(get_machine_records),
 ):
     user.assert_can_write()
     machine = machines.get(body.machine_id)
-    machine = {**machine, "machine_id": body.machine_id}
     if machine is None or machine["company_code"] != user.company_code:
         raise HTTPException(status_code=404, detail="machine not found")
+    machine = {**machine, "machine_id": body.machine_id}
     part_id = parts.next_item_id("spare_parts")
     row = {"part_id": part_id, "company_code": user.company_code, **body.model_dump()}
     parts.add_item("spare_parts", row)
     machine_data = await build_machine_data(
-        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+        machine=machine, documents=documents, parts=parts, records=records, storage=get_file_storage(),
     )
     return {**row, "machine_data": machine_data}
 
@@ -356,17 +360,18 @@ async def create_consumable(
     machines: MachineRepository = Depends(get_machines),
     parts: PartsRepository = Depends(get_parts),
     documents: DocumentRepository = Depends(get_documents),
+    records: MachineRecordRepository = Depends(get_machine_records),
 ):
     user.assert_can_write()
     machine = machines.get(body.machine_id)
-    machine = {**machine, "machine_id": body.machine_id}
     if machine is None or machine["company_code"] != user.company_code:
         raise HTTPException(status_code=404, detail="machine not found")
+    machine = {**machine, "machine_id": body.machine_id}
     consumable_id = parts.next_item_id("consumables")
     row = {"consumable_id": consumable_id, "company_code": user.company_code, **body.model_dump()}
     parts.add_item("consumables", row)
     machine_data = await build_machine_data(
-        machine=machine, documents=documents, parts=parts, storage=get_file_storage(),
+        machine=machine, documents=documents, parts=parts, records=records, storage=get_file_storage(),
     )
     return {**row, "machine_data": machine_data}
 

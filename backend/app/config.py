@@ -100,7 +100,10 @@ GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
 GOOGLE_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "")
 
 MAX_DOCUMENT_SIZE_MB = int(os.getenv("MAX_DOCUMENT_SIZE_MB", "25"))
-ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".dwg", ".dxf", ".xlsx", ".csv"}
+ALLOWED_DOCUMENT_EXTENSIONS = {
+    ".pdf", ".png", ".jpg", ".jpeg", ".webp", ".dwg", ".dxf",
+    ".xlsx", ".csv", ".docx", ".txt", ".md",
+}
 
 # Origins allowed to call the vault API from a browser (the demo-site vault.html
 # staff portal runs on a different origin than this backend, often on a

@@ -29,6 +29,7 @@ from app.repositories.base import (
     CustomKpiRepository,
     DocumentRepository,
     EventRepository,
+    MachineRecordRepository,
     MachineRepository,
     PartsRepository,
     SettingsRepository,
@@ -133,6 +134,18 @@ def get_documents() -> DocumentRepository:
         return SheetsDocumentRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
     from app.repositories.local.document_repo import LocalDocumentRepository
     return LocalDocumentRepository(config.TRACKER_XLSX_PATH)
+
+
+@lru_cache(maxsize=1)
+def get_machine_records() -> MachineRecordRepository:
+    """Return the approved/draft AI machine-record repository."""
+    if _should_use_sheets():
+        from app.repositories.sheets.machine_record_repo import SheetsMachineRecordRepository
+        return SheetsMachineRecordRepository(
+            config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID
+        )
+    from app.repositories.local.machine_record_repo import LocalMachineRecordRepository
+    return LocalMachineRecordRepository(config.TRACKER_XLSX_PATH)
 
 
 # ---------------------------------------------------------------------------

@@ -67,3 +67,22 @@ async def maintenance_assistant(question: str, scope_label: str, context: str) -
     if active_provider() == "gemini":
         return await gemini.maintenance_assistant(question, scope_label, context)
     return await openai_summarize.maintenance_assistant(question, scope_label, context)
+
+
+async def extract_machine_record(
+    *, content: bytes, filename: str, record_type: str, title: str, source_text: str = ""
+) -> dict:
+    """Extract structured maintenance facts without approving them for AI use."""
+    if active_provider() == "gemini":
+        return await gemini.extract_machine_record(
+            content=content,
+            filename=filename,
+            record_type=record_type,
+            title=title,
+            source_text=source_text,
+        )
+    if active_provider() == "openai" and source_text:
+        return await openai_summarize.extract_machine_record(
+            source_text=source_text, record_type=record_type, title=title
+        )
+    raise NotImplementedError("AI extraction is not configured for this file type")

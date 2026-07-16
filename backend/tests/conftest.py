@@ -34,6 +34,7 @@ def _clear_di_caches():
     dependencies.get_events.cache_clear()
     dependencies.get_users.cache_clear()
     dependencies.get_documents.cache_clear()
+    dependencies.get_machine_records.cache_clear()
     dependencies.get_parts.cache_clear()
     dependencies.get_settings.cache_clear()
     dependencies.get_technician_work.cache_clear()

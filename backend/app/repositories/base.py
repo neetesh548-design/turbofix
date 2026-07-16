@@ -31,6 +31,10 @@ def new_document_id() -> str:
     return f"DOC-{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
 
 
+def new_machine_record_id() -> str:
+    return f"REC-{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
+
+
 def new_item_id(kind: str) -> str:
     prefix = {"spare_parts": "SP", "consumables": "CON"}[kind]
     return f"{prefix}-{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
@@ -86,6 +90,23 @@ DOCUMENTS_HEADER = [
 DOCUMENT_CATEGORIES = [
     "manual", "circuit_diagram", "hydraulic_diagram", "spare_parts_catalog", "other",
 ]
+
+MACHINE_RECORDS_HEADER = [
+    "record_id", "document_id", "company_code", "machine_id", "record_type",
+    "source_kind", "title", "status", "overall_confidence", "extracted_json",
+    "review_notes", "created_by", "created_at", "updated_by", "updated_at",
+    "approved_by", "approved_at", "version", "file_hash", "history_json",
+]
+
+MACHINE_RECORD_TYPES = [
+    "service_history", "inspection", "manual", "wiring_diagram",
+    "hydraulic_diagram", "spare_parts_bom", "consumables", "pm_checklist",
+    "warranty", "other",
+]
+
+MACHINE_RECORD_SOURCE_KINDS = ["handwritten", "soft_copy"]
+
+MACHINE_RECORD_STATUSES = ["needs_review", "approved", "rejected"]
 
 SPARE_PARTS_HEADER = [
     "part_id", "company_code", "machine_id", "part_name", "part_number",
@@ -284,6 +305,41 @@ class DocumentRepository(ABC):
     @abstractmethod
     def delete(self, document_id: str) -> bool:
         """Remove the matching document row. Returns True if found."""
+
+
+class MachineRecordRepository(ABC):
+    """Read/write access to AI-extracted machine records and approvals."""
+
+    @abstractmethod
+    def next_record_id(self) -> str:
+        """Generate a new unique record ID."""
+
+    @abstractmethod
+    def list(
+        self,
+        company_code: str,
+        machine_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[dict]:
+        """Return company records with optional machine/status filters."""
+
+    @abstractmethod
+    def get(self, record_id: str) -> Optional[dict]:
+        """Return one record, or None."""
+
+    @abstractmethod
+    def add(self, row: dict) -> None:
+        """Append a machine record row."""
+
+    @abstractmethod
+    def update(self, record_id: str, updates: dict) -> bool:
+        """Patch fields on one record. Returns True if found."""
+
+    @abstractmethod
+    def find_by_hash(
+        self, company_code: str, machine_id: str, file_hash: str
+    ) -> Optional[dict]:
+        """Return an existing source with the same content hash, if any."""
 
 
 class PartsRepository(ABC):
