@@ -34,7 +34,7 @@ import {
 import { useLanguage } from '../LanguageContext';
 import MainLayout from '../layouts/MainLayout';
 
-const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919876543210';
+const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const contentByLanguage = {
   en: {

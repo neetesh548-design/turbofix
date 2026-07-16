@@ -3,7 +3,7 @@ import { Factory, LockKeyhole, MessageCircle, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 
-const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919876543210';
+const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 export default function Footer() {
   const { lang } = useLanguage();
