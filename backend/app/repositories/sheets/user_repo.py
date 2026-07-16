@@ -46,7 +46,7 @@ class SheetsUserRepository(UserRepository):
 
     def list_users(self) -> List[dict]:
         ws = self._ss().worksheet("Users")
-        return list(ws.get_all_records())
+        return list(ws.get_all_records(expected_headers=USERS_HEADER))
 
 
     def add(self, row: dict) -> None:
@@ -72,7 +72,7 @@ class SheetsUserRepository(UserRepository):
 
     def list_companies(self) -> List[dict]:
         ws = self._ss().worksheet("Companies")
-        return list(ws.get_all_records())
+        return list(ws.get_all_records(expected_headers=COMPANIES_HEADER))
 
     def update_company(self, company_code: str, fields: dict) -> bool:
         ws = self._ss().worksheet("Companies")
