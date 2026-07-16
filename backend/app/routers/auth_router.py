@@ -156,6 +156,9 @@ def add_supervisor(
     """Owner creates a team user account under their own company."""
     user.assert_owner()
 
+    if body.role == "owner":
+        raise HTTPException(status_code=400, detail="owner accounts cannot be created from the team workspace")
+
     if not body.phone and not body.email:
         raise HTTPException(status_code=400, detail="phone or email is required")
     if body.phone:

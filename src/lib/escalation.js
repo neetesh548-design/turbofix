@@ -3,7 +3,7 @@ export function getElapsedHours(reportedAtStr) {
   try {
     const reported = new Date(reportedAtStr.replace(' ', 'T'));
     return Math.max(0, (Date.now() - reported.getTime()) / (1000 * 60 * 60));
-  } catch (_) {
+  } catch {
     return 0;
   }
 }

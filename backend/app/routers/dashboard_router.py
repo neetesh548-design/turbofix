@@ -129,6 +129,12 @@ def get_dashboard(
     else:
         result["custom_kpis"] = []
 
+    try:
+        result["machine_quota"] = int(str(company.get("machine_quota") or 0).strip())
+    except (TypeError, ValueError):
+        result["machine_quota"] = 0
+    result["machines_used"] = result.get("kpis", {}).get("total_machines", 0)
+
     return result
 
 

@@ -95,7 +95,7 @@ export default function Team() {
 
   // Combine default and custom roles for select dropdown
   const allAvailableRoles = [
-    ...defaultRoles,
+    ...defaultRoles.filter((availableRole) => availableRole.value !== 'owner'),
     ...customRoles.map((r) => ({ value: r.role_name, label: r.role_label }))
   ];
 

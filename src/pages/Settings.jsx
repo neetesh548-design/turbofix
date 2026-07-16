@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   AlertCircle,
   ArrowUpRight,
@@ -74,16 +74,12 @@ export default function Settings() {
   }));
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  useEffect(() => {
     if (!success) return undefined;
     const timer = window.setTimeout(() => setSuccess(''), 3500);
     return () => window.clearTimeout(timer);
   }, [success]);
 
-  const fetchSettings = async (showLoader = true) => {
+  const fetchSettings = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
     setError('');
     try {
@@ -94,8 +90,8 @@ export default function Settings() {
       setCompanyInfo({
         name: dashboard.company_name,
         code: currentUser.company_code || '',
-        quota: machineCount + (dashboard.unassigned_machines?.length || 0) || 5,
-        machinesUsed: machineCount,
+        quota: dashboard.machine_quota || 0,
+        machinesUsed: dashboard.machines_used ?? machineCount,
       });
 
       const [rolesResponse, escalationResponse, machinesResponse] = await Promise.all([
@@ -131,7 +127,11 @@ export default function Settings() {
     } finally {
       if (showLoader) setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const selectTab = (value) => {
     setActiveTab(value);

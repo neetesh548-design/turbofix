@@ -97,3 +97,21 @@ def test_onboard_company_unauthorized_rejected(vault_client):
     # Missing headers
     resp = vault_client.post("/admin/companies", json=payload)
     assert resp.status_code == 401
+
+
+def test_owner_cannot_create_another_owner(vault_client):
+    token = login(vault_client, "+919820012345", "AcmeOwner@2026")
+    assert token is not None
+
+    resp = vault_client.post(
+        "/auth/supervisors",
+        json={
+            "name": "Unexpected Owner",
+            "email": "unexpected-owner@acmeforge.example",
+            "password": "Owner-password-123",
+            "role": "owner",
+        },
+        headers=auth_headers(token),
+    )
+    assert resp.status_code == 400
+    assert "owner accounts cannot be created" in resp.json()["detail"]

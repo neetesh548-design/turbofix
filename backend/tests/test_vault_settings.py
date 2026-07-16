@@ -48,3 +48,13 @@ def test_custom_roles_are_isolated_by_company(vault_client):
     assert response.status_code == 200
     assert response.json() == [{"role_name": "reliability_lead", "role_label": "Reliability Lead"}]
     assert vault_client.get("/vault/custom-roles", headers=auth_headers(beta_token)).json() == []
+
+
+def test_dashboard_returns_company_machine_quota(vault_client):
+    token = login(vault_client, *ACME_OWNER)
+    response = vault_client.get("/vault/dashboard", headers=auth_headers(token))
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["machine_quota"] == 5
+    assert body["machines_used"] == body["kpis"]["total_machines"] == 2
