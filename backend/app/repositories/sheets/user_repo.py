@@ -65,7 +65,7 @@ class SheetsUserRepository(UserRepository):
     def get_company(self, company_code: str) -> Optional[dict]:
         ws = self._ss().worksheet("Companies")
         target = _normalize(company_code)
-        for record in ws.get_all_records():
+        for record in ws.get_all_records(expected_headers=COMPANIES_HEADER):
             if _normalize(record.get("company_code")) == target:
                 return record
         return None
