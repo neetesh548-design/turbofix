@@ -10,6 +10,19 @@ export function getApiBase() {
   return storedApiBase && (isLocal || !pointsToLocalServer) ? storedApiBase : defaultApiBase;
 }
 
+const RETRYABLE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+
+const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+async function wakeBackend(apiBase) {
+  try {
+    await fetch(`${apiBase.replace(/\/$/, '')}/health`, { cache: 'no-store' });
+  } catch {
+    // The retry below provides the user-facing error if the service is unavailable.
+  }
+}
+
 export async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('tf_token');
   const headers = { ...options.headers };
@@ -17,7 +30,26 @@ export async function apiFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const resp = await fetch(`${getApiBase()}${path}`, { ...options, headers });
+  const apiBase = getApiBase();
+  const method = (options.method || 'GET').toUpperCase();
+  const canRetry = RETRYABLE_METHODS.has(method) && path !== '/health';
+  let resp;
+  let lastError;
+
+  for (let attempt = 0; attempt < (canRetry ? 2 : 1); attempt += 1) {
+    try {
+      resp = await fetch(`${apiBase}${path}`, { ...options, headers });
+      if (!canRetry || !RETRYABLE_STATUS_CODES.has(resp.status) || attempt === 1) break;
+    } catch (error) {
+      lastError = error;
+      if (!canRetry || attempt === 1) throw error;
+    }
+
+    await wakeBackend(apiBase);
+    await wait(1500);
+  }
+
+  if (!resp) throw lastError || new Error('The backend did not respond.');
 
   if (resp.status === 401) {
     localStorage.removeItem('tf_token');
