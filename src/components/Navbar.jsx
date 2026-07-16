@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ArchiveRestore,
   ArrowRight,
   Globe2,
   Layers3,
@@ -15,6 +16,7 @@ import { useLanguage } from '../LanguageContext';
 const labelsByLanguage = {
   en: {
     platform: 'Platform', platformDesc: 'AI, machine data, planning, and execution',
+    records: 'Use old records', recordsDesc: 'Turn paper and soft copies into AI knowledge',
     how: 'How it works', howDesc: 'Follow the complete maintenance loop',
     demo: 'Product demo', demoDesc: 'See the current workflow in action',
     start: 'Book a guided demo', login: 'Staff sign in', dashboard: 'Open dashboard',
@@ -22,6 +24,7 @@ const labelsByLanguage = {
   },
   hi: {
     platform: 'प्लेटफॉर्म', platformDesc: 'AI, मशीन डेटा, प्लानिंग और कार्य',
+    records: 'पुराने रिकॉर्ड', recordsDesc: 'कागज़ और सॉफ्ट कॉपी को AI ज्ञान में बदलें',
     how: 'कैसे काम करता है', howDesc: 'पूरा मेंटेनेंस लूप देखें',
     demo: 'प्रोडक्ट डेमो', demoDesc: 'वर्तमान वर्कफ़्लो देखें',
     start: 'गाइडेड डेमो बुक करें', login: 'स्टाफ साइन इन', dashboard: 'डैशबोर्ड खोलें',
@@ -29,6 +32,7 @@ const labelsByLanguage = {
   },
   mr: {
     platform: 'प्लॅटफॉर्म', platformDesc: 'AI, मशीन डेटा, नियोजन आणि काम',
+    records: 'जुने रेकॉर्ड', recordsDesc: 'कागद आणि सॉफ्ट कॉपी AI ज्ञानात बदला',
     how: 'कसे काम करते', howDesc: 'पूर्ण मेंटेनन्स लूप पाहा',
     demo: 'प्रॉडक्ट डेमो', demoDesc: 'सध्याचा वर्कफ्लो पाहा',
     start: 'मार्गदर्शित डेमो बुक करा', login: 'स्टाफ साइन इन', dashboard: 'डॅशबोर्ड उघडा',
@@ -51,6 +55,7 @@ export default function Navbar() {
 
   const navItems = [
     { id: 'platform', label: labels.platform, description: labels.platformDesc, icon: Layers3 },
+    { id: 'records', label: labels.records, description: labels.recordsDesc, icon: ArchiveRestore },
     { id: 'how', label: labels.how, description: labels.howDesc, icon: Route },
     { id: 'demo', label: labels.demo, description: labels.demoDesc, icon: PlayCircle },
   ];
@@ -69,7 +74,7 @@ export default function Navbar() {
       }
 
       let current = '';
-      for (const sectionId of ['platform', 'how', 'demo', 'contact']) {
+      for (const sectionId of ['platform', 'records', 'how', 'demo', 'contact']) {
         const section = document.getElementById(sectionId);
         if (section && window.scrollY >= section.offsetTop - 170) current = `#${sectionId}`;
       }

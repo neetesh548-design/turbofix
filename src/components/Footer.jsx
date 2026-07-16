@@ -12,23 +12,23 @@ export default function Footer() {
   const year = new Date().getFullYear();
   const copy = {
     en: {
-      tagline: 'Smarter maintenance decisions for manufacturing SMEs—from machine knowledge to verified work.',
-      product: 'Explore', platform: 'Platform', workflow: 'How it works', demo: 'Product demo', faq: 'Questions', contact: 'Get started', book: 'Book a guided demo', signIn: 'Staff sign in', chat: 'Talk on WhatsApp',
-      trust: ['Built for manufacturing SMEs', 'Approval before external enrichment', 'AI supports approved maintenance procedures'],
+      tagline: 'Turn existing maintenance records into trusted AI knowledge—from old history to verified work.',
+      product: 'Explore', platform: 'Platform', records: 'Use old records', workflow: 'How it works', demo: 'Product demo', faq: 'Questions', contact: 'Get started', book: 'Book a guided demo', signIn: 'Staff sign in', chat: 'Talk on WhatsApp',
+      trust: ['Handwritten and digital records', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
       note: 'TurboFix supports maintenance decisions. Authorized plant personnel remain responsible for safety, approval, and execution.',
       rights: 'All rights reserved.',
     },
     hi: {
-      tagline: 'मैन्युफैक्चरिंग SMEs के लिए बेहतर मेंटेनेंस निर्णय—मशीन ज्ञान से सत्यापित कार्य तक।',
-      product: 'देखें', platform: 'प्लेटफॉर्म', workflow: 'कैसे काम करता है', demo: 'प्रोडक्ट डेमो', faq: 'सवाल', contact: 'शुरू करें', book: 'गाइडेड डेमो बुक करें', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp पर बात करें',
-      trust: ['मैन्युफैक्चरिंग SMEs के लिए', 'बाहरी डेटा से पहले अनुमति', 'AI अनुमोदित प्रक्रियाओं का समर्थन करता है'],
+      tagline: 'पुराने मेंटेनेंस रिकॉर्ड को विश्वसनीय AI ज्ञान में बदलें—इतिहास से सत्यापित कार्य तक।',
+      product: 'देखें', platform: 'प्लेटफॉर्म', records: 'पुराने रिकॉर्ड', workflow: 'कैसे काम करता है', demo: 'प्रोडक्ट डेमो', faq: 'सवाल', contact: 'शुरू करें', book: 'गाइडेड डेमो बुक करें', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp पर बात करें',
+      trust: ['हस्तलिखित और डिजिटल रिकॉर्ड', 'AI उपयोग से पहले Maintenance Head मंज़ूरी', 'Export योग्य प्लांट बैकअप'],
       note: 'TurboFix मेंटेनेंस निर्णयों में सहायता करता है। सुरक्षा, मंजूरी और काम की जिम्मेदारी अधिकृत प्लांट टीम की रहती है।',
       rights: 'सर्वाधिकार सुरक्षित।',
     },
     mr: {
-      tagline: 'उत्पादन SMEs साठी अधिक स्पष्ट मेंटेनन्स निर्णय—मशीन ज्ञानापासून पडताळलेल्या कामापर्यंत.',
-      product: 'पाहा', platform: 'प्लॅटफॉर्म', workflow: 'कसे काम करते', demo: 'प्रॉडक्ट डेमो', faq: 'प्रश्न', contact: 'सुरू करा', book: 'मार्गदर्शित डेमो बुक करा', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp वर बोला',
-      trust: ['उत्पादन SMEs साठी', 'बाह्य डेटापूर्वी मंजुरी', 'AI मंजूर प्रक्रियांना सहाय्य करते'],
+      tagline: 'जुने मेंटेनन्स रेकॉर्ड विश्वसनीय AI ज्ञानात बदला—इतिहासापासून पडताळलेल्या कामापर्यंत.',
+      product: 'पाहा', platform: 'प्लॅटफॉर्म', records: 'जुने रेकॉर्ड', workflow: 'कसे काम करते', demo: 'प्रॉडक्ट डेमो', faq: 'प्रश्न', contact: 'सुरू करा', book: 'मार्गदर्शित डेमो बुक करा', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp वर बोला',
+      trust: ['हस्तलिखित आणि डिजिटल रेकॉर्ड', 'AI वापरापूर्वी Maintenance Head मंजुरी', 'Export करता येणारा प्लांट बॅकअप'],
       note: 'TurboFix मेंटेनन्स निर्णयांना सहाय्य करते. सुरक्षा, मंजुरी आणि अंमलबजावणीची जबाबदारी अधिकृत प्लांट टीमची राहते.',
       rights: 'सर्व हक्क राखीव.',
     },
@@ -63,6 +63,7 @@ export default function Footer() {
         <div className="footer-links">
           <h4>{copy.product}</h4>
           <a href="#platform" onClick={scrollTo('platform')}>{copy.platform}</a>
+          <a href="#records" onClick={scrollTo('records')}>{copy.records}</a>
           <a href="#how" onClick={scrollTo('how')}>{copy.workflow}</a>
           <a href="#demo" onClick={scrollTo('demo')}>{copy.demo}</a>
           <a href="#faq" onClick={scrollTo('faq')}>{copy.faq}</a>
