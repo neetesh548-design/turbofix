@@ -196,6 +196,21 @@ ADMIN_HTML = r"""<!DOCTYPE html>
   .team-person strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
   .team-person span { display: block; overflow: hidden; margin-top: 4px; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .role-label { display: inline-flex; margin-top: 7px; border-radius: 999px; padding: 3px 7px; color: #c7dcff; background: #21334b; font-size: 10px; font-weight: 850; text-transform: capitalize; }
+  .workspace-tabs { display: flex; gap: 7px; overflow-x: auto; margin: 20px -2px 0; padding: 2px; border-bottom: 1px solid var(--line); }
+  .workspace-tab { flex: 0 0 auto; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 800; }
+  .workspace-tab:hover, .workspace-tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .workspace-readonly { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 11px 12px; border: 1px solid #5b4828; border-radius: 10px; color: #ffda9b; background: #2a2116; font-size: 12px; line-height: 1.45; }
+  .workspace-content { min-height: 320px; }
+  .workspace-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+  .workspace-card { padding: 14px; border: 1px solid var(--line); border-radius: 11px; background: #182331; }
+  .workspace-card strong { display: block; font-size: 14px; }
+  .workspace-card span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+  .workspace-table { width: 100%; min-width: 660px; margin-top: 16px; }
+  .workspace-table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 11px; }
+  .workspace-table th, .workspace-table td { padding: 11px 12px; font-size: 12px; }
+  .workspace-table td { color: var(--muted); }
+  .workspace-table td strong { color: var(--ink); }
+  .workspace-note { margin-top: 16px; padding: 14px; border-left: 3px solid var(--blue); border-radius: 0 9px 9px 0; color: var(--muted); background: #172335; font-size: 13px; line-height: 1.5; }
   @media (max-width: 1060px) {
     .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .panel-grid { grid-template-columns: 1fr; }
@@ -224,10 +239,12 @@ ADMIN_HTML = r"""<!DOCTYPE html>
     .form-grid .full { grid-column: auto; }
     .dashboard-grid { grid-template-columns: 1fr 1fr; }
     .dashboard-columns { grid-template-columns: 1fr; }
+    .workspace-summary { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 420px) {
     .metrics { grid-template-columns: 1fr; }
     .detail-metrics { grid-template-columns: 1fr 1fr; }
+    .workspace-summary { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -369,6 +386,15 @@ ADMIN_HTML = r"""<!DOCTYPE html>
     </section>
   </div>
 
+  <div class="modal-backdrop" id="workspaceModal" aria-hidden="true">
+    <section class="modal wide" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle">
+      <div class="modal-head"><div><h2 id="workspaceTitle">Customer workspace preview</h2><p id="workspaceSubtitle">Loading client-visible workspace information…</p></div><button class="icon-button" id="closeWorkspace" aria-label="Close customer workspace preview">×</button></div>
+      <div class="workspace-readonly">◉ Read-only platform preview. You are viewing the client experience without signing in as, or acting on behalf of, a customer user.</div>
+      <nav class="workspace-tabs" id="workspaceTabs" aria-label="Client workspace sections"></nav>
+      <div class="workspace-content" id="workspaceContent"><div class="empty">Loading workspace preview…</div></div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="teamModal" aria-hidden="true">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="teamTitle">
       <div class="modal-head"><div><h2 id="teamTitle">Team access</h2><p id="teamSubtitle">Loading company users…</p></div><button class="icon-button" id="closeTeam" aria-label="Close team access">×</button></div>
@@ -396,6 +422,8 @@ let companies = [];
 let selectedCompanyCode = "";
 let teamUsers = [];
 let selectedUser = null;
+let workspacePreview = null;
+let activeWorkspaceTab = "overview";
 
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
@@ -422,6 +450,7 @@ function showLogin() {
   closeDrawer();
   closeOnboard();
   closeModal("dashboardModal");
+  closeModal("workspaceModal");
   closeModal("teamModal");
   closePasswordReset();
 }
@@ -546,7 +575,7 @@ function renderDetail(company) {
   $("companyDrawerContent").innerHTML = `<div class="drawer-top"><div><span class="internal-tag">${company.approved ? "Active workspace" : "Approval required"}</span><h2>${esc(company.company_name)}</h2><p>${esc(company.company_code)} · Onboarded ${activityText(company.onboarded_date)}</p></div><button class="icon-button" id="closeDrawer" aria-label="Close company details">×</button></div><div class="detail-status">${companyStatus(company)}${attention.map((item) => `<span class="badge warn">${esc(item)}</span>`).join("")}</div><div class="detail-metrics"><div class="detail-metric"><strong>${company.machines_used}/${company.machine_quota}</strong><span>Machines in plan</span></div><div class="detail-metric"><strong>${company.open_tickets}</strong><span>Open tickets</span></div><div class="detail-metric"><strong>${company.pending_records}</strong><span>AI records awaiting review</span></div></div><section class="detail-section"><h3>Owner and access</h3><p>${esc(company.admin_contact_phone || "No owner phone saved")} · ${plural(company.user_count, "user")} in this workspace</p></section><section class="detail-section"><h3>Machine plan</h3><p>${company.machines_used > company.machine_quota ? "This account is over its approved machine plan." : `This account is using ${company.capacity_percent || 0}% of its machine plan.`}</p><div class="quota-editor"><input type="number" id="drawerQuota" value="${company.machine_quota}" min="0" aria-label="Machine quota"><button class="btn btn-primary" id="saveQuota">Save plan</button></div></section><section class="detail-section"><h3>Knowledge readiness</h3><p>${plural(company.document_count, "document")} stored · ${plural(company.approved_records, "AI-approved record")} · ${plural(company.pending_records, "record awaiting maintenance-head review")}</p></section><section class="detail-section"><h3>Workspace access</h3><p>${company.approved ? "Pausing access prevents customer users from signing in until you reactivate the company." : "Approve this company after you have verified the onboarding details and plan."}</p><div class="detail-actions">${approvalButton}</div></section>`;
   const tools = document.createElement("section");
   tools.className = "detail-section";
-  tools.innerHTML = `<h3>Platform admin tools</h3><p>See the customer’s live operational dashboard or support their team without entering their account.</p><div class="tool-grid"><button class="btn btn-outline btn-full" id="openCompanyDashboard">View company dashboard</button><button class="btn btn-outline btn-full" id="openCompanyUsers">Manage team and reset passwords</button></div>`;
+  tools.innerHTML = `<h3>Platform admin tools</h3><p>Review the customer experience safely, or support a verified team member without entering their account.</p><div class="tool-grid"><button class="btn btn-primary btn-full" id="openWorkspacePreview">Open read-only client workspace</button><button class="btn btn-outline btn-full" id="openCompanyDashboard">View company dashboard</button><button class="btn btn-outline btn-full" id="openCompanyUsers">Manage team and reset passwords</button></div>`;
   $("companyDrawerContent").appendChild(tools);
   $("closeDrawer").addEventListener("click", closeDrawer);
   $("saveQuota").addEventListener("click", () => {
@@ -558,6 +587,7 @@ function renderDetail(company) {
     const action = company.approved ? "pause this customer workspace" : "approve and activate this customer workspace";
     if (window.confirm(`Are you sure you want to ${action}?`)) patchCompany(company.company_code, {approved: !company.approved});
   });
+  $("openWorkspacePreview").addEventListener("click", () => openWorkspacePreview(company));
   $("openCompanyDashboard").addEventListener("click", () => openCompanyDashboard(company));
   $("openCompanyUsers").addEventListener("click", () => openCompanyUsers(company));
 }
@@ -663,6 +693,81 @@ async function openCompanyDashboard(company) {
   }
 }
 
+const workspaceSections = [
+  ["overview", "Overview"], ["machines", "Machines"], ["tickets", "Tickets"],
+  ["assistant", "AI Assistant"], ["shutdown", "Shutdown Planner"], ["technician", "Technician"],
+  ["team", "Team"], ["settings", "Settings"], ["records", "Records"]
+];
+
+function previewCard(title, detail) {
+  return `<article class="workspace-card"><strong>${esc(title)}</strong><span>${esc(detail)}</span></article>`;
+}
+
+function previewTable(headers, rows) {
+  return `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr>${headers.map((header) => `<th>${esc(header)}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+}
+
+function previewRow(cells) {
+  return `<tr>${cells.map((cell) => `<td>${cell}</td>`).join("")}</tr>`;
+}
+
+function previewEmpty(message) {
+  return `<div class="empty">${esc(message)}</div>`;
+}
+
+function ticketPriority(ticket) {
+  return `${ticket.machine_name || ticket.machine_id || "Machine"} · ${ticket.urgency || "Unrated"}`;
+}
+
+function renderWorkspacePreview() {
+  if (!workspacePreview) return;
+  const data = workspacePreview;
+  const machines = data.machines || [];
+  const tickets = data.tickets || [];
+  const openTickets = tickets.filter((ticket) => String(ticket.status || "Open").toLowerCase() !== "closed");
+  const documents = data.documents || [];
+  const records = data.records || [];
+  const spares = data.spare_parts || [];
+  const consumables = data.consumables || [];
+  const team = data.team || [];
+  const workByTicket = data.technician_work || {};
+  const tabContent = {
+    overview: `<div class="workspace-summary">${previewCard(plural(machines.length, "machine"), "Registered in this workspace")}${previewCard(plural(openTickets.length, "open ticket"), "Current maintenance workload")}${previewCard(plural(records.filter((record) => record.status === "needs_review").length, "record awaiting review"), "Pending maintenance-head approval")}</div><section class="modal-section"><h3>What the client sees first</h3><p>Live plant condition and the most urgent maintenance work.</p><div class="stack-list">${openTickets.length ? openTickets.slice(0, 5).map((ticket) => stackItem(ticketPriority(ticket), ticket.description || "No issue description recorded")).join("") : previewEmpty("No open maintenance tickets.")}</div></section>`,
+    machines: `<div class="workspace-summary">${previewCard(plural(machines.length, "machine"), "Available in the machine directory")}${previewCard(plural(documents.length, "document"), "Manuals, diagrams, and supporting files")}${previewCard(plural(spares.length, "spare part"), "Available in the machine workspace")}</div>${machines.length ? previewTable(["Machine", "Location", "Assigned technician", "Open work"], machines.map((machine) => previewRow([`<strong>${esc(machine.machine_name || machine.machine_id)}</strong>`, esc(machine.location || "Not recorded"), esc(machine.assigned_technician_phone || "Not assigned"), esc(openTickets.filter((ticket) => ticket.machine_id === machine.machine_id).length)]))) : previewEmpty("This client has not registered a machine yet.")}`,
+    tickets: `${openTickets.length ? previewTable(["Machine", "Priority", "Issue", "Reported"], openTickets.map((ticket) => previewRow([`<strong>${esc(ticket.machine_name || ticket.machine_id)}</strong>`, esc(ticket.urgency || "Unrated"), esc(ticket.description || "No issue description"), esc(activityText(ticket.reported_at))]))) : previewEmpty("No open tickets are visible to this customer.")}`,
+    assistant: `<div class="workspace-note">The client’s AI Assistant uses the same approved machine records, manuals, diagrams, ticket history, and live plant data shown in this preview. Admin preview is read-only: it does not submit questions or generate customer-facing recommendations.</div><div class="workspace-summary">${previewCard(plural(records.filter((record) => record.status === "approved").length, "approved AI record"), "Available for AI context")}${previewCard(plural(documents.length, "source document"), "Available for reference")}${previewCard(plural(openTickets.length, "open issue"), "Included in live plant context")}</div>`,
+    shutdown: `<div class="workspace-note">The customer uses this area to choose a shutdown date and review maintenance candidates. This preview shows the live candidates only; it cannot create work orders or change a shutdown plan.</div>${openTickets.length ? previewTable(["Candidate machine", "Reason", "Priority", "Current work status"], openTickets.map((ticket) => previewRow([`<strong>${esc(ticket.machine_name || ticket.machine_id)}</strong>`, esc(ticket.description || "Open maintenance issue"), esc(ticket.urgency || "Unrated"), esc((workByTicket[ticket.ticket_id] || {}).status || "Not started")]))) : previewEmpty("No active maintenance candidates are available.")}`,
+    technician: `${openTickets.length ? previewTable(["Ticket", "Machine", "Work status", "Notes"], openTickets.map((ticket) => { const work = workByTicket[ticket.ticket_id] || {}; return previewRow([`<strong>${esc(ticket.ticket_id)}</strong>`, esc(ticket.machine_name || ticket.machine_id), esc(work.status || "Assigned"), esc(work.notes || "No technician notes yet")]); })) : previewEmpty("No technician work is currently open.")}`,
+    team: `${team.length ? previewTable(["Name", "Role", "Contact", "Joined"], team.map((user) => previewRow([`<strong>${esc(user.name || "Unnamed user")}</strong>`, esc(displayRole(user.role)), esc(user.email || user.phone || "Not recorded"), esc(activityText(user.created_at))]))) : previewEmpty("This client has no team members yet.")}`,
+    settings: `<div class="workspace-summary">${previewCard(data.company.approved ? "Workspace active" : "Workspace paused", "Current client sign-in status")}${previewCard(`${machines.length} of ${data.company.machine_quota || 0}`, "Machine plan usage")}${previewCard(data.settings.updated_at ? activityText(data.settings.updated_at) : "Not configured", "Last settings update")}</div><div class="workspace-note">This tab is intentionally view-only for platform staff. Client preferences, escalation configuration, and roles can be inspected here without editing their workspace settings.</div>`,
+    records: `<div class="workspace-summary">${previewCard(plural(documents.length, "uploaded file"), "Source manuals, diagrams, and lists")}${previewCard(plural(records.filter((record) => record.status === "approved").length, "approved record"), "Ready for AI use")}${previewCard(plural(consumables.length, "consumable"), "Tracked in machine data")}</div>${records.length ? previewTable(["Record", "Type", "Status", "Machine", "Updated"], records.map((record) => previewRow([`<strong>${esc(record.title || record.record_id)}</strong>`, esc(record.record_type || "Other"), esc(record.status || "Needs review"), esc(record.machine_id || "Plant-wide"), esc(activityText(record.updated_at || record.created_at))]))) : previewEmpty("No machine records have been added yet.")}`
+  };
+  $("workspaceTabs").innerHTML = workspaceSections.map(([key, label]) => `<button class="workspace-tab ${key === activeWorkspaceTab ? "active" : ""}" data-workspace-tab="${key}">${esc(label)}</button>`).join("");
+  $("workspaceContent").innerHTML = tabContent[activeWorkspaceTab] || previewEmpty("This section is not available.");
+  $("workspaceTabs").querySelectorAll("[data-workspace-tab]").forEach((button) => button.addEventListener("click", () => {
+    activeWorkspaceTab = button.dataset.workspaceTab;
+    renderWorkspacePreview();
+  }));
+}
+
+async function openWorkspacePreview(company) {
+  $("workspaceTitle").textContent = `${company.company_name} client workspace`;
+  $("workspaceSubtitle").textContent = "Loading every customer-facing section in read-only mode…";
+  $("workspaceContent").innerHTML = `<div class="empty">Loading workspace preview…</div>`;
+  $("workspaceTabs").innerHTML = "";
+  openModal("workspaceModal");
+  try {
+    const response = await api(`/admin/companies/${encodeURIComponent(company.company_code)}/workspace-preview`);
+    if (!response.ok) throw new Error("We could not load this customer workspace preview.");
+    workspacePreview = await response.json();
+    activeWorkspaceTab = "overview";
+    $("workspaceSubtitle").textContent = "Read-only client view. No customer session is created, and all update actions are disabled.";
+    renderWorkspacePreview();
+  } catch (error) {
+    $("workspaceContent").innerHTML = `<div class="empty">${esc(error.message || "We could not load this customer workspace preview.")}</div>`;
+  }
+}
+
 async function openCompanyUsers(company) {
   $("teamTitle").textContent = `${company.company_name} team access`;
   $("teamSubtitle").textContent = "Loading the users who can access this customer workspace.";
@@ -707,6 +812,7 @@ $("quickOnboard").addEventListener("click", openOnboard);
 $("closeOnboard").addEventListener("click", closeOnboard);
 $("cancelOnboard").addEventListener("click", closeOnboard);
 $("closeDashboard").addEventListener("click", () => closeModal("dashboardModal"));
+$("closeWorkspace").addEventListener("click", () => closeModal("workspaceModal"));
 $("closeTeam").addEventListener("click", () => closeModal("teamModal"));
 $("closePassword").addEventListener("click", closePasswordReset);
 $("cancelPassword").addEventListener("click", closePasswordReset);

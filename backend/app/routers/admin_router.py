@@ -15,6 +15,9 @@ from app.dependencies import (
     get_documents,
     get_machine_records,
     get_machines,
+    get_parts,
+    get_settings,
+    get_technician_work,
     get_tickets,
     get_users,
 )
@@ -25,6 +28,9 @@ from app.repositories.base import (
     DocumentRepository,
     MachineRecordRepository,
     MachineRepository,
+    PartsRepository,
+    SettingsRepository,
+    TechnicianWorkRepository,
     TicketRepository,
     UserRepository,
 )
@@ -193,6 +199,71 @@ def admin_company_users(
         if user.get("company_code") == company_code
     ]
     return {"company_code": company_code, "users": company_users}
+
+
+@router.get("/companies/{company_code}/workspace-preview")
+def admin_company_workspace_preview(
+    company_code: str,
+    _: bool = Depends(get_current_admin),
+    users: UserRepository = Depends(get_users),
+    machines: MachineRepository = Depends(get_machines),
+    tickets: TicketRepository = Depends(get_tickets),
+    documents: DocumentRepository = Depends(get_documents),
+    records: MachineRecordRepository = Depends(get_machine_records),
+    parts: PartsRepository = Depends(get_parts),
+    settings: SettingsRepository = Depends(get_settings),
+    technician_work: TechnicianWorkRepository = Depends(get_technician_work),
+):
+    """Return a safe, read-only representation of the customer's workspace."""
+    company = users.get_company(company_code)
+    if company is None:
+        raise HTTPException(status_code=404, detail="company not found")
+
+    company_machines = machines.get_company_machines(company_code)
+    company_tickets = tickets.get_company_tickets(company_code)
+    company_documents = documents.list(company_code)
+    company_records = records.list(company_code)
+    company_users = [
+        {
+            "user_id": user.get("user_id"),
+            "name": user.get("name"),
+            "phone": user.get("phone"),
+            "email": user.get("email"),
+            "role": user.get("role"),
+            "created_at": str(user.get("created_at") or ""),
+        }
+        for user in users.list_users()
+        if user.get("company_code") == company_code
+    ]
+    work_by_ticket = {
+        item.get("ticket_id"): {
+            "status": item.get("status"),
+            "notes": item.get("notes"),
+            "parts_used": item.get("parts_used"),
+            "updated_at": item.get("updated_at"),
+            "submitted_at": item.get("submitted_at"),
+            "reviewed_at": item.get("reviewed_at"),
+        }
+        for item in technician_work.list_company(company_code)
+    }
+
+    return {
+        "company": {
+            "company_code": company_code,
+            "company_name": company.get("company_name") or company_code,
+            "approved": _company_approved(company),
+            "machine_quota": _company_quota(company),
+        },
+        "machines": company_machines,
+        "tickets": company_tickets,
+        "documents": company_documents,
+        "records": company_records,
+        "spare_parts": parts.list_items("spare_parts", company_code),
+        "consumables": parts.list_items("consumables", company_code),
+        "team": company_users,
+        "technician_work": work_by_ticket,
+        "settings": settings.get(company_code) or {},
+    }
 
 
 @router.post("/users/{user_id}/password")

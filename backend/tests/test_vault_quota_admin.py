@@ -117,6 +117,26 @@ def test_admin_can_view_company_dashboard(vault_client):
     assert "recent_activity" in dashboard
 
 
+def test_admin_can_view_read_only_company_workspace(vault_client):
+    at = admin_token(vault_client)
+    response = vault_client.get(
+        "/admin/companies/ACME3/workspace-preview",
+        headers=auth_headers(at),
+    )
+    assert response.status_code == 200, response.text
+    preview = response.json()
+    assert preview["company"]["company_code"] == "ACME3"
+    assert {"machines", "tickets", "documents", "records", "spare_parts", "consumables", "team", "settings"} <= set(preview)
+    assert all("password_hash" not in user for user in preview["team"])
+
+    user_token = login(vault_client, *ACME_OWNER)
+    denied = vault_client.get(
+        "/admin/companies/ACME3/workspace-preview",
+        headers=auth_headers(user_token),
+    )
+    assert denied.status_code == 401
+
+
 def test_admin_can_list_users_and_reset_password(vault_client):
     at = admin_token(vault_client)
     response = vault_client.get("/admin/companies/ACME3/users", headers=auth_headers(at))
