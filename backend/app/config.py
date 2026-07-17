@@ -10,8 +10,13 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
 
 # "local" writes tickets straight into TurboFix-Tracker.xlsx (no credentials needed,
 # used for dev/testing). "sheets" writes to a live Google Sheet via a service account
-# (what production should use).
-TICKET_STORE = os.getenv("TICKET_STORE", "local")
+# (what production should use). "supabase" reads/writes to remote Supabase DB.
+TICKET_STORE = os.getenv("TICKET_STORE", "supabase")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://wcqgbleppiaddgfjrnpq.supabase.co")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWdibGVwcGlhZGRnZmpybnBxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzc2ODQ1MCwiZXhwIjoyMDk5MzQ0NDUwfQ.64ft-M034wkKnehqiNEiGxeRLxBfb1X7Y30bcutGZPQ"
+)
 
 _default_path = BACKEND_DIR / "TurboFix-Tracker.xlsx"
 if not _default_path.exists():

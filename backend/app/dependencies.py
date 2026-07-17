@@ -70,6 +70,15 @@ def _should_use_sheets() -> bool:
     return True
 
 
+def _should_use_supabase() -> bool:
+    if config.TICKET_STORE != "supabase":
+        return False
+    if not config.SUPABASE_URL or not config.SUPABASE_SERVICE_ROLE_KEY:
+        log.warning("TICKET_STORE is 'supabase' but SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is empty. Falling back to local store.")
+        return False
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Ticket + Machine (share the same store backend selector)
 # ---------------------------------------------------------------------------
@@ -77,6 +86,9 @@ def _should_use_sheets() -> bool:
 @lru_cache(maxsize=1)
 def get_tickets() -> TicketRepository:
     """Return the configured TicketRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseTicketRepository
+        return SupabaseTicketRepository()
     if _should_use_sheets():
         from app.repositories.sheets.ticket_repo import SheetsTicketRepository
         return SheetsTicketRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -87,6 +99,9 @@ def get_tickets() -> TicketRepository:
 @lru_cache(maxsize=1)
 def get_events() -> EventRepository:
     """Return the configured EventRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseEventRepository
+        return SupabaseEventRepository()
     if _should_use_sheets():
         from app.repositories.sheets.ticket_repo import SheetsEventRepository
         return SheetsEventRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -97,6 +112,9 @@ def get_events() -> EventRepository:
 @lru_cache(maxsize=1)
 def get_machines() -> MachineRepository:
     """Return the configured MachineRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseMachineRepository
+        return SupabaseMachineRepository(config.MACHINES_CACHE_TTL_SECONDS)
     if _should_use_sheets():
         from app.repositories.sheets.ticket_repo import SheetsMachineRepository
         return SheetsMachineRepository(
@@ -115,6 +133,9 @@ def get_machines() -> MachineRepository:
 @lru_cache(maxsize=1)
 def get_users() -> UserRepository:
     """Return the configured UserRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseUserRepository
+        return SupabaseUserRepository()
     if _should_use_sheets():
         from app.repositories.sheets.user_repo import SheetsUserRepository
         return SheetsUserRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -129,6 +150,9 @@ def get_users() -> UserRepository:
 @lru_cache(maxsize=1)
 def get_documents() -> DocumentRepository:
     """Return the configured DocumentRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseDocumentRepository
+        return SupabaseDocumentRepository()
     if _should_use_sheets():
         from app.repositories.sheets.document_repo import SheetsDocumentRepository
         return SheetsDocumentRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -139,6 +163,9 @@ def get_documents() -> DocumentRepository:
 @lru_cache(maxsize=1)
 def get_machine_records() -> MachineRecordRepository:
     """Return the approved/draft AI machine-record repository."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseMachineRecordRepository
+        return SupabaseMachineRecordRepository()
     if _should_use_sheets():
         from app.repositories.sheets.machine_record_repo import SheetsMachineRecordRepository
         return SheetsMachineRecordRepository(
@@ -155,6 +182,9 @@ def get_machine_records() -> MachineRecordRepository:
 @lru_cache(maxsize=1)
 def get_parts() -> PartsRepository:
     """Return the configured PartsRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabasePartsRepository
+        return SupabasePartsRepository()
     if _should_use_sheets():
         from app.repositories.sheets.parts_repo import SheetsPartsRepository
         return SheetsPartsRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -165,6 +195,9 @@ def get_parts() -> PartsRepository:
 @lru_cache(maxsize=1)
 def get_custom_kpis() -> CustomKpiRepository:
     """Return the configured CustomKpiRepository implementation (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseCustomKpiRepository
+        return SupabaseCustomKpiRepository()
     if _should_use_sheets():
         from app.repositories.sheets.kpi_repo import SheetsCustomKpiRepository
         return SheetsCustomKpiRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -175,6 +208,9 @@ def get_custom_kpis() -> CustomKpiRepository:
 @lru_cache(maxsize=1)
 def get_settings() -> SettingsRepository:
     """Return company-scoped settings using the active store backend."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseSettingsRepository
+        return SupabaseSettingsRepository()
     if _should_use_sheets():
         from app.repositories.sheets.settings_repo import SheetsSettingsRepository
         return SheetsSettingsRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
@@ -185,6 +221,9 @@ def get_settings() -> SettingsRepository:
 @lru_cache(maxsize=1)
 def get_technician_work() -> TechnicianWorkRepository:
     """Return persistent technician work records using the active store backend."""
+    if _should_use_supabase():
+        from app.repositories.supabase_repo import SupabaseTechnicianWorkRepository
+        return SupabaseTechnicianWorkRepository()
     if _should_use_sheets():
         from app.repositories.sheets.technician_work_repo import SheetsTechnicianWorkRepository
         return SheetsTechnicianWorkRepository(
@@ -192,3 +231,4 @@ def get_technician_work() -> TechnicianWorkRepository:
         )
     from app.repositories.local.technician_work_repo import LocalTechnicianWorkRepository
     return LocalTechnicianWorkRepository(config.TRACKER_XLSX_PATH)
+
