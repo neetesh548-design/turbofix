@@ -351,6 +351,29 @@ ADMIN_HTML = r"""<!DOCTYPE html>
           </div>
           <p class="status" id="statusMsg" role="status"></p>
         </section>
+
+        <!-- PLATFORM AI CONFIGURATION SECTION -->
+        <section class="panel" id="platformSettingsPanel" style="margin-top:26px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 19px;">
+          <div class="panel-head">
+            <div>
+              <h2>Platform AI Configuration</h2>
+              <p>Configure the system-wide Gemini API Key used by all customer workspaces and edge functions.</p>
+            </div>
+          </div>
+          <div style="margin-top: 16px;">
+            <form id="aiConfigForm">
+              <div class="field" style="margin-top:0">
+                <label for="platformGeminiKey">System-wide Gemini API Key</label>
+                <input type="password" id="platformGeminiKey" placeholder="Enter Gemini API key (starts with AIzaSy or AQ...)" style="margin-top: 8px;">
+                <small style="display: block; margin-top: 6px; color: var(--subtle)">Leave blank to clear the system-wide key. Updates will sync automatically to Supabase edge functions.</small>
+              </div>
+              <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+                <button type="submit" class="btn btn-primary" id="saveAiConfigBtn">Save Configuration</button>
+              </div>
+            </form>
+            <div class="status" id="aiConfigStatus" role="status"></div>
+          </div>
+        </section>
       </main>
     </div>
   </div>
@@ -455,10 +478,23 @@ function showLogin() {
   closePasswordReset();
 }
 
+async function loadAiConfig() {
+  try {
+    const response = await api("/admin/config/gemini");
+    if (response.ok) {
+      const data = await response.json();
+      $("platformGeminiKey").value = data.gemini_api_key || "";
+    }
+  } catch (error) {
+    console.warn("Failed to load Gemini config:", error);
+  }
+}
+
 function showApp() {
   $("loginBox").style.display = "none";
   $("adminApp").style.display = "block";
   loadCompanies();
+  loadAiConfig();
 }
 
 async function login() {
@@ -874,6 +910,34 @@ $("passwordForm").addEventListener("submit", async (event) => {
   } finally {
     button.disabled = false;
     button.textContent = "Reset password";
+  }
+});
+
+$("aiConfigForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("saveAiConfigBtn");
+  const status = $("aiConfigStatus");
+  status.textContent = "";
+  status.className = "status";
+  button.disabled = true;
+  button.textContent = "Saving AI configuration…";
+  try {
+    const response = await api("/admin/config/gemini", {
+      method: "POST",
+      body: JSON.stringify({ gemini_api_key: $("platformGeminiKey").value.trim() })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.detail || "AI configuration could not be saved.");
+    }
+    status.textContent = "AI configuration saved and synchronized successfully.";
+    status.className = "status success";
+  } catch (exception) {
+    status.textContent = exception.message || "AI configuration could not be saved.";
+    status.className = "status err";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save Configuration";
   }
 });
 

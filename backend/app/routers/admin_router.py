@@ -457,6 +457,58 @@ def admin_onboard_company(
     return {"status": "created", "company_code": company_code, "owner_user_id": user_id}
 
 
+class GeminiConfigUpdate(BaseModel):
+    gemini_api_key: str
+
+
+@router.get("/config/gemini")
+def get_gemini_config(_: bool = Depends(get_current_admin)):
+    return {"gemini_api_key": config.GEMINI_API_KEY}
+
+
+@router.post("/config/gemini")
+def update_gemini_config(body: GeminiConfigUpdate, _: bool = Depends(get_current_admin)):
+    import os
+    import subprocess
+    
+    # 1. Update the in-memory config
+    config.GEMINI_API_KEY = body.gemini_api_key
+    
+    # 2. Persist to .env file
+    env_path = config.BACKEND_DIR / ".env"
+    if not env_path.exists():
+        env_path = config.BACKEND_DIR.parent / ".env"
+        
+    lines = []
+    found = False
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                if line.strip().startswith("GEMINI_API_KEY="):
+                    lines.append(f"GEMINI_API_KEY={body.gemini_api_key}\n")
+                    found = True
+                else:
+                    lines.append(line)
+    if not found:
+        lines.append(f"\nGEMINI_API_KEY={body.gemini_api_key}\n")
+        
+    with open(env_path, "w") as f:
+        f.writelines(lines)
+        
+    # 3. Synchronize with Supabase Secrets (async in background to not block)
+    try:
+        subprocess.Popen(
+            ["npx", "supabase", "secrets", "set", f"GEMINI_API_KEY={body.gemini_api_key}"],
+            cwd=str(config.BACKEND_DIR.parent),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+    except Exception as e:
+        log.error("admin.config.sync_error", error=str(e))
+        
+    return {"status": "success", "message": "Gemini API key updated successfully."}
+
+
 @router.get("", response_class=HTMLResponse)
 def admin_console():
     """Serve the self-contained admin HTML page."""

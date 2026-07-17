@@ -72,7 +72,6 @@ export default function Settings() {
     autoRefresh: window.localStorage.getItem('tf_settings_auto_refresh') !== 'false',
     approvalMode: window.localStorage.getItem('tf_settings_approval_mode') || 'always-ask',
   }));
-  const [geminiKey, setGeminiKey] = useState(() => window.localStorage.getItem('tf_gemini_api_key') || '');
 
   useEffect(() => {
     if (!success) return undefined;
@@ -278,15 +277,6 @@ export default function Settings() {
             <Card className={knowledgeStats.gaps ? 'settings-gap-card' : ''}><CardContent><div className="settings-stat-card"><Wrench /><span><strong>{knowledgeStats.gaps}</strong><small>Need document review</small></span></div></CardContent></Card>
           </div>
           <Card className="settings-approval-card"><CardContent><div className="settings-card-title"><Shield /><div><h3>Internet enrichment approval</h3><p>TurboFix must receive permission before using external reference data.</p></div></div><label className="settings-select-field"><span>Approval rule</span><select value={preferences.approvalMode} onChange={(event) => updatePreference('approvalMode', event.target.value)}><option value="always-ask">Always ask before internet use</option><option value="disabled">Never use internet enrichment</option></select><small>Recommended: keep “Always ask” so the user stays in control.</small></label><a className="settings-card-link" href="assistant.html">Open AI Assistant <ArrowUpRight /></a></CardContent></Card>
-          <Card className="settings-approval-card" style={{ marginTop: '16px' }}><CardContent><div className="settings-card-title"><BrainCircuit /><div><h3>Gemini API Key</h3><p>Configure a custom Gemini API Key for the AI Assistant and webhooks.</p></div></div>
-            <div style={{ marginTop: '16px' }}>
-              <input type="password" value={geminiKey} onChange={(e) => {
-                setGeminiKey(e.target.value);
-                window.localStorage.setItem('tf_gemini_api_key', e.target.value);
-              }} placeholder="Enter your Gemini API key (starts with AIzaSy or AQ...)" style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', padding: '8px 12px', fontSize: '0.85rem' }} />
-              <small style={{ display: 'block', marginTop: '6px', color: '#94a3b8' }}>Leave blank to use the default shared factory key.</small>
-            </div>
-          </CardContent></Card>
         </section>}
 
         {activeTab === 'escalation' && <section className="settings-section" aria-labelledby="alert-settings-title">
