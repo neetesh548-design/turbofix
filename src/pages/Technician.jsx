@@ -22,14 +22,6 @@ const defaultWork = {
   reviewed_by: '',
 };
 
-async function responseMessage(response, fallback) {
-  try {
-    const payload = await response.json();
-    return payload.detail || payload.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 export default function Technician() {
   const [tickets, setTickets] = useState([]);
@@ -58,7 +50,13 @@ export default function Technician() {
           status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at, work: {},
         }));
         setTickets(items);
-        setWork(Object.fromEntries(items.map(t => [t.ticket_id, { ...defaultWork }])));
+        
+        const storedWork = {};
+        items.forEach(t => {
+          const localData = window.localStorage.getItem(`tf_work_${t.ticket_id}`);
+          storedWork[t.ticket_id] = localData ? JSON.parse(localData) : { ...defaultWork };
+        });
+        setWork(storedWork);
         if (items.length) setSelectedId(items[0].ticket_id);
       } catch (err) { setError(err.message); }
       finally { setLoading(false); }
@@ -87,6 +85,7 @@ export default function Technician() {
     setError('');
     try {
       setWork((current) => ({ ...current, [selectedId]: next }));
+      window.localStorage.setItem(`tf_work_${selectedId}`, JSON.stringify(next));
       return next;
     } catch (err) {
       setError(err.message);
@@ -98,7 +97,7 @@ export default function Technician() {
 
   const startWork = async () => {
     try {
-      await persistWork({ status: 'in_progress' });
+      await persistWork({ status: 'in_progress', started_at: new Date().toISOString() });
       setMessage('Work started. Progress is now saved to the maintenance record.');
     } catch {}
   };
@@ -112,13 +111,34 @@ export default function Technician() {
 
   const uploadEvidence = async (file, kind) => {
     if (!file || !selectedId || isLocked) return;
-    const body = new FormData();
-    body.append('kind', kind);
-    body.append('file', file);
     setSaving(true);
     setError('');
     try {
-      throw new Error('Evidence upload is being migrated. This feature will be available soon.');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `${selectedId}/${fileName}`;
+      
+      const { error: uploadErr } = await supabase.storage
+        .from('repair-proofs')
+        .upload(filePath, file);
+        
+      if (uploadErr) throw uploadErr;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('repair-proofs')
+        .getPublicUrl(filePath);
+        
+      const newEvidenceItem = {
+        evidence_id: fileName,
+        kind: kind,
+        file_name: file.name,
+        url: publicUrl,
+        uploaded_at: new Date().toISOString()
+      };
+      
+      const updatedEvidence = [...selectedWork.evidence, newEvidenceItem];
+      await persistWork({ evidence: updatedEvidence });
+      setMessage('Evidence uploaded successfully.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -129,7 +149,11 @@ export default function Technician() {
   const downloadEvidence = async (item) => {
     setError('');
     try {
-      throw new Error('Evidence download is being migrated. This feature will be available soon.');
+      if (item.url) {
+        window.open(item.url, '_blank');
+      } else {
+        throw new Error('No URL available for this evidence.');
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -140,10 +164,17 @@ export default function Technician() {
     setSaving(true);
     setError('');
     try {
-      await persistWork({ status: 'in_progress' });
-      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', selectedId);
+      const updatedWork = await persistWork({ status: 'submitted', submitted_at: new Date().toISOString() });
+      const photoEvidence = updatedWork.evidence.find(e => e.kind === 'photo');
+      const proofUrl = photoEvidence ? photoEvidence.url : null;
+      
+      const { error: updateErr } = await supabase.from('tickets').update({ 
+        status: 'resolved',
+        proof_image_url: proofUrl,
+        resolved_at: new Date().toISOString()
+      }).eq('id', selectedId);
+      
       if (updateErr) throw new Error(updateErr.message);
-      setWork((current) => ({ ...current, [selectedId]: { ...selectedWork, status: 'submitted' } }));
       setMessage('Repair submitted.');
     } catch (err) {
       setError(err.message);
@@ -159,6 +190,11 @@ export default function Technician() {
     try {
       const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', selectedId);
       if (updateErr) throw new Error(updateErr.message);
+      
+      const updatedWork = { ...selectedWork, status: 'closed', reviewed_at: new Date().toISOString(), reviewed_by: user?.name || user?.user_id || 'System' };
+      window.localStorage.setItem(`tf_work_${selectedId}`, JSON.stringify(updatedWork));
+      setWork((current) => ({ ...current, [selectedId]: updatedWork }));
+
       const remaining = tickets.filter((ticket) => ticket.ticket_id !== selectedId);
       setTickets(remaining);
       setSelectedId(remaining[0]?.ticket_id || null);
@@ -190,7 +226,19 @@ export default function Technician() {
             </section>
             <section className="technician-workspace">
               {!selectedTicket ? <div className="technician-empty large"><Wrench className="size-10" /><strong>Select a work item</strong><span>Choose a ticket from your queue to begin.</span></div> : <>
-                <div className="technician-work-header"><div><span className="eyebrow eyebrow-light">{selectedTicket.ticket_id}</span><h2>{selectedTicket.machine_name || selectedTicket.machine_id}</h2><p>{selectedTicket.machine_location || 'Plant floor'} · {selectedTicket.description || 'Breakdown inspection'}</p></div><span className={`technician-state ${selectedWork.status}`}>{selectedWork.status.replace('_', ' ')}</span></div>
+                <div className="technician-work-header" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  {window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`) && (
+                    <div style={{ width: '56px', height: '56px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                      <img src={window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                  <div style={{ flexGrow: 1 }}>
+                    <span className="eyebrow eyebrow-light">{selectedTicket.ticket_id}</span>
+                    <h2>{selectedTicket.machine_name || selectedTicket.machine_id}</h2>
+                    <p>{selectedTicket.machine_location || 'Plant floor'} · {selectedTicket.description || 'Breakdown inspection'}</p>
+                  </div>
+                  <span className={`technician-state ${selectedWork.status}`}>{selectedWork.status.replace('_', ' ')}</span>
+                </div>
                 <div className="technician-progress"><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div></div>
                 <div className="technician-actions">
                   <button className="btn btn-primary" onClick={startWork} disabled={saving || isLocked}><Play className="size-4" />{selectedWork.status === 'in_progress' ? 'Work in progress' : 'Start work'}</button>

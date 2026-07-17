@@ -14,8 +14,53 @@ const machineSuggestions = [
   'Summarize this machine’s recent maintenance history.',
 ];
 
+function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
+  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open');
+  
+  if (selectedMachineId && selectedMachineId !== 'all') {
+    const machine = machines.find(m => m.machine_id === selectedMachineId);
+    if (!machine) return 'Machine not found.';
+    
+    const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
+    const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
+    
+    if (machineOpen.length === 0) {
+      return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Add manuals and service history if you need a deeper recommendation.`;
+    }
+    
+    // Sort open tickets by urgency: High -> Medium -> Low
+    const sorted = [...machineOpen].sort((a, b) => {
+      const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
+      const aVal = urgencyMap[String(a.urgency || '').toLowerCase()] ?? 4;
+      const bVal = urgencyMap[String(b.urgency || '').toLowerCase()] ?? 4;
+      return aVal - bVal;
+    });
+    const top = sorted[0];
+    const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
+    return `${machine.machine_name || machine.machine_id} has ${machineOpen.length} open ticket(s). Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Confirm isolation and the machine manual before work.`;
+  }
+  
+  // Plant-wide
+  if (openTickets.length === 0) {
+    return `All ${machines.length} machines are currently clear with no open maintenance tickets. Use preventive schedules and complete MachineData files to keep plant-wide recommendations reliable.`;
+  }
+  
+  const sorted = [...openTickets].sort((a, b) => {
+    const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
+    const aVal = urgencyMap[String(a.urgency || '').toLowerCase()] ?? 4;
+    const bVal = urgencyMap[String(b.urgency || '').toLowerCase()] ?? 4;
+    return aVal - bVal;
+  });
+  const top = sorted[0];
+  const machineName = machines.find(m => m.machine_id === top.machine_id)?.machine_name || top.machine_id || 'Machine';
+  const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
+  return `Plant-wide view: ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Review the remaining open tickets after this risk is controlled.`;
+}
+
 export default function Assistant() {
   const [machines, setMachines] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(() => new URLSearchParams(window.location.search).get('machine_id') || 'all');
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -24,9 +69,19 @@ export default function Assistant() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    supabase.from('machines').select('id,name,location,status')
-      .then(({ data }) => setMachines((data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }))))
-      .catch(() => setMachines([]));
+    Promise.all([
+      supabase.from('machines').select('id,name,location,status'),
+      supabase.from('tickets').select('*'),
+      supabase.from('events').select('*')
+    ]).then(([mRes, tRes, eRes]) => {
+      setMachines((mRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location })));
+      setTickets(tRes.data || []);
+      setEvents(eRes.data || []);
+    }).catch(() => {
+      setMachines([]);
+      setTickets([]);
+      setEvents([]);
+    });
   }, []);
 
   useEffect(() => {
@@ -70,8 +125,14 @@ export default function Assistant() {
     setError('');
     setAnswer('');
     setAnswerSource('');
+    
+    // Simulate thinking delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
     try {
-      throw new Error('The AI assistant backend is being migrated. This feature will be available soon.');
+      const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
+      setAnswer(liveAnswer);
+      setAnswerSource('live_data');
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -104,7 +165,18 @@ export default function Assistant() {
         </form>
         {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p></div>}
       </div>
-      <aside className="assistant-side"><div className="decision-card-kicker">How scope works</div><h2>Start broad, then focus</h2><div className="assistant-prompt"><strong>All machines</strong><span>Prioritize plant-wide risks, shutdown work, and open issues.</span></div><div className="assistant-prompt"><strong>One machine</strong><span>Diagnose symptoms, review history, manuals, and likely spares.</span></div><p className="assistant-disclaimer">Recommendations are decision support. Confirm isolation procedures and the approved machine manual before work begins.</p></aside>
+      <aside className="assistant-side">
+        {selected !== 'all' && window.localStorage.getItem(`tf_machine_photo_${selected}`) && (
+          <div style={{ width: '100%', height: '140px', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <img src={window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+        )}
+        <div className="decision-card-kicker">How scope works</div>
+        <h2>Start broad, then focus</h2>
+        <div className="assistant-prompt"><strong>All machines</strong><span>Prioritize plant-wide risks, shutdown work, and open issues.</span></div>
+        <div className="assistant-prompt"><strong>One machine</strong><span>Diagnose symptoms, review history, manuals, and likely spares.</span></div>
+        <p className="assistant-disclaimer">Recommendations are decision support. Confirm isolation procedures and the approved machine manual before work begins.</p>
+      </aside>
     </section>
   </div></AppShell>;
 }

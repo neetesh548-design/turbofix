@@ -27,6 +27,9 @@ export default function Machines() {
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState(null);
+  const [machinePhoto, setMachinePhoto] = useState('');
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
   
   // Workspace active tab: 'info' | 'docs' | 'parts' | 'consumables' | 'calendar' | 'qr'
   const [wsTab, setWsTab] = useState('info');
@@ -129,6 +132,9 @@ export default function Machines() {
   };
 
   const loadMachineAssets = async (machineId) => {
+    const localPhoto = window.localStorage.getItem(`tf_machine_photo_${machineId}`);
+    setMachinePhoto(selectedMachine?.image_url || localPhoto || '');
+
     setMachineDataLoading(true);
     setMachineData(null);
     setMachineDataLoading(false);
@@ -158,6 +164,57 @@ export default function Machines() {
     setConsumablesLoading(false);
   };
 
+  const uploadMachinePhoto = async (file, machineIdInput = null) => {
+    const targetMachineId = machineIdInput || selectedMachine?.machine_id;
+    if (!file || !targetMachineId) return null;
+    setPhotoSaving(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${targetMachineId}-${Date.now()}.${fileExt}`;
+      const filePath = `machine-photos/${fileName}`;
+      
+      const { data, error: uploadErr } = await supabase.storage
+        .from('machine-documents')
+        .upload(filePath, file);
+        
+      if (uploadErr) throw uploadErr;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('machine-documents')
+        .getPublicUrl(filePath);
+        
+      await supabase.from('machines')
+        .update({ image_url: publicUrl })
+        .eq('id', targetMachineId);
+        
+      window.localStorage.setItem(`tf_machine_photo_${targetMachineId}`, publicUrl);
+      if (!machineIdInput) {
+        setMachinePhoto(publicUrl);
+        setSelectedMachine(prev => ({ ...prev, image_url: publicUrl }));
+      }
+      setSuccess('Machine picture updated successfully.');
+      return publicUrl;
+    } catch (err) {
+      // Local fallback
+      return new Promise((resolve) => {
+        const fileReader = new FileReader();
+        fileReader.onload = () => {
+          const base64Url = fileReader.result;
+          window.localStorage.setItem(`tf_machine_photo_${targetMachineId}`, base64Url);
+          if (!machineIdInput) {
+            setMachinePhoto(base64Url);
+            setSelectedMachine(prev => ({ ...prev, image_url: base64Url }));
+          }
+          setSuccess('Machine picture updated locally.');
+          resolve(base64Url);
+        };
+        fileReader.readAsDataURL(file);
+      });
+    } finally {
+      setPhotoSaving(false);
+    }
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -175,9 +232,14 @@ export default function Machines() {
       }).select().single();
       if (insertErr) throw new Error(insertErr.message);
 
+      if (onboardPhotoFile) {
+        await uploadMachinePhoto(onboardPhotoFile, newRow.id);
+      }
+
       setSuccess(`Machine ${newRow.id} successfully onboarded!`);
       setShowAddForm(false);
       setName(''); setLocation(''); setTechnicianUserId(''); setSupervisorUserId(''); setEngineerUserId(''); setHeadUserId('');
+      setOnboardPhotoFile(null);
       fetchData();
     } catch (err) {
       setError(err.message);
@@ -609,6 +671,10 @@ export default function Machines() {
                         <label htmlFor="machineLoc">Plant location</label>
                         <input type="text" id="machineLoc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Example: Bay 2" />
                       </div>
+                      <div className="vault-field">
+                        <label htmlFor="machinePhotoInput">Machine photo</label>
+                        <input type="file" id="machinePhotoInput" accept="image/*" onChange={(e) => setOnboardPhotoFile(e.target.files?.[0] || null)} />
+                      </div>
                     </div>
                   </section>
 
@@ -691,7 +757,18 @@ export default function Machines() {
                     {machines.map((m) => (
                       <tr key={m.machine_id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
                         <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--brand)' }}>{m.machine_id}</td>
-                        <td style={{ fontWeight: '600', color: 'white' }}>{m.machine_name}</td>
+                        <td style={{ fontWeight: '600', color: 'white' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url ? (
+                                <img src={window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
+                              )}
+                            </div>
+                            <span>{m.machine_name}</span>
+                          </div>
+                        </td>
                         <td style={{ color: '#cbd5e1' }}>{m.location || '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -732,8 +809,23 @@ export default function Machines() {
             </button>
 
             <div className="machine-workspace-shell">
-              <header className="machine-workspace-hero">
-                <div className="machine-workspace-identity">
+              <header className="machine-workspace-hero" style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {machinePhoto ? (
+                  <div style={{ position: 'relative', width: '90px', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+                    <img src={machinePhoto} alt={selectedMachine.machine_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#25D366', textAlign: 'center', fontSize: '0.62rem', padding: '3px 0', cursor: 'pointer', fontFamily: 'sans-serif', fontWeight: 'bold' }}>
+                      CHANGE
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadMachinePhoto(e.target.files[0]); }} disabled={photoSaving} />
+                    </label>
+                  </div>
+                ) : (
+                  <label style={{ width: '90px', height: '90px', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: '#94a3b8', background: 'rgba(255,255,255,0.02)' }}>
+                    <Upload size={18} style={{ marginBottom: '4px' }} />
+                    <span style={{ fontSize: '0.68rem' }}>Add photo</span>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadMachinePhoto(e.target.files[0]); }} disabled={photoSaving} />
+                  </label>
+                )}
+                <div className="machine-workspace-identity" style={{ flexGrow: 1, minWidth: '200px' }}>
                   <div className="machine-workspace-id-row">
                     <span className="machine-workspace-id">{selectedMachine.machine_id}</span>
                     <span className={`machine-workspace-state ${selectedMachine.has_open_tickets ? 'down' : 'healthy'}`}>

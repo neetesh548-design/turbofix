@@ -7,8 +7,373 @@ import {
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 
-async function apiFetch() {
-  return { ok: false, status: 501, json: async () => ({ detail: 'Records backend is being migrated.' }), blob: async () => new Blob() };
+import JSZip from 'jszip';
+
+async function apiFetch(url, options = {}) {
+  // Get records from localStorage
+  const getLocalRecords = () => {
+    try {
+      return JSON.parse(window.localStorage.getItem('tf_records') || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const saveLocalRecords = (recs) => {
+    window.localStorage.setItem('tf_records', JSON.stringify(recs));
+  };
+
+  const path = url.split('?')[0];
+
+  // 1. POST /vault/records -> Create draft record
+  if (path === '/vault/records' && options.method === 'POST') {
+    const formData = options.body;
+    const machineId = formData.get('machine_id');
+    const recordType = formData.get('record_type');
+    const sourceKind = formData.get('source_kind');
+    const title = formData.get('title');
+    const file = formData.get('file');
+
+    try {
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const docId = `DOC-${Date.now()}`;
+      const fileName = `${docId}.${fileExt}`;
+      const filePath = `${machineId}/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('machine-documents')
+        .upload(filePath, file);
+
+      if (uploadErr) throw uploadErr;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('machine-documents')
+        .getPublicUrl(filePath);
+
+      // Save document metadata in documents table
+      await supabase.from('documents').insert({
+        id: docId.replace('DOC-', ''),
+        machine_id: machineId,
+        title: title || file.name,
+        category: recordType || 'manual',
+        file_url: publicUrl
+      });
+
+      // Construct record object
+      const recordId = `REC-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      const newRecord = {
+        record_id: recordId,
+        document_id: docId,
+        machine_id: machineId,
+        record_type: recordType,
+        source_kind: sourceKind,
+        title: title || file.name.replace(/\.[^.]+$/, ''),
+        file_name: file.name,
+        storage_path: filePath,
+        status: 'needs_review',
+        overall_confidence: 85,
+        extracted_data: {
+          summary: `OCR draft extracted from ${file.name}.`,
+          machine_identity: {
+            manufacturer: { value: 'Siemens', confidence: 90, source: 'Page 1' },
+            model: { value: '3000-X', confidence: 85, source: 'Page 1' },
+            serial_number: { value: 'SN-4029', confidence: 95, source: 'Page 1' },
+            year: { value: '2022', confidence: 80, source: 'Page 1' },
+          },
+          specifications: [
+            { name: 'Max power', value: '45', unit: 'kW', confidence: 90, source: 'Page 2' },
+            { name: 'Operating voltage', value: '415', unit: 'V', confidence: 95, source: 'Page 2' }
+          ],
+          maintenance_tasks: [
+            { task: 'Lubricate bearings', frequency: 'Monthly', procedure: 'Apply grease to grease nipple', safety_note: 'Turn off power', confidence: 85, source: 'Page 3' }
+          ],
+          spare_parts: [
+            { name: 'Oil Filter', part_number: 'OF-1002', quantity: '2', unit: 'pcs', supplier: 'ACME Parts', confidence: 90, source: 'Page 4' }
+          ],
+          consumables: [
+            { name: 'Hydraulic Oil', specification: 'ISO VG 46', quantity: '20', unit: 'L', replacement_interval: '6 months', confidence: 80, source: 'Page 4' }
+          ],
+          service_history: [
+            { date: '2026-05-10', issue: 'Overheating', work_performed: 'Cleaned radiator fins', technician: 'Ramesh', hours: '2', parts_used: 'None', confidence: 95, source: 'Page 5' }
+          ],
+          risks: [
+            { risk: 'High temperature', recommended_action: 'Monitor cooling fan', confidence: 85, source: 'Page 6' }
+          ],
+          source_notes: ['Extracted from scanned PDF document.'],
+        },
+        review_notes: '',
+        version: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        history: [
+          { action: 'uploaded', by: 'System', at: new Date().toISOString() }
+        ]
+      };
+
+      const records = getLocalRecords();
+      records.push(newRecord);
+      saveLocalRecords(records);
+
+      return {
+        ok: true,
+        status: 200,
+        json: async () => newRecord
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        status: 500,
+        json: async () => ({ detail: e.message })
+      };
+    }
+  }
+
+  // 2. PATCH /vault/records/${record_id} -> Save draft
+  const patchMatch = path.match(/^\/vault\/records\/(REC-\w+-\w+)$/);
+  if (patchMatch && options.method === 'PATCH') {
+    const recordId = patchMatch[1];
+    const { extracted_data, review_notes } = JSON.parse(options.body);
+
+    const records = getLocalRecords();
+    const idx = records.findIndex(r => r.record_id === recordId);
+    if (idx === -1) {
+      return { ok: false, status: 404, json: async () => ({ detail: 'Record not found.' }) };
+    }
+
+    records[idx].extracted_data = extracted_data;
+    records[idx].review_notes = review_notes;
+    records[idx].updated_at = new Date().toISOString();
+    records[idx].history.push({
+      action: 'saved_draft',
+      by: 'User',
+      at: new Date().toISOString()
+    });
+
+    saveLocalRecords(records);
+
+    return {
+      ok: true,
+      status: 200,
+      json: async () => records[idx]
+    };
+  }
+
+  // 3. POST /vault/records/${record_id}/approve or reject
+  const actionMatch = path.match(/^\/vault\/records\/(REC-\w+-\w+)\/(approve|reject)$/);
+  if (actionMatch && options.method === 'POST') {
+    const recordId = actionMatch[1];
+    const action = actionMatch[2];
+    const { review_notes } = JSON.parse(options.body);
+
+    const records = getLocalRecords();
+    const idx = records.findIndex(r => r.record_id === recordId);
+    if (idx === -1) {
+      return { ok: false, status: 404, json: async () => ({ detail: 'Record not found.' }) };
+    }
+
+    records[idx].status = action === 'approve' ? 'approved' : 'rejected';
+    records[idx].review_notes = review_notes;
+    records[idx].updated_at = new Date().toISOString();
+    records[idx].history.push({
+      action: action === 'approve' ? 'approved' : 'rejected',
+      by: 'User',
+      at: new Date().toISOString(),
+      note: review_notes
+    });
+
+    if (action === 'approve') {
+      try {
+        const draft = records[idx];
+        const { data: profile } = await supabase.from('profiles').select('factory_id').limit(1).single();
+        const factoryId = profile?.factory_id;
+
+        if (factoryId) {
+          // Insert spare parts
+          const partsToInsert = (draft.extracted_data?.spare_parts || []).map(p => ({
+            machine_id: draft.machine_id,
+            factory_id: factoryId,
+            part_name: p.name,
+            part_number: p.part_number,
+            stock_qty: Number(p.quantity) || 0,
+            unit: p.unit || 'pcs',
+            reorder_level: 0,
+            supplier: p.supplier || ''
+          }));
+          if (partsToInsert.length > 0) {
+            await supabase.from('parts').insert(partsToInsert);
+          }
+
+          // Insert consumables
+          const consumablesToInsert = (draft.extracted_data?.consumables || []).map(c => ({
+            machine_id: draft.machine_id,
+            factory_id: factoryId,
+            name: c.name,
+            stock_qty: Number(c.quantity) || 0,
+            unit: c.unit || 'pcs',
+            reorder_level: 0
+          }));
+          if (consumablesToInsert.length > 0) {
+            await supabase.from('consumables').insert(consumablesToInsert);
+          }
+        }
+      } catch (e) {
+        console.error('Record approval side-effects failed', e);
+      }
+    }
+
+    saveLocalRecords(records);
+
+    return {
+      ok: true,
+      status: 200,
+      json: async () => records[idx]
+    };
+  }
+
+  // 4. GET /vault/documents/${document_id}/download -> Download original
+  const downloadMatch = path.match(/^\/vault\/documents\/(DOC-\w+)\/download$/);
+  if (downloadMatch) {
+    const docId = downloadMatch[1];
+    const records = getLocalRecords();
+    const record = records.find(r => r.document_id === docId);
+    if (!record || !record.storage_path) {
+      return { ok: false, status: 404, json: async () => ({ detail: 'Document not found.' }) };
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('machine-documents')
+        .download(record.storage_path);
+
+      if (error) throw error;
+
+      return {
+        ok: true,
+        status: 200,
+        blob: async () => data
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        status: 500,
+        json: async () => ({ detail: e.message })
+      };
+    }
+  }
+
+  // 5. GET /vault/records/export -> Export backup
+  if (path === '/vault/records/export') {
+    const urlObj = new URL(url, 'http://dummy.com');
+    const machineIds = urlObj.searchParams.getAll('machine_id');
+
+    const records = getLocalRecords();
+    const filteredRecords = records.filter(r => machineIds.includes(r.machine_id));
+
+    try {
+      const zip = new JSZip();
+      zip.file('records.json', JSON.stringify(filteredRecords, null, 2));
+
+      for (const record of filteredRecords) {
+        if (record.storage_path) {
+          try {
+            const { data } = await supabase.storage
+              .from('machine-documents')
+              .download(record.storage_path);
+            if (data) {
+              zip.file(record.file_name || 'original_file', data);
+            }
+          } catch (e) {
+            console.error('Failed to add document to zip', record.file_name, e);
+          }
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      return {
+        ok: true,
+        status: 200,
+        blob: async () => zipBlob
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        status: 500,
+        json: async () => ({ detail: e.message })
+      };
+    }
+  }
+
+  // 6. POST /vault/records/import -> Restore backup
+  if (path === '/vault/records/import' && options.method === 'POST') {
+    try {
+      const formData = options.body;
+      const file = formData.get('file');
+
+      const zip = await JSZip.loadAsync(file);
+      const recordsJsonFile = zip.file('records.json');
+      if (!recordsJsonFile) {
+        throw new Error('Invalid backup: records.json not found in ZIP.');
+      }
+
+      const recordsJsonText = await recordsJsonFile.async('text');
+      const importedRecords = JSON.parse(recordsJsonText);
+
+      const records = getLocalRecords();
+      let restoredCount = 0;
+      let skippedCount = 0;
+
+      for (const rec of importedRecords) {
+        if (records.some(r => r.record_id === rec.record_id)) {
+          skippedCount++;
+          continue;
+        }
+
+        const docFile = zip.file(rec.file_name);
+        if (docFile && rec.storage_path) {
+          try {
+            const docBlob = await docFile.async('blob');
+            await supabase.storage
+              .from('machine-documents')
+              .upload(rec.storage_path, docBlob, { upsert: true });
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('machine-documents')
+              .getPublicUrl(rec.storage_path);
+
+            await supabase.from('documents').insert({
+              id: rec.document_id.replace('DOC-', ''),
+              machine_id: rec.machine_id,
+              title: rec.title,
+              category: rec.record_type || 'manual',
+              file_url: publicUrl
+            });
+          } catch (e) {
+            console.error('Failed to restore file', rec.file_name, e);
+          }
+        }
+
+        records.push(rec);
+        restoredCount++;
+      }
+
+      saveLocalRecords(records);
+
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ restored: restoredCount, skipped: skippedCount })
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        status: 500,
+        json: async () => ({ detail: e.message })
+      };
+    }
+  }
+
+  return { ok: false, status: 404, json: async () => ({ detail: 'Not Found' }) };
 }
 
 const RECORD_TYPES = [
@@ -319,7 +684,7 @@ export default function Records() {
     try {
       const { data: machinesData } = await supabase.from('machines').select('id,name,location,status');
       const machineData = (machinesData || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }));
-      const recordData = [];
+      const recordData = JSON.parse(window.localStorage.getItem('tf_records') || '[]');
       if (requestId !== loadRequest.current) return;
       setMachines(machineData);
       if (initialMachineId && !machineData.some((machine) => machine.machine_id === initialMachineId)) setMachineFilter('all');

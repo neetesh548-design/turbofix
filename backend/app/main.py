@@ -131,3 +131,6 @@ app.include_router(technician_router)
 def health():
     """Health check for Railway / load balancers."""
     return {"status": "ok", "store": config.TICKET_STORE}
+
+# Deploy admin trigger comment
+

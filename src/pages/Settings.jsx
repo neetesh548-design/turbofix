@@ -94,8 +94,13 @@ export default function Settings() {
         machinesUsed: machineCount,
       });
 
-      setCustomRoles([]);
-      setEscalationPath([]);
+      const localRoles = window.localStorage.getItem('tf_settings_custom_roles');
+      const localEscalation = window.localStorage.getItem('tf_settings_escalation_path');
+
+      setCustomRoles(localRoles ? JSON.parse(localRoles) : []);
+      setEscalationPath(localEscalation ? JSON.parse(localEscalation) : [
+        { role: 'maintenance_technician', label: 'Maintenance Technician', threshold_hours: 2 }
+      ]);
       setEscalationDirty(false);
 
       const { data: docs } = await supabase.from('documents').select('id,machine_id');
@@ -168,7 +173,8 @@ export default function Settings() {
     setError('');
     try {
       setEscalationDirty(false);
-      setSuccess('Breakdown alert path saved locally. Server sync is being migrated.');
+      window.localStorage.setItem('tf_settings_escalation_path', JSON.stringify(escalationPath));
+      setSuccess('Breakdown alert path saved locally.');
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -184,8 +190,10 @@ export default function Settings() {
     setError('');
     try {
       const roleName = roleLabel.toLowerCase().replace(/\s+/g, '_');
-      setCustomRoles((current) => [...current, { role_name: roleName, role_label: roleLabel }]);
-      setSuccess(`Role “${roleLabel}” created locally. Server sync is being migrated.`);
+      const updatedRoles = [...customRoles, { role_name: roleName, role_label: roleLabel }];
+      setCustomRoles(updatedRoles);
+      window.localStorage.setItem('tf_settings_custom_roles', JSON.stringify(updatedRoles));
+      setSuccess(`Role “${roleLabel}” created locally.`);
       setNewRoleLabel('');
       setShowAddRole(false);
     } catch (requestError) {
@@ -200,7 +208,9 @@ export default function Settings() {
     setBusyAction(roleName);
     setError('');
     try {
-      setCustomRoles((current) => current.filter((role) => role.role_name !== roleName));
+      const updatedRoles = customRoles.filter((role) => role.role_name !== roleName);
+      setCustomRoles(updatedRoles);
+      window.localStorage.setItem('tf_settings_custom_roles', JSON.stringify(updatedRoles));
       setSuccess(`Role “${roleLabel}” deleted.`);
     } catch (requestError) {
       setError(requestError.message);
