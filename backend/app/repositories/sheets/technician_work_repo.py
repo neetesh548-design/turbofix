@@ -3,7 +3,7 @@
 from typing import List, Optional
 
 from app.repositories.base import TECHNICIAN_WORK_HEADER, TechnicianWorkRepository
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 
 class SheetsTechnicianWorkRepository(TechnicianWorkRepository):
@@ -33,7 +33,8 @@ class SheetsTechnicianWorkRepository(TechnicianWorkRepository):
 
     def list_company(self, company_code: str) -> List[dict]:
         return [
-            row for row in self._worksheet().get_all_records(expected_headers=TECHNICIAN_WORK_HEADER)
+            row
+            for row in read_records(self._worksheet(), TECHNICIAN_WORK_HEADER)
             if row.get("company_code") == company_code
         ]
 

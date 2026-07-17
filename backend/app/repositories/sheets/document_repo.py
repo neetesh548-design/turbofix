@@ -11,7 +11,7 @@ from app.repositories.base import (
     DocumentRepository,
     new_document_id,
 )
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 
 class SheetsDocumentRepository(DocumentRepository):
@@ -28,7 +28,7 @@ class SheetsDocumentRepository(DocumentRepository):
         return new_document_id()
 
     def list(self, company_code: str, machine_id: Optional[str] = None) -> List[dict]:
-        all_rows = self._ws().get_all_records(expected_headers=DOCUMENTS_HEADER)
+        all_rows = read_records(self._ws(), DOCUMENTS_HEADER)
         results = []
         for record in all_rows:
             if record.get("company_code") != company_code:

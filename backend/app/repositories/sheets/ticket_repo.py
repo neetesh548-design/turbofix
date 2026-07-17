@@ -13,7 +13,7 @@ from app.repositories.base import (
     TicketRepository,
     new_ticket_id,
 )
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 
 class SheetsTicketRepository(TicketRepository):
@@ -72,7 +72,7 @@ class SheetsTicketRepository(TicketRepository):
 
     def get_company_tickets(self, company_code: str) -> List[dict]:
         ws = self._ws()
-        all_rows = ws.get_all_records(expected_headers=TICKETS_HEADER)
+        all_rows = read_records(ws, TICKETS_HEADER)
         return [r for r in all_rows if r.get("company_code") == company_code]
 
     def attach_photo(self, ticket_id: str, media_id: str) -> bool:
@@ -136,11 +136,11 @@ class SheetsEventRepository(EventRepository):
         )
 
     def get_machine_events(self, machine_id: str) -> List[dict]:
-        all_rows = self._ws().get_all_records(expected_headers=MACHINE_EVENTS_HEADER)
+        all_rows = read_records(self._ws(), MACHINE_EVENTS_HEADER)
         return [r for r in all_rows if r.get("machine_id") == machine_id]
 
     def get_company_events(self, company_code: str) -> List[dict]:
-        all_rows = self._ws().get_all_records(expected_headers=MACHINE_EVENTS_HEADER)
+        all_rows = read_records(self._ws(), MACHINE_EVENTS_HEADER)
         return [r for r in all_rows if r.get("company_code") == company_code]
 
 
@@ -167,7 +167,7 @@ class SheetsMachineRepository(MachineRepository):
             return self._cache
 
         machines: Dict[str, dict] = {}
-        for record in self._ws().get_all_records(expected_headers=MACHINES_HEADER):
+        for record in read_records(self._ws(), MACHINES_HEADER):
             machine_id = str(record.get("machine_id", "")).strip().upper()
             if not machine_id:
                 continue
@@ -218,5 +218,5 @@ class SheetsMachineRepository(MachineRepository):
 
     def get_company_machines(self, company_code: str) -> List[dict]:
         ws = self._ws()
-        all_rows = ws.get_all_records(expected_headers=MACHINES_HEADER)
+        all_rows = read_records(ws, MACHINES_HEADER)
         return [r for r in all_rows if r.get("company_code") == company_code]

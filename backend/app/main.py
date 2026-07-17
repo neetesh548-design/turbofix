@@ -23,6 +23,7 @@ from slowapi.errors import RateLimitExceeded
 from app import config
 from app.infrastructure.rate_limit import limiter
 from app.infrastructure.logging import configure_logging, get_logger
+from app.repositories.sheets.client import SheetsUnavailableError
 from app.routers.admin_router import router as admin_router
 from app.routers.report_router import router as report_router
 from app.routers.auth_router import router as auth_router
@@ -76,6 +77,15 @@ app.state.limiter = limiter
 @app.exception_handler(RateLimitExceeded)
 async def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(status_code=429, content={"detail": "Too many requests — please try again later."})
+
+
+@app.exception_handler(SheetsUnavailableError)
+async def _sheets_unavailable_handler(request: Request, exc: SheetsUnavailableError):
+    log.error("sheets.unavailable", path=request.url.path, error=str(exc))
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Live plant data is temporarily unavailable. Please try again."},
+    )
 
 # CORS — restrict to the deployed frontend origin in production.
 # Set VAULT_CORS_ORIGINS=https://your-site.github.io in Railway env vars.

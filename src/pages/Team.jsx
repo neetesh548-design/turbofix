@@ -32,14 +32,14 @@ export default function Team() {
     setLoading(true);
     setError('');
     try {
-      // Load team
-      const tResp = await apiFetch('/vault/team');
+      const [tResp, crResp] = await Promise.all([
+        apiFetch('/vault/team'),
+        apiFetch('/vault/custom-roles'),
+      ]);
       if (!tResp.ok) throw new Error('Failed to load team list');
       const tData = await tResp.json();
       setTeam(Array.isArray(tData) ? tData : []);
 
-      // Load custom roles
-      const crResp = await apiFetch('/vault/custom-roles');
       if (crResp.ok) {
         const roleData = await crResp.json();
         setCustomRoles(Array.isArray(roleData) ? roleData : []);

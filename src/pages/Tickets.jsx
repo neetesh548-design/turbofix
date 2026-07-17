@@ -18,14 +18,14 @@ export default function Tickets() {
     setLoading(true);
     setError('');
     try {
-      // Fetch escalation configuration
-      const escResp = await apiFetch('/vault/escalation');
+      const [escResp, resp] = await Promise.all([
+        apiFetch('/vault/escalation'),
+        apiFetch('/vault/tickets'),
+      ]);
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
 
-      // Fetch tickets
-      const resp = await apiFetch('/vault/tickets');
       if (!resp.ok) throw new Error('Failed to load tickets');
       const data = await resp.json();
       setTickets(Array.isArray(data) ? data : []);

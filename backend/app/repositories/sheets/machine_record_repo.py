@@ -7,7 +7,7 @@ from app.repositories.base import (
     MachineRecordRepository,
     new_machine_record_id,
 )
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 
 class SheetsMachineRecordRepository(MachineRecordRepository):
@@ -36,7 +36,7 @@ class SheetsMachineRecordRepository(MachineRecordRepository):
         status: Optional[str] = None,
     ) -> List[dict]:
         records = []
-        for record in self._ws().get_all_records(expected_headers=MACHINE_RECORDS_HEADER):
+        for record in read_records(self._ws(), MACHINE_RECORDS_HEADER):
             if record.get("company_code") != company_code:
                 continue
             if machine_id is not None and record.get("machine_id") != machine_id:

@@ -8,11 +8,11 @@ from app.repositories.base import (
     UserRepository,
     new_user_id,
 )
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 
 def _normalize(value) -> str:
-    # get_all_records() may return numeric-looking cells (phone numbers) as ints.
+    # Keep identifiers comparable even if a storage adapter returns numeric cells.
     return str(value).strip().lower() if value is not None else ""
 
 
@@ -32,21 +32,21 @@ class SheetsUserRepository(UserRepository):
     def get_by_identifier(self, identifier: str) -> Optional[dict]:
         ws = self._ss().worksheet("Users")
         target = _normalize(identifier)
-        for record in ws.get_all_records(expected_headers=USERS_HEADER):
+        for record in read_records(ws, USERS_HEADER):
             if _normalize(record.get("phone")) == target or _normalize(record.get("email")) == target:
                 return record
         return None
 
     def get_by_id(self, user_id: str) -> Optional[dict]:
         ws = self._ss().worksheet("Users")
-        for record in ws.get_all_records(expected_headers=USERS_HEADER):
+        for record in read_records(ws, USERS_HEADER):
             if record.get("user_id") == user_id:
                 return record
         return None
 
     def list_users(self) -> List[dict]:
         ws = self._ss().worksheet("Users")
-        return list(ws.get_all_records(expected_headers=USERS_HEADER))
+        return read_records(ws, USERS_HEADER)
 
 
     def add(self, row: dict) -> None:
@@ -65,14 +65,14 @@ class SheetsUserRepository(UserRepository):
     def get_company(self, company_code: str) -> Optional[dict]:
         ws = self._ss().worksheet("Companies")
         target = _normalize(company_code)
-        for record in ws.get_all_records(expected_headers=COMPANIES_HEADER):
+        for record in read_records(ws, COMPANIES_HEADER):
             if _normalize(record.get("company_code")) == target:
                 return record
         return None
 
     def list_companies(self) -> List[dict]:
         ws = self._ss().worksheet("Companies")
-        return list(ws.get_all_records(expected_headers=COMPANIES_HEADER))
+        return read_records(ws, COMPANIES_HEADER)
 
     def update_company(self, company_code: str, fields: dict) -> bool:
         ws = self._ss().worksheet("Companies")

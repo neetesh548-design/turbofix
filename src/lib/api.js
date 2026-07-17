@@ -11,7 +11,7 @@ export function getApiBase() {
 }
 
 const RETRYABLE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const RETRYABLE_STATUS_CODES = new Set([500, 502, 503, 504]);
 
 const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 

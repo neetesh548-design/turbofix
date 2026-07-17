@@ -6,10 +6,11 @@ Thread-safe via a simple module-level lock.
 """
 
 import threading
-from functools import lru_cache
+from typing import Any, Iterable
 
 import gspread
 from google.oauth2.service_account import Credentials
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 _SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -18,6 +19,55 @@ _SCOPES = [
 
 _lock = threading.Lock()
 _client: gspread.Client = None
+
+
+class SheetsUnavailableError(RuntimeError):
+    """Raised when the live spreadsheet cannot be read after retrying."""
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=0.25, min=0.25, max=1.0),
+    reraise=True,
+)
+def _get_all_values(worksheet) -> list[list[Any]]:
+    return worksheet.get_all_values()
+
+
+def read_records(worksheet, expected_headers: Iterable[str]) -> list[dict]:
+    """Read canonical records while tolerating old, extra, or blank columns.
+
+    Production worksheets can lag behind the application schema or contain blank
+    columns added by operators. gspread's ``expected_headers`` rejects missing
+    columns, which made otherwise-readable legacy tabs fail with HTTP 500. Map the
+    columns that exist and return blanks for newly introduced fields instead.
+    """
+    headers = list(expected_headers)
+    try:
+        values = _get_all_values(worksheet)
+    except Exception as exc:
+        raise SheetsUnavailableError("Google Sheets is temporarily unavailable") from exc
+
+    if not values:
+        return []
+
+    actual_headers = [str(value).strip() for value in values[0]]
+    column_indexes: dict[str, int] = {}
+    for index, header in enumerate(actual_headers):
+        if header and header not in column_indexes:
+            column_indexes[header] = index
+
+    records = []
+    for row in values[1:]:
+        if not any(str(value).strip() for value in row):
+            continue
+        records.append({
+            header: row[column_indexes[header]]
+            if header in column_indexes and column_indexes[header] < len(row)
+            else ""
+            for header in headers
+        })
+    return records
 
 
 def get_client(service_account_file: str) -> gspread.Client:

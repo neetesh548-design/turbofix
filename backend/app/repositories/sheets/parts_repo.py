@@ -12,7 +12,7 @@ from app.repositories.base import (
     PartsRepository,
     new_item_id,
 )
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, read_records
 
 _SHEETS = {
     "spare_parts": ("SpareParts", SPARE_PARTS_HEADER),
@@ -38,7 +38,7 @@ class SheetsPartsRepository(PartsRepository):
         self, kind: str, company_code: str, machine_id: Optional[str] = None
     ) -> List[dict]:
         _, header = _SHEETS[kind]
-        all_rows = self._ws(kind).get_all_records(expected_headers=header)
+        all_rows = read_records(self._ws(kind), header)
         results = []
         for record in all_rows:
             if record.get("company_code") != company_code:
