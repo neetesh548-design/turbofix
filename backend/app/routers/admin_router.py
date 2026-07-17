@@ -468,44 +468,30 @@ def get_gemini_config(_: bool = Depends(get_current_admin)):
 
 @router.post("/config/gemini")
 def update_gemini_config(body: GeminiConfigUpdate, _: bool = Depends(get_current_admin)):
-    import os
-    import subprocess
-    
-    # 1. Update the in-memory config
     config.GEMINI_API_KEY = body.gemini_api_key
-    
-    # 2. Persist to .env file
-    env_path = config.BACKEND_DIR / ".env"
-    if not env_path.exists():
-        env_path = config.BACKEND_DIR.parent / ".env"
-        
-    lines = []
-    found = False
-    if env_path.exists():
-        with open(env_path, "r") as f:
-            for line in f:
-                if line.strip().startswith("GEMINI_API_KEY="):
-                    lines.append(f"GEMINI_API_KEY={body.gemini_api_key}\n")
-                    found = True
-                else:
-                    lines.append(line)
-    if not found:
-        lines.append(f"\nGEMINI_API_KEY={body.gemini_api_key}\n")
-        
-    with open(env_path, "w") as f:
-        f.writelines(lines)
-        
-    # 3. Synchronize with Supabase Secrets (async in background to not block)
+
+    # Persist to .env when running locally (silently skip on Render/Docker)
     try:
-        subprocess.Popen(
-            ["npx", "supabase", "secrets", "set", f"GEMINI_API_KEY={body.gemini_api_key}"],
-            cwd=str(config.BACKEND_DIR.parent),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-    except Exception as e:
-        log.error("admin.config.sync_error", error=str(e))
-        
+        env_path = config.BACKEND_DIR / ".env"
+        if not env_path.exists():
+            env_path = config.BACKEND_DIR.parent / ".env"
+        if env_path.exists():
+            lines = []
+            found = False
+            with open(env_path, "r") as f:
+                for line in f:
+                    if line.strip().startswith("GEMINI_API_KEY="):
+                        lines.append(f"GEMINI_API_KEY={body.gemini_api_key}\n")
+                        found = True
+                    else:
+                        lines.append(line)
+            if not found:
+                lines.append(f"\nGEMINI_API_KEY={body.gemini_api_key}\n")
+            with open(env_path, "w") as f:
+                f.writelines(lines)
+    except OSError:
+        log.info("admin.config.env_write_skipped", reason="read-only filesystem")
+
     return {"status": "success", "message": "Gemini API key updated successfully."}
 
 
