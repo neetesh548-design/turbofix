@@ -44,9 +44,17 @@ export default function Vault() {
 
     // Scroll to top on mount
     window.scrollTo(0, 0);
+
+    // Load Supabase JS client from CDN (vault.js needs window.supabase.createClient)
+    const sbScript = document.createElement('script');
+    sbScript.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    document.head.appendChild(sbScript);
+
     const script = document.createElement('script');
     script.src = `${import.meta.env.BASE_URL}assets/vault.js`;
-    document.body.appendChild(script);
+    // Wait for Supabase CDN to load before vault.js executes
+    sbScript.onload = () => document.body.appendChild(script);
+    sbScript.onerror = () => document.body.appendChild(script);
 
     const style = document.createElement('link');
     style.rel = 'stylesheet';
@@ -54,6 +62,7 @@ export default function Vault() {
     document.head.appendChild(style);
     
     return () => {
+      sbScript.remove();
       script.remove();
       style.remove();
     };
@@ -96,7 +105,7 @@ export default function Vault() {
       <summary>Advanced: backend URL</summary>
       <div class="vault-field" style="margin-top:10px">
         <label for="apiBaseInput">API base URL</label>
-        <input type="text" id="apiBaseInput" placeholder="https://turbofix-backend-ehxb.onrender.com">
+        <input type="text" id="apiBaseInput" placeholder="https://wcqgbleppiaddgfjrnpq.supabase.co">
       </div>
     </details>
 
