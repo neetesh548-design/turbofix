@@ -5,7 +5,11 @@ import {
   Info, Plus, Search, ShieldCheck, Sparkles, Trash2, TriangleAlert, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
+
+async function apiFetch() {
+  return { ok: false, status: 501, json: async () => ({ detail: 'Records backend is being migrated.' }), blob: async () => new Blob() };
+}
 
 const RECORD_TYPES = [
   ['service_history', 'Service history'],
@@ -313,14 +317,9 @@ export default function Records() {
     setLoading(true);
     setError('');
     try {
-      const [machineResponse, recordResponse] = await Promise.all([
-        apiFetch('/vault/machines'),
-        apiFetch('/vault/records'),
-      ]);
-      if (!machineResponse.ok) throw new Error(await responseMessage(machineResponse, 'Machines could not be loaded.'));
-      if (!recordResponse.ok) throw new Error(await responseMessage(recordResponse, 'Machine records could not be loaded.'));
-      const machineData = await machineResponse.json();
-      const recordData = await recordResponse.json();
+      const { data: machinesData } = await supabase.from('machines').select('id,name,location,status');
+      const machineData = (machinesData || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }));
+      const recordData = [];
       if (requestId !== loadRequest.current) return;
       setMachines(machineData);
       if (initialMachineId && !machineData.some((machine) => machine.machine_id === initialMachineId)) setMachineFilter('all');

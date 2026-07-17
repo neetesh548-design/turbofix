@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 
 const priorityRank = { Critical: 0, Recommended: 1, Preventive: 2 };
 const estimationStorageKey = 'tf_shutdown_estimation_rules';
@@ -60,11 +60,12 @@ export default function ShutdownPlanner() {
   const [hourOverrides, setHourOverrides] = useState({});
 
   useEffect(() => {
-    Promise.all([apiFetch('/vault/machines'), apiFetch('/vault/tickets')])
-      .then(async ([machineResponse, ticketResponse]) => {
-        if (!machineResponse.ok || !ticketResponse.ok) throw new Error('Maintenance data could not be loaded.');
-        const machineData = await machineResponse.json();
-        const ticketData = await ticketResponse.json();
+    Promise.all([
+      supabase.from('machines').select('id,name,location,status'),
+      supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at'),
+    ]).then(([machinesRes, ticketsRes]) => {
+        const machineData = (machinesRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location, status: m.status }));
+        const ticketData = (ticketsRes.data || []).map(t => ({ ticket_id: t.id, machine_id: t.machine_id, status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at }));
         setMachines(machineData);
         setTickets(ticketData);
         setSelectedIds(machineData.map((machine) => machine.machine_id));

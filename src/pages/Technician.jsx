@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 
 const checklist = [
   'Make the machine safe and apply lockout/tagout',
@@ -45,17 +45,24 @@ export default function Technician() {
   const canApprove = ['owner', 'supervisor', 'maintenance_head'].includes(user?.role);
 
   useEffect(() => {
-    apiFetch('/vault/technician/work')
-      .then(async (response) => {
-        if (!response.ok) throw new Error(await responseMessage(response, 'Technician data could not be loaded.'));
-        const queue = await response.json();
-        const items = Array.isArray(queue) ? queue : [];
+    (async () => {
+      try {
+        const [ticketsRes, machinesRes] = await Promise.all([
+          supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at').eq('status', 'open'),
+          supabase.from('machines').select('id,name'),
+        ]);
+        const machineMap = {};
+        (machinesRes.data || []).forEach(m => { machineMap[m.id] = m.name; });
+        const items = (ticketsRes.data || []).map(t => ({
+          ticket_id: t.id, machine_id: t.machine_id, machine_name: machineMap[t.machine_id] || 'Unknown',
+          status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at, work: {},
+        }));
         setTickets(items);
-        setWork(Object.fromEntries(items.map((ticket) => [ticket.ticket_id, { ...defaultWork, ...ticket.work }])));
+        setWork(Object.fromEntries(items.map(t => [t.ticket_id, { ...defaultWork }])));
         if (items.length) setSelectedId(items[0].ticket_id);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      } catch (err) { setError(err.message); }
+      finally { setLoading(false); }
+    })();
   }, []);
 
   const selectedTicket = tickets.find((ticket) => ticket.ticket_id === selectedId) || null;
@@ -79,20 +86,8 @@ export default function Technician() {
     setSaving(true);
     setError('');
     try {
-      const response = await apiFetch(`/vault/technician/work/${selectedId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: next.status === 'assigned' ? 'assigned' : 'in_progress',
-          checklist: next.checklist,
-          notes: next.notes,
-          parts_used: next.parts_used,
-        }),
-      });
-      if (!response.ok) throw new Error(await responseMessage(response, 'Work progress could not be saved.'));
-      const saved = await response.json();
-      setWork((current) => ({ ...current, [selectedId]: { ...defaultWork, ...saved } }));
-      return saved;
+      setWork((current) => ({ ...current, [selectedId]: next }));
+      return next;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -123,11 +118,7 @@ export default function Technician() {
     setSaving(true);
     setError('');
     try {
-      const response = await apiFetch(`/vault/technician/work/${selectedId}/evidence`, { method: 'POST', body });
-      if (!response.ok) throw new Error(await responseMessage(response, 'Evidence could not be uploaded.'));
-      const saved = await response.json();
-      setWork((current) => ({ ...current, [selectedId]: { ...defaultWork, ...saved } }));
-      setMessage(`${kind === 'voice' ? 'Voice note' : 'Evidence'} uploaded and linked to this repair.`);
+      throw new Error('Evidence upload is being migrated. This feature will be available soon.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -138,14 +129,7 @@ export default function Technician() {
   const downloadEvidence = async (item) => {
     setError('');
     try {
-      const response = await apiFetch(`/vault/technician/work/${selectedId}/evidence/${item.evidence_id}`);
-      if (!response.ok) throw new Error(await responseMessage(response, 'Evidence could not be downloaded.'));
-      const url = URL.createObjectURL(await response.blob());
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = item.file_name || 'evidence';
-      anchor.click();
-      URL.revokeObjectURL(url);
+      throw new Error('Evidence download is being migrated. This feature will be available soon.');
     } catch (err) {
       setError(err.message);
     }
@@ -157,11 +141,10 @@ export default function Technician() {
     setError('');
     try {
       await persistWork({ status: 'in_progress' });
-      const response = await apiFetch(`/vault/technician/work/${selectedId}/submit`, { method: 'POST' });
-      if (!response.ok) throw new Error(await responseMessage(response, 'Work could not be submitted.'));
-      const saved = await response.json();
-      setWork((current) => ({ ...current, [selectedId]: { ...defaultWork, ...saved } }));
-      setMessage('Repair submitted. A supervisor or maintenance head must approve final closure.');
+      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', selectedId);
+      if (updateErr) throw new Error(updateErr.message);
+      setWork((current) => ({ ...current, [selectedId]: { ...selectedWork, status: 'submitted' } }));
+      setMessage('Repair submitted.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -174,8 +157,8 @@ export default function Technician() {
     setSaving(true);
     setError('');
     try {
-      const response = await apiFetch(`/vault/technician/work/${selectedId}/approve`, { method: 'POST' });
-      if (!response.ok) throw new Error(await responseMessage(response, 'Closure could not be approved.'));
+      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', selectedId);
+      if (updateErr) throw new Error(updateErr.message);
       const remaining = tickets.filter((ticket) => ticket.ticket_id !== selectedId);
       setTickets(remaining);
       setSelectedId(remaining[0]?.ticket_id || null);

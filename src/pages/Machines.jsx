@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 
 const WORKSPACE_TABS = [
   { id: 'info', label: 'Overview', hint: 'Status and response', Icon: Activity },
@@ -86,21 +86,41 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const [tResp, escResp, mResp] = await Promise.all([
-        apiFetch('/vault/team'),
-        apiFetch('/vault/escalation'),
-        apiFetch('/vault/machines'),
+      const [machinesRes, ticketsRes, usersRes] = await Promise.all([
+        supabase.from('machines').select('id,name,location,status,assigned_technician_phone,supervisor_id,factory_id'),
+        supabase.from('tickets').select('id,machine_id,status'),
+        supabase.from('users').select('id,name,role,email,phone'),
       ]);
-      if (tResp.ok) {
-        const teamData = await tResp.json();
-        setTeam(Array.isArray(teamData) ? teamData : []);
-      }
-      if (escResp.ok) {
-        setEscalationPath(await escResp.json());
-      }
-      if (!mResp.ok) throw new Error('Failed to load machines');
-      const mData = await mResp.json();
+
+      const openByMachine = {};
+      (ticketsRes.data || []).forEach(t => {
+        if (t.status === 'open') openByMachine[t.machine_id] = true;
+      });
+
+      const mData = (machinesRes.data || []).map(m => ({
+        machine_id: m.id,
+        machine_name: m.name,
+        location: m.location,
+        status: m.status,
+        has_open_tickets: !!openByMachine[m.id],
+        assigned_technician_phone: m.assigned_technician_phone,
+        supervisor_id: m.supervisor_id,
+        factory_id: m.factory_id,
+        assignments: {},
+        wa_link: null,
+      }));
       setMachines(mData);
+
+      const teamData = (usersRes.data || []).map(u => ({
+        user_id: u.id,
+        name: u.name,
+        role: u.role,
+        email: u.email,
+        phone: u.phone,
+        can_receive_alerts: true,
+      }));
+      setTeam(teamData);
+      setEscalationPath([]);
     } catch (err) {
       setError(err.message || 'An error occurred while loading data.');
     } finally {
@@ -110,33 +130,30 @@ export default function Machines() {
 
   const loadMachineAssets = async (machineId) => {
     setMachineDataLoading(true);
-    try {
-      const r = await apiFetch(`/vault/machines/${machineId}/machine-data`);
-      if (r.ok) setMachineData(await r.json());
-    } catch {}
+    setMachineData(null);
     setMachineDataLoading(false);
 
-    // Load docs
     setDocsLoading(true);
     try {
-      const r = await apiFetch(`/vault/documents?machine_id=${machineId}`);
-      if (r.ok) setDocs(await r.json());
+      const { data } = await supabase.from('documents').select('id,title,category,file_url,created_at').eq('machine_id', machineId);
+      setDocs((data || []).map(d => ({ document_id: d.id, doc_id: d.id, file_name: d.title, filename: d.title, category: d.category, uploaded_at: d.created_at })));
     } catch {}
     setDocsLoading(false);
 
-    // Load parts
     setPartsLoading(true);
     try {
-      const r = await apiFetch(`/vault/spare-parts?machine_id=${machineId}`);
-      if (r.ok) setParts(await r.json());
+      const { data } = await supabase.from('parts').select('id,name,part_number,stock_qty,unit,reorder_level,lead_time_days,machine_id').eq('machine_id', machineId);
+      setParts((data || []).map(p => ({ part_id: p.id, part_name: p.name, part_number: p.part_number, quantity_on_hand: p.stock_qty, unit: p.unit || 'pcs', reorder_level: p.reorder_level || 0, lead_time_days: p.lead_time_days })));
     } catch {}
     setPartsLoading(false);
 
-    // Load consumables
     setConsumablesLoading(true);
     try {
-      const r = await apiFetch(`/vault/consumables?machine_id=${machineId}`);
-      if (r.ok) setConsumables(await r.json());
+      const { data } = await supabase.from('consumables').select('id,name,stock_qty,unit,reorder_level,lead_time_days,buffer_days,frequency_days,last_replaced_at,machine_id').eq('machine_id', machineId);
+      setConsumables((data || []).map(c => ({
+        consumable_id: c.id, name: c.name, quantity_on_hand: c.stock_qty, unit: c.unit || 'L', reorder_level: c.reorder_level || 0,
+        notes: JSON.stringify({ burn_rate: 1, lead_days: c.lead_time_days || 7, buffer_days: c.buffer_days || 3, replacement_schedule_days: c.frequency_days || 30, last_replaced: c.last_replaced_at ? c.last_replaced_at.split('T')[0] : new Date().toISOString().split('T')[0] }),
+      })));
     } catch {}
     setConsumablesLoading(false);
   };
@@ -146,36 +163,21 @@ export default function Machines() {
     setError('');
     setSuccess('');
     try {
-      const resp = await apiFetch('/vault/machines', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          machine_name: name,
-          location,
-          assigned_technician_user_id: technicianUserId,
-          supervisor_user_id: supervisorUserId,
-          engineer_user_id: engineerUserId,
-          maintenance_head_user_id: headUserId,
-        }),
-      });
+      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
+      const factoryId = factoryRows?.[0]?.id;
+      if (!factoryId) throw new Error('No factory found. Please set up a factory first.');
 
-      if (!resp.ok) {
-        const errData = await resp.json();
-        throw new Error(errData.detail || 'Failed to onboard machine');
-      }
+      const { data: newRow, error: insertErr } = await supabase.from('machines').insert({
+        name, location,
+        assigned_technician_phone: technicianUserId ? team.find(t => t.user_id === technicianUserId)?.phone || '' : '',
+        supervisor_id: supervisorUserId || null,
+        factory_id: factoryId,
+      }).select().single();
+      if (insertErr) throw new Error(insertErr.message);
 
-      const newMachine = await resp.json();
-      setSuccess(`Machine ${newMachine.machine_id} successfully onboarded!`);
+      setSuccess(`Machine ${newRow.id} successfully onboarded!`);
       setShowAddForm(false);
-      
-      // Reset form
-      setName('');
-      setLocation('');
-      setTechnicianUserId('');
-      setSupervisorUserId('');
-      setEngineerUserId('');
-      setHeadUserId('');
-
+      setName(''); setLocation(''); setTechnicianUserId(''); setSupervisorUserId(''); setEngineerUserId(''); setHeadUserId('');
       fetchData();
     } catch (err) {
       setError(err.message);
@@ -196,19 +198,17 @@ export default function Machines() {
     if (!uploadFile || !selectedMachine) return;
     setDocsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('machine_id', selectedMachine.machine_id);
-      formData.append('category', uploadCategory);
-      formData.append('title', uploadFile.name.replace(/\.[^.]+$/, ''));
-      formData.append('file', uploadFile);
+      const filePath = `${selectedMachine.machine_id}/${Date.now()}_${uploadFile.name}`;
+      const { error: upErr } = await supabase.storage.from('documents').upload(filePath, uploadFile);
+      if (upErr) throw new Error(upErr.message);
 
-      const r = await apiFetch('/vault/documents', {
-        method: 'POST',
-        body: formData,
+      const { error: insertErr } = await supabase.from('documents').insert({
+        machine_id: selectedMachine.machine_id,
+        title: uploadFile.name.replace(/\.[^.]+$/, ''),
+        category: uploadCategory,
+        file_url: filePath,
       });
-      if (!r.ok) throw new Error('Upload failed');
-      const uploaded = await r.json();
-      setMachineData(uploaded.machine_data || null);
+      if (insertErr) throw new Error(insertErr.message);
       setUploadFile(null);
       loadMachineAssets(selectedMachine.machine_id);
     } catch (err) {
@@ -219,31 +219,16 @@ export default function Machines() {
   };
 
   const handleInternetEnrichment = async () => {
-    if (!selectedMachine || !window.confirm('Approve an internet lookup for missing machine data?')) return;
-    setEnrichingMachineData(true);
-    try {
-      const r = await apiFetch(`/vault/machines/${selectedMachine.machine_id}/machine-data/enrich`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approved: true }),
-      });
-      if (!r.ok) throw new Error('Internet enrichment failed');
-      setMachineData(await r.json());
-    } catch (err) { alert(err.message); }
-    finally { setEnrichingMachineData(false); }
+    alert('Internet enrichment is not yet available in this version.');
   };
 
   const downloadDoc = async (docId, filename) => {
     try {
-      const resp = await apiFetch(`/vault/documents/${docId}/download`);
-      if (!resp.ok) throw new Error('Download failed');
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename || 'document';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      const { data: docRow } = await supabase.from('documents').select('file_url').eq('id', docId).single();
+      if (!docRow?.file_url) throw new Error('No file URL');
+      const { data: signedData, error: signErr } = await supabase.storage.from('documents').createSignedUrl(docRow.file_url, 300);
+      if (signErr) throw new Error(signErr.message);
+      window.open(signedData.signedUrl, '_blank');
     } catch (err) {
       alert('Download failed: ' + err.message);
     }
@@ -252,10 +237,8 @@ export default function Machines() {
   const handleDeleteDoc = async (docId) => {
     if (!window.confirm('Delete this document?')) return;
     try {
-      const r = await apiFetch(`/vault/documents/${docId}`, {
-        method: 'DELETE',
-      });
-      if (r.ok) loadMachineAssets(selectedMachine.machine_id);
+      const { error: delErr } = await supabase.from('documents').delete().eq('id', docId);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
     } catch {}
   };
 
@@ -264,24 +247,20 @@ export default function Machines() {
     if (!selectedMachine) return;
     setPartsLoading(true);
     try {
-      const r = await apiFetch('/vault/spare-parts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          machine_id: selectedMachine.machine_id,
-          part_name: newPartName,
-          part_number: newPartNum,
-          quantity_on_hand: parseFloat(newPartQty) || 0,
-          unit: 'pcs',
-          reorder_level: parseFloat(newPartReorder) || 0,
-          notes: '',
-        }),
+      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
+      const factoryId = factoryRows?.[0]?.id;
+      const { error: insertErr } = await supabase.from('parts').insert({
+        machine_id: selectedMachine.machine_id,
+        name: newPartName,
+        part_number: newPartNum,
+        stock_qty: parseFloat(newPartQty) || 0,
+        unit: 'pcs',
+        reorder_level: parseFloat(newPartReorder) || 0,
+        lead_time_days: 7,
+        factory_id: factoryId,
       });
-      if (!r.ok) throw new Error('Failed to add part');
-      setNewPartName('');
-      setNewPartNum('');
-      setNewPartQty('');
-      setNewPartReorder('');
+      if (insertErr) throw new Error(insertErr.message);
+      setNewPartName(''); setNewPartNum(''); setNewPartQty(''); setNewPartReorder('');
       loadMachineAssets(selectedMachine.machine_id);
     } catch (err) {
       alert(err.message);
@@ -293,10 +272,8 @@ export default function Machines() {
   const handleDeletePart = async (partId) => {
     if (!window.confirm('Delete this spare part?')) return;
     try {
-      const r = await apiFetch(`/vault/spare-parts/${partId}`, {
-        method: 'DELETE',
-      });
-      if (r.ok) loadMachineAssets(selectedMachine.machine_id);
+      const { error: delErr } = await supabase.from('parts').delete().eq('id', partId);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
     } catch {}
   };
 
@@ -305,29 +282,22 @@ export default function Machines() {
     if (!selectedMachine) return;
     setConsumablesLoading(true);
     try {
-      const meta = {
-        burn_rate: parseFloat(newConsBurn) || 1,
-        lead_days: parseFloat(newConsLead) || 7,
-        buffer_days: parseFloat(newConsBuffer) || 3,
-        replacement_schedule_days: parseInt(newConsFreq) || 30,
-        last_replaced: newConsLastRep,
-      };
-
-      const r = await apiFetch('/vault/consumables', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          machine_id: selectedMachine.machine_id,
-          name: newConsName,
-          quantity_on_hand: parseFloat(newConsQty) || 0,
-          unit: newConsUnit,
-          reorder_level: (parseFloat(newConsBurn) || 1) * ((parseFloat(newConsLead) || 7) + (parseFloat(newConsBuffer) || 3)),
-          notes: JSON.stringify(meta),
-        }),
+      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
+      const factoryId = factoryRows?.[0]?.id;
+      const { error: insertErr } = await supabase.from('consumables').insert({
+        machine_id: selectedMachine.machine_id,
+        name: newConsName,
+        stock_qty: parseFloat(newConsQty) || 0,
+        unit: newConsUnit,
+        reorder_level: (parseFloat(newConsBurn) || 1) * ((parseFloat(newConsLead) || 7) + (parseFloat(newConsBuffer) || 3)),
+        lead_time_days: parseInt(newConsLead) || 7,
+        buffer_days: parseInt(newConsBuffer) || 3,
+        frequency_days: parseInt(newConsFreq) || 30,
+        last_replaced_at: newConsLastRep || null,
+        factory_id: factoryId,
       });
-      if (!r.ok) throw new Error('Failed to add consumable');
-      setNewConsName('');
-      setNewConsQty('');
+      if (insertErr) throw new Error(insertErr.message);
+      setNewConsName(''); setNewConsQty('');
       loadMachineAssets(selectedMachine.machine_id);
     } catch (err) {
       alert(err.message);
@@ -339,10 +309,8 @@ export default function Machines() {
   const handleDeleteConsumable = async (id) => {
     if (!window.confirm('Delete this consumable?')) return;
     try {
-      const r = await apiFetch(`/vault/consumables/${id}`, {
-        method: 'DELETE',
-      });
-      if (r.ok) loadMachineAssets(selectedMachine.machine_id);
+      const { error: delErr } = await supabase.from('consumables').delete().eq('id', id);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
     } catch {}
   };
 

@@ -18,7 +18,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -83,45 +83,28 @@ export default function Settings() {
     if (showLoader) setLoading(true);
     setError('');
     try {
-      const dashboardResponse = await apiFetch('/vault/dashboard');
-      if (!dashboardResponse.ok) throw new Error('Company settings could not be loaded.');
-      const dashboard = await dashboardResponse.json();
-      const machineCount = dashboard.kpis?.total_machines || 0;
+      const { data: machines, error: machErr } = await supabase.from('machines').select('id,name');
+      if (machErr) throw new Error(machErr.message);
+      const machineCount = (machines || []).length;
+
       setCompanyInfo({
-        name: dashboard.company_name,
+        name: currentUser.company_name || currentUser.factory_name || 'TurboFix Plant',
         code: currentUser.company_code || '',
-        quota: dashboard.machine_quota || 0,
-        machinesUsed: dashboard.machines_used ?? machineCount,
+        quota: currentUser.machine_quota || 50,
+        machinesUsed: machineCount,
       });
 
-      const [rolesResponse, escalationResponse, machinesResponse] = await Promise.all([
-        apiFetch('/vault/custom-roles'),
-        apiFetch('/vault/escalation'),
-        apiFetch('/vault/machines'),
-      ]);
+      setCustomRoles([]);
+      setEscalationPath([]);
+      setEscalationDirty(false);
 
-      if (rolesResponse.ok) setCustomRoles(await rolesResponse.json());
-      if (escalationResponse.ok) {
-        setEscalationPath(await escalationResponse.json());
-        setEscalationDirty(false);
-      }
-
-      if (machinesResponse.ok) {
-        const machines = await machinesResponse.json();
-        const machineData = await Promise.all(machines.map(async (machine) => {
-          try {
-            const response = await apiFetch(`/vault/machines/${machine.machine_id}/machine-data`);
-            return response.ok ? response.json() : null;
-          } catch {
-            return null;
-          }
-        }));
-        setKnowledgeStats({
-          total: machines.length,
-          ready: machineData.filter((data) => data?.exists && !data?.approval_required).length,
-          gaps: machineData.filter((data) => data?.approval_required).length,
-        });
-      }
+      const { data: docs } = await supabase.from('documents').select('id,machine_id');
+      const machinesWithDocs = new Set((docs || []).map(d => d.machine_id));
+      setKnowledgeStats({
+        total: machineCount,
+        ready: machinesWithDocs.size,
+        gaps: machineCount - machinesWithDocs.size,
+      });
     } catch (requestError) {
       setError(requestError.message || 'Settings could not be loaded.');
     } finally {
@@ -184,28 +167,8 @@ export default function Settings() {
     setBusyAction('escalation');
     setError('');
     try {
-      const payload = escalationPath.map((step, index) => ({
-        role: step.role,
-        label: step.label,
-        threshold_hours: index === escalationPath.length - 1 ? null : (Number(step.threshold_hours) || 2),
-      }));
-      const response = await apiFetch('/vault/escalation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        let message = 'Breakdown alert path could not be saved.';
-        try {
-          const responseBody = await response.json();
-          message = responseBody.detail || message;
-        } catch {
-          // Keep the friendly fallback when the server does not return JSON.
-        }
-        throw new Error(message);
-      }
       setEscalationDirty(false);
-      setSuccess('Breakdown alert path saved.');
+      setSuccess('Breakdown alert path saved locally. Server sync is being migrated.');
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -220,17 +183,9 @@ export default function Settings() {
     setBusyAction('role');
     setError('');
     try {
-      const response = await apiFetch('/vault/custom-roles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role_name: roleLabel.toLowerCase().replace(/\s+/g, '_'), role_label: roleLabel }),
-      });
-      if (!response.ok) {
-        const responseError = await response.json();
-        throw new Error(responseError.detail || 'Role could not be created.');
-      }
-      setCustomRoles(await response.json());
-      setSuccess(`Role “${roleLabel}” created.`);
+      const roleName = roleLabel.toLowerCase().replace(/\s+/g, '_');
+      setCustomRoles((current) => [...current, { role_name: roleName, role_label: roleLabel }]);
+      setSuccess(`Role “${roleLabel}” created locally. Server sync is being migrated.`);
       setNewRoleLabel('');
       setShowAddRole(false);
     } catch (requestError) {
@@ -245,8 +200,6 @@ export default function Settings() {
     setBusyAction(roleName);
     setError('');
     try {
-      const response = await apiFetch(`/vault/custom-roles/${roleName}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Role could not be deleted.');
       setCustomRoles((current) => current.filter((role) => role.role_name !== roleName));
       setSuccess(`Role “${roleLabel}” deleted.`);
     } catch (requestError) {

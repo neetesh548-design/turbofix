@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 
 const plantSuggestions = [
   'Which machines require attention today?',
@@ -24,9 +24,8 @@ export default function Assistant() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiFetch('/vault/machines')
-      .then((response) => (response.ok ? response.json() : []))
-      .then(setMachines)
+    supabase.from('machines').select('id,name,location,status')
+      .then(({ data }) => setMachines((data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }))))
       .catch(() => setMachines([]));
   }, []);
 
@@ -72,18 +71,7 @@ export default function Assistant() {
     setAnswer('');
     setAnswerSource('');
     try {
-      const response = await apiFetch('/vault/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: trimmedQuestion,
-          machine_id: isPlantWide ? null : selected,
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.detail || 'The maintenance assistant is unavailable');
-      setAnswer(result.answer || 'No recommendation was returned.');
-      setAnswerSource(result.source || 'live_data');
+      throw new Error('The AI assistant backend is being migrated. This feature will be available soon.');
     } catch (requestError) {
       setError(requestError.message);
     } finally {

@@ -1,12 +1,63 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 
 const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0 },
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
+
+async function fetchDashboardData() {
+  const [machinesRes, ticketsRes, factoryRes] = await Promise.all([
+    supabase.from('machines').select('id,name,location,status'),
+    supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at'),
+    supabase.from('factories').select('name').limit(1),
+  ]);
+
+  const machines = machinesRes.data || [];
+  const tickets = ticketsRes.data || [];
+  const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
+
+  const openTickets = tickets.filter(t => t.status === 'open');
+  const machinesWithOpen = new Set(openTickets.map(t => t.machine_id));
+  const machinesDown = machinesWithOpen.size;
+  const urgentOpen = openTickets.filter(t => {
+    const s = t.ai_summary;
+    return s && typeof s === 'object' && (s.urgency === 'high' || s.urgency === 'critical');
+  }).length;
+  const healthPct = machines.length > 0 ? Math.round(((machines.length - machinesDown) / machines.length) * 100) : 100;
+
+  const machineMap = {};
+  machines.forEach(m => { machineMap[m.id] = m.name; });
+
+  const needsAttention = openTickets.map(t => {
+    const summary = t.ai_summary || {};
+    return {
+      machine_name: machineMap[t.machine_id] || 'Unknown',
+      description: t.issue_text || summary.summary || '',
+      urgency: (summary.urgency || 'Medium').charAt(0).toUpperCase() + (summary.urgency || 'medium').slice(1),
+      reported_at: t.created_at,
+    };
+  });
+
+  return {
+    company_name: companyName,
+    kpis: {
+      open_tickets: openTickets.length,
+      machines_down: machinesDown,
+      urgent_open: urgentOpen,
+      total_machines: machines.length,
+      plant_health_pct: healthPct,
+      avg_hours_to_fix: 0,
+      total_tickets: tickets.length,
+    },
+    auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
+    needs_attention: needsAttention,
+    recent_activity: [],
+    weekly_trend: [],
+  };
+}
 
 export default function Dashboard() {
   const [data, setData] = useState(fallback);
@@ -15,10 +66,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     let mounted = true;
-    apiFetch('/vault/dashboard')
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Unable to load the decision center');
-        const next = await response.json();
+    fetchDashboardData()
+      .then((next) => {
         if (mounted) setData({ ...fallback, ...next, kpis: { ...fallback.kpis, ...next.kpis }, auto_insights: { ...fallback.auto_insights, ...next.auto_insights } });
       })
       .catch((err) => mounted && setError(err.message))

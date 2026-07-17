@@ -1,4 +1,15 @@
-var BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("tf_api_base") || (window.supabaseConfig && window.supabaseConfig.url) || "https://wcqgbleppiaddgfjrnpq.supabase.co";
+var SUPABASE_URL = (window.supabaseConfig && window.supabaseConfig.url) || "https://wcqgbleppiaddgfjrnpq.supabase.co";
+var SUPABASE_ANON_KEY = (window.supabaseConfig && window.supabaseConfig.key) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWdibGVwcGlhZGRnZmpybnBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njg0NTAsImV4cCI6MjA5OTM0NDQ1MH0.FAOQMRMjOXrw4YsDf_wv4IhaUiXGoGB1q8Ye-ty2j7c";
+var _dashSb = null;
+function getDashSb() {
+  if (_dashSb) return _dashSb;
+  if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
+    _dashSb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return _dashSb;
+  }
+  throw new Error("Supabase not loaded");
+}
+var BACKEND_URL = SUPABASE_URL;
 
 function isOwner() {
   const u = JSON.parse(localStorage.getItem("tf_user") || "null");
@@ -41,85 +52,111 @@ async function loadDashboard() {
   }
 
   try {
-    const resp = await fetch(`${BACKEND_URL}/vault/dashboard`, {
-      headers: {"Authorization": `Bearer ${token}`},
-    });
+    var sb = getDashSb();
 
-    if (resp.status === 403) {
-      alert("Your company registration is pending admin approval.");
-      localStorage.removeItem("tf_token");
-      localStorage.removeItem("tf_user");
-      window.location.href = "vault.html";
-      return;
-    }
-    if (!resp.ok) {
-      localStorage.removeItem("tf_token");
-      localStorage.removeItem("tf_user");
-      window.location.href = "vault.html";
-      return;
-    }
+    // Fetch machines and tickets in parallel
+    var [machinesRes, ticketsRes] = await Promise.all([
+      sb.from("machines").select("id,name,location,status,assigned_technician_phone,supervisor_id"),
+      sb.from("tickets").select("id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone")
+    ]);
 
-    const data = await resp.json();
-    document.getElementById("companyName").textContent = data.company_name;
+    var machines = machinesRes.data || [];
+    var tickets = ticketsRes.data || [];
 
-    const user = JSON.parse(localStorage.getItem("tf_user") || "{}");
-    const roleText = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
-    document.getElementById("userRole").textContent = `${user.name} (${roleText})`;
+    var openTickets = tickets.filter(function(t) { return t.status === "open"; });
+    var closedTickets = tickets.filter(function(t) { return t.status === "closed" || t.status === "resolved"; });
+    var today = new Date().toISOString().slice(0, 10);
+    var closedToday = closedTickets.filter(function(t) { return t.created_at && t.created_at.slice(0, 10) === today; });
 
-    setKpiText(document.getElementById("openTickets"), data.kpis.open_tickets);
-    setKpiText(document.getElementById("closedToday"), data.kpis.closed_today);
-    setKpiText(document.getElementById("totalTickets"), data.kpis.total_tickets);
-    setKpiText(document.getElementById("avgHours"), data.kpis.avg_hours_to_fix);
-    setKpiText(document.getElementById("plantHealth"), data.kpis.plant_health_pct + "%");
+    var machinesWithOpen = {};
+    openTickets.forEach(function(t) { machinesWithOpen[t.machine_id] = true; });
+    var machinesDown = Object.keys(machinesWithOpen).length;
 
-    const downEl = document.getElementById("machinesDown");
-    setKpiText(downEl, `${data.kpis.machines_down} of ${data.kpis.total_machines}`);
-    downEl.classList.toggle("kpi-danger", data.kpis.machines_down > 0);
+    var urgentOpen = openTickets.filter(function(t) {
+      var s = t.ai_summary;
+      return s && ((typeof s === "object" && (s.urgency === "high" || s.urgency === "critical")) || (typeof s === "string" && s.indexOf("high") >= 0));
+    }).length;
 
-    const urgentEl = document.getElementById("urgentOpen");
-    setKpiText(urgentEl, data.kpis.urgent_open ?? "—");
-    urgentEl.classList.toggle("kpi-warning", (data.kpis.urgent_open || 0) > 0);
+    var healthPct = machines.length > 0 ? Math.round(((machines.length - machinesDown) / machines.length) * 100) : 100;
 
-    // Stale machines KPI
-    const staleEl = document.getElementById("staleMachines");
-    if (staleEl) {
-      const stale = data.kpis.stale_machines || 0;
-      setKpiText(staleEl, stale);
-      staleEl.classList.toggle("kpi-warning", stale > 0);
-    }
+    var user = JSON.parse(localStorage.getItem("tf_user") || "{}");
+
+    // Get company name from factories
+    var companyName = user.company_code || "TurboFix";
+    try {
+      var { data: factoryRows } = await sb.from("factories").select("name").limit(1);
+      if (factoryRows && factoryRows.length > 0) companyName = factoryRows[0].name;
+    } catch (_) {}
+
+    document.getElementById("companyName").textContent = companyName;
+    var roleText = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
+    document.getElementById("userRole").textContent = (user.name || "") + " (" + roleText + ")";
+
+    setKpiText(document.getElementById("openTickets"), openTickets.length);
+    setKpiText(document.getElementById("closedToday"), closedToday.length);
+    setKpiText(document.getElementById("totalTickets"), tickets.length);
+    setKpiText(document.getElementById("avgHours"), "—");
+    setKpiText(document.getElementById("plantHealth"), healthPct + "%");
+
+    var downEl = document.getElementById("machinesDown");
+    setKpiText(downEl, machinesDown + " of " + machines.length);
+    downEl.classList.toggle("kpi-danger", machinesDown > 0);
+
+    var urgentEl = document.getElementById("urgentOpen");
+    setKpiText(urgentEl, urgentOpen || "—");
+    urgentEl.classList.toggle("kpi-warning", urgentOpen > 0);
+
+    var staleEl = document.getElementById("staleMachines");
+    if (staleEl) { setKpiText(staleEl, 0); }
 
     dashFirstLoad = false;
-    renderAutoInsights(data.auto_insights || {});
-    renderCustomKpis(data.custom_kpis || []);
+    renderAutoInsights({ mtbf_hours: "—", mttr_hours: "—", repeat_breakdown_pct: 0, top_problem_machines: [] });
+    renderCustomKpis([]);
 
-    renderAttention(data.needs_attention || []);
-    renderTrend(data.weekly_trend || []);
-    renderSupervisorGrid(data);
+    // Build needs_attention from open tickets
+    var machineMap = {};
+    machines.forEach(function(m) { machineMap[m.id] = m.name; });
+    var attention = openTickets.map(function(t) {
+      var summary = t.ai_summary || {};
+      return {
+        machine_name: machineMap[t.machine_id] || "Unknown",
+        description: t.issue_text || (summary.summary || ""),
+        urgency: (summary.urgency || "medium"),
+        reported_at: t.created_at,
+      };
+    });
+    renderAttention(attention);
+    renderTrend([]);
+    renderSupervisorGrid({ supervisors: [], unassigned_machines: [], machine_risk_map: {} });
 
-    const list = document.getElementById("activityList");
-    if (data.recent_activity.length === 0) {
-      list.innerHTML = `<p class="placeholder">No recent tickets</p>`;
+    // Recent activity
+    var recentTickets = tickets.slice().sort(function(a, b) { return (b.created_at || "").localeCompare(a.created_at || ""); }).slice(0, 10);
+    var list = document.getElementById("activityList");
+    if (recentTickets.length === 0) {
+      list.innerHTML = '<p class="placeholder">No recent tickets</p>';
     } else {
-      list.innerHTML = data.recent_activity.map(r => `
-        <div class="activity-row">
-          <div class="activity-main">
-            <div class="ticket-id">${escapeHtml(r.ticket_id)}</div>
-            <div class="ticket-machine">${escapeHtml(r.machine_name)}</div>
-          </div>
-          <div class="activity-status">
-            <span class="status-badge status-${escapeHtml(r.status || '').toLowerCase()}">${escapeHtml(r.status)}</span>
-            <span class="urgency-${r.urgency ? escapeHtml(r.urgency).toLowerCase() : ""}">${escapeHtml(r.urgency || "—")}</span>
-          </div>
-        </div>
-      `).join("");
+      list.innerHTML = recentTickets.map(function(r) {
+        var summary = r.ai_summary || {};
+        var urgency = summary.urgency || "";
+        return '<div class="activity-row">' +
+          '<div class="activity-main">' +
+            '<div class="ticket-id">' + escapeHtml(r.id.substring(0, 8)) + '</div>' +
+            '<div class="ticket-machine">' + escapeHtml(machineMap[r.machine_id] || "Unknown") + '</div>' +
+          '</div>' +
+          '<div class="activity-status">' +
+            '<span class="status-badge status-' + escapeHtml(r.status || "").toLowerCase() + '">' + escapeHtml(r.status) + '</span>' +
+            '<span class="urgency-' + (urgency ? escapeHtml(urgency).toLowerCase() : "") + '">' + escapeHtml(urgency || "—") + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join("");
     }
 
     markUpdated();
   } catch (e) {
     console.error("Dashboard fetch error:", e);
     if (dashFirstLoad) {
-      const attList = document.getElementById("attentionList");
-      if (attList) attList.innerHTML = '<p class="placeholder" style="color:#ef4444;">Failed to connect — the server may be starting up. Retrying…</p>';
+      var attList = document.getElementById("attentionList");
+      if (attList) attList.innerHTML = '<p class="placeholder" style="color:#ef4444;">Failed to load dashboard data. Please try again.</p>';
     }
     throw e;
   }

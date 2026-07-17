@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 
 export default function Team() {
@@ -38,18 +38,18 @@ export default function Team() {
     setLoading(true);
     setError('');
     try {
-      const [tResp, crResp] = await Promise.all([
-        apiFetch('/vault/team'),
-        apiFetch('/vault/custom-roles'),
-      ]);
-      if (!tResp.ok) throw new Error('Failed to load team list');
-      const tData = await tResp.json();
-      setTeam(Array.isArray(tData) ? tData : []);
-
-      if (crResp.ok) {
-        const roleData = await crResp.json();
-        setCustomRoles(Array.isArray(roleData) ? roleData : []);
-      }
+      const { data: usersData, error: usersErr } = await supabase.from('users').select('id,name,role,email,phone');
+      if (usersErr) throw new Error(usersErr.message);
+      const tData = (usersData || []).map(u => ({
+        user_id: u.id,
+        name: u.name,
+        role: u.role,
+        email: u.email,
+        phone: u.phone,
+        can_receive_alerts: true,
+      }));
+      setTeam(tData);
+      setCustomRoles([]);
     } catch (err) {
       setError(err.message || 'An error occurred while loading team list.');
     } finally {
@@ -62,27 +62,13 @@ export default function Team() {
     setError('');
     setSuccess('');
     try {
-      const resp = await apiFetch('/auth/supervisors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          phone: phone || '',
-          email: email || '',
-          password,
-          role,
-          manager_user_id: managerUserId,
-          department,
-          plant_location: plantLocation,
-          shift,
-          portal_access: portalAccess,
-        }),
+      const { error: insertErr } = await supabase.from('users').insert({
+        name,
+        phone: phone || '',
+        email: email || '',
+        role,
       });
-
-      if (!resp.ok) {
-        const errData = await resp.json();
-        throw new Error(errData.detail || 'Failed to onboard team member');
-      }
+      if (insertErr) throw new Error(insertErr.message);
 
       setSuccess(`Account for "${name}" successfully onboarded as ${getLabel(role)}.`);
       setShowAddForm(false);

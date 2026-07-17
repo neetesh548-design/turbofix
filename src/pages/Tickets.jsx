@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
-import { apiFetch } from '@/lib/api';
+import { supabase } from '@/supabaseClient';
 import { getCurrentEscalationLevel } from '@/lib/escalation';
 
 export default function Tickets() {
@@ -18,17 +18,26 @@ export default function Tickets() {
     setLoading(true);
     setError('');
     try {
-      const [escResp, resp] = await Promise.all([
-        apiFetch('/vault/escalation'),
-        apiFetch('/vault/tickets'),
+      const [ticketsRes, machinesRes] = await Promise.all([
+        supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone'),
+        supabase.from('machines').select('id,name'),
       ]);
-      if (escResp.ok) {
-        setEscalationPath(await escResp.json());
-      }
 
-      if (!resp.ok) throw new Error('Failed to load tickets');
-      const data = await resp.json();
-      setTickets(Array.isArray(data) ? data : []);
+      const machineMap = {};
+      (machinesRes.data || []).forEach(m => { machineMap[m.id] = m.name; });
+
+      const data = (ticketsRes.data || []).map(t => ({
+        ticket_id: t.id,
+        machine_id: t.machine_id,
+        machine_name: machineMap[t.machine_id] || 'Unknown',
+        status: t.status,
+        issue_text: t.issue_text,
+        ai_summary: t.ai_summary,
+        created_at: t.created_at,
+        reporter_phone: t.reporter_phone,
+      }));
+      setTickets(data);
+      setEscalationPath([]);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
@@ -40,16 +49,9 @@ export default function Tickets() {
     setError('');
     setSuccess('');
     try {
-      const resp = await apiFetch(`/vault/tickets/${ticketId}/close`, {
-        method: 'POST',
-      });
-
-      if (!resp.ok) {
-        const errData = await resp.json();
-        throw new Error(errData.detail || 'Failed to close ticket');
-      }
-
-      setSuccess(`Ticket ${ticketId} has been successfully closed.`);
+      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', ticketId);
+      if (updateErr) throw new Error(updateErr.message);
+      setSuccess(`Ticket ${ticketId.substring(0, 8)} has been successfully closed.`);
       fetchTicketsAndEscalation();
     } catch (err) {
       setError(err.message);
