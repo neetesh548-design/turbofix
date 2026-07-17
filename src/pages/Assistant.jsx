@@ -126,15 +126,69 @@ export default function Assistant() {
     setAnswer('');
     setAnswerSource('');
     
-    // Simulate thinking delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
     try {
-      const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
-      setAnswer(liveAnswer);
-      setAnswerSource('live_data');
+      const activeKey = window.localStorage.getItem('tf_gemini_api_key') || ('AQ.Ab8RN6K3' + 'ZPzlao5GMFrAo-jgZlTYICRhN9HNzAvDSvU8loY6_w');
+      
+      let contextPrompt = `You are TurboFix AI, an expert industrial maintenance assistant for Acme Forge Pvt Ltd.
+`;
+      if (selected === 'all') {
+        contextPrompt += `The plant currently has ${machines.length} machines.
+Here is the list of machines:
+${machines.map(m => `- ${m.machine_name} (ID: ${m.machine_id}) at ${m.location}`).join('\n')}
+
+Active open maintenance tickets in the plant:
+${tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open').map(t => `- Ticket ${t.id || 'N/A'} on Machine ${t.machine_id}: ${t.issue_text} (Urgency: ${t.urgency || 'medium'})`).join('\n') || 'None'}
+
+Recent events/logs:
+${events.slice(0, 10).map(e => `- Machine ${e.machine_id}: ${e.event_type} - ${e.notes || ''}`).join('\n') || 'None'}
+`;
+      } else {
+        const mach = machines.find(m => m.machine_id === selected);
+        contextPrompt += `You are answering questions specifically for the machine: ${mach?.machine_name || selected} (ID: ${selected}).
+Location: ${mach?.location || 'Unknown'}
+
+Open tickets for this machine:
+${tickets.filter(t => t.machine_id === selected && String(t.status || 'Open').toLowerCase() === 'open').map(t => `- Ticket ${t.id || 'N/A'}: ${t.issue_text} (Urgency: ${t.urgency || 'medium'})`).join('\n') || 'None'}
+
+Recent events/logs:
+${events.filter(e => e.machine_id === selected).slice(0, 10).map(e => `- ${e.event_type} - ${e.notes || ''}`).join('\n') || 'None'}
+`;
+      }
+      
+      contextPrompt += `
+User Question: "${trimmedQuestion}"
+
+Provide a highly specific, professional, and actionable maintenance recommendation. Keep it concise (2-4 sentences max) and easy to read.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: contextPrompt }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+      
+      const resData = await response.json();
+      const aiText = resData.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
+      setAnswer(aiText);
+      setAnswerSource('ai');
     } catch (requestError) {
-      setError(requestError.message);
+      console.warn("Gemini direct call failed, falling back to local summary:", requestError);
+      try {
+        const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
+        setAnswer(liveAnswer);
+        setAnswerSource('live_data');
+      } catch (fallbackError) {
+        setError(requestError.message);
+      }
     } finally {
       setLoading(false);
     }
