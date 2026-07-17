@@ -376,6 +376,107 @@ export default function Machines() {
     } catch {}
   };
 
+  const triggerEscalationAlert = async (itemName, currentQty, reorderLevel, unit, machineName) => {
+    try {
+      const localEscalation = window.localStorage.getItem('tf_settings_escalation_path');
+      const escPath = localEscalation ? JSON.parse(localEscalation) : [
+        { role: 'maintenance_technician' },
+        { role: 'supervisor' }
+      ];
+      
+      const alertPhones = [];
+      escPath.forEach(step => {
+        const members = team.filter(m => m.role === step.role && m.can_receive_alerts && m.phone);
+        members.forEach(m => {
+          alertPhones.push(m.phone);
+        });
+      });
+      
+      if (alertPhones.length === 0) {
+        console.warn('No active team members found in the escalation path to receive alerts.');
+        return;
+      }
+      
+      const messageText = `⚠️ TurboFix Stock Alert\nItem: ${itemName}\nMachine: ${machineName}\nStock: ${currentQty} ${unit} (Reorder level: ${reorderLevel} ${unit}). Please arrange purchase.`;
+      
+      await supabase.functions.invoke('send_notifications', {
+        body: {
+          event_type: 'custom',
+          phones: alertPhones,
+          message: messageText
+        }
+      });
+    } catch (err) {
+      console.error('Failed to send stock alert notification:', err);
+    }
+  };
+
+  const handleUpdatePartQty = async (part, delta) => {
+    const nextQty = Math.max(0, part.quantity_on_hand + delta);
+    setParts(prev => prev.map(p => p.part_id === part.part_id ? { ...p, quantity_on_hand: nextQty } : p));
+    try {
+      const { error: updateErr } = await supabase.from('parts').update({ stock_qty: nextQty }).eq('id', part.part_id);
+      if (updateErr) throw updateErr;
+      if (nextQty <= part.reorder_level && delta < 0) {
+        await triggerEscalationAlert(part.part_name, nextQty, part.reorder_level, part.unit, selectedMachine?.machine_name || 'Unknown');
+      }
+    } catch (err) {
+      alert(err.message);
+      // Rollback
+      setParts(prev => prev.map(p => p.part_id === part.part_id ? { ...p, quantity_on_hand: part.quantity_on_hand } : p));
+    }
+  };
+
+  const handleSetPartQty = async (part, targetValue) => {
+    const nextQty = parseFloat(targetValue);
+    if (isNaN(nextQty) || nextQty < 0) return;
+    setParts(prev => prev.map(p => p.part_id === part.part_id ? { ...p, quantity_on_hand: nextQty } : p));
+    try {
+      const { error: updateErr } = await supabase.from('parts').update({ stock_qty: nextQty }).eq('id', part.part_id);
+      if (updateErr) throw updateErr;
+      if (nextQty <= part.reorder_level) {
+        await triggerEscalationAlert(part.part_name, nextQty, part.reorder_level, part.unit, selectedMachine?.machine_name || 'Unknown');
+      }
+    } catch (err) {
+      alert(err.message);
+      // Rollback
+      setParts(prev => prev.map(p => p.part_id === part.part_id ? { ...p, quantity_on_hand: part.quantity_on_hand } : p));
+    }
+  };
+
+  const handleUpdateConsumableQty = async (consumable, delta) => {
+    const nextQty = Math.max(0, consumable.quantity_on_hand + delta);
+    setConsumables(prev => prev.map(c => c.consumable_id === consumable.consumable_id ? { ...c, quantity_on_hand: nextQty } : c));
+    try {
+      const { error: updateErr } = await supabase.from('consumables').update({ stock_qty: nextQty }).eq('id', consumable.consumable_id);
+      if (updateErr) throw updateErr;
+      if (nextQty <= consumable.reorder_level && delta < 0) {
+        await triggerEscalationAlert(consumable.name, nextQty, consumable.reorder_level, consumable.unit, selectedMachine?.machine_name || 'Unknown');
+      }
+    } catch (err) {
+      alert(err.message);
+      // Rollback
+      setConsumables(prev => prev.map(c => c.consumable_id === consumable.consumable_id ? { ...c, quantity_on_hand: consumable.quantity_on_hand } : c));
+    }
+  };
+
+  const handleSetConsumableQty = async (consumable, targetValue) => {
+    const nextQty = parseFloat(targetValue);
+    if (isNaN(nextQty) || nextQty < 0) return;
+    setConsumables(prev => prev.map(c => c.consumable_id === consumable.consumable_id ? { ...c, quantity_on_hand: nextQty } : c));
+    try {
+      const { error: updateErr } = await supabase.from('consumables').update({ stock_qty: nextQty }).eq('id', consumable.consumable_id);
+      if (updateErr) throw updateErr;
+      if (nextQty <= consumable.reorder_level) {
+        await triggerEscalationAlert(consumable.name, nextQty, consumable.reorder_level, consumable.unit, selectedMachine?.machine_name || 'Unknown');
+      }
+    } catch (err) {
+      alert(err.message);
+      // Rollback
+      setConsumables(prev => prev.map(c => c.consumable_id === consumable.consumable_id ? { ...c, quantity_on_hand: consumable.quantity_on_hand } : c));
+    }
+  };
+
   // Mathematical Calculations for Calendar and Cover
   const parseConsumableMeta = (c) => {
     let meta = {
@@ -1032,9 +1133,15 @@ export default function Machines() {
                             <td style={{ fontWeight: 'bold', color: 'white' }}>{p.part_name}</td>
                             <td style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{p.part_number}</td>
                             <td>
-                              <span className={`vault-role-badge ${p.quantity_on_hand <= p.reorder_level ? 'read-only' : ''}`} style={p.quantity_on_hand <= p.reorder_level ? {} : { background: 'rgba(37,211,102,0.12)', color: '#25D366', border: '1px solid rgba(37,211,102,0.2)' }}>
-                                {p.quantity_on_hand} {p.unit}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, -1)}>-</button>
+                                <input type="number" value={p.quantity_on_hand} style={{ width: '48px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetPartQty(p, e.target.value)} />
+                                <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, 1)}>+</button>
+                                <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '2px' }}>{p.unit}</span>
+                                {p.quantity_on_hand <= p.reorder_level && (
+                                  <span className="vault-role-badge read-only" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.2)' }}>LOW</span>
+                                )}
+                              </div>
                             </td>
                             <td style={{ color: 'var(--slate)' }}>{p.reorder_level} {p.unit}</td>
                             <td style={{ textAlign: 'right' }}>
@@ -1114,7 +1221,17 @@ export default function Machines() {
                           return (
                             <tr key={c.consumable_id}>
                               <td style={{ fontWeight: 'bold', color: 'white' }}>{c.name}</td>
-                              <td style={{ color: 'white' }}>{c.quantity_on_hand} {c.unit}</td>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, -1)}>-</button>
+                                  <input type="number" value={c.quantity_on_hand} style={{ width: '48px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetConsumableQty(c, e.target.value)} />
+                                  <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, 1)}>+</button>
+                                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '2px' }}>{c.unit}</span>
+                                  {c.quantity_on_hand <= c.reorder_level && (
+                                    <span className="vault-role-badge read-only" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.2)' }}>LOW</span>
+                                  )}
+                                </div>
+                              </td>
                               <td style={{ color: '#cbd5e1' }}>{metrics.meta.burn_rate} {c.unit}/day</td>
                               <td style={{ fontFamily: 'monospace', color: 'white' }}>{metrics.coverDays} days</td>
                               <td style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{metrics.orderByDate}</td>
