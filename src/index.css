@@ -2992,6 +2992,29 @@ details.faq-item p {
 .contact-restricted { display: inline-flex; align-items: center; gap: 6px; color: #94a3b8; font-size: .7rem; }
 .contact-error { color: #fca5a5; }
 .contact-unassigned { color: #8fa0b4; font-size: .78rem; }
+.team-onboard-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px 18px; }
+.team-onboard-grid .vault-field { grid-column: span 2; margin-bottom: 0; min-width: 0; }
+.team-onboard-grid .vault-field.wide { grid-column: span 3; }
+.team-onboard-grid .vault-field label { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.team-onboard-grid .vault-field label span { color: #7f90a3; font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.team-onboard-grid .vault-field small { display: block; margin-top: 6px; color: #8696a8; font-size: .73rem; line-height: 1.4; }
+.team-onboard-grid .vault-field input:disabled { opacity: .55; cursor: not-allowed; }
+.team-onboard-legend { grid-column: 1 / -1; margin: 6px 0 -4px; color: #7f90a3; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; }
+.team-onboard-legend:first-child { margin-top: 0; }
+.team-onboard-access { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; align-items: start; margin-top: 4px; padding: 14px 16px; border: 1px solid #2b3646; border-radius: 12px; background: rgba(23,34,49,.55); }
+.team-onboard-access .team-portal-toggle { border: 0; background: transparent; padding: 0; }
+.team-onboard-access .vault-field { grid-column: auto; }
+.team-onboard-actions { display: flex; gap: 10px; margin-top: 18px; }
+.team-onboard-actions .vault-btn { width: auto; padding: 10px 24px; }
+@media (max-width: 1100px) {
+  .team-onboard-grid .vault-field, .team-onboard-grid .vault-field.wide { grid-column: span 3; }
+}
+@media (max-width: 680px) {
+  .team-onboard-grid .vault-field, .team-onboard-grid .vault-field.wide { grid-column: 1 / -1; }
+  .team-onboard-access { grid-template-columns: 1fr; }
+  .team-onboard-actions { flex-direction: column; }
+  .team-onboard-actions .vault-btn { width: 100%; }
+}
 .team-portal-toggle { display: flex; align-items: flex-start; gap: 10px; border: 1px solid #344255; border-radius: 10px; padding: 12px; color: #dce5ef; background: #172231; cursor: pointer; }
 .team-portal-toggle input { width: 18px; height: 18px; margin-top: 2px; accent-color: #22c55e; }
 .team-portal-toggle span { display: grid; gap: 3px; }

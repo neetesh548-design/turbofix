@@ -136,13 +136,14 @@ export default function Team() {
           <div className="vault-card" style={{ marginBottom: '20px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
             <form onSubmit={handleAddSubmit}>
-              <div className="vault-form-grid">
+              <div className="team-onboard-grid">
+                <p className="team-onboard-legend">Identity &amp; role</p>
                 <div className="vault-field">
-                  <label htmlFor="supName">Full Name</label>
+                  <label htmlFor="supName">Full name</label>
                   <input type="text" id="supName" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Anil Sharma" required />
                 </div>
                 <div className="vault-field">
-                  <label htmlFor="supRole">Access Authorization Role</label>
+                  <label htmlFor="supRole">Role</label>
                   <select id="supRole" value={role} onChange={(e) => setRole(e.target.value)}>
                     {allAvailableRoles.map((r) => (
                       <option key={r.value} value={r.value}>{r.label}</option>
@@ -158,38 +159,48 @@ export default function Team() {
                     ))}
                   </select>
                 </div>
+
+                <p className="team-onboard-legend">Workplace</p>
                 <div className="vault-field">
                   <label htmlFor="supDepartment">Department</label>
                   <input type="text" id="supDepartment" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Maintenance" />
                 </div>
                 <div className="vault-field">
                   <label htmlFor="supLocation">Plant / work area</label>
-                  <input type="text" id="supLocation" value={plantLocation} onChange={(e) => setPlantLocation(e.target.value)} placeholder="Example: Shop Floor A" />
+                  <input type="text" id="supLocation" value={plantLocation} onChange={(e) => setPlantLocation(e.target.value)} placeholder="e.g. Shop Floor A" />
                 </div>
                 <div className="vault-field">
                   <label htmlFor="supShift">Shift</label>
-                  <input type="text" id="supShift" value={shift} onChange={(e) => setShift(e.target.value)} placeholder="Example: General or Shift B" />
+                  <input type="text" id="supShift" value={shift} onChange={(e) => setShift(e.target.value)} placeholder="e.g. General or Shift B" />
                 </div>
-                <div className="vault-field">
+
+                <p className="team-onboard-legend">Contact details</p>
+                <div className="vault-field wide">
                   <label htmlFor="supPhone">Mobile number <span>Optional</span></label>
-                  <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +919876543212" />
-                  <small>Leave blank to display “Mobile number not available”.</small>
+                  <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +91 98765 43212" />
+                  <small>Shown as “not available” when left blank.</small>
                 </div>
-                <div className="vault-field">
+                <div className="vault-field wide">
                   <label htmlFor="supEmail">Email address <span>Optional</span></label>
                   <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
-                  <small>Leave blank to display “Email not available”.</small>
+                  <small>Shown as “not available” when left blank.</small>
                 </div>
-                <label className="team-portal-toggle" style={{ gridColumn: 'span 2' }}>
-                  <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
-                  <span><strong>Enable TurboFix portal access</strong><small>Requires a mobile number or email and a sign-in password.</small></span>
-                </label>
-                <div className="vault-field" style={{ gridColumn: 'span 2' }}>
-                  <label htmlFor="supPassword">Sign-in password {portalAccess ? '(required)' : '(not needed for offline staff)'}</label>
-                  <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength="8" required={portalAccess} disabled={!portalAccess} />
+
+                <div className="team-onboard-access">
+                  <label className="team-portal-toggle">
+                    <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
+                    <span><strong>Enable TurboFix portal access</strong><small>Lets this member sign in. Requires a mobile number or email plus a password.</small></span>
+                  </label>
+                  <div className="vault-field">
+                    <label htmlFor="supPassword">Sign-in password {portalAccess ? <span>Required</span> : <span>Not needed for offline staff</span>}</label>
+                    <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" minLength="8" required={portalAccess} disabled={!portalAccess} />
+                  </div>
                 </div>
               </div>
-              <button type="submit" className="vault-btn vault-btn-primary" style={{ width: 'auto', marginTop: '14px', padding: '10px 24px' }}>Onboard Member</button>
+              <div className="team-onboard-actions">
+                <button type="submit" className="vault-btn vault-btn-primary">Onboard Member</button>
+                <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
+              </div>
             </form>
           </div>
         )}
