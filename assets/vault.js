@@ -1,15 +1,25 @@
 /* ===========================================================
    TurboFix Document Vault — staff portal client
-   Talks directly to the TurboFix backend's Phase 5 vault API
-   (POST /auth/login, /vault/documents, /vault/spare-parts,
-   /vault/consumables). This page has no build step, same as
-   the rest of demo-site.
+   Auth via Supabase; data via Supabase PostgREST.
    =========================================================== */
 
+var SUPABASE_URL = (window.supabaseConfig && window.supabaseConfig.url) || "https://wcqgbleppiaddgfjrnpq.supabase.co";
+var SUPABASE_ANON_KEY = (window.supabaseConfig && window.supabaseConfig.key) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWdibGVwcGlhZGRnZmpybnBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njg0NTAsImV4cCI6MjA5OTM0NDQ1MH0.FAOQMRMjOXrw4YsDf_wv4IhaUiXGoGB1q8Ye-ty2j7c";
+var _sbClient = null;
+
+function getSb() {
+  if (_sbClient) return _sbClient;
+  if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
+    _sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return _sbClient;
+  }
+  throw new Error("Supabase client not loaded yet.");
+}
+
 var storedApiBase = localStorage.getItem("tf_api_base");
-var defaultApiBase = "https://turbofix-backend-ehxb.onrender.com";
+var defaultApiBase = SUPABASE_URL;
 var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
-if (isLocal) {
+if (isLocal && !storedApiBase) {
   defaultApiBase = "http://127.0.0.1:8000";
 }
 var DEFAULT_API_BASE = defaultApiBase;
@@ -154,6 +164,7 @@ function logout() {
   localStorage.removeItem("tf_user");
   localStorage.removeItem("dashToken");
   localStorage.removeItem("dashUser");
+  try { getSb().auth.signOut(); } catch (_) {}
   $("vaultShell").style.display = "none";
   $("loginCard").style.display = "block";
   try { window.dispatchEvent(new Event("authChanged")); } catch (_) {}
@@ -168,31 +179,74 @@ function setSession(body) {
 }
 
 async function login(identifier, password) {
-  const resp = await safeFetch(apiUrl("/auth/login"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, password }),
-  });
-  if (!resp.ok) {
-    let detail = "Invalid credentials.";
-    try { detail = (await resp.json()).detail || detail; } catch (_) {}
-    if (resp.status === 403) throw new Error(detail);
-    throw new Error(detail);
+  var sb = getSb();
+  var email = identifier.includes("@") ? identifier : identifier + "@phone.turbofix.co.in";
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+  if (error) throw new Error(error.message || "Invalid credentials.");
+
+  var session = data.session;
+  var authUser = data.user;
+  var meta = authUser.user_metadata || {};
+  var appUser = {
+    user_id: meta.user_id || authUser.id,
+    name: meta.name || meta.full_name || email.split("@")[0],
+    role: meta.role || "owner",
+    company_code: meta.company_code || "",
+  };
+
+  if (!meta.role) {
+    var { data: profileRows } = await sb.from("users").select("id,name,role,company_id").eq("email", identifier.includes("@") ? identifier : null).limit(1);
+    if (profileRows && profileRows.length > 0) {
+      var p = profileRows[0];
+      appUser.name = p.name || appUser.name;
+      appUser.role = p.role || appUser.role;
+      appUser.user_id = p.id || appUser.user_id;
+    }
   }
-  setSession(await resp.json());
+
+  setSession({ access_token: session.access_token, user: appUser });
 }
 
 async function registerCompany(formData) {
-  const resp = await safeFetch(apiUrl("/auth/register"), {
-    method: "POST",
-    body: formData,
+  var sb = getSb();
+  var email = formData.get("owner_email");
+  var password = formData.get("owner_password");
+  var companyCode = formData.get("company_code").toUpperCase();
+  var companyName = formData.get("company_name");
+  var ownerName = formData.get("owner_name");
+  var phone = formData.get("admin_contact_phone");
+
+  if (!email || !password) throw new Error("Email and password are required.");
+  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
+
+  var { data, error } = await sb.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        name: ownerName,
+        role: "owner",
+        company_code: companyCode,
+        company_name: companyName,
+        phone: phone,
+      }
+    }
   });
-  if (!resp.ok) {
-    let detail = "Registration failed.";
-    try { detail = (await resp.json()).detail || detail; } catch (_) {}
-    throw new Error(detail);
+  if (error) throw new Error(error.message || "Registration failed.");
+
+  var userId = data.user ? data.user.id : null;
+  if (userId) {
+    await sb.from("companies").insert({
+      name: companyName,
+      domain: companyCode.toLowerCase(),
+      status: "pending",
+    });
   }
-  return resp.json();
+
+  return {
+    status: "pending_approval",
+    message: "Your company has been registered. A TurboFix admin will review and approve your account. Please check your email to verify your account.",
+  };
 }
 
 async function addSupervisor(payload) {

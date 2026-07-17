@@ -1,4 +1,4 @@
-var BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("tf_api_base") || "https://turbofix-backend-ehxb.onrender.com";
+var BACKEND_URL = new URLSearchParams(window.location.search).get("backend") || localStorage.getItem("tf_api_base") || (window.supabaseConfig && window.supabaseConfig.url) || "https://wcqgbleppiaddgfjrnpq.supabase.co";
 
 function isOwner() {
   const u = JSON.parse(localStorage.getItem("tf_user") || "null");
