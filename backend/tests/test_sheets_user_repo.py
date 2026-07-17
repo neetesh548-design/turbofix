@@ -14,19 +14,10 @@ class FakeWorksheet:
         return self.values
 
 
-class FakeSpreadsheet:
-    def __init__(self, worksheet):
-        self._worksheet = worksheet
-
-    def worksheet(self, name):
-        assert name == "Companies"
-        return self._worksheet
-
-
 def test_get_company_tolerates_extra_blank_sheet_columns():
     worksheet = FakeWorksheet()
     repo = SheetsUserRepository("unused.json", "unused-sheet")
-    repo._ss = lambda: FakeSpreadsheet(worksheet)
+    repo._ws = lambda name: worksheet
 
     company = repo.get_company("acme3")
 

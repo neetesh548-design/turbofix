@@ -2,12 +2,14 @@
 
 from typing import List, Optional
 
+from gspread.exceptions import WorksheetNotFound
+
 from app.repositories.base import (
     MACHINE_RECORDS_HEADER,
     MachineRecordRepository,
     new_machine_record_id,
 )
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_spreadsheet, get_worksheet, read_records
 
 
 class SheetsMachineRecordRepository(MachineRecordRepository):
@@ -16,10 +18,10 @@ class SheetsMachineRecordRepository(MachineRecordRepository):
         self._sheet_id = sheet_id
 
     def _ws(self):
-        spreadsheet = get_spreadsheet(self._sa_file, self._sheet_id)
         try:
-            return spreadsheet.worksheet("AIRecords")
-        except Exception:
+            return get_worksheet(self._sa_file, self._sheet_id, "AIRecords")
+        except WorksheetNotFound:
+            spreadsheet = get_spreadsheet(self._sa_file, self._sheet_id)
             worksheet = spreadsheet.add_worksheet(
                 title="AIRecords", rows=1000, cols=len(MACHINE_RECORDS_HEADER)
             )

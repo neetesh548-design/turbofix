@@ -4,6 +4,8 @@ import re
 import time
 from typing import Dict, List, Optional
 
+from gspread.exceptions import WorksheetNotFound
+
 from app.repositories.base import (
     MACHINE_EVENTS_HEADER,
     MACHINES_HEADER,
@@ -13,7 +15,7 @@ from app.repositories.base import (
     TicketRepository,
     new_ticket_id,
 )
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_spreadsheet, get_worksheet, read_records
 
 
 class SheetsTicketRepository(TicketRepository):
@@ -24,7 +26,7 @@ class SheetsTicketRepository(TicketRepository):
         self._sheet_id = sheet_id
 
     def _ws(self):
-        return get_spreadsheet(self._sa_file, self._sheet_id).worksheet("Tickets")
+        return get_worksheet(self._sa_file, self._sheet_id, "Tickets")
 
     def next_ticket_id(self) -> str:
         return new_ticket_id()
@@ -122,10 +124,10 @@ class SheetsEventRepository(EventRepository):
         self._sheet_id = sheet_id
 
     def _ws(self):
-        sp = get_spreadsheet(self._sa_file, self._sheet_id)
         try:
-            return sp.worksheet("MachineEvents")
-        except Exception:
+            return get_worksheet(self._sa_file, self._sheet_id, "MachineEvents")
+        except WorksheetNotFound:
+            sp = get_spreadsheet(self._sa_file, self._sheet_id)
             ws = sp.add_worksheet(title="MachineEvents", rows=1000, cols=len(MACHINE_EVENTS_HEADER))
             ws.append_row(MACHINE_EVENTS_HEADER, value_input_option="RAW")
             return ws
@@ -159,7 +161,7 @@ class SheetsMachineRepository(MachineRepository):
         self._cache_at: float = 0.0
 
     def _ws(self):
-        return get_spreadsheet(self._sa_file, self._sheet_id).worksheet("Machines")
+        return get_worksheet(self._sa_file, self._sheet_id, "Machines")
 
     def load(self) -> Dict[str, dict]:
         now = time.time()

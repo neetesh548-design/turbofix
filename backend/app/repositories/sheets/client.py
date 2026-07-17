@@ -6,11 +6,13 @@ Thread-safe via a simple module-level lock.
 """
 
 import threading
+from functools import lru_cache
 from typing import Any, Iterable
 
 import gspread
+from gspread.exceptions import WorksheetNotFound
 from google.oauth2.service_account import Credentials
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
 _SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -80,6 +82,40 @@ def get_client(service_account_file: str) -> gspread.Client:
         return _client
 
 
-def get_spreadsheet(service_account_file: str, sheet_id: str) -> gspread.Spreadsheet:
-    """Return the spreadsheet object for the given sheet ID."""
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=0.25, min=0.25, max=1.0),
+    reraise=True,
+)
+def _open_spreadsheet(service_account_file: str, sheet_id: str) -> gspread.Spreadsheet:
     return get_client(service_account_file).open_by_key(sheet_id)
+
+
+@lru_cache(maxsize=8)
+def get_spreadsheet(service_account_file: str, sheet_id: str) -> gspread.Spreadsheet:
+    """Return a cached spreadsheet instead of fetching metadata every request."""
+    try:
+        return _open_spreadsheet(service_account_file, sheet_id)
+    except Exception as exc:
+        raise SheetsUnavailableError("Google Sheets is temporarily unavailable") from exc
+
+
+@retry(
+    retry=retry_if_not_exception_type(WorksheetNotFound),
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=0.25, min=0.25, max=1.0),
+    reraise=True,
+)
+def _find_worksheet(spreadsheet: gspread.Spreadsheet, title: str):
+    return spreadsheet.worksheet(title)
+
+
+@lru_cache(maxsize=64)
+def get_worksheet(service_account_file: str, sheet_id: str, title: str):
+    """Return a cached worksheet and avoid a metadata API call per endpoint."""
+    try:
+        return _find_worksheet(get_spreadsheet(service_account_file, sheet_id), title)
+    except WorksheetNotFound:
+        raise
+    except Exception as exc:
+        raise SheetsUnavailableError("Google Sheets is temporarily unavailable") from exc

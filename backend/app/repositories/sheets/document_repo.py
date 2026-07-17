@@ -11,7 +11,7 @@ from app.repositories.base import (
     DocumentRepository,
     new_document_id,
 )
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_worksheet, read_records
 
 
 class SheetsDocumentRepository(DocumentRepository):
@@ -22,7 +22,7 @@ class SheetsDocumentRepository(DocumentRepository):
         self._sheet_id = sheet_id
 
     def _ws(self):
-        return get_spreadsheet(self._sa_file, self._sheet_id).worksheet("Documents")
+        return get_worksheet(self._sa_file, self._sheet_id, "Documents")
 
     def next_document_id(self) -> str:
         return new_document_id()

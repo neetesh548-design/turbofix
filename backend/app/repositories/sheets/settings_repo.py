@@ -2,8 +2,10 @@
 
 from typing import Optional
 
+from gspread.exceptions import WorksheetNotFound
+
 from app.repositories.base import SETTINGS_HEADER, SettingsRepository
-from app.repositories.sheets.client import get_spreadsheet
+from app.repositories.sheets.client import get_spreadsheet, get_worksheet
 
 
 class SheetsSettingsRepository(SettingsRepository):
@@ -12,10 +14,14 @@ class SheetsSettingsRepository(SettingsRepository):
         self._sheet_id = sheet_id
 
     def _worksheet(self):
-        spreadsheet = get_spreadsheet(self._service_account_file, self._sheet_id)
         try:
-            return spreadsheet.worksheet("Settings")
-        except Exception:
+            return get_worksheet(
+                self._service_account_file, self._sheet_id, "Settings"
+            )
+        except WorksheetNotFound:
+            spreadsheet = get_spreadsheet(
+                self._service_account_file, self._sheet_id
+            )
             worksheet = spreadsheet.add_worksheet(
                 title="Settings", rows=100, cols=len(SETTINGS_HEADER)
             )

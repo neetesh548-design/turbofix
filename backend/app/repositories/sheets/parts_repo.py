@@ -12,7 +12,7 @@ from app.repositories.base import (
     PartsRepository,
     new_item_id,
 )
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_worksheet, read_records
 
 _SHEETS = {
     "spare_parts": ("SpareParts", SPARE_PARTS_HEADER),
@@ -29,7 +29,7 @@ class SheetsPartsRepository(PartsRepository):
 
     def _ws(self, kind: str):
         sheet_name, _ = _SHEETS[kind]
-        return get_spreadsheet(self._sa_file, self._sheet_id).worksheet(sheet_name)
+        return get_worksheet(self._sa_file, self._sheet_id, sheet_name)
 
     def next_item_id(self, kind: str) -> str:
         return new_item_id(kind)

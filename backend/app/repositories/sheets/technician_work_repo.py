@@ -2,8 +2,10 @@
 
 from typing import List, Optional
 
+from gspread.exceptions import WorksheetNotFound
+
 from app.repositories.base import TECHNICIAN_WORK_HEADER, TechnicianWorkRepository
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_spreadsheet, get_worksheet, read_records
 
 
 class SheetsTechnicianWorkRepository(TechnicianWorkRepository):
@@ -12,10 +14,14 @@ class SheetsTechnicianWorkRepository(TechnicianWorkRepository):
         self._sheet_id = sheet_id
 
     def _worksheet(self):
-        spreadsheet = get_spreadsheet(self._service_account_file, self._sheet_id)
         try:
-            return spreadsheet.worksheet("TechnicianWork")
-        except Exception:
+            return get_worksheet(
+                self._service_account_file, self._sheet_id, "TechnicianWork"
+            )
+        except WorksheetNotFound:
+            spreadsheet = get_spreadsheet(
+                self._service_account_file, self._sheet_id
+            )
             worksheet = spreadsheet.add_worksheet(
                 title="TechnicianWork", rows=1000, cols=len(TECHNICIAN_WORK_HEADER)
             )

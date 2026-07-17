@@ -2,6 +2,8 @@
 
 from typing import List, Optional
 
+from gspread.exceptions import WorksheetNotFound
+
 from app.repositories.base import (
     CUSTOM_KPIS_HEADER,
     KPI_DATA_HEADER,
@@ -9,7 +11,7 @@ from app.repositories.base import (
     new_kpi_entry_id,
     new_kpi_id,
 )
-from app.repositories.sheets.client import get_spreadsheet, read_records
+from app.repositories.sheets.client import get_spreadsheet, get_worksheet, read_records
 
 
 class SheetsCustomKpiRepository(CustomKpiRepository):
@@ -18,19 +20,19 @@ class SheetsCustomKpiRepository(CustomKpiRepository):
         self._sheet_id = sheet_id
 
     def _ws_kpis(self):
-        ss = get_spreadsheet(self._sa_file, self._sheet_id)
         try:
-            return ss.worksheet("CustomKPIs")
-        except Exception:
+            return get_worksheet(self._sa_file, self._sheet_id, "CustomKPIs")
+        except WorksheetNotFound:
+            ss = get_spreadsheet(self._sa_file, self._sheet_id)
             ws = ss.add_worksheet(title="CustomKPIs", rows=100, cols=len(CUSTOM_KPIS_HEADER))
             ws.append_row(CUSTOM_KPIS_HEADER, value_input_option="RAW")
             return ws
 
     def _ws_data(self):
-        ss = get_spreadsheet(self._sa_file, self._sheet_id)
         try:
-            return ss.worksheet("KPIData")
-        except Exception:
+            return get_worksheet(self._sa_file, self._sheet_id, "KPIData")
+        except WorksheetNotFound:
+            ss = get_spreadsheet(self._sa_file, self._sheet_id)
             ws = ss.add_worksheet(title="KPIData", rows=1000, cols=len(KPI_DATA_HEADER))
             ws.append_row(KPI_DATA_HEADER, value_input_option="RAW")
             return ws
