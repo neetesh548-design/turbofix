@@ -22,9 +22,9 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: VAULT_CORS_ORIGINS
-        value: https://neetesh548-design.github.io
+        value: https://neetesh548-design.github.io,https://turbofix.co.in,https://www.turbofix.co.in
       - key: RESET_LINK_BASE
-        value: https://neetesh548-design.github.io/turbofix/reset-password.html
+        value: https://turbofix.co.in/reset-password.html
       - key: TICKET_STORE
         value: supabase
       - key: SUPABASE_URL

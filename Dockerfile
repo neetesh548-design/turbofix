@@ -10,7 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
 COPY backend/logo.svg ./logo.svg
-COPY backend/TurboFix-Tracker.xlsx ./TurboFix-Tracker.xlsx
 
 RUN mkdir -p /app/document_store /app/media_store
 

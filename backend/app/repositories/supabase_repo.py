@@ -117,11 +117,11 @@ _client = _SupabaseClient()
 
 
 # ---------------------------------------------------------------------------
-# Helper to look up company domain ↔ company_id
+# Helper to look up company domain ↔ company_id ↔ factory_id
 # ---------------------------------------------------------------------------
 
 def _company_id_for_code(code: str) -> str | None:
-    """Given a company domain/code, return its UUID."""
+    """Given a company domain/code, return its companies UUID."""
     row = _client.select_one("companies", {"domain": f"eq.{code}"})
     return row["id"] if row else None
 
@@ -130,6 +130,45 @@ def _company_code_for_id(company_id: str) -> str:
     """Given a company UUID, return its domain code."""
     row = _client.select_one("companies", {"id": f"eq.{company_id}"})
     return row["domain"] if row else ""
+
+
+def _factory_id_for_code(code: str) -> str | None:
+    """Given a company domain/code, return the corresponding factories UUID."""
+    company_id = _company_id_for_code(code)
+    if not company_id:
+        return None
+    # Machines link to both company_id and factory_id; find a machine to get factory_id
+    machine = _client.select_one("machines", {
+        "company_id": f"eq.{company_id}",
+        "select": "factory_id",
+    })
+    if machine and machine.get("factory_id"):
+        return machine["factory_id"]
+    # Fallback: look up factories by name match
+    company = _client.select_one("companies", {"id": f"eq.{company_id}"})
+    if company:
+        factory = _client.select_one("factories", {"name": f"eq.{company['name']}"})
+        if factory:
+            return factory["id"]
+    return None
+
+
+def _company_code_for_factory_id(factory_id: str) -> str:
+    """Given a factory UUID, find the matching company domain code."""
+    # Find a machine with this factory_id to get company_id
+    machine = _client.select_one("machines", {
+        "factory_id": f"eq.{factory_id}",
+        "select": "company_id",
+    })
+    if machine and machine.get("company_id"):
+        return _company_code_for_id(machine["company_id"])
+    # Fallback: match by factory name → company name
+    factory = _client.select_one("factories", {"id": f"eq.{factory_id}"})
+    if factory:
+        company = _client.select_one("companies", {"name": f"eq.{factory['name']}"})
+        if company:
+            return company.get("domain", "")
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -350,7 +389,7 @@ class SupabaseTicketRepository(TicketRepository):
 
     def _row_to_dict(self, row: dict) -> dict:
         factory_id = row.get("factory_id") or ""
-        company_code = _company_code_for_id(factory_id) if factory_id else ""
+        company_code = _company_code_for_factory_id(factory_id) if factory_id else ""
         # Get machine name
         machine_name = ""
         machine_id = row.get("machine_id") or ""
@@ -389,7 +428,7 @@ class SupabaseTicketRepository(TicketRepository):
 
     def append(self, row: dict) -> None:
         company_code = row.get("company_code", "")
-        factory_id = _company_id_for_code(company_code)
+        factory_id = _factory_id_for_code(company_code)
         _client.insert("tickets", {
             "id": row.get("ticket_id", str(uuid.uuid4())),
             "machine_id": row.get("machine_id") or None,
@@ -428,7 +467,7 @@ class SupabaseTicketRepository(TicketRepository):
             return False
 
     def get_company_tickets(self, company_code: str) -> List[dict]:
-        factory_id = _company_id_for_code(company_code)
+        factory_id = _factory_id_for_code(company_code)
         if not factory_id:
             return []
         rows = _client.select("tickets", {"factory_id": f"eq.{factory_id}"})
@@ -508,7 +547,7 @@ class SupabaseEventRepository(EventRepository):
         return all_events
 
     def get_company_events(self, company_code: str) -> List[dict]:
-        factory_id = _company_id_for_code(company_code)
+        factory_id = _factory_id_for_code(company_code)
         if not factory_id:
             return []
         tickets = _client.select("tickets", {

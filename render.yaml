@@ -1,0 +1,40 @@
+# Render Blueprint — deploy TurboFix backend (Supabase-only).
+#
+# Steps:
+#   1. Push this to GitHub
+#   2. In Render dashboard: New > Blueprint > select this repo
+#   3. Set the secret env vars marked `sync: false` in the dashboard
+
+services:
+  - type: web
+    name: turbofix-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: TICKET_STORE
+        value: supabase
+      - key: SUPABASE_URL
+        value: https://wcqgbleppiaddgfjrnpq.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VAULT_CORS_ORIGINS
+        value: https://neetesh548-design.github.io,https://turbofix.co.in,https://www.turbofix.co.in
+      - key: RESET_LINK_BASE
+        value: https://turbofix.co.in/reset-password.html
+      - key: AI_PROVIDER
+        value: auto
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: PLATFORM_ADMIN_PASSWORD
+        sync: false
+      - key: DOCUMENT_STORE
+        value: local
+      - key: EMAIL_PROVIDER
+        value: console
