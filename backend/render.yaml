@@ -26,7 +26,11 @@ services:
       - key: RESET_LINK_BASE
         value: https://neetesh548-design.github.io/turbofix/reset-password.html
       - key: TICKET_STORE
-        value: sheets
+        value: supabase
+      - key: SUPABASE_URL
+        value: https://wcqgbleppiaddgfjrnpq.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: GOOGLE_SERVICE_ACCOUNT_FILE
         value: /etc/secrets/service-account.json
       - key: GOOGLE_SHEET_ID
