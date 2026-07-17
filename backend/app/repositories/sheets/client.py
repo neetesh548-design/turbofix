@@ -72,6 +72,19 @@ def read_records(worksheet, expected_headers: Iterable[str]) -> list[dict]:
     return records
 
 
+def ensure_headers(worksheet, expected_headers: Iterable[str]) -> list[str]:
+    """Append newly introduced schema columns without disturbing existing data."""
+    try:
+        actual_headers = [str(value).strip() for value in worksheet.row_values(1)]
+        for header in expected_headers:
+            if header not in actual_headers:
+                actual_headers.append(header)
+                worksheet.update_cell(1, len(actual_headers), header)
+        return actual_headers
+    except Exception as exc:
+        raise SheetsUnavailableError("Google Sheets is temporarily unavailable") from exc
+
+
 def get_client(service_account_file: str) -> gspread.Client:
     """Return a shared, authenticated gspread client (created once, then cached)."""
     global _client

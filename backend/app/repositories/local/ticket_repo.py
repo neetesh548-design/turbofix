@@ -219,7 +219,11 @@ class LocalMachineRepository(MachineRepository):
                 "machine_name": row[2],
                 "location": row[3],
                 "assigned_technician_phone": row[4],
+                "informed_phone_1": row[5],
+                "informed_phone_2": row[6],
+                "informed_phone_3": row[7],
                 "informed_phones": [p for p in (row[5], row[6], row[7]) if p],
+                "has_open_tickets": str(row[8] or "").strip().lower() in {"true", "yes", "1"} if len(row) > 8 else False,
             }
 
         self._cache = machines

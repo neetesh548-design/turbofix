@@ -183,7 +183,11 @@ class SheetsMachineRepository(MachineRepository):
                 "machine_name": record.get("machine_name"),
                 "location": record.get("location"),
                 "assigned_technician_phone": str(record.get("assigned_technician_phone") or ""),
+                "informed_phone_1": str(record.get("informed_phone_1") or ""),
+                "informed_phone_2": str(record.get("informed_phone_2") or ""),
+                "informed_phone_3": str(record.get("informed_phone_3") or ""),
                 "informed_phones": [str(p) for p in informed if p],
+                "has_open_tickets": str(record.get("has_open_tickets") or "").strip().lower() in {"true", "yes", "1"},
             }
 
         self._cache = machines

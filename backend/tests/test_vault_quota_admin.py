@@ -128,6 +128,9 @@ def test_admin_can_view_read_only_company_workspace(vault_client):
     assert preview["company"]["company_code"] == "ACME3"
     assert {"machines", "tickets", "documents", "records", "spare_parts", "consumables", "team", "settings"} <= set(preview)
     assert all("password_hash" not in user for user in preview["team"])
+    assert all("phone" not in user and "email" not in user for user in preview["team"])
+    assert all("phone_masked" in user and "email_masked" in user for user in preview["team"])
+    assert all("assigned_technician_phone" not in machine for machine in preview["machines"])
 
     user_token = login(vault_client, *ACME_OWNER)
     denied = vault_client.get(

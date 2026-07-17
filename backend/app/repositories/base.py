@@ -74,7 +74,8 @@ MACHINE_EVENTS_HEADER = [
 
 USERS_HEADER = [
     "user_id", "company_code", "name", "phone", "email",
-    "role", "password_hash", "created_at",
+    "role", "password_hash", "created_at", "manager_user_id",
+    "department", "plant_location", "shift", "portal_access",
 ]
 
 COMPANIES_HEADER = [

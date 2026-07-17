@@ -8,7 +8,7 @@ from app.repositories.base import (
     UserRepository,
     new_user_id,
 )
-from app.repositories.sheets.client import get_worksheet, read_records
+from app.repositories.sheets.client import ensure_headers, get_worksheet, read_records
 
 
 def _normalize(value) -> str:
@@ -51,7 +51,8 @@ class SheetsUserRepository(UserRepository):
 
     def add(self, row: dict) -> None:
         ws = self._ws("Users")
-        ws.append_row([row.get(col, "") for col in USERS_HEADER], value_input_option="RAW")
+        headers = ensure_headers(ws, USERS_HEADER)
+        ws.append_row([row.get(col, "") for col in headers], value_input_option="RAW")
 
     def update_password(self, user_id: str, new_password_hash: str) -> bool:
         ws = self._ws("Users")

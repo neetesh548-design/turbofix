@@ -6,6 +6,7 @@ import {
   ShieldCheck, Upload, Users,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import ContactReveal from '../components/ContactReveal';
 import { apiFetch } from '@/lib/api';
 
 const WORKSPACE_TABS = [
@@ -33,10 +34,10 @@ export default function Machines() {
   // Onboarding Form states
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [techPhone, setTechPhone] = useState('');
-  const [supervisorPhone, setSupervisorPhone] = useState('');
-  const [engineerPhone, setEngineerPhone] = useState('');
-  const [headPhone, setHeadPhone] = useState('');
+  const [technicianUserId, setTechnicianUserId] = useState('');
+  const [supervisorUserId, setSupervisorUserId] = useState('');
+  const [engineerUserId, setEngineerUserId] = useState('');
+  const [headUserId, setHeadUserId] = useState('');
 
   // Sub-tabs State for Selected Machine
   const [docs, setDocs] = useState([]);
@@ -85,22 +86,18 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      // Load team
-      const tResp = await apiFetch('/vault/team');
-      let teamData = [];
+      const [tResp, escResp, mResp] = await Promise.all([
+        apiFetch('/vault/team'),
+        apiFetch('/vault/escalation'),
+        apiFetch('/vault/machines'),
+      ]);
       if (tResp.ok) {
-        teamData = await tResp.json();
-        setTeam(teamData);
+        const teamData = await tResp.json();
+        setTeam(Array.isArray(teamData) ? teamData : []);
       }
-
-      // Load escalation path settings
-      const escResp = await apiFetch('/vault/escalation');
       if (escResp.ok) {
         setEscalationPath(await escResp.json());
       }
-
-      // Load machines
-      const mResp = await apiFetch('/vault/machines');
       if (!mResp.ok) throw new Error('Failed to load machines');
       const mData = await mResp.json();
       setMachines(mData);
@@ -155,10 +152,10 @@ export default function Machines() {
         body: JSON.stringify({
           machine_name: name,
           location,
-          assigned_technician_phone: techPhone,
-          informed_phone_1: supervisorPhone,
-          informed_phone_2: engineerPhone,
-          informed_phone_3: headPhone,
+          assigned_technician_user_id: technicianUserId,
+          supervisor_user_id: supervisorUserId,
+          engineer_user_id: engineerUserId,
+          maintenance_head_user_id: headUserId,
         }),
       });
 
@@ -174,10 +171,10 @@ export default function Machines() {
       // Reset form
       setName('');
       setLocation('');
-      setTechPhone('');
-      setSupervisorPhone('');
-      setEngineerPhone('');
-      setHeadPhone('');
+      setTechnicianUserId('');
+      setSupervisorUserId('');
+      setEngineerUserId('');
+      setHeadUserId('');
 
       fetchData();
     } catch (err) {
@@ -185,17 +182,13 @@ export default function Machines() {
     }
   };
 
-  // Helper: Get user name by phone
-  const getNameByPhone = (phone) => {
-    if (!phone) return '—';
-    const found = team.find((u) => u.phone === phone);
-    return found ? found.name : phone;
-  };
-
-  const technicians = team.filter((member) => member.role === 'maintenance_technician');
-  const supervisors = team.filter((member) => member.role === 'supervisor');
-  const engineers = team.filter((member) => member.role === 'maintenance_engineer');
-  const maintenanceHeads = team.filter((member) => member.role === 'maintenance_head');
+  const getAssignment = (machine, key) => machine?.assignments?.[key] || null;
+  const getAssignmentName = (machine, key) => getAssignment(machine, key)?.name || 'Not assigned';
+  const assignable = (role) => team.filter((member) => member.role === role && member.can_receive_alerts);
+  const technicians = assignable('maintenance_technician');
+  const supervisors = assignable('supervisor');
+  const engineers = assignable('maintenance_engineer');
+  const maintenanceHeads = assignable('maintenance_head');
 
   // Sub-tab handlers
   const handleUploadDoc = async (e) => {
@@ -454,29 +447,14 @@ export default function Machines() {
 
   // Map step to machine assignee dynamically
   const getAssigneeForStep = (step, idx) => {
-    if (step.role === 'owner') return 'All Owner Accounts';
-    
-    // Map standard roles first
-    if (step.role === 'maintenance_technician' || step.role === 'technician') {
-      return getNameByPhone(selectedMachine.assigned_technician_phone);
-    }
-    if (step.role === 'supervisor') {
-      return getNameByPhone(selectedMachine.informed_phone_1);
-    }
-    if (step.role === 'maintenance_engineer') {
-      return getNameByPhone(selectedMachine.informed_phone_2);
-    }
-    if (step.role === 'maintenance_head') {
-      return getNameByPhone(selectedMachine.informed_phone_3);
-    }
-    
-    // Fallback: index mapping
-    if (idx === 0) return getNameByPhone(selectedMachine.assigned_technician_phone);
-    if (idx === 1) return getNameByPhone(selectedMachine.informed_phone_1);
-    if (idx === 2) return getNameByPhone(selectedMachine.informed_phone_2);
-    if (idx === 3) return getNameByPhone(selectedMachine.informed_phone_3);
-
-    return '—';
+    if (step.role === 'owner') return null;
+    if (step.role === 'maintenance_technician' || step.role === 'technician') return getAssignment(selectedMachine, 'technician');
+    if (step.role === 'supervisor') return getAssignment(selectedMachine, 'supervisor');
+    if (step.role === 'maintenance_engineer') return getAssignment(selectedMachine, 'engineer');
+    if (step.role === 'maintenance_head') return getAssignment(selectedMachine, 'maintenance_head');
+    return ['technician', 'supervisor', 'engineer', 'maintenance_head'][idx]
+      ? getAssignment(selectedMachine, ['technician', 'supervisor', 'engineer', 'maintenance_head'][idx])
+      : null;
   };
 
   return (
@@ -680,34 +658,34 @@ export default function Machines() {
                     )}
                     <div className="machine-role-grid">
                       <div className="vault-field">
-                        <label htmlFor="techPhone">Primary technician <strong aria-hidden="true">*</strong></label>
-                        <select id="techPhone" value={techPhone} onChange={(e) => setTechPhone(e.target.value)} required disabled={technicians.length === 0}>
+                        <label htmlFor="technicianUserId">Primary technician <strong aria-hidden="true">*</strong></label>
+                        <select id="technicianUserId" value={technicianUserId} onChange={(e) => setTechnicianUserId(e.target.value)} required disabled={technicians.length === 0}>
                           <option value="">Select a technician</option>
-                          {technicians.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                          {technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}
                         </select>
                         <small>Receives the job and completes the repair checklist.</small>
                       </div>
                       <div className="vault-field">
-                        <label htmlFor="supervisorPhone">Supervisor <span>Optional</span></label>
-                        <select id="supervisorPhone" value={supervisorPhone} onChange={(e) => setSupervisorPhone(e.target.value)}>
+                        <label htmlFor="supervisorUserId">Supervisor <span>Optional</span></label>
+                        <select id="supervisorUserId" value={supervisorUserId} onChange={(e) => setSupervisorUserId(e.target.value)}>
                           <option value="">No supervisor selected</option>
-                          {supervisors.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                          {supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}
                         </select>
                         <small>Reviews progress and approves closure.</small>
                       </div>
                       <div className="vault-field">
-                        <label htmlFor="engineerPhone">Maintenance engineer <span>Optional</span></label>
-                        <select id="engineerPhone" value={engineerPhone} onChange={(e) => setEngineerPhone(e.target.value)}>
+                        <label htmlFor="engineerUserId">Maintenance engineer <span>Optional</span></label>
+                        <select id="engineerUserId" value={engineerUserId} onChange={(e) => setEngineerUserId(e.target.value)}>
                           <option value="">No engineer selected</option>
-                          {engineers.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                          {engineers.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}
                         </select>
                         <small>Supports diagnosis and complex repairs.</small>
                       </div>
                       <div className="vault-field">
-                        <label htmlFor="headPhone">Maintenance head <span>Optional</span></label>
-                        <select id="headPhone" value={headPhone} onChange={(e) => setHeadPhone(e.target.value)}>
+                        <label htmlFor="headUserId">Maintenance head <span>Optional</span></label>
+                        <select id="headUserId" value={headUserId} onChange={(e) => setHeadUserId(e.target.value)}>
                           <option value="">No maintenance head selected</option>
-                          {maintenanceHeads.map((member) => <option key={member.user_id} value={member.phone}>{member.name}</option>)}
+                          {maintenanceHeads.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}
                         </select>
                         <small>Receives escalation and plant-risk updates.</small>
                       </div>
@@ -749,10 +727,10 @@ export default function Machines() {
                         <td style={{ color: '#cbd5e1' }}>{m.location || '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className="chip mnt" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Tech: {getNameByPhone(m.assigned_technician_phone)}</span>
-                            {m.informed_phone_1 && <span className="chip sup" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Sup: {getNameByPhone(m.informed_phone_1)}</span>}
-                            {m.informed_phone_2 && <span className="chip owner" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Eng: {getNameByPhone(m.informed_phone_2)}</span>}
-                            {m.informed_phone_3 && <span className="chip ok" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Head: {getNameByPhone(m.informed_phone_3)}</span>}
+                            <span className="chip mnt" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Tech: {getAssignmentName(m, 'technician')}</span>
+                            {getAssignment(m, 'supervisor') && <span className="chip sup" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Sup: {getAssignmentName(m, 'supervisor')}</span>}
+                            {getAssignment(m, 'engineer') && <span className="chip owner" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Eng: {getAssignmentName(m, 'engineer')}</span>}
+                            {getAssignment(m, 'maintenance_head') && <span className="chip ok" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Head: {getAssignmentName(m, 'maintenance_head')}</span>}
                           </div>
                         </td>
                         <td>
@@ -839,12 +817,15 @@ export default function Machines() {
                           const triggerHour = accumulatedHours;
                           accumulatedHours += Number(step.threshold_hours || 0);
                           const isLast = index === escalationPath.length - 1;
+                          const assignee = getAssigneeForStep(step, index);
                           return <article key={`${step.role}-${index}`} className={index === 0 ? 'active' : ''}>
                             <div className="machine-escalation-marker"><span>{index + 1}</span></div>
                             <div className="machine-escalation-copy">
                               <small>{index === 0 ? 'Immediately after reporting' : `If still open after ${triggerHour} hour${triggerHour === 1 ? '' : 's'}`}</small>
                               <h4>{step.label}</h4>
-                              <p><Users />{getAssigneeForStep(step, index)}</p>
+                              {step.role === 'owner'
+                                ? <p><Users />All owner accounts</p>
+                                : <ContactReveal member={assignee} compact showIdentity />}
                             </div>
                             <span className="machine-escalation-time">{isLast ? 'Final escalation' : `${step.threshold_hours || 0}h response window`}</span>
                           </article>;
@@ -861,7 +842,19 @@ export default function Machines() {
                     </section>
                     <section className="machine-response-team">
                       <div className="machine-side-title"><span><Phone /></span><div><h3>Response team</h3><p>People connected to this machine</p></div></div>
-                      <div><span><b>T</b><p><small>Primary technician</small><strong>{getNameByPhone(selectedMachine.assigned_technician_phone)}</strong></p></span><span><b>S</b><p><small>Supervisor</small><strong>{getNameByPhone(selectedMachine.informed_phone_1)}</strong></p></span><span><b>E</b><p><small>Engineer</small><strong>{getNameByPhone(selectedMachine.informed_phone_2)}</strong></p></span><span><b>H</b><p><small>Maintenance head</small><strong>{getNameByPhone(selectedMachine.informed_phone_3)}</strong></p></span></div>
+                      <div>
+                        {[
+                          ['T', 'Primary technician', 'technician'],
+                          ['S', 'Supervisor', 'supervisor'],
+                          ['E', 'Engineer', 'engineer'],
+                          ['H', 'Maintenance head', 'maintenance_head'],
+                        ].map(([initial, label, key]) => (
+                          <span key={key}>
+                            <b>{initial}</b>
+                            <div className="machine-response-person"><small>{label}</small><ContactReveal member={getAssignment(selectedMachine, key)} compact showIdentity /></div>
+                          </span>
+                        ))}
+                      </div>
                       <a href="team.html">Manage team assignments <ChevronRight /></a>
                     </section>
                   </aside>

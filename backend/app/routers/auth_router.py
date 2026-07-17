@@ -143,8 +143,13 @@ class AddSupervisorRequest(BaseModel):
     name: str
     phone: str = ""
     email: str = ""
-    password: str
+    password: str = ""
     role: str = "supervisor"
+    manager_user_id: str = ""
+    department: str = "Maintenance"
+    plant_location: str = ""
+    shift: str = ""
+    portal_access: bool = True
 
 
 @router.post("/supervisors", status_code=201)
@@ -156,43 +161,87 @@ def add_supervisor(
     """Owner creates a team user account under their own company."""
     user.assert_owner()
 
+    name = body.name.strip()
+    phone = body.phone.strip()
+    email = body.email.strip().lower()
+    if not name:
+        raise HTTPException(status_code=400, detail="team member name is required")
+
     if body.role == "owner":
         raise HTTPException(status_code=400, detail="owner accounts cannot be created from the team workspace")
 
-    if not body.phone and not body.email:
-        raise HTTPException(status_code=400, detail="phone or email is required")
-    if body.phone:
+    if body.portal_access and not phone and not email:
+        raise HTTPException(
+            status_code=400,
+            detail="phone or email is required when portal access is enabled",
+        )
+    if phone:
         import re
-        if not re.match(r"^\+[1-9]\d{1,14}$", body.phone):
+        if not re.match(r"^\+[1-9]\d{1,14}$", phone):
             raise HTTPException(
                 status_code=400,
                 detail="phone number must be in E.164 format (e.g., +919876543210)",
             )
-    pw_err = validate_password_strength(body.password)
-    if pw_err:
-        raise HTTPException(status_code=400, detail=pw_err)
+    if body.portal_access:
+        pw_err = validate_password_strength(body.password)
+        if pw_err:
+            raise HTTPException(status_code=400, detail=pw_err)
 
-    if (body.phone and users.get_by_identifier(body.phone)) or (
-        body.email and users.get_by_identifier(body.email)
+    if (phone and users.get_by_identifier(phone)) or (
+        email and users.get_by_identifier(email)
     ):
         raise HTTPException(status_code=409, detail="an account with this phone or email already exists")
+
+    company_users = [
+        candidate
+        for candidate in users.list_users()
+        if candidate.get("company_code") == user.company_code
+    ]
+    allowed_manager_roles = (
+        {"owner"}
+        if body.role == "maintenance_head"
+        else {"owner", "maintenance_head"}
+        if body.role in {"maintenance_engineer", "supervisor"}
+        else {"owner", "maintenance_head", "maintenance_engineer", "supervisor"}
+    )
+    manager_user_id = body.manager_user_id.strip()
+    if not manager_user_id:
+        manager_user_id = next(
+            (
+                str(candidate.get("user_id") or "")
+                for candidate in company_users
+                if candidate.get("role") in allowed_manager_roles
+            ),
+            "",
+        )
+    if manager_user_id:
+        manager = users.get_by_id(manager_user_id)
+        if manager is None or manager.get("company_code") != user.company_code:
+            raise HTTPException(status_code=400, detail="reporting manager is not part of this company")
+        if manager.get("role") not in allowed_manager_roles:
+            raise HTTPException(status_code=400, detail="selected reporting manager does not match the team hierarchy")
 
     user_id = users.next_user_id(user.company_code)
     users.add({
         "user_id": user_id,
         "company_code": user.company_code,
-        "name": body.name,
-        "phone": body.phone,
-        "email": body.email,
+        "name": name,
+        "phone": phone,
+        "email": email,
         "role": body.role,
-        "password_hash": hash_password(body.password),
+        "password_hash": hash_password(body.password) if body.portal_access else "",
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "manager_user_id": manager_user_id,
+        "department": body.department.strip(),
+        "plant_location": body.plant_location.strip(),
+        "shift": body.shift.strip(),
+        "portal_access": "yes" if body.portal_access else "no",
     })
 
     log.info("auth.add_supervisor", user_id=user_id, company=user.company_code, added_by=user.user_id)
     return {
         "user_id": user_id,
-        "name": body.name,
+        "name": name,
         "role": body.role,
         "company_code": user.company_code,
     }

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '../components/AppShell';
+import ContactReveal from '../components/ContactReveal';
 import { apiFetch } from '@/lib/api';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 
@@ -18,6 +19,11 @@ export default function Team() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('maintenance_technician');
+  const [managerUserId, setManagerUserId] = useState('');
+  const [department, setDepartment] = useState('Maintenance');
+  const [plantLocation, setPlantLocation] = useState('');
+  const [shift, setShift] = useState('');
+  const [portalAccess, setPortalAccess] = useState(true);
 
 
   useEffect(() => {
@@ -65,6 +71,11 @@ export default function Team() {
           email: email || '',
           password,
           role,
+          manager_user_id: managerUserId,
+          department,
+          plant_location: plantLocation,
+          shift,
+          portal_access: portalAccess,
         }),
       });
 
@@ -82,6 +93,11 @@ export default function Team() {
       setEmail('');
       setPassword('');
       setRole('maintenance_technician');
+      setManagerUserId('');
+      setDepartment('Maintenance');
+      setPlantLocation('');
+      setShift('');
+      setPortalAccess(true);
 
       fetchData();
     } catch (err) {
@@ -98,6 +114,19 @@ export default function Team() {
     ...defaultRoles.filter((availableRole) => availableRole.value !== 'owner'),
     ...customRoles.map((r) => ({ value: r.role_name, label: r.role_label }))
   ];
+
+  const eligibleManagers = useMemo(() => {
+    const managerRoles = role === 'maintenance_head'
+      ? ['owner']
+      : ['owner', 'maintenance_head', 'maintenance_engineer', 'supervisor'];
+    return team.filter((member) => managerRoles.includes(member.role));
+  }, [role, team]);
+
+  useEffect(() => {
+    if (managerUserId && !eligibleManagers.some((member) => member.user_id === managerUserId)) {
+      setManagerUserId('');
+    }
+  }, [eligibleManagers, managerUserId]);
 
   return (
     <AppShell active="team">
@@ -135,16 +164,43 @@ export default function Team() {
                   </select>
                 </div>
                 <div className="vault-field">
-                  <label htmlFor="supPhone">Phone Number</label>
-                  <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +919876543212" />
+                  <label htmlFor="supManager">Reports to</label>
+                  <select id="supManager" value={managerUserId} onChange={(e) => setManagerUserId(e.target.value)} required={eligibleManagers.length > 0}>
+                    <option value="">Select reporting manager</option>
+                    {eligibleManagers.map((member) => (
+                      <option key={member.user_id} value={member.user_id}>{member.name} — {getLabel(member.role)}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="vault-field">
-                  <label htmlFor="supEmail">Email Address</label>
-                  <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
+                  <label htmlFor="supDepartment">Department</label>
+                  <input type="text" id="supDepartment" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Maintenance" />
                 </div>
+                <div className="vault-field">
+                  <label htmlFor="supLocation">Plant / work area</label>
+                  <input type="text" id="supLocation" value={plantLocation} onChange={(e) => setPlantLocation(e.target.value)} placeholder="Example: Shop Floor A" />
+                </div>
+                <div className="vault-field">
+                  <label htmlFor="supShift">Shift</label>
+                  <input type="text" id="supShift" value={shift} onChange={(e) => setShift(e.target.value)} placeholder="Example: General or Shift B" />
+                </div>
+                <div className="vault-field">
+                  <label htmlFor="supPhone">Mobile number <span>Optional</span></label>
+                  <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +919876543212" />
+                  <small>Leave blank to display “Mobile number not available”.</small>
+                </div>
+                <div className="vault-field">
+                  <label htmlFor="supEmail">Email address <span>Optional</span></label>
+                  <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
+                  <small>Leave blank to display “Email not available”.</small>
+                </div>
+                <label className="team-portal-toggle" style={{ gridColumn: 'span 2' }}>
+                  <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
+                  <span><strong>Enable TurboFix portal access</strong><small>Requires a mobile number or email and a sign-in password.</small></span>
+                </label>
                 <div className="vault-field" style={{ gridColumn: 'span 2' }}>
-                  <label htmlFor="supPassword">Sign In Password (Min 8 chars)</label>
-                  <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength="8" required />
+                  <label htmlFor="supPassword">Sign-in password {portalAccess ? '(required)' : '(not needed for offline staff)'}</label>
+                  <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength="8" required={portalAccess} disabled={!portalAccess} />
                 </div>
               </div>
               <button type="submit" className="vault-btn vault-btn-primary" style={{ width: 'auto', marginTop: '14px', padding: '10px 24px' }}>Onboard Member</button>
@@ -159,11 +215,11 @@ export default function Team() {
             <table className="vault-table">
               <thead>
                 <tr>
-                  <th>User ID</th>
                   <th>Name</th>
+                  <th>Reports to</th>
                   <th>Contact Info</th>
                   <th>Authorization Badge</th>
-                  <th>Joined Date</th>
+                  <th>Access</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,12 +227,12 @@ export default function Team() {
                   <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No team members found for this plant.</td></tr>
                 ) : team.map((u) => (
                   <tr key={u.user_id}>
-                    <td style={{ fontFamily: 'monospace', color: 'var(--slate-light)' }}>{u.user_id}</td>
-                    <td style={{ fontWeight: '600' }}>{u.name}</td>
                     <td>
-                      <div>{u.email || '—'}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '2px' }}>{u.phone || '—'}</div>
+                      <div style={{ fontWeight: '600' }}>{u.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: '3px' }}>{[u.department, u.plant_location, u.shift].filter(Boolean).join(' · ') || u.user_id}</div>
                     </td>
+                    <td>{u.manager_name || (u.role === 'owner' ? 'Top level' : 'Not assigned')}</td>
+                    <td><ContactReveal member={u} compact /></td>
                     <td>
                       <span className={`vault-role-badge ${u.role === 'owner' ? '' : u.role === 'supervisor' ? 'read-only' : 'medium-badge'}`}
                             style={
@@ -189,7 +245,10 @@ export default function Team() {
                         {getLabel(u.role)}
                       </span>
                     </td>
-                    <td>{u.created_at || '—'}</td>
+                    <td>
+                      <span className={`team-access-status ${u.portal_access ? 'active' : 'offline'}`}>{u.portal_access ? 'Portal access' : 'Offline staff'}</span>
+                      {!u.can_receive_alerts && <small className="team-alert-warning">Cannot receive mobile alerts</small>}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -18,6 +18,12 @@ from app.dependencies import get_documents, get_machine_records, get_machines, g
 from app.infrastructure.file_storage import FileStorage, get_file_storage
 from app.repositories.base import DocumentRepository, MachineRecordRepository, MachineRepository, PartsRepository, SettingsRepository, TicketRepository, UserRepository
 from app.services import vault_service
+from app.services.contact_access_service import (
+    can_reveal_contact,
+    company_hierarchy,
+    directory_entry,
+    mask_phone,
+)
 from app.services.machine_data_service import build_machine_data, machine_data_path
 
 from app.infrastructure.logging import get_logger
@@ -34,9 +40,72 @@ router = APIRouter(prefix="/vault")
 def list_machines(
     user: CurrentUser = Depends(get_current_user),
     machines: MachineRepository = Depends(get_machines),
+    users_repo: UserRepository = Depends(get_users),
 ):
     from urllib.parse import quote
     all_machines = machines.load()
+    company_users = company_hierarchy([
+        candidate
+        for candidate in users_repo.list_users()
+        if candidate.get("company_code") == user.company_code
+    ])
+    viewer = users_repo.get_by_id(user.user_id) or {
+        "user_id": user.user_id,
+        "company_code": user.company_code,
+        "role": user.role,
+        "name": user.name,
+    }
+    users_by_phone = {
+        str(candidate.get("phone") or "").strip(): candidate
+        for candidate in company_users
+        if str(candidate.get("phone") or "").strip()
+    }
+
+    def assignment_entry(phone: str | None) -> dict | None:
+        normalized = str(phone or "").strip()
+        if not normalized:
+            return None
+        target = users_by_phone.get(normalized)
+        if target:
+            return directory_entry(viewer, target, company_users)
+        return {
+            "user_id": "",
+            "name": "Assigned contact",
+            "role": "",
+            "phone_masked": mask_phone(normalized),
+            "email_masked": "Email not available",
+            "phone_available": True,
+            "email_available": False,
+            "can_receive_alerts": True,
+            "can_reveal_contact": False,
+        }
+
+    def machine_assignments(machine: dict) -> dict:
+        assignments = {
+            "technician": assignment_entry(machine.get("assigned_technician_phone")),
+            "supervisor": None,
+            "engineer": None,
+            "maintenance_head": None,
+        }
+        role_keys = {
+            "supervisor": "supervisor",
+            "maintenance_engineer": "engineer",
+            "maintenance_head": "maintenance_head",
+        }
+        fallback_keys = ["supervisor", "engineer", "maintenance_head"]
+        for fallback_key, phone in zip(
+            fallback_keys,
+            [machine.get("informed_phone_1"), machine.get("informed_phone_2"), machine.get("informed_phone_3")],
+        ):
+            entry = assignment_entry(phone)
+            if entry is None:
+                continue
+            actual_key = role_keys.get(entry.get("role"))
+            destination = actual_key if actual_key and assignments[actual_key] is None else fallback_key
+            if assignments[destination] is None:
+                assignments[destination] = entry
+        return assignments
+
     out = []
     for machine_id, machine in all_machines.items():
         if machine["company_code"] == user.company_code:
@@ -44,14 +113,26 @@ def list_machines(
             if config.WHATSAPP_DISPLAY_NUMBER:
                 text = quote(f"Issue with {machine_id}: ")
                 wa_link = f"https://wa.me/{config.WHATSAPP_DISPLAY_NUMBER}?text={text}"
-            out.append({"machine_id": machine_id, "wa_link": wa_link, **machine})
+            out.append({
+                "machine_id": machine_id,
+                "wa_link": wa_link,
+                "company_code": machine.get("company_code", ""),
+                "machine_name": machine.get("machine_name", ""),
+                "location": machine.get("location", ""),
+                "has_open_tickets": machine.get("has_open_tickets", False),
+                "assignments": machine_assignments(machine),
+            })
     return out
 
 
 class MachineIn(BaseModel):
     machine_name: str
     location: str = ""
-    assigned_technician_phone: str
+    assigned_technician_user_id: str = ""
+    supervisor_user_id: str = ""
+    engineer_user_id: str = ""
+    maintenance_head_user_id: str = ""
+    assigned_technician_phone: str = ""
     informed_phone_1: str = ""
     informed_phone_2: str = ""
     informed_phone_3: str = ""
@@ -73,13 +154,11 @@ def create_machine(
     body: MachineIn,
     user: CurrentUser = Depends(get_current_user),
     machines: MachineRepository = Depends(get_machines),
+    users_repo: UserRepository = Depends(get_users),
 ):
     """Self-service machine onboarding — generates TF-{company}-Mnnn ID."""
-    from app.dependencies import get_users
-
     user.assert_can_write()
 
-    users_repo = get_users()
     company = users_repo.get_company(user.company_code)
     if company is None:
         raise HTTPException(status_code=404, detail="company not found")
@@ -101,7 +180,49 @@ def create_machine(
 
     machine_code = machines.next_machine_code(user.company_code)
     machine_id = f"TF-{user.company_code}-{machine_code}"
-    row = {"machine_id": machine_id, "company_code": user.company_code, **body.model_dump()}
+    if not body.assigned_technician_user_id and not body.assigned_technician_phone:
+        raise HTTPException(status_code=400, detail="a primary technician is required")
+
+    def assignment_phone(user_id: str, legacy_phone: str, roles: set[str]) -> str:
+        if not user_id:
+            return legacy_phone.strip()
+        target = users_repo.get_by_id(user_id)
+        if target is None or target.get("company_code") != user.company_code:
+            raise HTTPException(status_code=400, detail="selected assignee is not part of this company")
+        if target.get("role") not in roles:
+            raise HTTPException(status_code=400, detail="selected assignee does not match this machine role")
+        phone = str(target.get("phone") or "").strip()
+        if not phone:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Mobile number not available for {target.get('name') or 'the selected assignee'}. Add a mobile number before assigning breakdown alerts.",
+            )
+        return phone
+
+    row = {
+        "machine_id": machine_id,
+        "company_code": user.company_code,
+        "machine_name": body.machine_name,
+        "location": body.location,
+        "assigned_technician_phone": assignment_phone(
+            body.assigned_technician_user_id,
+            body.assigned_technician_phone,
+            {"maintenance_technician"},
+        ),
+        "informed_phone_1": assignment_phone(
+            body.supervisor_user_id, body.informed_phone_1, {"supervisor"}
+        ),
+        "informed_phone_2": assignment_phone(
+            body.engineer_user_id,
+            body.informed_phone_2,
+            {"maintenance_engineer"},
+        ),
+        "informed_phone_3": assignment_phone(
+            body.maintenance_head_user_id,
+            body.informed_phone_3,
+            {"maintenance_head"},
+        ),
+    }
     machines.create(row)
 
     wa_link = None
@@ -446,18 +567,59 @@ def list_team(
     user: CurrentUser = Depends(get_current_user),
     users_repo: UserRepository = Depends(get_users),
 ):
-    all_users = users_repo.list_users()
-    return [
-        {
-            "user_id": u["user_id"],
-            "name": u["name"],
-            "phone": u.get("phone", ""),
-            "email": u.get("email", ""),
-            "role": u["role"],
-            "created_at": u.get("created_at", "")
-        }
-        for u in all_users if u.get("company_code") == user.company_code
-    ]
+    all_users = company_hierarchy([
+        candidate
+        for candidate in users_repo.list_users()
+        if candidate.get("company_code") == user.company_code
+    ])
+    viewer = users_repo.get_by_id(user.user_id) or {
+        "user_id": user.user_id,
+        "company_code": user.company_code,
+        "role": user.role,
+        "name": user.name,
+    }
+    return [directory_entry(viewer, target, all_users) for target in all_users]
+
+
+@router.get("/team/{target_user_id}/contact")
+def reveal_team_contact(
+    target_user_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    users_repo: UserRepository = Depends(get_users),
+):
+    all_users = company_hierarchy([
+        candidate
+        for candidate in users_repo.list_users()
+        if candidate.get("company_code") == user.company_code
+    ])
+    by_id = {str(candidate.get("user_id") or ""): candidate for candidate in all_users}
+    target = by_id.get(target_user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="team member not found")
+    viewer = by_id.get(user.user_id) or {
+        "user_id": user.user_id,
+        "company_code": user.company_code,
+        "role": user.role,
+        "name": user.name,
+    }
+    if not can_reveal_contact(viewer, target, all_users):
+        raise HTTPException(status_code=403, detail="contact access is restricted by team hierarchy")
+
+    phone = str(target.get("phone") or "").strip()
+    email = str(target.get("email") or "").strip()
+    log.info(
+        "contact.revealed",
+        company_code=user.company_code,
+        viewer_user_id=user.user_id,
+        target_user_id=target_user_id,
+    )
+    return {
+        "user_id": target_user_id,
+        "phone": phone or "Mobile number not available",
+        "email": email or "Email not available",
+        "phone_available": bool(phone),
+        "email_available": bool(email),
+    }
 
 
 # ---------------------------------------------------------------------------

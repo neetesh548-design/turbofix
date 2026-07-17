@@ -80,7 +80,12 @@ class LocalUserRepository(UserRepository):
                 ws.append(USERS_HEADER)
             else:
                 ws = wb["Users"]
-            ws.append([row.get(col, "") for col in USERS_HEADER])
+            existing_header = [cell.value for cell in ws[1]]
+            for column in USERS_HEADER:
+                if column not in existing_header:
+                    ws.cell(row=1, column=len(existing_header) + 1, value=column)
+                    existing_header.append(column)
+            ws.append([row.get(col, "") for col in existing_header])
             wb.save(self._path)
 
     def update_password(self, user_id: str, new_password_hash: str) -> bool:

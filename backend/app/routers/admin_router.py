@@ -23,6 +23,7 @@ from app.dependencies import (
 )
 from app.infrastructure.logging import get_logger
 from app.infrastructure.rate_limit import limiter
+from app.services.contact_access_service import company_hierarchy, mask_email, mask_phone
 from app.repositories.base import (
     CustomKpiRepository,
     DocumentRepository,
@@ -219,21 +220,83 @@ def admin_company_workspace_preview(
     if company is None:
         raise HTTPException(status_code=404, detail="company not found")
 
-    company_machines = machines.get_company_machines(company_code)
+    raw_company_machines = machines.get_company_machines(company_code)
     company_tickets = tickets.get_company_tickets(company_code)
     company_documents = documents.list(company_code)
     company_records = records.list(company_code)
+    raw_company_users = company_hierarchy([
+        user
+        for user in users.list_users()
+        if user.get("company_code") == company_code
+    ])
+    users_by_id = {str(user.get("user_id") or ""): user for user in raw_company_users}
+    users_by_phone = {
+        str(user.get("phone") or "").strip(): user
+        for user in raw_company_users
+        if str(user.get("phone") or "").strip()
+    }
+
+    def masked_assignment(phone: str | None) -> dict | None:
+        value = str(phone or "").strip()
+        if not value:
+            return None
+        assigned_user = users_by_phone.get(value)
+        return {
+            "name": assigned_user.get("name", "Assigned contact") if assigned_user else "Assigned contact",
+            "role": assigned_user.get("role", "") if assigned_user else "",
+            "phone_masked": mask_phone(value),
+        }
+
+    def masked_assignments(machine: dict) -> dict:
+        assignments = {
+            "technician": masked_assignment(machine.get("assigned_technician_phone")),
+            "supervisor": None,
+            "engineer": None,
+            "maintenance_head": None,
+        }
+        role_keys = {
+            "supervisor": "supervisor",
+            "maintenance_engineer": "engineer",
+            "maintenance_head": "maintenance_head",
+        }
+        for fallback_key, phone in zip(
+            ["supervisor", "engineer", "maintenance_head"],
+            [machine.get("informed_phone_1"), machine.get("informed_phone_2"), machine.get("informed_phone_3")],
+        ):
+            entry = masked_assignment(phone)
+            if entry is None:
+                continue
+            actual_key = role_keys.get(entry.get("role"))
+            destination = actual_key if actual_key and assignments[actual_key] is None else fallback_key
+            if assignments[destination] is None:
+                assignments[destination] = entry
+        return assignments
+
+    company_machines = [
+        {
+            "machine_id": machine.get("machine_id", ""),
+            "company_code": machine.get("company_code", ""),
+            "machine_name": machine.get("machine_name", ""),
+            "location": machine.get("location", ""),
+            "has_open_tickets": machine.get("has_open_tickets", False),
+            "assignments": masked_assignments(machine),
+        }
+        for machine in raw_company_machines
+    ]
     company_users = [
         {
             "user_id": user.get("user_id"),
             "name": user.get("name"),
-            "phone": user.get("phone"),
-            "email": user.get("email"),
+            "phone_masked": mask_phone(user.get("phone")),
+            "email_masked": mask_email(user.get("email")),
             "role": user.get("role"),
+            "manager_name": (users_by_id.get(str(user.get("manager_user_id") or "")) or {}).get("name", ""),
+            "department": user.get("department", ""),
+            "plant_location": user.get("plant_location", ""),
+            "shift": user.get("shift", ""),
             "created_at": str(user.get("created_at") or ""),
         }
-        for user in users.list_users()
-        if user.get("company_code") == company_code
+        for user in raw_company_users
     ]
     work_by_ticket = {
         item.get("ticket_id"): {
