@@ -26,19 +26,54 @@ serve(async (req) => {
   const { data: { user }, error: userError } = await callerClient.auth.getUser()
   if (userError || !user) return reply({ error: 'Your session has expired. Please sign in again.' }, 401)
 
-  let { data: owner } = await admin
-    .from('users').select('id,company_id,role').eq('id', user.id).maybeSingle()
+  const ownerFields = 'id,company_id,role,name,email'
+  const protectedOwnerId = String(user.app_metadata?.directory_user_id ?? '')
+  let owner = null
+  if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(protectedOwnerId)) {
+    const linked = await admin.from('users').select(ownerFields).eq('id', protectedOwnerId).maybeSingle()
+    owner = linked.data
+  }
+  if (!owner) {
+    const direct = await admin.from('users').select(ownerFields).eq('id', user.id).maybeSingle()
+    owner = direct.data
+  }
 
   // Some early TurboFix accounts were migrated into Supabase Auth after their
   // directory profile was created, so their auth UUID can differ from users.id.
   // Resolve those owners by the verified Auth email instead of blocking them.
   if (!owner && user.email) {
     const result = await admin
-      .from('users').select('id,company_id,role').ilike('email', user.email).maybeSingle()
+      .from('users').select(ownerFields).ilike('email', user.email).maybeSingle()
     owner = result.data
+  }
+  if (!owner) {
+    const legacyUserId = String(user.user_metadata?.user_id ?? '')
+    if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(legacyUserId)) {
+      const result = await admin.from('users').select(ownerFields).eq('id', legacyUserId).maybeSingle()
+      owner = result.data
+    }
+  }
+  if (!owner) {
+    const legacyCompanyId = String(user.user_metadata?.company_id ?? '')
+    const legacyRole = String(user.user_metadata?.role ?? '')
+    const loginName = String(user.user_metadata?.name ?? user.user_metadata?.full_name ?? '').trim().toLowerCase()
+    if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(legacyCompanyId) && legacyRole === 'owner' && loginName) {
+      const result = await admin.from('users').select(ownerFields)
+        .eq('company_id', legacyCompanyId).eq('role', 'owner').limit(2)
+      const candidates = result.data ?? []
+      owner = candidates.length === 1 && String(candidates[0].name ?? '').trim().toLowerCase() === loginName
+        ? candidates[0]
+        : null
+    }
   }
   if (!owner) return reply({ error: 'Your owner profile is not linked to this login. Please contact TurboFix support.' }, 403)
   if (owner.role !== 'owner') return reply({ error: 'Only the company owner can onboard team members.' }, 403)
+
+  if (user.app_metadata?.directory_user_id !== owner.id) {
+    await admin.auth.admin.updateUserById(user.id, {
+      app_metadata: { ...user.app_metadata, directory_user_id: owner.id },
+    })
+  }
 
   const body = await req.json()
   const name = String(body.name ?? '').trim()
