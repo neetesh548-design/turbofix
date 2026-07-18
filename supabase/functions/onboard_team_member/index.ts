@@ -89,7 +89,10 @@ serve(async (req) => {
       .select('id,company_id,phone,email').eq('id', targetId).eq('company_id', owner.company_id).maybeSingle()
     if (targetError) return reply({ error: targetError.message }, 400)
     if (!target) return reply({ error: 'Team member was not found in your company.' }, 404)
-    return reply({ phone: target.phone || '', email: target.email || '' })
+    return reply({
+      phone: target.phone || (target.id === owner.id ? user.phone || '' : ''),
+      email: target.email || (target.id === owner.id ? user.email || '' : ''),
+    })
   }
 
   if (body.action === 'list') {
@@ -99,16 +102,21 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
     if (listError) return reply({ error: listError.message }, 400)
     return reply({
-      members: (members ?? []).map((member) => ({
+      members: (members ?? []).map((member) => {
+        const email = member.email || (member.id === owner.id ? user.email || '' : '')
+        const phone = member.phone || (member.id === owner.id ? user.phone || '' : '')
+        return ({
         user_id: member.id,
         name: member.name,
         role: member.role,
-        email_masked: maskEmail(member.email || ''),
-        phone_masked: maskPhone(member.phone || ''),
-        has_contact: Boolean(member.email || member.phone),
-        portal_access: Boolean(member.email || member.phone),
-        can_receive_alerts: Boolean(member.phone),
-      })),
+        email_masked: maskEmail(email),
+        phone_masked: maskPhone(phone),
+        has_email: Boolean(email),
+        has_phone: Boolean(phone),
+        has_contact: Boolean(email || phone),
+        portal_access: member.id === owner.id || Boolean(member.email || member.phone),
+        can_receive_alerts: Boolean(phone),
+      })}),
     })
   }
 

@@ -18,8 +18,14 @@ export default function ContactReveal({ member, compact = false, showIdentity = 
     return <span className="contact-unassigned">Not assigned</span>;
   }
 
-  const phone = revealed ? (contact?.phone || member.phone || 'Mobile number not available') : (member.phone_masked || 'Mobile number not available');
-  const email = revealed ? (contact?.email || member.email || 'Email not available') : (member.email_masked || 'Email not available');
+  const phoneAvailable = Boolean(member.has_phone || member.phone || member.phone_masked);
+  const emailAvailable = Boolean(member.has_email || member.email || member.email_masked);
+  const phone = revealed
+    ? (contact?.phone || member.phone || 'Mobile number not available')
+    : (member.phone_masked || (phoneAvailable ? 'Mobile number available' : 'Mobile number not available'));
+  const email = revealed
+    ? (contact?.email || member.email || 'Email not available')
+    : (member.email_masked || (emailAvailable ? 'Email available' : 'Email not available'));
   const hasContact = Boolean(member.has_contact || member.phone || member.email || member.phone_masked || member.email_masked);
 
   const toggleContact = async () => {

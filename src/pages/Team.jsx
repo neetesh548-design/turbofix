@@ -56,6 +56,8 @@ export default function Team() {
         role: u.role,
         email_masked: u.email_masked,
         phone_masked: u.phone_masked,
+        has_email: u.has_email,
+        has_phone: u.has_phone,
         has_contact: u.has_contact,
         can_reveal_contact: u.can_reveal_contact !== false,
         portal_access: u.portal_access,
@@ -251,7 +253,7 @@ export default function Team() {
                   <tr key={u.user_id}>
                     <td>
                       <div style={{ fontWeight: '600' }}>{u.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: '3px' }}>{[u.department, u.plant_location, u.shift].filter(Boolean).join(' · ') || u.user_id}</div>
+                      {[u.department, u.plant_location, u.shift].some(Boolean) && <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: '3px' }}>{[u.department, u.plant_location, u.shift].filter(Boolean).join(' · ')}</div>}
                     </td>
                     <td>{u.manager_name || (u.role === 'owner' ? 'Top level' : 'Not assigned')}</td>
                     <td><ContactReveal member={u} compact /></td>
