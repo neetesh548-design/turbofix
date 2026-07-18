@@ -8,6 +8,7 @@ staff who need to log in and manage documentation.
 """
 
 import hashlib
+import httpx
 import re
 import time
 from enum import Enum
@@ -205,8 +206,11 @@ def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing bearer token")
 
-    payload = decode_access_token(credentials.credentials)
+    token = credentials.credentials
+    payload = decode_access_token(token)
     # A per-company user must never be one of the special-purpose tokens (reset, admin).
+    if payload is None or "company_code" not in payload:
+        payload = _resolve_supabase_user(token)
     if payload is None or "company_code" not in payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")
 
@@ -216,6 +220,83 @@ def get_current_user(
         role=payload["role"],
         name=payload.get("name", ""),
     )
+
+
+def _resolve_supabase_user(token: str) -> Optional[dict]:
+    """Validate a Supabase access token and resolve authorization from public.users.
+
+    Supabase ``user_metadata`` is intentionally ignored for roles and tenancy because
+    end users can edit it. The trusted directory row is loaded with the server-only
+    service key after GoTrue confirms the caller token.
+    """
+    if not config.SUPABASE_URL or not config.SUPABASE_SERVICE_ROLE_KEY:
+        return None
+    headers = {
+        "apikey": config.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {token}",
+    }
+    try:
+        with httpx.Client(timeout=10) as client:
+            auth_response = client.get(
+                f"{config.SUPABASE_URL.rstrip('/')}/auth/v1/user", headers=headers
+            )
+            if auth_response.status_code != 200:
+                return None
+            auth_user = auth_response.json()
+            auth_id = str(auth_user.get("id") or "")
+            email = str(auth_user.get("email") or "").strip()
+
+            admin_headers = {
+                "apikey": config.SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {config.SUPABASE_SERVICE_ROLE_KEY}",
+            }
+            rest_base = f"{config.SUPABASE_URL.rstrip('/')}/rest/v1"
+            user_params = {"select": "id,company_id,role,name,email", "limit": 1}
+            directory_id = str(
+                (auth_user.get("app_metadata") or {}).get("directory_user_id")
+                or ""
+            )
+            if directory_id:
+                user_params["id"] = f"eq.{directory_id}"
+            else:
+                user_params["id"] = f"eq.{auth_id}"
+            profile_response = client.get(
+                f"{rest_base}/users", headers=admin_headers, params=user_params
+            )
+            profile_response.raise_for_status()
+            profiles = profile_response.json()
+            if not profiles and email:
+                profile_response = client.get(
+                    f"{rest_base}/users",
+                    headers=admin_headers,
+                    params={
+                        "select": "id,company_id,role,name,email",
+                        "email": f"ilike.{email}",
+                        "limit": 1,
+                    },
+                )
+                profile_response.raise_for_status()
+                profiles = profile_response.json()
+            if not profiles:
+                return None
+            profile = profiles[0]
+            company_response = client.get(
+                f"{rest_base}/companies",
+                headers=admin_headers,
+                params={"select": "domain", "id": f"eq.{profile['company_id']}", "limit": 1},
+            )
+            company_response.raise_for_status()
+            companies = company_response.json()
+            if not companies or not companies[0].get("domain"):
+                return None
+            return {
+                "sub": str(profile["id"]),
+                "company_code": str(companies[0]["domain"]),
+                "role": str(profile.get("role") or ""),
+                "name": str(profile.get("name") or ""),
+            }
+    except (httpx.HTTPError, KeyError, TypeError, ValueError):
+        return None
 
 
 # --- Platform admin (TurboFix team) --------------------------------------

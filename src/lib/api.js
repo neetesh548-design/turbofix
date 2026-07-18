@@ -1,7 +1,7 @@
 const BASE = import.meta.env.BASE_URL || '/';
 
 export function getApiBase() {
-  return import.meta.env.VITE_SUPABASE_URL || 'https://wcqgbleppiaddgfjrnpq.supabase.co';
+  return import.meta.env.VITE_API_URL || 'https://turbofix-backend-ehxb.onrender.com';
 }
 
 export async function apiFetch(path, options = {}) {

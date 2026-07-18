@@ -12,10 +12,12 @@ Each repository method translates transparently so every consumer — routes,
 services, admin — keeps working without changes.
 """
 
+import base64
 import json
 import logging
 import secrets
 import uuid
+import zlib
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
@@ -44,7 +46,6 @@ from app.repositories.base import (
     TechnicianWorkRepository,
     TicketRepository,
     UserRepository,
-    new_document_id,
     new_event_id,
     new_item_id,
     new_kpi_entry_id,
@@ -882,14 +883,14 @@ class SupabaseDocumentRepository(DocumentRepository):
             "machine_id": machine_id,
             "category": row.get("category", ""),
             "title": row.get("title", ""),
-            "file_name": row.get("title", ""),
-            "storage_path": row.get("file_url", ""),
-            "uploaded_by": "",
+            "file_name": row.get("file_name") or row.get("title", ""),
+            "storage_path": row.get("storage_path") or row.get("file_url", ""),
+            "uploaded_by": row.get("uploaded_by") or "",
             "uploaded_at": str(row.get("created_at", "")),
         }
 
     def next_document_id(self) -> str:
-        return new_document_id()
+        return str(uuid.uuid4())
 
     def list(self, company_code: str, machine_id: Optional[str] = None) -> List[dict]:
         if machine_id:
@@ -921,6 +922,9 @@ class SupabaseDocumentRepository(DocumentRepository):
             "title": row.get("title", row.get("file_name", "")),
             "category": row.get("category", "other"),
             "file_url": row.get("storage_path", ""),
+            "file_name": row.get("file_name", ""),
+            "storage_path": row.get("storage_path", ""),
+            "uploaded_by": row.get("uploaded_by") or None,
         })
 
     def delete(self, document_id: str) -> bool:
@@ -928,31 +932,94 @@ class SupabaseDocumentRepository(DocumentRepository):
 
 
 # ---------------------------------------------------------------------------
-# MachineRecordRepository — not yet in Supabase schema, use stub
+# MachineRecordRepository → machine_records table
 # ---------------------------------------------------------------------------
 
+def _expand_encoded_json(value: str) -> str:
+    """Supabase TEXT has no Excel cell limit, so persist readable JSON."""
+    raw = str(value or "")
+    if not raw.startswith("zlib:"):
+        return raw
+    try:
+        return zlib.decompress(base64.b64decode(raw[5:])).decode("utf-8")
+    except (ValueError, zlib.error):
+        return raw
+
 class SupabaseMachineRecordRepository(MachineRecordRepository):
-    """Stub: machine_records table does not yet exist in Supabase.
-    Returns empty data so the admin panel loads without errors."""
+    """Durable, tenant-scoped AI machine records stored in Supabase."""
+
+    @staticmethod
+    def _row_to_dict(row: dict) -> dict:
+        company_code = _company_code_for_id(row.get("company_id") or "")
+        return {
+            key: row.get(key, "")
+            for key in MACHINE_RECORDS_HEADER
+            if key != "company_code"
+        } | {"company_code": company_code}
+
+    @staticmethod
+    def _db_row(row: dict) -> dict:
+        payload = {
+            key: row.get(key)
+            for key in MACHINE_RECORDS_HEADER
+            if key != "company_code" and key in row
+        }
+        payload["company_id"] = _company_id_for_code(row.get("company_code", ""))
+        if not payload.get("document_id"):
+            payload["document_id"] = None
+        if not payload.get("approved_at"):
+            payload["approved_at"] = None
+        if "extracted_json" in payload:
+            payload["extracted_json"] = _expand_encoded_json(payload["extracted_json"])
+        if "history_json" in payload:
+            payload["history_json"] = _expand_encoded_json(payload["history_json"])
+        return payload
 
     def next_record_id(self) -> str:
         return new_machine_record_id()
 
     def list(self, company_code: str, machine_id: Optional[str] = None,
              status: Optional[str] = None) -> List[dict]:
-        return []
+        company_id = _company_id_for_code(company_code)
+        if not company_id:
+            return []
+        params = {"company_id": f"eq.{company_id}", "order": "updated_at.desc"}
+        if machine_id:
+            params["machine_id"] = f"eq.{machine_id}"
+        if status:
+            params["status"] = f"eq.{status}"
+        return [self._row_to_dict(row) for row in _client.select("machine_records", params)]
 
     def get(self, record_id: str) -> Optional[dict]:
-        return None
+        row = _client.select_one("machine_records", {"record_id": f"eq.{record_id}"})
+        return self._row_to_dict(row) if row else None
 
     def add(self, row: dict) -> None:
-        log.warning("MachineRecordRepository.add: table not in Supabase yet")
+        _client.insert("machine_records", self._db_row(row))
 
     def update(self, record_id: str, updates: dict) -> bool:
-        return False
+        payload = {
+            key: value for key, value in updates.items()
+            if key in MACHINE_RECORDS_HEADER and key not in {"record_id", "company_code"}
+        }
+        if "extracted_json" in payload:
+            payload["extracted_json"] = _expand_encoded_json(payload["extracted_json"])
+        if "history_json" in payload:
+            payload["history_json"] = _expand_encoded_json(payload["history_json"])
+        if "approved_at" in payload and not payload["approved_at"]:
+            payload["approved_at"] = None
+        return bool(_client.update("machine_records", {"record_id": f"eq.{record_id}"}, payload))
 
     def find_by_hash(self, company_code: str, machine_id: str, file_hash: str) -> Optional[dict]:
-        return None
+        company_id = _company_id_for_code(company_code)
+        if not company_id:
+            return None
+        row = _client.select_one("machine_records", {
+            "company_id": f"eq.{company_id}",
+            "machine_id": f"eq.{machine_id}",
+            "file_hash": f"eq.{file_hash}",
+        })
+        return self._row_to_dict(row) if row else None
 
 
 # ---------------------------------------------------------------------------

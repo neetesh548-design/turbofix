@@ -33,6 +33,8 @@ services:
       - key: PLATFORM_ADMIN_PASSWORD
         sync: false
       - key: DOCUMENT_STORE
-        value: local
+        value: supabase
+      - key: SUPABASE_STORAGE_BUCKET
+        value: machine-records
       - key: EMAIL_PROVIDER
         value: console

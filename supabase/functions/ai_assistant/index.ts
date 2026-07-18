@@ -27,6 +27,35 @@ const compactProperties = (properties: Record<string, unknown>) => Object.fromEn
   Object.entries(properties).filter(([, value]) => value !== null && value !== undefined && value !== ''),
 )
 
+const parsedExtraction = (value: unknown) => {
+  try {
+    return typeof value === 'string' ? JSON.parse(value) : (value || {})
+  } catch {
+    return {}
+  }
+}
+
+const compactExtraction = (record: any) => {
+  const data: any = parsedExtraction(record.extracted_json)
+  const facts: string[] = []
+  if (data.summary) facts.push(`Summary: ${text(data.summary)}`)
+  const identity = data.machine_identity && typeof data.machine_identity === 'object' ? data.machine_identity : {}
+  Object.entries(identity).forEach(([key, field]: any) => {
+    if (field?.value) facts.push(`${key.replaceAll('_', ' ')}: ${text(field.value)} (source: ${text(field.source) || 'not stated'})`)
+  })
+  ;['specifications', 'maintenance_tasks', 'spare_parts', 'consumables', 'service_history', 'risks'].forEach((section) => {
+    const items = Array.isArray(data[section]) ? data[section].slice(0, 25) : []
+    items.forEach((item: any) => {
+      const detail = Object.entries(item)
+        .filter(([key, value]) => !['confidence'].includes(key) && value !== null && value !== undefined && value !== '')
+        .map(([key, value]) => `${key.replaceAll('_', ' ')}=${text(value)}`)
+        .join(', ')
+      if (detail) facts.push(`${section.replaceAll('_', ' ')}: ${detail}`)
+    })
+  })
+  return facts.join(' | ').slice(0, 12000)
+}
+
 function retrieveSubgraph(nodes: GraphNode[], edges: GraphEdge[], question: string, plantWide: boolean) {
   const query = question.toLowerCase()
   const wantsPeople = /who|technician|supervisor|engineer|head|assigned|responsib|stakeholder|contact/.test(query)
@@ -41,11 +70,12 @@ function retrieveSubgraph(nodes: GraphNode[], edges: GraphEdge[], question: stri
   if (wantsParts) requestedTypes.add('part')
   if (wantsConsumables) requestedTypes.add('consumable')
   if (wantsDocuments) requestedTypes.add('document')
-  if (requestedTypes.size === 1) { requestedTypes.add('ticket'); requestedTypes.add('stakeholder') }
+  requestedTypes.add('record')
+  if (requestedTypes.size === 2) { requestedTypes.add('ticket'); requestedTypes.add('stakeholder') }
 
   const limits: Record<string, number> = plantWide
-    ? { machine: 1, stakeholder: wantsPeople ? 4 : 1, ticket: 5, event: 2, part: 3, consumable: 3, document: 2 }
-    : { machine: 1, stakeholder: 4, ticket: 20, event: 15, part: 20, consumable: 20, document: 12 }
+    ? { machine: 1, stakeholder: wantsPeople ? 4 : 1, ticket: 5, event: 2, part: 3, consumable: 3, document: 2, record: 4 }
+    : { machine: 1, stakeholder: 4, ticket: 20, event: 15, part: 20, consumable: 20, document: 12, record: 12 }
   const counts: Record<string, number> = {}
   const selectedNodes = nodes.filter((node) => {
     if (!requestedTypes.has(node.type)) return false
@@ -66,7 +96,7 @@ function retrieveSubgraph(nodes: GraphNode[], edges: GraphEdge[], question: stri
 
 async function resolveDirectoryUser(admin: any, authUser: any) {
   const fields = 'id,company_id,role,name,email'
-  const linkedId = String(authUser.app_metadata?.directory_user_id || authUser.user_metadata?.user_id || '')
+  const linkedId = String(authUser.app_metadata?.directory_user_id || '')
   if (linkedId) {
     const linked = await admin.from('users').select(fields).eq('id', linkedId).maybeSingle()
     if (linked.data) return linked.data
@@ -84,19 +114,26 @@ async function buildMachineMarkdown(admin: any, companyId: string, machineId: st
   const { data: machine } = await admin.from('machines').select('*').eq('id', machineId).eq('company_id', companyId).maybeSingle()
   if (!machine) throw new Error('Machine was not found in your company.')
 
-  const [tickets, documents, parts, consumables, members] = await Promise.all([
+  const [tickets, documents, parts, consumables, members, records] = await Promise.all([
     admin.from('tickets').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }).limit(100),
     admin.from('documents').select('*').eq('machine_id', machineId).limit(100),
     admin.from('parts').select('*').eq('machine_id', machineId).limit(200),
     admin.from('consumables').select('*').eq('machine_id', machineId).limit(200),
     admin.from('users').select('id,name,role,phone').eq('company_id', companyId),
+    admin.from('machine_records').select('record_id,document_id,title,record_type,status,overall_confidence,extracted_json,approved_by,approved_at').eq('machine_id', machineId).limit(200),
   ])
   const ticketIds = (tickets.data || []).map((ticket: any) => ticket.id)
   const events = ticketIds.length
     ? await admin.from('events').select('*').in('ticket_id', ticketIds).order('created_at', { ascending: false }).limit(100)
     : { data: [], error: null }
-  const failed = [tickets, events, documents, parts, consumables, members].find((result) => result.error)
+  const failed = [tickets, events, documents, parts, consumables, members, records].find((result) => result.error)
   if (failed?.error) throw new Error('Machine context could not be prepared.')
+
+  const allRecords = records.data || []
+  const approvedRecords = allRecords.filter((record: any) => record.status === 'approved')
+  const recordDocumentIds = new Set(allRecords.map((record: any) => record.document_id).filter(Boolean))
+  const approvedDocumentIds = new Set(approvedRecords.map((record: any) => record.document_id).filter(Boolean))
+  const technicalDocuments = (documents.data || []).filter((document: any) => !recordDocumentIds.has(document.id) || approvedDocumentIds.has(document.id))
 
   const people = members.data || []
   const byId = Object.fromEntries(people.map((person: any) => [person.id, person]))
@@ -131,7 +168,7 @@ async function buildMachineMarkdown(admin: any, companyId: string, machineId: st
     nodes.push({ id: nodeId, type: 'event', label: text(event.event_type) || 'Maintenance event', properties: compactProperties({ message: event.message || event.notes, created_at: event.created_at }) })
     edges.push({ from: ticketNodeId, to: nodeId, type: 'HAS_EVENT' })
   })
-  ;(documents.data || []).forEach((document: any) => {
+  ;technicalDocuments.forEach((document: any) => {
     const nodeId = `document:${document.id}`
     nodes.push({ id: nodeId, type: 'document', label: text(document.title || document.file_name) || 'Technical document', properties: compactProperties({ category: document.category }) })
     edges.push({ from: machineNodeId, to: nodeId, type: 'DOCUMENTED_BY' })
@@ -145,6 +182,21 @@ async function buildMachineMarkdown(admin: any, companyId: string, machineId: st
     const nodeId = `consumable:${item.id}`
     nodes.push({ id: nodeId, type: 'consumable', label: text(item.name) || 'Consumable', properties: compactProperties({ stock: item.stock_qty ?? item.quantity_on_hand, unit: item.unit, reorder_level: item.reorder_level, replacement_days: item.frequency_days }) })
     edges.push({ from: machineNodeId, to: nodeId, type: 'USES_CONSUMABLE' })
+  })
+  approvedRecords.forEach((record: any) => {
+    const nodeId = `record:${record.record_id}`
+    nodes.push({
+      id: nodeId,
+      type: 'record',
+      label: text(record.title || record.record_type) || 'Approved machine record',
+      properties: compactProperties({
+        record_type: record.record_type,
+        confidence: record.overall_confidence,
+        approved_at: record.approved_at,
+        verified_knowledge: compactExtraction(record),
+      }),
+    })
+    edges.push({ from: machineNodeId, to: nodeId, type: 'HAS_APPROVED_RECORD' })
   })
   const fileName = `${text(machine.name).replace(/[^A-Za-z0-9_-]+/g, '_') || 'Machine'}_MachineData.md`
   const now = new Date().toISOString()
@@ -171,7 +223,10 @@ ${bullets(tickets.data || [], (ticket) => `${text(ticket.created_at)} | ${text(t
 ${bullets(events.data || [], (event) => `${text(event.created_at)} | ${text(event.event_type)} | ${text(event.message || event.notes) || 'No notes'}`)}
 
 ## Technical documents
-${bullets(documents.data || [], (document) => `${text(document.title || document.file_name)} | ${text(document.category) || 'Document'}`)}
+${bullets(technicalDocuments, (document) => `${text(document.title || document.file_name)} | ${text(document.category) || 'Document'}`)}
+
+## Maintenance Head approved records
+${bullets(approvedRecords, (record) => `${text(record.title || record.record_type)} | Confidence: ${record.overall_confidence ?? 0}% | Approved: ${text(record.approved_at) || 'Recorded'} | ${compactExtraction(record)}`)}
 
 ## Spare parts
 ${bullets(parts.data || [], (part) => `${text(part.name || part.part_name)}${part.part_number ? ` (${text(part.part_number)})` : ''} | Stock: ${part.stock_qty ?? part.quantity_on_hand ?? 'Unknown'} ${text(part.unit)}`)}

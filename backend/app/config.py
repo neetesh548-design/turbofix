@@ -13,10 +13,8 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
 # (what production should use). "supabase" reads/writes to remote Supabase DB.
 TICKET_STORE = os.getenv("TICKET_STORE", "supabase")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://wcqgbleppiaddgfjrnpq.supabase.co")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv(
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWdibGVwcGlhZGRnZmpybnBxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzc2ODQ1MCwiZXhwIjoyMDk5MzQ0NDUwfQ.64ft-M034wkKnehqiNEiGxeRLxBfb1X7Y30bcutGZPQ"
-)
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "machine-records")
 
 _default_path = BACKEND_DIR / "TurboFix-Tracker.xlsx"
 if not _default_path.exists():
@@ -112,6 +110,7 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))  # a work-shift
 #           (ephemeral filesystem). Safe for local dev/test only.
 # "drive"  uploads to a Google Drive folder using the same service-account file
 #           already used for Sheets — free 15 GB, files survive redeploys.
+# "supabase" stores private objects in Supabase Storage.
 # "gcs"    legacy stub — falls back to local in the new architecture.
 DOCUMENT_STORE = os.getenv("DOCUMENT_STORE", "local")
 DOCUMENT_STORE_DIR = Path(os.getenv("DOCUMENT_STORE_DIR", str(BACKEND_DIR / "document_store")))

@@ -263,45 +263,67 @@ async def create_record(
         user.company_code, machine_id, document_id, filename, content
     )
     created_at = _now()
-    documents.add({
-        "document_id": document_id,
-        "company_code": user.company_code,
-        "machine_id": machine_id,
-        "category": _document_category(record_type),
-        "title": title,
-        "file_name": filename,
-        "storage_path": storage_path,
-        "uploaded_by": user.user_id,
-        "uploaded_at": created_at,
-    })
+    document_created = False
+    try:
+        documents.add({
+            "document_id": document_id,
+            "company_code": user.company_code,
+            "machine_id": machine_id,
+            "category": _document_category(record_type),
+            "title": title,
+            "file_name": filename,
+            "storage_path": storage_path,
+            "uploaded_by": user.user_id,
+            "uploaded_at": created_at,
+        })
+        document_created = True
 
-    extracted = await extract_record_data(
-        content=content, filename=filename, record_type=record_type, title=title
-    )
-    record = {
-        "record_id": records.next_record_id(),
-        "document_id": document_id,
-        "company_code": user.company_code,
-        "machine_id": machine_id,
-        "record_type": record_type,
-        "source_kind": source_kind,
-        "title": title,
-        "status": "needs_review",
-        "overall_confidence": overall_confidence(extracted),
-        "extracted_json": _encode_json(extracted),
-        "review_notes": "",
-        "created_by": user.user_id,
-        "created_at": created_at,
-        "updated_by": user.user_id,
-        "updated_at": created_at,
-        "approved_by": "",
-        "approved_at": "",
-        "version": 1,
-        "file_hash": file_hash,
-        "history_json": _encode_json([_history("uploaded_and_extracted", user)]),
-    }
-    records.add(record)
-    return public_record(record, documents)
+        extracted = await extract_record_data(
+            content=content, filename=filename, record_type=record_type, title=title
+        )
+        record = {
+            "record_id": records.next_record_id(),
+            "document_id": document_id,
+            "company_code": user.company_code,
+            "machine_id": machine_id,
+            "record_type": record_type,
+            "source_kind": source_kind,
+            "title": title,
+            "status": "needs_review",
+            "overall_confidence": overall_confidence(extracted),
+            "extracted_json": _encode_json(extracted),
+            "review_notes": "",
+            "created_by": user.user_id,
+            "created_at": created_at,
+            "updated_by": user.user_id,
+            "updated_at": created_at,
+            "approved_by": "",
+            "approved_at": "",
+            "version": 1,
+            "file_hash": file_hash,
+            "history_json": _encode_json([_history("uploaded_and_extracted", user)]),
+        }
+        records.add(record)
+        return public_record(record, documents)
+    except Exception:
+        if document_created:
+            try:
+                documents.delete(document_id)
+            except Exception as cleanup_error:
+                log.warning(
+                    "machine_record.document_cleanup_failed",
+                    document=document_id,
+                    error=str(cleanup_error),
+                )
+        try:
+            await storage.delete(storage_path)
+        except Exception as cleanup_error:
+            log.warning(
+                "machine_record.storage_cleanup_failed",
+                path=storage_path,
+                error=str(cleanup_error),
+            )
+        raise
 
 
 def update_draft(

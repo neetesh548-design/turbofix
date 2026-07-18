@@ -7,374 +7,11 @@ import {
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 
-import JSZip from 'jszip';
+import { apiFetch } from '../lib/api';
 
-async function apiFetch(url, options = {}) {
-  // Get records from localStorage
-  const getLocalRecords = () => {
-    try {
-      return JSON.parse(window.localStorage.getItem('tf_records') || '[]');
-    } catch {
-      return [];
-    }
-  };
-
-  const saveLocalRecords = (recs) => {
-    window.localStorage.setItem('tf_records', JSON.stringify(recs));
-  };
-
-  const path = url.split('?')[0];
-
-  // 1. POST /vault/records -> Create draft record
-  if (path === '/vault/records' && options.method === 'POST') {
-    const formData = options.body;
-    const machineId = formData.get('machine_id');
-    const recordType = formData.get('record_type');
-    const sourceKind = formData.get('source_kind');
-    const title = formData.get('title');
-    const file = formData.get('file');
-
-    try {
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const docId = `DOC-${Date.now()}`;
-      const fileName = `${docId}.${fileExt}`;
-      const filePath = `${machineId}/${fileName}`;
-
-      const { error: uploadErr } = await supabase.storage
-        .from('machine-documents')
-        .upload(filePath, file);
-
-      if (uploadErr) throw uploadErr;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('machine-documents')
-        .getPublicUrl(filePath);
-
-      // Save document metadata in documents table
-      await supabase.from('documents').insert({
-        id: docId.replace('DOC-', ''),
-        machine_id: machineId,
-        title: title || file.name,
-        category: recordType || 'manual',
-        file_url: publicUrl
-      });
-
-      // Construct record object
-      const recordId = `REC-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-      const newRecord = {
-        record_id: recordId,
-        document_id: docId,
-        machine_id: machineId,
-        record_type: recordType,
-        source_kind: sourceKind,
-        title: title || file.name.replace(/\.[^.]+$/, ''),
-        file_name: file.name,
-        storage_path: filePath,
-        status: 'needs_review',
-        overall_confidence: 85,
-        extracted_data: {
-          summary: `OCR draft extracted from ${file.name}.`,
-          machine_identity: {
-            manufacturer: { value: 'Siemens', confidence: 90, source: 'Page 1' },
-            model: { value: '3000-X', confidence: 85, source: 'Page 1' },
-            serial_number: { value: 'SN-4029', confidence: 95, source: 'Page 1' },
-            year: { value: '2022', confidence: 80, source: 'Page 1' },
-          },
-          specifications: [
-            { name: 'Max power', value: '45', unit: 'kW', confidence: 90, source: 'Page 2' },
-            { name: 'Operating voltage', value: '415', unit: 'V', confidence: 95, source: 'Page 2' }
-          ],
-          maintenance_tasks: [
-            { task: 'Lubricate bearings', frequency: 'Monthly', procedure: 'Apply grease to grease nipple', safety_note: 'Turn off power', confidence: 85, source: 'Page 3' }
-          ],
-          spare_parts: [
-            { name: 'Oil Filter', part_number: 'OF-1002', quantity: '2', unit: 'pcs', supplier: 'ACME Parts', confidence: 90, source: 'Page 4' }
-          ],
-          consumables: [
-            { name: 'Hydraulic Oil', specification: 'ISO VG 46', quantity: '20', unit: 'L', replacement_interval: '6 months', confidence: 80, source: 'Page 4' }
-          ],
-          service_history: [
-            { date: '2026-05-10', issue: 'Overheating', work_performed: 'Cleaned radiator fins', technician: 'Ramesh', hours: '2', parts_used: 'None', confidence: 95, source: 'Page 5' }
-          ],
-          risks: [
-            { risk: 'High temperature', recommended_action: 'Monitor cooling fan', confidence: 85, source: 'Page 6' }
-          ],
-          source_notes: ['Extracted from scanned PDF document.'],
-        },
-        review_notes: '',
-        version: 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        history: [
-          { action: 'uploaded', by: 'System', at: new Date().toISOString() }
-        ]
-      };
-
-      const records = getLocalRecords();
-      records.push(newRecord);
-      saveLocalRecords(records);
-
-      return {
-        ok: true,
-        status: 200,
-        json: async () => newRecord
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        status: 500,
-        json: async () => ({ detail: e.message })
-      };
-    }
-  }
-
-  // 2. PATCH /vault/records/${record_id} -> Save draft
-  const patchMatch = path.match(/^\/vault\/records\/(REC-\w+-\w+)$/);
-  if (patchMatch && options.method === 'PATCH') {
-    const recordId = patchMatch[1];
-    const { extracted_data, review_notes } = JSON.parse(options.body);
-
-    const records = getLocalRecords();
-    const idx = records.findIndex(r => r.record_id === recordId);
-    if (idx === -1) {
-      return { ok: false, status: 404, json: async () => ({ detail: 'Record not found.' }) };
-    }
-
-    records[idx].extracted_data = extracted_data;
-    records[idx].review_notes = review_notes;
-    records[idx].updated_at = new Date().toISOString();
-    records[idx].history.push({
-      action: 'saved_draft',
-      by: 'User',
-      at: new Date().toISOString()
-    });
-
-    saveLocalRecords(records);
-
-    return {
-      ok: true,
-      status: 200,
-      json: async () => records[idx]
-    };
-  }
-
-  // 3. POST /vault/records/${record_id}/approve or reject
-  const actionMatch = path.match(/^\/vault\/records\/(REC-\w+-\w+)\/(approve|reject)$/);
-  if (actionMatch && options.method === 'POST') {
-    const recordId = actionMatch[1];
-    const action = actionMatch[2];
-    const { review_notes } = JSON.parse(options.body);
-
-    const records = getLocalRecords();
-    const idx = records.findIndex(r => r.record_id === recordId);
-    if (idx === -1) {
-      return { ok: false, status: 404, json: async () => ({ detail: 'Record not found.' }) };
-    }
-
-    records[idx].status = action === 'approve' ? 'approved' : 'rejected';
-    records[idx].review_notes = review_notes;
-    records[idx].updated_at = new Date().toISOString();
-    records[idx].history.push({
-      action: action === 'approve' ? 'approved' : 'rejected',
-      by: 'User',
-      at: new Date().toISOString(),
-      note: review_notes
-    });
-
-    if (action === 'approve') {
-      try {
-        const draft = records[idx];
-        const { data: profile } = await supabase.from('profiles').select('factory_id').limit(1).single();
-        const factoryId = profile?.factory_id;
-
-        if (factoryId) {
-          // Insert spare parts
-          const partsToInsert = (draft.extracted_data?.spare_parts || []).map(p => ({
-            machine_id: draft.machine_id,
-            factory_id: factoryId,
-            part_name: p.name,
-            part_number: p.part_number,
-            stock_qty: Number(p.quantity) || 0,
-            unit: p.unit || 'pcs',
-            reorder_level: 0,
-            supplier: p.supplier || ''
-          }));
-          if (partsToInsert.length > 0) {
-            await supabase.from('parts').insert(partsToInsert);
-          }
-
-          // Insert consumables
-          const consumablesToInsert = (draft.extracted_data?.consumables || []).map(c => ({
-            machine_id: draft.machine_id,
-            factory_id: factoryId,
-            name: c.name,
-            stock_qty: Number(c.quantity) || 0,
-            unit: c.unit || 'pcs',
-            reorder_level: 0
-          }));
-          if (consumablesToInsert.length > 0) {
-            await supabase.from('consumables').insert(consumablesToInsert);
-          }
-        }
-      } catch (e) {
-        console.error('Record approval side-effects failed', e);
-      }
-    }
-
-    saveLocalRecords(records);
-
-    return {
-      ok: true,
-      status: 200,
-      json: async () => records[idx]
-    };
-  }
-
-  // 4. GET /vault/documents/${document_id}/download -> Download original
-  const downloadMatch = path.match(/^\/vault\/documents\/(DOC-\w+)\/download$/);
-  if (downloadMatch) {
-    const docId = downloadMatch[1];
-    const records = getLocalRecords();
-    const record = records.find(r => r.document_id === docId);
-    if (!record || !record.storage_path) {
-      return { ok: false, status: 404, json: async () => ({ detail: 'Document not found.' }) };
-    }
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('machine-documents')
-        .download(record.storage_path);
-
-      if (error) throw error;
-
-      return {
-        ok: true,
-        status: 200,
-        blob: async () => data
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        status: 500,
-        json: async () => ({ detail: e.message })
-      };
-    }
-  }
-
-  // 5. GET /vault/records/export -> Export backup
-  if (path === '/vault/records/export') {
-    const urlObj = new URL(url, 'http://dummy.com');
-    const machineIds = urlObj.searchParams.getAll('machine_id');
-
-    const records = getLocalRecords();
-    const filteredRecords = records.filter(r => machineIds.includes(r.machine_id));
-
-    try {
-      const zip = new JSZip();
-      zip.file('records.json', JSON.stringify(filteredRecords, null, 2));
-
-      for (const record of filteredRecords) {
-        if (record.storage_path) {
-          try {
-            const { data } = await supabase.storage
-              .from('machine-documents')
-              .download(record.storage_path);
-            if (data) {
-              zip.file(record.file_name || 'original_file', data);
-            }
-          } catch (e) {
-            console.error('Failed to add document to zip', record.file_name, e);
-          }
-        }
-      }
-
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      return {
-        ok: true,
-        status: 200,
-        blob: async () => zipBlob
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        status: 500,
-        json: async () => ({ detail: e.message })
-      };
-    }
-  }
-
-  // 6. POST /vault/records/import -> Restore backup
-  if (path === '/vault/records/import' && options.method === 'POST') {
-    try {
-      const formData = options.body;
-      const file = formData.get('file');
-
-      const zip = await JSZip.loadAsync(file);
-      const recordsJsonFile = zip.file('records.json');
-      if (!recordsJsonFile) {
-        throw new Error('Invalid backup: records.json not found in ZIP.');
-      }
-
-      const recordsJsonText = await recordsJsonFile.async('text');
-      const importedRecords = JSON.parse(recordsJsonText);
-
-      const records = getLocalRecords();
-      let restoredCount = 0;
-      let skippedCount = 0;
-
-      for (const rec of importedRecords) {
-        if (records.some(r => r.record_id === rec.record_id)) {
-          skippedCount++;
-          continue;
-        }
-
-        const docFile = zip.file(rec.file_name);
-        if (docFile && rec.storage_path) {
-          try {
-            const docBlob = await docFile.async('blob');
-            await supabase.storage
-              .from('machine-documents')
-              .upload(rec.storage_path, docBlob, { upsert: true });
-
-            const { data: { publicUrl } } = supabase.storage
-              .from('machine-documents')
-              .getPublicUrl(rec.storage_path);
-
-            await supabase.from('documents').insert({
-              id: rec.document_id.replace('DOC-', ''),
-              machine_id: rec.machine_id,
-              title: rec.title,
-              category: rec.record_type || 'manual',
-              file_url: publicUrl
-            });
-          } catch (e) {
-            console.error('Failed to restore file', rec.file_name, e);
-          }
-        }
-
-        records.push(rec);
-        restoredCount++;
-      }
-
-      saveLocalRecords(records);
-
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({ restored: restoredCount, skipped: skippedCount })
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        status: 500,
-        json: async () => ({ detail: e.message })
-      };
-    }
-  }
-
-  return { ok: false, status: 404, json: async () => ({ detail: 'Not Found' }) };
-}
+const ACCEPTED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg', 'webp', 'xlsx', 'csv', 'docx', 'txt', 'md', 'dwg', 'dxf']);
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const FILE_ACCEPT = [...ACCEPTED_EXTENSIONS].map((extension) => `.${extension}`).join(',');
 
 const RECORD_TYPES = [
   ['service_history', 'Service history'],
@@ -435,7 +72,9 @@ function label(value) {
 function formatDate(value) {
   if (!value) return 'Not recorded';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  }).format(date);
 }
 
 async function responseMessage(response, fallback) {
@@ -462,8 +101,8 @@ function StatusBadge({ status }) {
   return <span className={`records-status ${status}`}>{icons[status]}{label(status)}</span>;
 }
 
-function MetricCard({ icon, value, label: text, tone = '' }) {
-  return <div className={`records-metric ${tone}`}><span className="records-metric-icon">{icon}</span><div><strong>{value}</strong><span>{text}</span></div></div>;
+function MetricCard({ icon, value, label: text, tone = '', onClick }) {
+  return <button type="button" className={`records-metric ${tone}`} onClick={onClick}><span className="records-metric-icon">{icon}</span><span><strong>{value}</strong><span>{text}</span></span></button>;
 }
 
 function UploadDialog({ machines, initialMachineId, open, onClose, onComplete }) {
@@ -486,6 +125,24 @@ function UploadDialog({ machines, initialMachineId, open, onClose, onComplete })
 
   if (!open) return null;
 
+  const selectFiles = (selectedFiles) => {
+    const nextFiles = Array.from(selectedFiles || []);
+    const invalid = nextFiles.find((file) => !ACCEPTED_EXTENSIONS.has(file.name.split('.').pop()?.toLowerCase()));
+    const oversized = nextFiles.find((file) => file.size > MAX_FILE_BYTES);
+    if (invalid) {
+      setFiles([]);
+      setError(`${invalid.name} is not a supported machine-record file.`);
+      return;
+    }
+    if (oversized) {
+      setFiles([]);
+      setError(`${oversized.name} is over the 25 MB upload limit.`);
+      return;
+    }
+    setError('');
+    setFiles(nextFiles);
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     if (!machineId || files.length === 0) return;
@@ -494,7 +151,7 @@ function UploadDialog({ machines, initialMachineId, open, onClose, onComplete })
     try {
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
-        setProgress(`Reading ${index + 1} of ${files.length}: ${file.name}`);
+        setProgress(`${Math.round((index / files.length) * 100)}% · Reading ${index + 1} of ${files.length}: ${file.name}`);
         const body = new FormData();
         body.append('machine_id', machineId);
         body.append('record_type', recordType);
@@ -519,7 +176,7 @@ function UploadDialog({ machines, initialMachineId, open, onClose, onComplete })
   return <div className="records-modal" role="dialog" aria-modal="true" aria-labelledby="upload-records-title">
     <button className="records-modal-backdrop" onClick={onClose} aria-label="Close" />
     <form className="records-upload-dialog" onSubmit={submit}>
-      <div className="records-dialog-head"><div><span className="records-kicker">Add machine knowledge</span><h2 id="upload-records-title">Upload records for AI reading</h2><p>Photos of handwritten sheets, scans, PDFs, Excel, Word, CSV, and text files are supported.</p></div><button type="button" className="records-icon-button" onClick={onClose}><X /></button></div>
+      <div className="records-dialog-head"><div><span className="records-kicker">Add machine knowledge</span><h2 id="upload-records-title">Upload records for AI reading</h2><p>Photos, PDF, Excel, Word, CSV, text, DWG and DXF records are supported.</p></div><button type="button" className="records-icon-button" onClick={onClose} aria-label="Close upload dialog"><X /></button></div>
       <div className="records-upload-flow"><span className="active"><b>1</b>Choose machine</span><ChevronRight /><span><b>2</b>Add records</span><ChevronRight /><span><b>3</b>Review AI draft</span></div>
       {error && <div className="records-alert error"><TriangleAlert />{error}</div>}
       <div className="records-form-grid">
@@ -528,7 +185,7 @@ function UploadDialog({ machines, initialMachineId, open, onClose, onComplete })
       </div>
       <fieldset className="records-source-choice"><legend>Source format</legend><label className={sourceKind === 'handwritten' ? 'selected' : ''}><input type="radio" name="source" value="handwritten" checked={sourceKind === 'handwritten'} onChange={() => setSourceKind('handwritten')} /><Image /><span><strong>Handwritten / scanned</strong><small>Photos, registers, job cards, marked drawings</small></span><Check /></label><label className={sourceKind === 'soft_copy' ? 'selected' : ''}><input type="radio" name="source" value="soft_copy" checked={sourceKind === 'soft_copy'} onChange={() => setSourceKind('soft_copy')} /><FileText /><span><strong>Soft copy</strong><small>PDF, Excel, Word, CSV, text, manuals</small></span><Check /></label></fieldset>
       <label className="records-title-field"><span>Record title <small>(optional for one file)</small></span><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Example: CNC Lathe service register — 2025" /></label>
-      <label className={`records-dropzone${files.length ? ' has-files' : ''}`}><CloudUpload /><strong>{files.length ? `${files.length} file${files.length > 1 ? 's' : ''} ready` : 'Drop files here or choose from device'}</strong><span>{files.length ? files.map((file) => file.name).join(', ') : 'PDF, photo, Excel, Word, CSV, TXT · up to 25 MB each'}</span><input type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.csv,.docx,.txt,.md" onChange={(event) => setFiles(Array.from(event.target.files || []))} /></label>
+      <label className={`records-dropzone${files.length ? ' has-files' : ''}`}><CloudUpload /><strong>{files.length ? `${files.length} file${files.length > 1 ? 's' : ''} ready` : 'Drop files here or choose from device'}</strong><span>{files.length ? files.map((file) => file.name).join(', ') : 'PDF, photo, office files, DWG, DXF · up to 25 MB each'}</span><input type="file" multiple accept={FILE_ACCEPT} onChange={(event) => selectFiles(event.target.files)} /></label>
       <div className="records-safety-note"><ShieldCheck /><span><strong>AI creates a draft only.</strong> TurboFix will not use this data for recommendations until a Maintenance Head approves it.</span></div>
       <div className="records-dialog-actions"><button type="button" className="records-button secondary" onClick={onClose}>Cancel</button><button className="records-button primary" disabled={busy || !machineId || files.length === 0}>{busy ? <><Sparkles className="spin" />{progress || 'Reading records…'}</> : <><Sparkles />Create review draft</>}</button></div>
     </form>
@@ -540,12 +197,42 @@ function ReviewDialog({ record, machine, user, onClose, onUpdated }) {
   const [notes, setNotes] = useState(record?.review_notes || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [sourceMime, setSourceMime] = useState('');
   const canApprove = user?.role === 'maintenance_head';
   const locked = record?.status === 'approved';
 
   useEffect(() => {
     setDraft(clone(record?.extracted_data || EMPTY_EXTRACTION));
     setNotes(record?.review_notes || '');
+  }, [record]);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl = '';
+    const loadSource = async () => {
+      setSourceUrl('');
+      setSourceMime('');
+      if (!record?.document_id) return;
+      const extension = String(record.file_name || '').split('.').pop()?.toLowerCase();
+      if (!['pdf', 'png', 'jpg', 'jpeg', 'webp'].includes(extension)) return;
+      try {
+        const response = await apiFetch(`/vault/documents/${record.document_id}/download`);
+        if (!response.ok || !active) return;
+        const blob = await response.blob();
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setSourceUrl(objectUrl);
+        setSourceMime(extension === 'pdf' ? 'application/pdf' : blob.type || `image/${extension}`);
+      } catch {
+        // The download action remains available if inline preview is unsupported.
+      }
+    };
+    loadSource();
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [record]);
 
   if (!record) return null;
@@ -633,10 +320,10 @@ function ReviewDialog({ record, machine, user, onClose, onUpdated }) {
   return <div className="records-modal review" role="dialog" aria-modal="true" aria-labelledby="review-record-title">
     <button className="records-modal-backdrop" onClick={onClose} aria-label="Close" />
     <div className="records-review-dialog">
-      <header className="records-review-head"><div><span className="records-kicker">Review extracted knowledge</span><h2 id="review-record-title">{record.title}</h2><p>{machine?.machine_name || record.machine_id} · {label(record.record_type)}</p></div><div className="records-review-head-actions"><StatusBadge status={record.status} /><button className="records-icon-button" onClick={onClose}><X /></button></div></header>
+      <header className="records-review-head"><div><span className="records-kicker">Review extracted knowledge</span><h2 id="review-record-title">{record.title}</h2><p>{machine?.machine_name || record.machine_id} · {label(record.record_type)}</p></div><div className="records-review-head-actions"><StatusBadge status={record.status} /><button className="records-icon-button" onClick={onClose} aria-label="Close review dialog"><X /></button></div></header>
       <div className="records-review-layout">
         <aside className="records-source-panel">
-          <div className="records-source-preview"><FileText /><strong>{record.file_name || 'Original source'}</strong><span>{label(record.source_kind)} record</span></div>
+          <div className={`records-source-preview${sourceUrl ? ' document' : ''}`}>{sourceUrl ? (sourceMime === 'application/pdf' ? <iframe src={sourceUrl} title={`Original ${record.file_name}`} /> : <img src={sourceUrl} alt={`Original ${record.file_name}`} />) : <><FileText /><strong>{record.file_name || 'Original source'}</strong><span>{label(record.source_kind)} record</span></>}</div>
           <button className="records-button secondary full" onClick={downloadOriginal} disabled={!record.document_id}><Download />Download original</button>
           <div className="records-source-facts"><span><b>AI confidence</b><Confidence value={record.overall_confidence} /></span><span><b>Uploaded</b>{formatDate(record.created_at)}</span><span><b>Version</b>{record.version}</span></div>
           <div className="records-confidence-help"><Info /><span>Confidence helps prioritize checking. It does not replace human verification.</span></div>
@@ -646,8 +333,8 @@ function ReviewDialog({ record, machine, user, onClose, onUpdated }) {
           {error && <div className="records-alert error"><TriangleAlert />{error}</div>}
           {locked && <div className="records-alert success"><ShieldCheck />Approved knowledge is locked. Upload a revised source to create a new version.</div>}
           <section className="records-edit-section"><div className="records-edit-heading"><div><span>01</span><h3>Record summary</h3></div></div><textarea className="records-summary-input" value={draft.summary || ''} disabled={locked} onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))} placeholder="Short explanation of what this record contains" /></section>
-          <section className="records-edit-section"><div className="records-edit-heading"><div><span>02</span><h3>Machine identity</h3></div><small>Check uncertain labels against the machine nameplate.</small></div><div className="records-identity-grid">{Object.entries(draft.machine_identity || {}).map(([field, item]) => <div className="records-identity-card" key={field}><label><span>{label(field)}</span><input value={item.value || ''} disabled={locked} onChange={(event) => updateIdentity(field, 'value', event.target.value)} placeholder="Not found" /></label><div><label><span>Confidence</span><input type="number" min="0" max="100" value={item.confidence || 0} disabled={locked} onChange={(event) => updateIdentity(field, 'confidence', event.target.value)} /></label><label><span>Source</span><input value={item.source || ''} disabled={locked} onChange={(event) => updateIdentity(field, 'source', event.target.value)} placeholder="Page / label" /></label></div></div>)}</div></section>
-          {Object.entries(SECTION_FIELDS).map(([section, fields], sectionIndex) => <section className="records-edit-section" key={section}><div className="records-edit-heading"><div><span>{String(sectionIndex + 3).padStart(2, '0')}</span><h3>{SECTION_LABELS[section]}</h3></div>{!locked && <button className="records-text-button" onClick={() => addItem(section)}><Plus />Add row</button>}</div>{(draft[section] || []).length === 0 ? <button type="button" className="records-empty-section" disabled={locked} onClick={() => addItem(section)}><Plus /><span><strong>No {SECTION_LABELS[section].toLowerCase()} extracted</strong>{locked ? 'No approved values in this section.' : 'Add a row if the source contains this information.'}</span></button> : <div className="records-item-list">{draft[section].map((item, index) => <div className="records-item-editor" key={`${section}-${index}`}><span className="records-row-number">{index + 1}</span><div className="records-item-fields">{fields.map((field) => <label key={field} className={field === 'procedure' || field === 'work_performed' || field === 'recommended_action' ? 'wide' : ''}><span>{label(field)}</span><input type={field === 'confidence' ? 'number' : 'text'} min={field === 'confidence' ? 0 : undefined} max={field === 'confidence' ? 100 : undefined} value={item[field] ?? ''} disabled={locked} onChange={(event) => updateItem(section, index, field, event.target.value)} /></label>)}</div>{!locked && <button className="records-delete-row" onClick={() => removeItem(section, index)} aria-label={`Remove ${SECTION_LABELS[section]} row`}><Trash2 /></button>}</div>)}</div>}</section>)}
+          <section className="records-edit-section"><div className="records-edit-heading"><div><span>02</span><h3>Machine identity</h3></div><small>Check uncertain labels against the machine nameplate.</small></div><div className="records-identity-grid">{Object.entries(draft.machine_identity || {}).map(([field, item]) => <div className={`records-identity-card${item.value && Number(item.confidence) < 55 ? ' low-confidence' : ''}`} key={field}><label><span>{label(field)}</span><input value={item.value || ''} disabled={locked} onChange={(event) => updateIdentity(field, 'value', event.target.value)} placeholder="Not found" /></label><div><label><span>Confidence</span><input type="number" min="0" max="100" value={item.confidence || 0} disabled={locked} onChange={(event) => updateIdentity(field, 'confidence', event.target.value)} /></label><label><span>Source</span><input value={item.source || ''} disabled={locked} onChange={(event) => updateIdentity(field, 'source', event.target.value)} placeholder="Page / label" /></label></div></div>)}</div></section>
+          {Object.entries(SECTION_FIELDS).map(([section, fields], sectionIndex) => <section className="records-edit-section" key={section}><div className="records-edit-heading"><div><span>{String(sectionIndex + 3).padStart(2, '0')}</span><h3>{SECTION_LABELS[section]}</h3></div>{!locked && <button type="button" className="records-text-button" onClick={() => addItem(section)}><Plus />Add row</button>}</div>{(draft[section] || []).length === 0 ? <button type="button" className="records-empty-section" disabled={locked} onClick={() => addItem(section)}><Plus /><span><strong>No {SECTION_LABELS[section].toLowerCase()} extracted</strong>{locked ? 'No approved values in this section.' : 'Add a row if the source contains this information.'}</span></button> : <div className="records-item-list">{draft[section].map((item, index) => <div className={`records-item-editor${Number(item.confidence) < 55 ? ' low-confidence' : ''}`} key={`${section}-${index}`}><span className="records-row-number">{index + 1}</span><div className="records-item-fields">{fields.map((field) => <label key={field} className={field === 'procedure' || field === 'work_performed' || field === 'recommended_action' ? 'wide' : ''}><span>{label(field)}</span><input type={field === 'confidence' ? 'number' : 'text'} min={field === 'confidence' ? 0 : undefined} max={field === 'confidence' ? 100 : undefined} value={item[field] ?? ''} disabled={locked} onChange={(event) => updateItem(section, index, field, event.target.value)} /></label>)}</div>{!locked && <button type="button" className="records-delete-row" onClick={() => removeItem(section, index)} aria-label={`Remove ${SECTION_LABELS[section]} row`}><Trash2 /></button>}</div>)}</div>}</section>)}
           <section className="records-edit-section review-notes"><div className="records-edit-heading"><div><span><ClipboardCheck /></span><h3>Reviewer notes</h3></div></div><textarea value={notes} disabled={locked} onChange={(event) => setNotes(event.target.value)} placeholder="Record corrections, unreadable entries, or the reason for returning this draft" /></section>
         </main>
       </div>
@@ -664,6 +351,7 @@ export default function Records() {
   const [tab, setTab] = useState('inbox');
   const [machineFilter, setMachineFilter] = useState(initialMachineId || 'all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [lowConfidenceOnly, setLowConfidenceOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -682,13 +370,18 @@ export default function Records() {
     setLoading(true);
     setError('');
     try {
-      const { data: machinesData } = await supabase.from('machines').select('id,name,location,status');
+      const [{ data: machinesData, error: machinesError }, recordsResponse] = await Promise.all([
+        supabase.from('machines').select('id,name,location,status').order('name'),
+        apiFetch('/vault/records'),
+      ]);
+      if (machinesError) throw machinesError;
+      if (!recordsResponse.ok) throw new Error(await responseMessage(recordsResponse, 'Machine records could not be loaded.'));
       const machineData = (machinesData || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }));
-      const recordData = JSON.parse(window.localStorage.getItem('tf_records') || '[]');
+      const recordData = await recordsResponse.json();
       if (requestId !== loadRequest.current) return;
       setMachines(machineData);
       if (initialMachineId && !machineData.some((machine) => machine.machine_id === initialMachineId)) setMachineFilter('all');
-      setRecords(recordData.sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))));
+      setRecords([...recordData].sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))));
       setSelectedBackupMachines((current) => current.length ? current : machineData.map((machine) => machine.machine_id));
       setError('');
     } catch (err) {
@@ -713,8 +406,9 @@ export default function Records() {
     const haystack = `${record.title} ${record.file_name} ${machine?.machine_name || ''} ${record.record_type}`.toLowerCase();
     return (machineFilter === 'all' || record.machine_id === machineFilter)
       && (statusFilter === 'all' || record.status === statusFilter)
+      && (!lowConfidenceOnly || (record.status === 'needs_review' && Number(record.overall_confidence) < 55))
       && haystack.includes(search.toLowerCase());
-  }), [machineFilter, machineMap, records, search, statusFilter]);
+  }), [lowConfidenceOnly, machineFilter, machineMap, records, search, statusFilter]);
 
   const updateRecord = (updated, notice) => {
     setRecords((current) => current.map((record) => record.record_id === updated.record_id ? updated : record));
@@ -770,10 +464,10 @@ export default function Records() {
       <div className="records-flow-strip"><span><b>1</b><em>Upload</em><small>Photo or soft copy</small></span><ChevronRight /><span><b>2</b><em>AI reads</em><small>Structured draft</small></span><ChevronRight /><span><b>3</b><em>Team verifies</em><small>Correct uncertain data</small></span><ChevronRight /><span><b>4</b><em>Head approves</em><small>Available to TurboFix AI</small></span></div>
       {error && <div className="records-alert error"><TriangleAlert />{error}<button onClick={() => setError('')}><X /></button></div>}
       {message && <div className="records-alert success"><CheckCircle2 />{message}<button onClick={() => setMessage('')}><X /></button></div>}
-      <section className="records-metrics"><MetricCard icon={<FileSearch />} value={metrics.needsReview} label="Waiting for review" tone="attention" /><MetricCard icon={<TriangleAlert />} value={metrics.lowConfidence} label="Low confidence" tone="warning" /><MetricCard icon={<ShieldCheck />} value={metrics.approved} label="Approved sources" tone="success" /><MetricCard icon={<FileCheck2 />} value={`${metrics.readyMachines}/${machines.length}`} label="Machines with approved data" /></section>
+      <section className="records-metrics"><MetricCard icon={<FileSearch />} value={metrics.needsReview} label="Waiting for review" tone="attention" onClick={() => { setTab('inbox'); setStatusFilter('needs_review'); setLowConfidenceOnly(false); }} /><MetricCard icon={<TriangleAlert />} value={metrics.lowConfidence} label="Low confidence" tone="warning" onClick={() => { setTab('inbox'); setStatusFilter('needs_review'); setLowConfidenceOnly(true); }} /><MetricCard icon={<ShieldCheck />} value={metrics.approved} label="Approved sources" tone="success" onClick={() => { setTab('knowledge'); setStatusFilter('approved'); setLowConfidenceOnly(false); }} /><MetricCard icon={<FileCheck2 />} value={`${metrics.readyMachines}/${machines.length}`} label="Machines with approved data" onClick={() => { setTab('knowledge'); setLowConfidenceOnly(false); }} /></section>
       <nav className="records-tabs" aria-label="AI records sections"><button className={tab === 'inbox' ? 'active' : ''} onClick={() => setTab('inbox')}><FileSearch />Review inbox{metrics.needsReview > 0 && <b>{metrics.needsReview}</b>}</button><button className={tab === 'knowledge' ? 'active' : ''} onClick={() => setTab('knowledge')}><FileCheck2 />Approved knowledge</button><button className={tab === 'backup' ? 'active' : ''} onClick={() => setTab('backup')}><DatabaseBackup />Backup &amp; restore</button></nav>
 
-      {tab === 'inbox' && <section className="records-panel"><div className="records-panel-head"><div><h2>Review inbox</h2><p>Check low-confidence fields first. Drafts never influence AI decisions until approval.</p></div><span className="records-head-note"><ShieldCheck />Maintenance Head approval required</span></div><div className="records-filters"><label className="records-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records or machines" /></label><select value={machineFilter} onChange={(event) => setMachineFilter(event.target.value)}><option value="all">All machines</option>{machines.map((machine) => <option value={machine.machine_id} key={machine.machine_id}>{machine.machine_name}</option>)}</select><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">All statuses</option><option value="needs_review">Needs review</option><option value="approved">Approved</option><option value="rejected">Returned</option></select></div>{loading ? <div className="records-empty"><Sparkles className="spin" /><strong>Loading machine records…</strong></div> : filtered.length === 0 ? <div className="records-empty"><FileSearch /><strong>{records.length ? 'No records match these filters' : 'No records uploaded yet'}</strong><span>{records.length ? 'Clear a filter or try another machine.' : 'Start with a service register, job card, manual, BOM, or inspection sheet.'}</span>{!records.length && <button className="records-button primary" onClick={() => setUploadOpen(true)}><Plus />Add first record</button>}</div> : <div className="records-table"><div className="records-table-head"><span>Record</span><span>Machine</span><span>AI confidence</span><span>Status</span><span>Last activity</span><span /></div>{filtered.map((record) => <button className="records-table-row" key={record.record_id} onClick={() => setSelectedRecord(record)}><span className="records-title-cell"><i>{record.source_kind === 'handwritten' ? <Image /> : <FileText />}</i><span><strong>{record.title}</strong><small>{label(record.record_type)} · {record.file_name || 'Structured record'}</small></span></span><span><strong>{machineMap[record.machine_id]?.machine_name || record.machine_id}</strong><small>{machineMap[record.machine_id]?.location || record.machine_id}</small></span><Confidence value={record.overall_confidence} /><StatusBadge status={record.status} /><span><strong>{formatDate(record.updated_at)}</strong><small>Version {record.version}</small></span><ChevronRight /></button>)}</div>}</section>}
+      {tab === 'inbox' && <section className="records-panel"><div className="records-panel-head"><div><h2>Review inbox</h2><p>Check low-confidence fields first. Drafts never influence AI decisions until approval.</p></div><span className="records-head-note"><ShieldCheck />Maintenance Head approval required</span></div><div className="records-filters"><label className="records-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search records or machines" /></label><select value={machineFilter} onChange={(event) => setMachineFilter(event.target.value)}><option value="all">All machines</option>{machines.map((machine) => <option value={machine.machine_id} key={machine.machine_id}>{machine.machine_name}</option>)}</select><select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setLowConfidenceOnly(false); }}><option value="all">All statuses</option><option value="needs_review">Needs review</option><option value="approved">Approved</option><option value="rejected">Returned</option></select></div>{lowConfidenceOnly && <button type="button" className="records-active-filter" onClick={() => setLowConfidenceOnly(false)}>Low confidence only <X /></button>}{loading ? <div className="records-empty"><Sparkles className="spin" /><strong>Loading machine records…</strong></div> : filtered.length === 0 ? <div className="records-empty"><FileSearch /><strong>{records.length ? 'No records match these filters' : 'No records uploaded yet'}</strong><span>{records.length ? 'Clear a filter or try another machine.' : 'Start with a service register, job card, manual, BOM, or inspection sheet.'}</span>{!records.length && <button className="records-button primary" onClick={() => setUploadOpen(true)}><Plus />Add first record</button>}</div> : <div className="records-table"><div className="records-table-head"><span>Record</span><span>Machine</span><span>AI confidence</span><span>Status</span><span>Last activity</span><span /></div>{filtered.map((record) => <button className="records-table-row" key={record.record_id} onClick={() => setSelectedRecord(record)}><span className="records-title-cell"><i>{record.source_kind === 'handwritten' ? <Image /> : <FileText />}</i><span><strong>{record.title}</strong><small>{label(record.record_type)} · {record.file_name || 'Structured record'}</small></span></span><span><strong>{machineMap[record.machine_id]?.machine_name || record.machine_id}</strong><small>{machineMap[record.machine_id]?.location || record.machine_id}</small></span><Confidence value={record.overall_confidence} /><StatusBadge status={record.status} /><span><strong>{formatDate(record.updated_at)}</strong><small>Version {record.version}</small></span><ChevronRight /></button>)}</div>}</section>}
 
       {tab === 'knowledge' && <section className="records-panel"><div className="records-panel-head"><div><h2>Approved machine knowledge</h2><p>Only records approved by a Maintenance Head appear here and in future AI recommendations.</p></div><select value={machineFilter} onChange={(event) => setMachineFilter(event.target.value)}><option value="all">All machines</option>{machines.map((machine) => <option value={machine.machine_id} key={machine.machine_id}>{machine.machine_name}</option>)}</select></div><div className="records-knowledge-grid">{records.filter((record) => record.status === 'approved' && (machineFilter === 'all' || machineFilter === record.machine_id)).map((record) => <article className="records-knowledge-card" key={record.record_id}><div className="records-knowledge-card-head"><span><ShieldCheck /><b>Approved</b></span><Confidence value={record.overall_confidence} /></div><h3>{record.title}</h3><p>{record.extracted_data?.summary || 'Approved structured machine record.'}</p><div className="records-knowledge-tags">{Object.entries(SECTION_LABELS).filter(([section]) => record.extracted_data?.[section]?.length).map(([section, text]) => <span key={section}>{text} <b>{record.extracted_data[section].length}</b></span>)}</div><footer><span>{machineMap[record.machine_id]?.machine_name || record.machine_id}</span><button onClick={() => setSelectedRecord(record)}>View knowledge <ChevronRight /></button></footer></article>)}</div>{records.filter((record) => record.status === 'approved').length === 0 && <div className="records-empty"><ShieldCheck /><strong>No knowledge approved yet</strong><span>Review a draft and approve it as Maintenance Head to activate trusted AI context.</span></div>}</section>}
 

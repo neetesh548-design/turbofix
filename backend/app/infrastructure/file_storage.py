@@ -21,6 +21,9 @@ Usage:
 import io
 from abc import ABC, abstractmethod
 from pathlib import Path
+from urllib.parse import quote
+
+import httpx
 
 from app import config
 from app.infrastructure.logging import get_logger
@@ -203,6 +206,64 @@ class DriveFileStorage(FileStorage):
             log.warning("storage.delete_failed", file_id=storage_path, error=str(exc))
 
 
+class SupabaseFileStorage(FileStorage):
+    """Private object storage for production machine records."""
+
+    def __init__(self, url: str, service_key: str, bucket: str):
+        if not service_key:
+            raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for Supabase storage")
+        self._url = url.rstrip("/")
+        self._service_key = service_key
+        self._bucket = bucket
+
+    @property
+    def _headers(self) -> dict[str, str]:
+        return {
+            "apikey": self._service_key,
+            "Authorization": f"Bearer {self._service_key}",
+        }
+
+    def _parse(self, storage_path: str) -> tuple[str, str]:
+        prefix = "supabase://"
+        if not storage_path.startswith(prefix):
+            raise ValueError("not a Supabase storage path")
+        bucket, _, key = storage_path[len(prefix):].partition("/")
+        if not bucket or not key or bucket != self._bucket:
+            raise PermissionError("storage object is outside the configured bucket")
+        return bucket, key
+
+    def _object_url(self, bucket: str, key: str) -> str:
+        return f"{self._url}/storage/v1/object/{quote(bucket, safe='')}/{quote(key, safe='/')}"
+
+    async def save(self, company_code, machine_id, document_id, filename, content) -> str:
+        key = _object_key(company_code, machine_id, document_id, filename)
+        headers = {**self._headers, "Content-Type": "application/octet-stream", "x-upsert": "false"}
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(self._object_url(self._bucket, key), headers=headers, content=content)
+            response.raise_for_status()
+        log.info("storage.saved", backend="supabase", bucket=self._bucket, key=key)
+        return f"supabase://{self._bucket}/{key}"
+
+    async def read(self, storage_path: str) -> bytes:
+        if storage_path.startswith(("http://", "https://")):
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.get(storage_path, headers=self._headers)
+                response.raise_for_status()
+                return response.content
+        bucket, key = self._parse(storage_path)
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.get(self._object_url(bucket, key), headers=self._headers)
+            response.raise_for_status()
+            return response.content
+
+    async def delete(self, storage_path: str) -> None:
+        bucket, key = self._parse(storage_path)
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.delete(self._object_url(bucket, key), headers=self._headers)
+            if response.status_code not in {200, 204, 404}:
+                response.raise_for_status()
+
+
 # ---------------------------------------------------------------------------
 # Factory — returns the configured implementation
 # ---------------------------------------------------------------------------
@@ -211,5 +272,11 @@ def get_file_storage() -> FileStorage:
     """Return the FileStorage implementation selected by DOCUMENT_STORE env var."""
     if config.DOCUMENT_STORE == "drive" and config.GOOGLE_DRIVE_FOLDER_ID:
         return DriveFileStorage(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_DRIVE_FOLDER_ID)
+    if config.DOCUMENT_STORE == "supabase":
+        return SupabaseFileStorage(
+            config.SUPABASE_URL,
+            config.SUPABASE_SERVICE_ROLE_KEY,
+            config.SUPABASE_STORAGE_BUCKET,
+        )
     # "local" or "gcs" (legacy) both fall back to local disk for now
     return LocalFileStorage(config.DOCUMENT_STORE_DIR)
