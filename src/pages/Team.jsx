@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
-import { supabase } from '@/supabaseClient';
+import { supabase, supabaseAnonKey, supabaseUrl } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 
 export default function Team() {
@@ -62,13 +63,46 @@ export default function Team() {
     setError('');
     setSuccess('');
     try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Your session has expired. Please sign in again.');
+
+      const { data: ownerProfile, error: ownerErr } = await supabase
+        .from('users')
+        .select('company_id,role')
+        .eq('id', authUser.id)
+        .single();
+      if (ownerErr || !ownerProfile?.company_id) throw new Error('Your company access could not be verified.');
+      if (ownerProfile.role !== 'owner') throw new Error('Only the company owner can onboard team members.');
+
+      let memberId = crypto.randomUUID();
+      if (portalAccess) {
+        if (!email.trim() && !phone.trim()) throw new Error('Add an email address or mobile number for portal access.');
+        const loginEmail = email.trim() || `${phone.replace(/\D/g, '')}@phone.turbofix.co.in`;
+        const onboardingClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+        });
+        const { data: signUpData, error: signUpErr } = await onboardingClient.auth.signUp({
+          email: loginEmail,
+          password,
+          options: { data: { name, role, company_id: ownerProfile.company_id } },
+        });
+        if (signUpErr) throw new Error(signUpErr.message);
+        if (!signUpData.user?.id) throw new Error('The portal account could not be created.');
+        memberId = signUpData.user.id;
+      }
+
       const { error: insertErr } = await supabase.from('users').insert({
+        id: memberId,
+        company_id: ownerProfile.company_id,
         name,
         phone: phone || '',
         email: email || '',
         role,
       });
-      if (insertErr) throw new Error(insertErr.message);
+      if (insertErr) {
+        if (insertErr.code === '42501') throw new Error('Team onboarding permission is not active yet. Please apply the latest Supabase migration.');
+        throw new Error(insertErr.message);
+      }
 
       setSuccess(`Account for "${name}" successfully onboarded as ${getLabel(role)}.`);
       setShowAddForm(false);

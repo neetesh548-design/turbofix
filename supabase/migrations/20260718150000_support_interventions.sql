@@ -41,6 +41,5 @@ CREATE POLICY "Authorized roles can update maintenance interventions"
     ON public.maintenance_interventions FOR UPDATE
     USING (
         factory_id = public.get_auth_factory_id()
-        AND public.get_auth_role() IN ('maintenance_technician','supervisor','maintenance_engineer','maintenance_head','owner')
+        AND public.get_auth_role()::text IN ('technician','maintenance_technician','supervisor','maintenance_engineer','maintenance_head','owner')
     );
-
