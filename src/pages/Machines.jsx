@@ -33,6 +33,13 @@ export default function Machines() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
   const [directoryView, setDirectoryView] = useState(() => window.localStorage.getItem('tf_machines_directory_view') || 'list');
+
+  // Report-issue (manual breakdown ticket) modal
+  const [reportIssueOpen, setReportIssueOpen] = useState(false);
+  const [issueText, setIssueText] = useState('');
+  const [issueUrgency, setIssueUrgency] = useState('medium');
+  const [issueSaving, setIssueSaving] = useState(false);
+  const [reportIssueError, setReportIssueError] = useState('');
   
   // Workspace active tab: 'info' | 'docs' | 'parts' | 'consumables' | 'calendar' | 'qr'
   const [wsTab, setWsTab] = useState('info');
@@ -196,6 +203,41 @@ export default function Machines() {
       setError(err.message || 'An error occurred while loading data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const reportIssue = async () => {
+    if (!selectedMachine || !issueText.trim()) return;
+    setIssueSaving(true);
+    setReportIssueError('');
+    try {
+      let factoryId = selectedMachine.factory_id;
+      if (!factoryId) {
+        const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
+        factoryId = factoryRows?.[0]?.id || null;
+      }
+      const payload = {
+        machine_id: selectedMachine.machine_id,
+        status: 'open',
+        issue_text: issueText.trim(),
+        urgency: issueUrgency,
+        type: 'breakdown',
+        reporter_phone: signedInUser?.phone || null,
+      };
+      if (factoryId) payload.factory_id = factoryId;
+      const { error: insertErr } = await supabase.from('tickets').insert(payload);
+      if (insertErr) throw insertErr;
+      setReportIssueOpen(false);
+      setIssueText('');
+      const technicianName = selectedMachine.assignments?.technician?.name;
+      setSuccess(technicianName
+        ? `Issue reported. ${technicianName} will see it in their work queue.`
+        : 'Issue reported. The assigned technician will see it in their work queue.');
+      await fetchData();
+    } catch (err) {
+      setReportIssueError(err.message || 'Could not report the issue.');
+    } finally {
+      setIssueSaving(false);
     }
   };
 
@@ -1231,6 +1273,9 @@ export default function Machines() {
                       <span className="machine-side-kicker">Recommended next action</span>
                       {selectedMachine.has_open_tickets ? <><CircleAlert /><h3>Review the open breakdown</h3><p>Confirm the assigned technician has started work and has the required manual and spares.</p><a href="tickets.html">Open breakdown tickets <ChevronRight /></a></> : machineData?.missing_sections?.length ? <><BookOpen /><h3>Complete machine knowledge</h3><p>Add {machineData.missing_sections[0]} so future AI guidance is safer and more specific.</p><button type="button" onClick={() => setWsTab('docs')}>Add missing document <ChevronRight /></button></> : <><ShieldCheck /><h3>Machine is ready</h3><p>Knowledge and response ownership are in place. Continue routine preventive maintenance.</p><a href="shutdown-planner.html">Review shutdown plan <ChevronRight /></a></>}
                     </section>
+                    <button type="button" className="vault-btn vault-btn-primary" style={{ width: '100%', marginTop: '12px', background: 'var(--brand)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }} onClick={() => { setIssueText(''); setIssueUrgency('medium'); setReportIssueError(''); setReportIssueOpen(true); }}>
+                      <CircleAlert size={16} /> Report issue
+                    </button>
                     <section className="machine-response-team">
                       <div className="machine-side-title"><span><Phone /></span><div><h3>Response team</h3><p>People connected to this machine</p></div></div>
                       <div>
@@ -1557,6 +1602,29 @@ export default function Machines() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {reportIssueOpen && selectedMachine && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => !issueSaving && setReportIssueOpen(false)}>
+            <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+              <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
+              <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}{selectedMachine.assignments?.technician?.name ? ` · Technician: ${selectedMachine.assignments.technician.name}` : ' · No technician assigned'}</p>
+              {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
+              <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>What is the problem?</label>
+              <textarea value={issueText} onChange={(e) => setIssueText(e.target.value)} rows={4} autoFocus placeholder="Describe the breakdown or symptom" style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '14px', resize: 'vertical', fontFamily: 'inherit' }} />
+              <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>Urgency</label>
+              <select value={issueUrgency} onChange={(e) => setIssueUrgency(e.target.value)} style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '20px' }}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setReportIssueOpen(false)} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
+                <button type="button" onClick={reportIssue} disabled={issueSaving || !issueText.trim()} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 16px', fontWeight: 600, cursor: issueSaving || !issueText.trim() ? 'not-allowed' : 'pointer', opacity: issueSaving || !issueText.trim() ? 0.6 : 1 }}>{issueSaving ? 'Reporting…' : 'Create ticket'}</button>
+              </div>
             </div>
           </div>
         )}

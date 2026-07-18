@@ -168,10 +168,15 @@ async def _sheets_unavailable_handler(request: Request, exc: SheetsUnavailableEr
     )
 
 # CORS — restrict to the deployed frontend origin in production.
-# Set VAULT_CORS_ORIGINS=https://your-site.github.io in Railway env vars.
+# VAULT_CORS_ORIGINS is the explicit allowlist (comma-separated) for extra origins.
+# allow_origin_regex is a safety net so the production domain (apex + any subdomain,
+# http or https) and the GitHub Pages origin always work even if the env var is not
+# updated after a domain change. This is a Bearer-token API with credentials disabled,
+# so a permissive origin carries no cookie/CSRF risk.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.VAULT_CORS_ORIGINS,
+    allow_origin_regex=config.VAULT_CORS_ORIGIN_REGEX,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

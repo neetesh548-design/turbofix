@@ -48,7 +48,18 @@ export default function Technician() {
         const allTickets = ticketsRes.data || [];
         const machineMap = {};
         (machinesRes.data || []).forEach(m => { machineMap[m.id] = m; });
-        const items = allTickets.filter(t => String(t.status || '').toLowerCase() === 'open').map(t => ({
+        // Technicians only see open tickets for machines assigned to them
+        // (machines.technician_user_id === their users.id). Supervisors, engineers,
+        // maintenance heads and owners see the full open queue.
+        const isTechnician = ['maintenance_technician', 'technician'].includes(user?.role);
+        const items = allTickets
+          .filter(t => String(t.status || '').toLowerCase() === 'open')
+          .filter(t => {
+            if (!isTechnician) return true;
+            const machine = machineMap[t.machine_id];
+            return machine && String(machine.technician_user_id || '') === String(user?.user_id || '');
+          })
+          .map(t => ({
           ...t,
           ticket_id: t.id,
           machine_name: machineMap[t.machine_id]?.name || 'Unknown',

@@ -141,6 +141,14 @@ VAULT_CORS_ORIGINS = [
     "http://localhost:5175", "http://127.0.0.1:5175",
 ]
 
+# Safety net so the production site keeps working even if VAULT_CORS_ORIGINS is not
+# updated after a domain change. Matches turbofix.co.in (apex + any subdomain, http or
+# https) and the GitHub Pages origin. Override with VAULT_CORS_ORIGIN_REGEX if needed.
+VAULT_CORS_ORIGIN_REGEX = os.getenv(
+    "VAULT_CORS_ORIGIN_REGEX",
+    r"https?://([a-z0-9-]+\.)*turbofix\.co\.in|https://neetesh548-design\.github\.io",
+)
+
 # Password reset (Phase 5). Same "runs locally with zero credentials, real service
 # for production" split used by TICKET_STORE and DOCUMENT_STORE:
 #   - "console" (default) writes the reset email (including the link) to the log, so
