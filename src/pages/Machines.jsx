@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, ArrowLeft, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users,
+  ShieldCheck, Upload, Users, LayoutGrid, List,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -30,6 +30,7 @@ export default function Machines() {
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
+  const [directoryView, setDirectoryView] = useState(() => window.localStorage.getItem('tf_machines_directory_view') || 'list');
   
   // Workspace active tab: 'info' | 'docs' | 'parts' | 'consumables' | 'calendar' | 'qr'
   const [wsTab, setWsTab] = useState('info');
@@ -83,6 +84,10 @@ export default function Machines() {
   }, []);
 
   useEffect(() => {
+    window.localStorage.setItem('tf_machines_directory_view', directoryView);
+  }, [directoryView]);
+
+  useEffect(() => {
     if (selectedMachine) {
       loadMachineAssets(selectedMachine.machine_id);
     }
@@ -120,6 +125,7 @@ export default function Machines() {
         maintenance_interval_days: m.maintenance_interval_days,
         last_maintenance_date: m.last_maintenance_date,
         next_maintenance_due: m.next_maintenance_due,
+        image_url: m.image_url,
         assignments: {},
         wa_link: null,
       }));
@@ -752,9 +758,15 @@ export default function Machines() {
                 <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines Directory</h1>
                 <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Click any machine to access its operational workspace (manuals, BOM, consumables, and replenishment calendar).</p>
               </div>
-              <button className="vault-btn vault-btn-ghost machines-onboard-toggle" onClick={() => setShowAddForm(!showAddForm)}>
-                {showAddForm ? 'Cancel' : '+ Onboard Machine'}
-              </button>
+              <div className="machines-directory-actions">
+                <div className="machines-view-toggle" role="group" aria-label="Machine directory view">
+                  <button type="button" className={directoryView === 'list' ? 'active' : ''} onClick={() => setDirectoryView('list')} aria-pressed={directoryView === 'list'} title="List view"><List /> <span>List</span></button>
+                  <button type="button" className={directoryView === 'tiles' ? 'active' : ''} onClick={() => setDirectoryView('tiles')} aria-pressed={directoryView === 'tiles'} title="Tile view"><LayoutGrid /> <span>Tiles</span></button>
+                </div>
+                <button className="vault-btn vault-btn-ghost machines-onboard-toggle" onClick={() => setShowAddForm(!showAddForm)}>
+                  {showAddForm ? 'Cancel' : '+ Onboard Machine'}
+                </button>
+              </div>
             </div>
 
             {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
@@ -873,6 +885,26 @@ export default function Machines() {
             ) : machines.length === 0 ? (
               <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
                 <p style={{ color: 'var(--slate)', margin: 0 }}>No machines onboarded yet. Click "+ Onboard Machine" to get started.</p>
+              </div>
+            ) : directoryView === 'tiles' ? (
+              <div className="machine-tile-grid">
+                {machines.map((m) => {
+                  const photo = window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url;
+                  return (
+                    <article className="machine-tile" key={m.machine_id} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
+                      <div className="machine-tile-photo">
+                        {photo ? <img src={photo} alt={`${m.machine_name} machine`} /> : <div><LayoutGrid /><span>No machine photo</span></div>}
+                        <span className={`machine-tile-status ${m.has_open_tickets ? 'down' : 'healthy'}`}><i />{m.has_open_tickets ? 'Down' : 'Healthy'}</span>
+                      </div>
+                      <div className="machine-tile-content">
+                        <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
+                        <p><MapPin /> {m.location || 'Location not added'}</p>
+                        <div className="machine-tile-team"><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
+                        <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             ) : (
               <div className="vault-card" style={{ padding: 0, overflowX: 'auto', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>

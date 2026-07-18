@@ -574,6 +574,32 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Machine onboarding: a short, readable sequence instead of a wide field wall. */
 .machines-directory-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+.machines-directory-actions { display: flex; align-items: center; gap: 12px; }
+.machines-view-toggle { display: flex; padding: 4px; border: 1px solid #3a4655; border-radius: 10px; background: #151e27; }
+.machines-view-toggle button { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 11px; border: 0; border-radius: 7px; color: #91a2b5; background: transparent; font: inherit; font-size: .78rem; font-weight: 750; cursor: pointer; }
+.machines-view-toggle button:hover { color: #e2e8f0; }
+.machines-view-toggle button.active { color: #052e16; background: #4ade80; }
+.machines-view-toggle svg { width: 16px; height: 16px; }
+.machine-tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; margin-bottom: 30px; }
+.machine-tile { overflow: hidden; border: 1px solid #364250; border-radius: 14px; background: linear-gradient(145deg, #1d2630, #18212a); cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.machine-tile:hover { transform: translateY(-3px); border-color: rgba(74,222,128,.55); box-shadow: 0 16px 35px rgba(0,0,0,.22); }
+.machine-tile-photo { position: relative; height: 170px; overflow: hidden; background: #111923; }
+.machine-tile-photo > img { width: 100%; height: 100%; object-fit: cover; }
+.machine-tile-photo > div { display: grid; height: 100%; place-content: center; justify-items: center; gap: 8px; color: #607086; font-size: .76rem; }
+.machine-tile-photo > div svg { width: 32px; height: 32px; }
+.machine-tile-status { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 7px; padding: 6px 10px; border: 1px solid; border-radius: 999px; font-size: .72rem; font-weight: 850; text-transform: uppercase; backdrop-filter: blur(8px); }
+.machine-tile-status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.machine-tile-status.healthy { color: #4ade80; border-color: rgba(74,222,128,.4); background: rgba(5,46,22,.85); }
+.machine-tile-status.down { color: #f87171; border-color: rgba(248,113,113,.4); background: rgba(69,10,10,.86); }
+.machine-tile-content { display: grid; gap: 14px; padding: 18px; }
+.machine-tile-content h2 { margin: 4px 0 0; color: #f8fafc; font-size: 1.15rem; }
+.machine-tile-id { display: block; overflow: hidden; color: #4ade80; font-family: monospace; font-size: .68rem; text-overflow: ellipsis; white-space: nowrap; }
+.machine-tile-content p, .machine-tile-team { display: flex; align-items: center; gap: 8px; margin: 0; color: #a9b7c8; font-size: .84rem; }
+.machine-tile-content p svg, .machine-tile-team > svg { flex: 0 0 17px; width: 17px; height: 17px; color: #718096; }
+.machine-tile-team span { display: grid; gap: 2px; }
+.machine-tile-team small { color: #718096; font-size: .66rem; text-transform: uppercase; }
+.machine-tile-content .vault-btn { display: flex; justify-content: center; align-items: center; gap: 7px; width: 100%; color: #052e16 !important; background: #4ade80 !important; }
+.machine-tile-content .vault-btn svg { width: 16px; }
 .machines-onboard-toggle { flex: 0 0 auto; border: 1px solid rgba(255,255,255,.16) !important; color: #f8fafc !important; }
 .machine-onboard-card { max-width: 980px; margin: 0 auto 24px; padding: 0 !important; overflow: hidden; border: 1px solid #3a4655 !important; background: linear-gradient(145deg, #1c2530, #18212b) !important; }
 .machine-onboard-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 26px 28px; border-bottom: 1px solid #34404e; background: rgba(255,255,255,.025); }
@@ -615,7 +641,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-topbar { padding: 10px 18px; }
   .app-content .decision-page, .app-content .assistant-page, .app-content .planner-page { padding-top: 34px; }
 }
-@media (max-width: 760px) { .machines-directory-header { display: grid; } .machines-onboard-toggle { width: 100%; } .machine-form-grid, .machine-role-grid { grid-template-columns: 1fr; } .machine-onboard-header, .machine-form-actions { display: grid; } .machine-onboard-time { justify-self: start; } .machine-team-notice { grid-template-columns: 1fr; margin-left: 0; } .machine-submit { width: 100% !important; } }
+@media (max-width: 760px) { .machines-directory-header { display: grid; } .machines-directory-actions { display: grid; grid-template-columns: 1fr; } .machines-view-toggle { width: fit-content; } .machines-onboard-toggle { width: 100%; } .machine-form-grid, .machine-role-grid { grid-template-columns: 1fr; } .machine-onboard-header, .machine-form-actions { display: grid; } .machine-onboard-time { justify-self: start; } .machine-team-notice { grid-template-columns: 1fr; margin-left: 0; } .machine-submit { width: 100% !important; } }
 @media (max-width: 560px) {
   .app-topbar { min-height: 64px; }
   .app-company-name { max-width: 34vw; font-size: 16px; }
