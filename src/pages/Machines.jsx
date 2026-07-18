@@ -114,6 +114,7 @@ export default function Machines() {
       if (directoryRes.error || directoryRes.data?.error) throw new Error(`Response team could not be loaded: ${directoryRes.data?.error || directoryRes.error?.message}`);
 
       const directoryMembers = directoryRes.data?.members || [];
+      const machineAssignments = directoryRes.data?.machine_assignments || {};
 
       const trackRecordByMachine = {};
       const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -142,7 +143,13 @@ export default function Machines() {
         has_phone: member.has_phone,
         can_reveal_contact: member.can_reveal_contact !== false,
       }]));
-      const mData = (machinesRes.data || []).map(m => ({
+      const mData = (machinesRes.data || []).map(m => {
+        const resolvedAssignments = machineAssignments[m.id] || {};
+        const technicianUserId = m.technician_user_id || resolvedAssignments.technician_user_id || null;
+        const supervisorId = m.supervisor_id || resolvedAssignments.supervisor_id || null;
+        const engineerUserId = m.engineer_user_id || resolvedAssignments.engineer_user_id || null;
+        const maintenanceHeadUserId = m.maintenance_head_user_id || resolvedAssignments.maintenance_head_user_id || null;
+        return ({
         machine_id: m.id,
         machine_name: m.name,
         location: m.location,
@@ -150,24 +157,25 @@ export default function Machines() {
         has_open_tickets: (trackRecordByMachine[m.id]?.open || 0) > 0,
         track_record: trackRecordByMachine[m.id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '' },
         assigned_technician_phone: m.assigned_technician_phone,
-        supervisor_id: m.supervisor_id,
+        supervisor_id: supervisorId,
         factory_id: m.factory_id,
         hourly_downtime_cost: m.hourly_downtime_cost,
         maintenance_interval_days: m.maintenance_interval_days,
         last_maintenance_date: m.last_maintenance_date,
         next_maintenance_due: m.next_maintenance_due,
         image_url: m.image_url,
-        technician_user_id: m.technician_user_id,
-        engineer_user_id: m.engineer_user_id,
-        maintenance_head_user_id: m.maintenance_head_user_id,
+        technician_user_id: technicianUserId,
+        engineer_user_id: engineerUserId,
+        maintenance_head_user_id: maintenanceHeadUserId,
         assignments: {
-          technician: teamById[m.technician_user_id] || null,
-          supervisor: teamById[m.supervisor_id] || null,
-          engineer: teamById[m.engineer_user_id] || null,
-          maintenance_head: teamById[m.maintenance_head_user_id] || null,
+          technician: teamById[technicianUserId] || null,
+          supervisor: teamById[supervisorId] || null,
+          engineer: teamById[engineerUserId] || null,
+          maintenance_head: teamById[maintenanceHeadUserId] || null,
         },
         wa_link: null,
-      }));
+      });
+      });
       setMachines(mData);
       window.setTimeout(() => syncLocalMachinePhotos(mData), 0);
 

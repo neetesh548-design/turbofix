@@ -225,7 +225,22 @@ serve(async (req) => {
       .eq('company_id', owner.company_id)
       .order('created_at', { ascending: true })
     if (listError) return reply({ error: listError.message }, 400)
+    const { data: companyMachines, error: machineListError } = await admin.from('machines')
+      .select('id,technician_user_id,supervisor_id,engineer_user_id,maintenance_head_user_id,assigned_technician_phone')
+      .eq('company_id', owner.company_id)
+    if (machineListError) return reply({ error: machineListError.message }, 400)
+    const normalizePhone = (value: string) => String(value || '').replace(/\D/g, '').slice(-10)
+    const memberByPhone = new Map((members ?? [])
+      .filter((member) => normalizePhone(member.phone))
+      .map((member) => [normalizePhone(member.phone), member.id]))
+    const machineAssignments = Object.fromEntries((companyMachines ?? []).map((machine) => [machine.id, {
+      technician_user_id: machine.technician_user_id || memberByPhone.get(normalizePhone(machine.assigned_technician_phone)) || null,
+      supervisor_id: machine.supervisor_id || null,
+      engineer_user_id: machine.engineer_user_id || null,
+      maintenance_head_user_id: machine.maintenance_head_user_id || null,
+    }]))
     return reply({
+      machine_assignments: machineAssignments,
       members: (members ?? []).map((member) => {
         const email = member.email || (member.id === owner.id ? user.email || '' : '')
         const phone = member.phone || (member.id === owner.id ? user.phone || '' : '')
