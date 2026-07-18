@@ -1,0 +1,1 @@
+import{i as e,n as t}from"./index-fBjjgueK.js";var n=t();function r(){return(0,n.jsx)(e,{to:`/#platform`,replace:!0})}export{r as default};

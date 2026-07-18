@@ -16,17 +16,10 @@ function getSb() {
   throw new Error("Supabase client not loaded yet.");
 }
 
-var storedApiBase = localStorage.getItem("tf_api_base");
-var defaultApiBase = SUPABASE_URL;
-var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
-if (isLocal && !storedApiBase) {
-  defaultApiBase = "http://127.0.0.1:8000";
-}
-var DEFAULT_API_BASE = defaultApiBase;
-var storedApiPointsToLocalServer = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\b/i.test(storedApiBase || "");
+var DEFAULT_API_BASE = SUPABASE_URL;
 
 var state = {
-  apiBase: storedApiBase && (isLocal || !storedApiPointsToLocalServer) ? storedApiBase : defaultApiBase,
+  apiBase: SUPABASE_URL,
   token: localStorage.getItem("tf_token") || null,
   user: JSON.parse(localStorage.getItem("tf_user") || "null"),
   machines: [],
@@ -250,18 +243,24 @@ async function registerCompany(formData) {
 }
 
 async function addSupervisor(payload) {
-  const resp = await apiFetch("/auth/supervisors", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return resp.json();
+  var sb = getSb();
+  var { data, error } = await sb.auth.admin;
+  // For now, insert directly into users table with supervisor role
+  var { data: result, error: err } = await sb.from("users").insert({
+    company_id: state.user.company_id || null,
+    name: payload.name,
+    phone: payload.phone,
+    email: payload.email,
+    role: "supervisor",
+  }).select().single();
+  if (err) throw new Error(err.message);
+  return { name: result.name, user_id: result.id };
 }
 
 async function loadSupervisorsDropdown() {
-  const select = $("newMachineSupervisor");
-  const editSelect = $("editMachineSupervisor");
-  const manageSelect = $("selectSupervisorAction");
+  var select = $("newMachineSupervisor");
+  var editSelect = $("editMachineSupervisor");
+  var manageSelect = $("selectSupervisorAction");
   if (!select) return;
   select.innerHTML = '<option value="">-- Select Supervisor (Optional) --</option>';
   if (editSelect) {
@@ -271,26 +270,27 @@ async function loadSupervisorsDropdown() {
     manageSelect.innerHTML = '<option value="new">-- Create New Supervisor --</option>';
   }
   try {
-    const resp = await apiFetch("/vault/supervisors");
-    if (!resp.ok) return;
-    state.supervisors = await resp.json();
-    state.supervisors.forEach(s => {
-      const opt = document.createElement("option");
+    var sb = getSb();
+    var { data: rows, error } = await sb.from("users").select("id,name,email,phone").eq("role", "supervisor");
+    if (error) return;
+    state.supervisors = (rows || []).map(function(s) { return { user_id: s.id, name: s.name, email: s.email, phone: s.phone }; });
+    state.supervisors.forEach(function(s) {
+      var opt = document.createElement("option");
       opt.value = s.user_id;
-      opt.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+      opt.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
       select.appendChild(opt);
 
       if (editSelect) {
-        const opt3 = document.createElement("option");
+        var opt3 = document.createElement("option");
         opt3.value = s.user_id;
-        opt3.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+        opt3.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
         editSelect.appendChild(opt3);
       }
 
       if (manageSelect) {
-        const opt2 = document.createElement("option");
+        var opt2 = document.createElement("option");
         opt2.value = s.user_id;
-        opt2.textContent = `${s.name} (${s.email || s.phone || "no contact info"})`;
+        opt2.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
         manageSelect.appendChild(opt2);
       }
     });
@@ -330,18 +330,23 @@ function renderUserBar() {
 // ---------------------------------------------------------------
 
 async function loadMachines() {
-  const resp = await apiFetch("/vault/machines");
-  state.machines = await resp.json();
-  const picker = $("machinePicker");
+  var sb = getSb();
+  var { data: rows, error } = await sb.from("machines").select("id,name,location,assigned_technician_phone,informed_phone_1,supervisor_id,status,company_id,factory_id");
+  if (error) throw new Error(error.message);
+  state.machines = (rows || []).map(function(m) {
+    return { machine_id: m.id, machine_name: m.name, location: m.location, assigned_technician_phone: m.assigned_technician_phone, informed_phones: [m.informed_phone_1], supervisor_id: m.supervisor_id, company_id: m.company_id, factory_id: m.factory_id };
+  });
+  var picker = $("machinePicker");
   picker.innerHTML = "";
   if (state.machines.length === 0) {
     picker.innerHTML = "<option>No machines registered</option>";
     return;
   }
-  for (const m of state.machines) {
-    const opt = document.createElement("option");
+  for (var i = 0; i < state.machines.length; i++) {
+    var m = state.machines[i];
+    var opt = document.createElement("option");
     opt.value = m.machine_id;
-    opt.textContent = `${m.machine_name} (${m.machine_id})`;
+    opt.textContent = m.machine_name + " (" + m.machine_id.substring(0, 8) + ")";
     picker.appendChild(opt);
   }
   state.currentMachineId = state.machines[0].machine_id;
@@ -387,12 +392,20 @@ function renderQrInto(container, text) {
 }
 
 async function createMachine(body) {
-  const resp = await apiFetch("/vault/machines", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return resp.json();
+  var sb = getSb();
+  var profile = state.machines.length > 0 ? { company_id: state.machines[0].company_id, factory_id: state.machines[0].factory_id } : {};
+  var { data, error } = await sb.from("machines").insert({
+    company_id: profile.company_id,
+    factory_id: profile.factory_id,
+    name: body.machine_name,
+    location: body.location,
+    assigned_technician_phone: body.assigned_technician_phone,
+    informed_phone_1: body.informed_phone_1,
+    supervisor_id: body.supervisor_id || null,
+    status: "healthy",
+  }).select().single();
+  if (error) throw new Error(error.message);
+  return { machine_id: data.id, machine_name: data.name, location: data.location, wa_link: null };
 }
 
 function showNewMachineResult(machine) {
@@ -444,146 +457,138 @@ var CATEGORY_LABELS = {
 };
 
 async function loadDocuments() {
-  const list = $("documentsList");
+  var list = $("documentsList");
   showLoading(list, "Loading documents…");
-  const resp = await apiFetch(`/vault/documents?machine_id=${encodeURIComponent(state.currentMachineId)}`);
-  const docs = await resp.json();
+  var sb = getSb();
+  var { data: docs, error } = await sb.from("documents").select("id,title,category,file_url,created_at").eq("machine_id", state.currentMachineId);
+  if (error) throw new Error(error.message);
+  docs = docs || [];
   list.innerHTML = "";
   if (docs.length === 0) {
     list.innerHTML = '<div class="vault-empty">No documents uploaded for this machine yet.</div>';
     return;
   }
-  for (const doc of docs) {
-    const card = document.createElement("div");
+  for (var i = 0; i < docs.length; i++) {
+    var doc = docs[i];
+    var card = document.createElement("div");
     card.className = "vault-card vault-doc-row";
-    card.innerHTML = `
-      <div class="vault-doc-info">
-        <div class="vault-doc-title">${escapeHtml(doc.title)}</div>
-        <div class="vault-doc-meta">
-          <span class="vault-category-badge">${CATEGORY_LABELS[doc.category] || doc.category}</span>
-          ${escapeHtml(doc.file_name)} · uploaded by ${escapeHtml(doc.uploaded_by)} on ${escapeHtml(doc.uploaded_at)}
-        </div>
-      </div>
-      <div class="vault-doc-actions">
-        <button class="vault-btn vault-btn-ghost" data-download="${doc.document_id}">Download</button>
-        ${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete="${doc.document_id}">Delete</button>` : ""}
-      </div>`;
+    var fileName = doc.file_url ? doc.file_url.split("/").pop() : "";
+    var dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString() : "";
+    card.innerHTML =
+      '<div class="vault-doc-info">' +
+        '<div class="vault-doc-title">' + escapeHtml(doc.title) + '</div>' +
+        '<div class="vault-doc-meta">' +
+          '<span class="vault-category-badge">' + (CATEGORY_LABELS[doc.category] || doc.category) + '</span> ' +
+          escapeHtml(fileName) + ' · ' + escapeHtml(dateStr) +
+        '</div>' +
+      '</div>' +
+      '<div class="vault-doc-actions">' +
+        '<button class="vault-btn vault-btn-ghost" data-download="' + doc.id + '">Download</button>' +
+        (canDelete() ? '<button class="vault-btn vault-btn-danger" data-delete="' + doc.id + '">Delete</button>' : '') +
+      '</div>';
     list.appendChild(card);
   }
 
-  list.querySelectorAll("[data-download]").forEach((btn) => {
-    btn.addEventListener("click", () => downloadDocument(btn.dataset.download));
+  list.querySelectorAll("[data-download]").forEach(function(btn) {
+    btn.addEventListener("click", function() { downloadDocument(btn.dataset.download); });
   });
-  list.querySelectorAll("[data-delete]").forEach((btn) => {
-    btn.addEventListener("click", () => deleteDocument(btn.dataset.delete));
+  list.querySelectorAll("[data-delete]").forEach(function(btn) {
+    btn.addEventListener("click", function() { deleteDocument(btn.dataset.delete); });
   });
 }
 
 async function downloadDocument(documentId) {
-  const resp = await apiFetch(`/vault/documents/${documentId}/download`);
-  const blob = await resp.blob();
-  const disposition = resp.headers.get("Content-Disposition") || "";
-  const match = disposition.match(/filename="(.+)"/);
-  const filename = match ? match[1] : "document";
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  var sb = getSb();
+  var { data: doc, error } = await sb.from("documents").select("file_url,title").eq("id", documentId).single();
+  if (error || !doc) { showToast("Document not found.", "error"); return; }
+  if (doc.file_url && doc.file_url.startsWith("http")) {
+    window.open(doc.file_url, "_blank");
+  } else if (doc.file_url) {
+    var { data: signedData } = await sb.storage.from("machine-documents").createSignedUrl(doc.file_url, 300);
+    if (signedData && signedData.signedUrl) {
+      window.open(signedData.signedUrl, "_blank");
+    } else {
+      showToast("Could not generate download link.", "error");
+    }
+  }
 }
 
 async function deleteDocument(documentId) {
   if (!confirm("Delete this document? This cannot be undone.")) return;
-  await apiFetch(`/vault/documents/${documentId}`, { method: "DELETE" });
+  var sb = getSb();
+  var { error } = await sb.from("documents").delete().eq("id", documentId);
+  if (error) { showToast("Delete failed: " + error.message, "error"); return; }
   await loadDocuments();
 }
 
 async function uploadDocument(formData) {
-  const progressWrap = document.createElement("div");
-  progressWrap.className = "vault-upload-progress";
-  progressWrap.innerHTML = `<div class="vault-progress-bar"><div class="vault-progress-fill" id="uploadProgressFill"></div></div><span class="vault-progress-text" id="uploadProgressText">Uploading… 0%</span>`;
-  $("uploadCard").appendChild(progressWrap);
+  var sb = getSb();
+  var file = formData.get("file");
+  var machineId = formData.get("machine_id");
+  var category = formData.get("category");
+  var title = formData.get("title");
+  var filePath = machineId + "/" + Date.now() + "_" + file.name;
 
-  try {
-    await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", apiUrl("/vault/documents"));
-      if (state.token) xhr.setRequestHeader("Authorization", "Bearer " + state.token);
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          const fill = document.getElementById("uploadProgressFill");
-          const text = document.getElementById("uploadProgressText");
-          if (fill) fill.style.width = pct + "%";
-          if (text) text.textContent = `Uploading… ${pct}%`;
-        }
-      };
-      xhr.onload = () => {
-        if (xhr.status === 401) { logout(); reject(new Error("Session expired")); return; }
-        if (xhr.status >= 400) {
-          let detail = xhr.statusText;
-          try { detail = JSON.parse(xhr.responseText).detail || detail; } catch (_) {}
-          reject(new Error(detail));
-          return;
-        }
-        resolve();
-      };
-      xhr.onerror = () => reject(new Error("Upload failed — check your connection."));
-      xhr.send(formData);
-    });
-    await loadDocuments();
-  } finally {
-    progressWrap.remove();
-  }
+  var { data: uploadData, error: uploadErr } = await sb.storage.from("machine-documents").upload(filePath, file);
+  if (uploadErr) throw new Error(uploadErr.message);
+
+  var fileUrl = uploadData.path || filePath;
+  var { error: insertErr } = await sb.from("documents").insert({
+    machine_id: machineId,
+    title: title,
+    category: category,
+    file_url: fileUrl,
+  });
+  if (insertErr) throw new Error(insertErr.message);
+  await loadDocuments();
 }
 
 // ---------------------------------------------------------------
 // Spare parts + Consumables (same shape, thin wrappers)
 // ---------------------------------------------------------------
 
-async function loadParts(kindPath, tbodySelector, emptyId, rowRenderer) {
-  const tbody = document.querySelector(tbodySelector);
-  tbody.innerHTML = `<tr><td colspan="6" class="vault-loading"><span class="vault-spinner"></span> Loading…</td></tr>`;
-  const resp = await apiFetch(`/vault/${kindPath}?machine_id=${encodeURIComponent(state.currentMachineId)}`);
-  const items = await resp.json();
+async function loadParts(tableName, tbodySelector, emptyId, rowRenderer, deleteTable) {
+  var tbody = document.querySelector(tbodySelector);
+  tbody.innerHTML = '<tr><td colspan="6" class="vault-loading"><span class="vault-spinner"></span> Loading…</td></tr>';
+  var sb = getSb();
+  var { data: items, error } = await sb.from(tableName).select("*").eq("machine_id", state.currentMachineId);
+  if (error) throw new Error(error.message);
+  items = items || [];
   tbody.innerHTML = "";
   $(emptyId).style.display = items.length === 0 ? "block" : "none";
-  for (const item of items) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = rowRenderer(item);
+  for (var i = 0; i < items.length; i++) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = rowRenderer(items[i]);
     tbody.appendChild(tr);
   }
-  tbody.querySelectorAll("[data-delete-item]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
+  tbody.querySelectorAll("[data-delete-item]").forEach(function(btn) {
+    btn.addEventListener("click", async function() {
       if (!confirm("Delete this item?")) return;
-      await apiFetch(`/vault/${kindPath}/${btn.dataset.deleteItem}`, { method: "DELETE" });
-      loadParts(kindPath, tbodySelector, emptyId, rowRenderer);
+      await sb.from(deleteTable || tableName).delete().eq("id", btn.dataset.deleteItem);
+      loadParts(tableName, tbodySelector, emptyId, rowRenderer, deleteTable);
     });
   });
 }
 
 function loadSpareParts() {
-  return loadParts("spare-parts", "#partsTable tbody", "partsEmpty", (p) => `
-    <td>${escapeHtml(p.part_name)}</td>
-    <td>${escapeHtml(p.part_number || "")}</td>
-    <td>${p.quantity_on_hand} ${escapeHtml(p.unit || "")}</td>
-    <td>${p.reorder_level}</td>
-    <td>${escapeHtml(p.supplier || "")}</td>
-    <td>${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${p.part_id}">Delete</button>` : ""}</td>
-  `);
+  return loadParts("parts", "#partsTable tbody", "partsEmpty", function(p) {
+    return '<td>' + escapeHtml(p.part_name) + '</td>' +
+      '<td>' + escapeHtml(p.part_number || "") + '</td>' +
+      '<td>' + (p.stock_qty || 0) + ' ' + escapeHtml(p.unit || "") + '</td>' +
+      '<td>' + (p.reorder_level || 0) + '</td>' +
+      '<td>' + escapeHtml(p.supplier || "") + '</td>' +
+      '<td>' + (canDelete() ? '<button class="vault-btn vault-btn-danger" data-delete-item="' + p.id + '">Delete</button>' : '') + '</td>';
+  });
 }
 
 function loadConsumables() {
-  return loadParts("consumables", "#consTable tbody", "consEmpty", (c) => `
-    <td>${escapeHtml(c.name)}</td>
-    <td>${c.quantity_on_hand} ${escapeHtml(c.unit || "")}</td>
-    <td>${c.reorder_level}</td>
-    <td>${escapeHtml(c.notes || "")}</td>
-    <td>${canDelete() ? `<button class="vault-btn vault-btn-danger" data-delete-item="${c.consumable_id}">Delete</button>` : ""}</td>
-  `);
+  return loadParts("consumables", "#consTable tbody", "consEmpty", function(c) {
+    return '<td>' + escapeHtml(c.name) + '</td>' +
+      '<td>' + (c.stock_qty || 0) + ' ' + escapeHtml(c.unit || "") + '</td>' +
+      '<td>' + (c.reorder_level || 0) + '</td>' +
+      '<td></td>' +
+      '<td>' + (canDelete() ? '<button class="vault-btn vault-btn-danger" data-delete-item="' + c.id + '">Delete</button>' : '') + '</td>';
+  });
 }
 
 // ---------------------------------------------------------------
@@ -739,12 +744,9 @@ function initVault() {
     successEl.style.display = "none";
 
     try {
-      const resp = await apiFetch(`/auth/supervisors/${supervisorId}`, {
-        method: "DELETE"
-      });
-      if (!resp.ok) {
-        throw new Error((await resp.json()).detail || "Failed to delete supervisor");
-      }
+      var sb = getSb();
+      var { error: delErr } = await sb.from("users").delete().eq("id", supervisorId);
+      if (delErr) throw new Error(delErr.message);
       successEl.textContent = "Supervisor deleted successfully.";
       successEl.style.display = "block";
       
@@ -793,14 +795,9 @@ function initVault() {
         if ($("supPassword").value) {
           payload.password = $("supPassword").value;
         }
-        const resp = await apiFetch(`/auth/supervisors/${supervisorId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!resp.ok) {
-          throw new Error((await resp.json()).detail || "Failed to update supervisor");
-        }
+        var sb = getSb();
+        var { error: updateErr } = await sb.from("users").update(payload).eq("id", supervisorId);
+        if (updateErr) throw new Error(updateErr.message);
         successEl.textContent = "Supervisor updated successfully.";
 
         $("selectSupervisorAction").value = "new";
@@ -891,20 +888,20 @@ function initVault() {
     e.preventDefault();
     clearError($("vaultError"));
     try {
-      await apiFetch("/vault/spare-parts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          machine_id: state.currentMachineId,
-          part_name: $("partName").value,
-          part_number: $("partNumber").value,
-          quantity_on_hand: Number($("partQty").value) || 0,
-          unit: $("partUnit").value,
-          reorder_level: Number($("partReorder").value) || 0,
-          supplier: $("partSupplier").value,
-          notes: "",
-        }),
+      var sb = getSb();
+      var profile = state.machines.length > 0 ? { factory_id: state.machines[0].factory_id } : {};
+      var { error: partErr } = await sb.from("parts").insert({
+        machine_id: state.currentMachineId,
+        factory_id: profile.factory_id,
+        part_name: $("partName").value,
+        part_number: $("partNumber").value,
+        stock_qty: Number($("partQty").value) || 0,
+        unit: $("partUnit").value,
+        reorder_level: Number($("partReorder") ? $("partReorder").value : 0) || 0,
+        supplier: $("partSupplier").value,
+        lead_time_days: Number($("partLeadTime") ? $("partLeadTime").value : 7) || 7,
       });
+      if (partErr) throw new Error(partErr.message);
       e.target.reset();
       $("addPartCard").style.display = "none";
       await loadSpareParts();
@@ -922,18 +919,21 @@ function initVault() {
     e.preventDefault();
     clearError($("vaultError"));
     try {
-      await apiFetch("/vault/consumables", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          machine_id: state.currentMachineId,
-          name: $("consName").value,
-          quantity_on_hand: Number($("consQty").value) || 0,
-          unit: $("consUnit").value,
-          reorder_level: Number($("consReorder").value) || 0,
-          notes: "",
-        }),
+      var sb = getSb();
+      var profile = state.machines.length > 0 ? { factory_id: state.machines[0].factory_id } : {};
+      var { error: consErr } = await sb.from("consumables").insert({
+        machine_id: state.currentMachineId,
+        factory_id: profile.factory_id,
+        name: $("consName").value,
+        stock_qty: Number($("consQty").value) || 0,
+        unit: $("consUnit").value,
+        reorder_level: Number($("consReorder") ? $("consReorder").value : 0) || 0,
+        lead_time_days: Number($("consLeadTime") ? $("consLeadTime").value : 7) || 7,
+        buffer_days: Number($("consBuffer") ? $("consBuffer").value : 3) || 3,
+        frequency_days: Number($("consFrequency") ? $("consFrequency").value : 90) || null,
+        last_replaced_at: $("consLastReplaced") && $("consLastReplaced").value ? $("consLastReplaced").value : null,
       });
+      if (consErr) throw new Error(consErr.message);
       e.target.reset();
       $("addConsCard").style.display = "none";
       await loadConsumables();
@@ -1021,14 +1021,15 @@ function initVault() {
         supervisor_id: $("editMachineSupervisor").value,
       };
 
-      const resp = await apiFetch(`/vault/machines/${state.currentMachineId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!resp.ok) {
-        throw new Error((await resp.json()).detail || "Failed to update machine details");
-      }
+      var sb = getSb();
+      var { error: machErr } = await sb.from("machines").update({
+        name: payload.machine_name,
+        location: payload.location,
+        assigned_technician_phone: payload.assigned_technician_phone,
+        informed_phone_1: payload.informed_phone_1,
+        supervisor_id: payload.supervisor_id || null,
+      }).eq("id", state.currentMachineId);
+      if (machErr) throw new Error(machErr.message);
       successEl.textContent = "Machine details updated successfully.";
       successEl.style.display = "block";
 
