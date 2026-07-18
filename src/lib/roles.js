@@ -13,3 +13,26 @@ export function getRoleLabel(roleVal, customRoles = []) {
   if (custom) return custom.role_label;
   return roleVal.replace('_', ' ');
 }
+
+const ROLE_NAV = {
+  maintenance_technician: ['machines', 'records', 'assistant', 'technician', 'support'],
+  maintenance_engineer: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support'],
+  supervisor: ['overview', 'machines', 'tickets', 'assistant', 'shutdown', 'technician', 'support'],
+  maintenance_head: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings'],
+  owner: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings'],
+};
+
+export function canViewWorkspace(role, workspace) {
+  const allowed = ROLE_NAV[role];
+  return !allowed || allowed.includes(workspace);
+}
+
+export function roleContribution(role) {
+  return {
+    maintenance_technician: 'Resolve assigned work and ask for support when needed.',
+    maintenance_engineer: 'Support diagnosis and help remove repeat failures.',
+    supervisor: 'Remove blockers and verify normal repair closure.',
+    maintenance_head: 'Resolve safety, technical and high-impact exceptions.',
+    owner: 'Decide only when production risk or investment needs business authority.',
+  }[role] || 'Contribute to safe, reliable issue resolution.';
+}

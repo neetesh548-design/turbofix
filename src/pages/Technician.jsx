@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, ShieldCheck, Wrench } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, Square, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
@@ -27,6 +27,9 @@ export default function Technician() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [recordingContext, setRecordingContext] = useState('');
+  const recorderRef = useRef(null);
+  const voiceChunksRef = useRef([]);
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; }
   }, []);
@@ -35,11 +38,12 @@ export default function Technician() {
   useEffect(() => {
     (async () => {
       try {
-        const [ticketsRes, machinesRes, documentsRes, partsRes] = await Promise.all([
+        const [ticketsRes, machinesRes, documentsRes, partsRes, interventionsRes] = await Promise.all([
           supabase.from('tickets').select('*'),
           supabase.from('machines').select('*'),
           supabase.from('documents').select('id,machine_id,title,category'),
           supabase.from('parts').select('*'),
+          supabase.from('maintenance_interventions').select('ticket_id,intervention_type,status,decision'),
         ]);
         const allTickets = ticketsRes.data || [];
         const machineMap = {};
@@ -57,6 +61,7 @@ export default function Technician() {
         items.forEach(t => {
           const localData = window.localStorage.getItem(`tf_work_${t.ticket_id}`);
           const existing = localData ? JSON.parse(localData) : { ...defaultWork };
+          const returned = (interventionsRes.data || []).some((item) => item.ticket_id === t.ticket_id && item.intervention_type === 'closure_approval' && item.decision === 'needs_more_work' && item.status === 'open');
           const generated = existing.generated_checklist?.length ? existing.generated_checklist : generateChecklist({
             ticket: t,
             machine: machineMap[t.machine_id] || {},
@@ -64,7 +69,7 @@ export default function Technician() {
             documents: documentsRes.data || [],
             parts: partsRes.data || [],
           });
-          storedWork[t.ticket_id] = { ...defaultWork, ...existing, generated_checklist: generated };
+          storedWork[t.ticket_id] = { ...defaultWork, ...existing, ...(returned ? { status: 'in_progress' } : {}), generated_checklist: generated };
           window.localStorage.setItem(`tf_work_${t.ticket_id}`, JSON.stringify(storedWork[t.ticket_id]));
         });
         setWork(storedWork);
@@ -123,11 +128,36 @@ export default function Technician() {
     const completedIndexes = checklist.map((entry, index) => nextStatus[entry.id] === 'done' ? index : null).filter((index) => index !== null);
     try {
       await persistWork({ status: 'in_progress', checklist_status: nextStatus, checklist: completedIndexes });
-      if (status === 'help') setMessage('Help requested. Your progress and machine context are saved for support.');
+      if (status === 'help') {
+        await requestIntervention('technical_help', `Help needed: ${item.label}`, 'Review the machine data, issue history and completed checklist steps.', 'maintenance_engineer');
+        setMessage('Help requested. Your progress and machine context are available to the support role.');
+      }
     } catch {}
   };
 
-  const uploadEvidence = async (file, kind) => {
+  const requestIntervention = async (type, reason, recommendedAction, assignedRole) => {
+    if (!selectedTicket) return;
+    const { data: existing } = await supabase.from('maintenance_interventions').select('id').eq('ticket_id', selectedTicket.id).eq('intervention_type', type).neq('status', 'resolved').maybeSingle();
+    const payload = {
+      factory_id: selectedTicket.factory_id,
+      ticket_id: selectedTicket.id,
+      machine_id: selectedTicket.machine_id,
+      intervention_type: type,
+      title: type === 'closure_approval' ? 'Repair ready for verification' : 'Technical support requested',
+      reason,
+      recommended_action: recommendedAction,
+      assigned_role: assignedRole,
+      evidence: selectedWork.evidence || [],
+      status: 'open',
+      decision: '',
+    };
+    const result = existing?.id
+      ? await supabase.from('maintenance_interventions').update(payload).eq('id', existing.id)
+      : await supabase.from('maintenance_interventions').insert(payload);
+    if (result.error) throw result.error;
+  };
+
+  const uploadEvidence = async (file, kind, context = 'General repair update') => {
     if (!file || !selectedId || isLocked) return;
     setSaving(true);
     setError('');
@@ -151,18 +181,54 @@ export default function Technician() {
         kind: kind,
         file_name: file.name,
         url: publicUrl,
-        uploaded_at: new Date().toISOString()
+        uploaded_at: new Date().toISOString(),
+        context,
       };
       
       const updatedEvidence = [...selectedWork.evidence, newEvidenceItem];
       await persistWork({ evidence: updatedEvidence });
-      setMessage('Evidence uploaded successfully.');
+      setMessage(`${kind === 'voice' ? 'Voice' : kind === 'photo' ? 'Photo' : 'File'} update saved automatically.`);
     } catch (err) {
       setError(err.message);
     } finally {
       setSaving(false);
     }
   };
+
+  const startVoiceCapture = async (context) => {
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setError('Live recording is not supported here. Use Upload audio instead.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      voiceChunksRef.current = [];
+      recorder.ondataavailable = (event) => { if (event.data.size) voiceChunksRef.current.push(event.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const blob = new Blob(voiceChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        const extension = blob.type.includes('mp4') ? 'm4a' : 'webm';
+        await uploadEvidence(new File([blob], `${selectedId}-${Date.now()}.${extension}`, { type: blob.type }), 'voice', context);
+        setRecordingContext('');
+      };
+      recorderRef.current = recorder;
+      setRecordingContext(context);
+      recorder.start();
+    } catch (err) {
+      setError(err.message || 'Microphone access was not available.');
+    }
+  };
+
+  const stopVoiceCapture = () => {
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+  };
+
+  const captureActions = (context, compact = false) => <div className={`technician-capture-actions${compact ? ' compact' : ''}`}>
+    {recordingContext === context ? <button type="button" className="recording" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture(context)}><Mic className="size-4" />Speak</button>}
+    <label><Camera className="size-4" />Photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', context); event.target.value = ''; }} /></label>
+    <label><ImagePlus className="size-4" />Choose file<input type="file" accept="image/*,audio/*,.pdf" disabled={saving || isLocked} onChange={(event) => { const file = event.target.files?.[0]; const kind = file?.type.startsWith('audio/') ? 'voice' : file?.type === 'application/pdf' ? 'document' : 'photo'; uploadEvidence(file, kind, context); event.target.value = ''; }} /></label>
+  </div>;
 
   const downloadEvidence = async (item) => {
     setError('');
@@ -186,14 +252,11 @@ export default function Technician() {
       const photoEvidence = updatedWork.evidence.find(e => e.kind === 'photo');
       const proofUrl = photoEvidence ? photoEvidence.url : null;
       
-      const { error: updateErr } = await supabase.from('tickets').update({ 
-        status: 'resolved',
-        proof_image_url: proofUrl,
-        resolved_at: new Date().toISOString()
-      }).eq('id', selectedId);
+      const { error: updateErr } = await supabase.from('tickets').update({ proof_image_url: proofUrl }).eq('id', selectedId);
       
       if (updateErr) throw new Error(updateErr.message);
-      setMessage('Repair submitted.');
+      await requestIntervention('closure_approval', 'Checklist completed and repair submitted for verification.', 'Review the evidence and verify that the original symptom is resolved.', 'supervisor');
+      setMessage('Repair submitted. A supervisor will only be notified because verification is required.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -260,13 +323,13 @@ export default function Technician() {
                 <div className="technician-progress"><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div></div>
                 <div className="technician-actions">
                   <button className="btn btn-primary" onClick={startWork} disabled={saving || isLocked}><Play className="size-4" />{selectedWork.status === 'in_progress' ? 'Work in progress' : 'Start work'}</button>
-                  <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><ImagePlus className="size-4" />Add evidence<input type="file" accept="image/*,.pdf" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], event.target.files?.[0]?.type === 'application/pdf' ? 'document' : 'photo'); event.target.value = ''; }} /></label>
-                  <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Mic className="size-4" />Voice note<input type="file" accept="audio/*" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'voice'); event.target.value = ''; }} /></label>
+                  {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}
+                  <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Camera className="size-4" />Take photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', 'General repair update'); event.target.value = ''; }} /></label>
                 </div>
-                {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
-                <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small></div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
-                <details className="technician-optional-details"><summary>Add details <span>Optional</span></summary><div className="technician-two-col"><label className="technician-field"><span><FileText className="size-4" />Repair note</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Speak or type only if useful" /></label><label className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional part name and quantity" /></label></div></details>
-                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : 'Complete all checks and add notes before submission.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : 'Submit for closure'}</button>}</div>
+                {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
+                <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
+                <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div></div></details>
+                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : 'Submit for closure'}</button>}</div>
               </>}
             </section>
           </div>

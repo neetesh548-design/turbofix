@@ -15,6 +15,7 @@ const Assistant = lazy(() => import('./pages/Assistant'));
 const ShutdownPlanner = lazy(() => import('./pages/ShutdownPlanner'));
 const Technician = lazy(() => import('./pages/Technician'));
 const Records = lazy(() => import('./pages/Records'));
+const Support = lazy(() => import('./pages/Support'));
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
@@ -36,6 +37,7 @@ function App() {
           <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
           <Route path="/technician.html" element={<Technician />} />
           <Route path="/records.html" element={<Records />} />
+          <Route path="/support.html" element={<Support />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
