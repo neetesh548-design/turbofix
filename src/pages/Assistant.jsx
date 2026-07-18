@@ -70,11 +70,11 @@ export default function Assistant() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('machines').select('id,name,location,status'),
+      supabase.from('machines').select('id,name,location,status,image_url'),
       supabase.from('tickets').select('*'),
       supabase.from('events').select('*')
     ]).then(([mRes, tRes, eRes]) => {
-      setMachines((mRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location })));
+      setMachines((mRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url })));
       setTickets(tRes.data || []);
       setEvents(eRes.data || []);
     }).catch(() => {
@@ -177,9 +177,9 @@ export default function Assistant() {
         {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p></div>}
       </div>
       <aside className="assistant-side">
-        {selected !== 'all' && window.localStorage.getItem(`tf_machine_photo_${selected}`) && (
+        {selected !== 'all' && (selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)) && (
           <div style={{ width: '100%', height: '140px', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <img src={window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
         <div className="decision-card-kicker">How scope works</div>

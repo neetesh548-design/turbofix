@@ -53,6 +53,7 @@ export default function Technician() {
           ticket_id: t.id,
           machine_name: machineMap[t.machine_id]?.name || 'Unknown',
           machine_location: machineMap[t.machine_id]?.location || '',
+          machine_image_url: machineMap[t.machine_id]?.image_url || '',
           description: t.issue_text || (typeof t.ai_summary === 'object' ? t.ai_summary?.summary : t.ai_summary) || '',
         }));
         setTickets(items);
@@ -308,9 +309,9 @@ export default function Technician() {
             <section className="technician-workspace">
               {!selectedTicket ? <div className="technician-empty large"><Wrench className="size-10" /><strong>Select a work item</strong><span>Choose a ticket from your queue to begin.</span></div> : <>
                 <div className="technician-work-header" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  {window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`) && (
+                  {(selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)) && (
                     <div style={{ width: '56px', height: '56px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                      <img src={window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
                   <div style={{ flexGrow: 1 }}>

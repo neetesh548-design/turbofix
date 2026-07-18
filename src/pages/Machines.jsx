@@ -130,6 +130,7 @@ export default function Machines() {
         wa_link: null,
       }));
       setMachines(mData);
+      window.setTimeout(() => syncLocalMachinePhotos(mData), 0);
 
       const teamData = (usersRes.data || []).map(u => ({
         user_id: u.id,
@@ -186,29 +187,26 @@ export default function Machines() {
     if (!file || !targetMachineId) return null;
     setPhotoSaving(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${targetMachineId}-${Date.now()}.${fileExt}`;
-      const filePath = `machine-photos/${fileName}`;
-      
-      const { data, error: uploadErr } = await supabase.storage
-        .from('machine-documents')
-        .upload(filePath, file);
-        
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const { data: uploadPlan, error: planError } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'create_machine_photo_upload', machine_id: targetMachineId, extension: fileExt },
+      });
+      if (planError || uploadPlan?.error || !uploadPlan?.token) throw new Error(uploadPlan?.error || planError?.message || 'Photo upload could not be prepared.');
+      const { error: uploadErr } = await supabase.storage.from('machine-documents')
+        .uploadToSignedUrl(uploadPlan.path, uploadPlan.token, file, { contentType: file.type || 'image/jpeg' });
       if (uploadErr) throw uploadErr;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('machine-documents')
-        .getPublicUrl(filePath);
-        
-      await supabase.from('machines')
-        .update({ image_url: publicUrl })
-        .eq('id', targetMachineId);
+      const { data: committed, error: commitError } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'commit_machine_photo', machine_id: targetMachineId, path: uploadPlan.path },
+      });
+      if (commitError || committed?.error || !committed?.image_url) throw new Error(committed?.error || commitError?.message || 'Photo could not be linked to the machine.');
+      const publicUrl = committed.image_url;
         
       window.localStorage.setItem(`tf_machine_photo_${targetMachineId}`, publicUrl);
       if (!machineIdInput) {
         setMachinePhoto(publicUrl);
         setSelectedMachine(prev => ({ ...prev, image_url: publicUrl }));
       }
+      setMachines((current) => current.map((machine) => machine.machine_id === targetMachineId ? { ...machine, image_url: publicUrl } : machine));
       setSuccess('Machine picture updated successfully.');
       return publicUrl;
     } catch (err) {
@@ -229,6 +227,30 @@ export default function Machines() {
       });
     } finally {
       setPhotoSaving(false);
+    }
+  };
+
+  const syncLocalMachinePhotos = async (machineRows) => {
+    for (const machine of machineRows) {
+      if (machine.image_url) continue;
+      const localPhoto = window.localStorage.getItem(`tf_machine_photo_${machine.machine_id}`);
+      if (!localPhoto) continue;
+      try {
+        if (localPhoto.startsWith('http')) {
+          const { data, error: adoptError } = await supabase.functions.invoke('onboard_team_member', {
+            body: { action: 'adopt_legacy_machine_photo', machine_id: machine.machine_id, image_url: localPhoto },
+          });
+          if (adoptError || data?.error) throw new Error(data?.error || adoptError?.message);
+          setMachines((current) => current.map((item) => item.machine_id === machine.machine_id ? { ...item, image_url: data.image_url } : item));
+        } else if (localPhoto.startsWith('data:image/')) {
+          const response = await fetch(localPhoto);
+          const blob = await response.blob();
+          const extension = blob.type.split('/')[1] || 'jpg';
+          await uploadMachinePhoto(new File([blob], `legacy-machine-photo.${extension}`, { type: blob.type }), machine.machine_id);
+        }
+      } catch (syncError) {
+        console.warn('Machine photo remains available only in this browser:', syncError);
+      }
     }
   };
 
@@ -889,7 +911,7 @@ export default function Machines() {
             ) : directoryView === 'tiles' ? (
               <div className="machine-tile-grid">
                 {machines.map((m) => {
-                  const photo = window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url;
+                  const photo = m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`);
                   return (
                     <article className="machine-tile" key={m.machine_id} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
                       <div className="machine-tile-photo">
@@ -926,8 +948,8 @@ export default function Machines() {
                         <td style={{ fontWeight: '600', color: 'white' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              {window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url ? (
-                                <img src={window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) || m.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              {m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) ? (
+                                <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
                                 <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
                               )}

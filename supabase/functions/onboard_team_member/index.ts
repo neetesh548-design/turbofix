@@ -83,6 +83,43 @@ serve(async (req) => {
   }
 
   const body = await req.json()
+  if (body.action === 'create_machine_photo_upload') {
+    const machineId = String(body.machine_id ?? '')
+    const extension = String(body.extension ?? 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg'
+    const { data: machine } = await admin.from('machines').select('id,company_id')
+      .eq('id', machineId).eq('company_id', owner.company_id).maybeSingle()
+    if (!machine) return reply({ error: 'Machine was not found in your company.' }, 404)
+    const path = `machine-photos/${owner.company_id}/${machineId}/${crypto.randomUUID()}.${extension}`
+    const { data: signed, error: signedError } = await admin.storage.from('machine-documents').createSignedUploadUrl(path)
+    if (signedError || !signed) return reply({ error: signedError?.message || 'Photo upload could not be prepared.' }, 400)
+    return reply({ path, token: signed.token })
+  }
+
+  if (body.action === 'commit_machine_photo') {
+    const machineId = String(body.machine_id ?? '')
+    const path = String(body.path ?? '')
+    const requiredPrefix = `machine-photos/${owner.company_id}/${machineId}/`
+    if (!path.startsWith(requiredPrefix)) return reply({ error: 'Invalid machine photo path.' }, 400)
+    const { data: machine } = await admin.from('machines').select('id').eq('id', machineId).eq('company_id', owner.company_id).maybeSingle()
+    if (!machine) return reply({ error: 'Machine was not found in your company.' }, 404)
+    const { data: publicData } = admin.storage.from('machine-documents').getPublicUrl(path)
+    const { error: updateError } = await admin.from('machines').update({ image_url: publicData.publicUrl }).eq('id', machineId)
+    if (updateError) return reply({ error: updateError.message }, 400)
+    return reply({ image_url: publicData.publicUrl })
+  }
+
+  if (body.action === 'adopt_legacy_machine_photo') {
+    const machineId = String(body.machine_id ?? '')
+    const imageUrl = String(body.image_url ?? '')
+    const publicPrefix = `${url}/storage/v1/object/public/machine-documents/machine-photos/`
+    if (!imageUrl.startsWith(publicPrefix)) return reply({ error: 'Invalid legacy machine photo URL.' }, 400)
+    const { data: machine } = await admin.from('machines').select('id').eq('id', machineId).eq('company_id', owner.company_id).maybeSingle()
+    if (!machine) return reply({ error: 'Machine was not found in your company.' }, 404)
+    const { error: updateError } = await admin.from('machines').update({ image_url: imageUrl }).eq('id', machineId)
+    if (updateError) return reply({ error: updateError.message }, 400)
+    return reply({ image_url: imageUrl })
+  }
+
   if (body.action === 'reveal_contact') {
     const targetId = String(body.user_id ?? '')
     const { data: target, error: targetError } = await admin.from('users')
