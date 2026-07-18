@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, Mic, Square, X } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 
@@ -76,6 +77,9 @@ export default function Assistant() {
   const signedInUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; }
   }, []);
+  const [imagePreview, setImagePreview] = useState('');
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -146,10 +150,56 @@ export default function Assistant() {
     clearResult();
   };
 
+  const pickImage = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setError('Please choose an image file.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('Photo must be under 5 MB.'); return; }
+    setError('');
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(String(reader.result || ''));
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => setImagePreview('');
+
+  const toggleVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Voice input needs Chrome (Android or desktop). Please type your question here.');
+      return;
+    }
+    if (listening) { recognitionRef.current?.stop(); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    let finalText = '';
+    recognition.onresult = (speechEvent) => {
+      let interim = '';
+      for (let i = speechEvent.resultIndex; i < speechEvent.results.length; i += 1) {
+        const transcript = speechEvent.results[i][0].transcript;
+        if (speechEvent.results[i].isFinal) finalText += transcript;
+        else interim += transcript;
+      }
+      setQuestion(`${finalText}${interim}`.replace(/\s+/g, ' ').trimStart());
+      setAnswer('');
+    };
+    recognition.onerror = (speechEvent) => {
+      setError(speechEvent.error === 'not-allowed' ? 'Microphone permission was denied.' : 'Voice input failed. Please try again.');
+      setListening(false);
+    };
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    setError('');
+    setListening(true);
+    recognition.start();
+  };
+
   const ask = async (event) => {
     event.preventDefault();
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
+    if (listening) recognitionRef.current?.stop();
 
     setLoading(true);
     setError('');
@@ -159,7 +209,7 @@ export default function Assistant() {
     
     try {
       const { data, error: functionError } = await supabase.functions.invoke('ai_assistant', {
-        body: { selected, question: trimmedQuestion }
+        body: { selected, question: trimmedQuestion, ...(imagePreview ? { image: imagePreview } : {}) }
       });
       
       if (functionError || !data || data.error) {
@@ -205,6 +255,22 @@ export default function Assistant() {
             <span>Your maintenance question</span>
             <textarea value={question} onChange={(event) => changeQuestion(event.target.value)} placeholder={isPlantWide ? 'For example: Which machines should we service this weekend?' : 'For example: What should the technician inspect first?'} rows="4" />
           </label>
+          <div className="assistant-input-tools" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
+            <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Camera className="size-4" /> Attach photo
+              <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
+            </label>
+            <button type="button" className={`btn btn-ghost btn-sm${listening ? ' recording' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={toggleVoice}>
+              {listening ? <><Square className="size-4" /> Stop</> : <><Mic className="size-4" /> Speak</>}
+            </button>
+            {listening && <span style={{ color: 'var(--brand)', fontSize: '0.8rem' }}>Listening… speak your question</span>}
+          </div>
+          {imagePreview && (
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>
+              <img src={imagePreview} alt="Attached machine photo" style={{ maxWidth: '180px', maxHeight: '130px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
+              <button type="button" onClick={removeImage} aria-label="Remove photo" style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#000', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><X className="size-4" /></button>
+            </div>
+          )}
           <button className="btn btn-primary assistant-submit" disabled={loading || !question.trim()}>{loading ? 'Checking maintenance data…' : 'Get recommendation'}</button>
         </form>
         {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}{retrieval ? ` · ${retrieval.nodes_used} relevant facts · ~${retrieval.estimated_tokens} context tokens` : ''}</small>}</div>}

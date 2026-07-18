@@ -319,9 +319,21 @@ ${retrievedContext}
 User question: ${question}
 
 Answer specifically and directly in plain language. Name connected stakeholders when the question asks who is responsible. Keep routine answers concise; include numbered actions when troubleshooting.`
+    const parts: any[] = [{ text: contextPrompt }]
+    // Optional photo of the machine/fault. Gemini 2.5 Flash is multimodal, so we
+    // pass it as inline image data and let it inform the diagnosis.
+    const imageData = text(body.image)
+    if (imageData) {
+      const match = imageData.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
+      if (!match) return reply(req, { error: 'The attached photo could not be read. Try a different image.' }, 400)
+      const [, mimeType, base64] = match
+      if (base64.length > 7_000_000) return reply(req, { error: 'The attached photo is too large. Use one under 5 MB.' }, 413)
+      parts.push({ text: 'The user attached a photo of the machine or fault. Treat it as visual evidence and reference what it shows in your answer.' })
+      parts.push({ inline_data: { mime_type: mimeType, data: base64 } })
+    }
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: contextPrompt }] }] }),
+      body: JSON.stringify({ contents: [{ parts }] }),
     })
     if (!response.ok) throw new Error('AI recommendation service is temporarily unavailable.')
     const result = await response.json()
