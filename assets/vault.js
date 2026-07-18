@@ -271,26 +271,26 @@ async function loadSupervisorsDropdown() {
   }
   try {
     var sb = getSb();
-    var { data: rows, error } = await sb.from("users").select("id,name,email,phone").eq("role", "supervisor");
-    if (error) return;
-    state.supervisors = (rows || []).map(function(s) { return { user_id: s.id, name: s.name, email: s.email, phone: s.phone }; });
+    var { data: directory, error } = await sb.functions.invoke("onboard_team_member", { body: { action: "list" } });
+    if (error || directory?.error) throw new Error(directory?.error || error?.message || "Team directory could not be loaded.");
+    state.supervisors = (directory?.members || []).filter(function(s) { return s.role === "supervisor"; });
     state.supervisors.forEach(function(s) {
       var opt = document.createElement("option");
       opt.value = s.user_id;
-      opt.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
+      opt.textContent = s.name + " (" + (s.email_masked || s.phone_masked || "contact not added") + ")";
       select.appendChild(opt);
 
       if (editSelect) {
         var opt3 = document.createElement("option");
         opt3.value = s.user_id;
-        opt3.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
+        opt3.textContent = s.name + " (" + (s.email_masked || s.phone_masked || "contact not added") + ")";
         editSelect.appendChild(opt3);
       }
 
       if (manageSelect) {
         var opt2 = document.createElement("option");
         opt2.value = s.user_id;
-        opt2.textContent = s.name + " (" + (s.email || s.phone || "no contact info") + ")";
+        opt2.textContent = s.name + " (" + (s.email_masked || s.phone_masked || "contact not added") + ")";
         manageSelect.appendChild(opt2);
       }
     });
