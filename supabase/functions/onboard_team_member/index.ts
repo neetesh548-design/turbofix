@@ -73,8 +73,13 @@ serve(async (req) => {
         : null
     }
   }
-  if (!owner) return reply({ error: 'Your owner profile is not linked to this login. Please contact TurboFix support.' }, 403)
-  if (owner.role !== 'owner') return reply({ error: 'Only the company owner can onboard team members.' }, 403)
+  if (!owner) return reply({ error: 'Your team profile is not linked to this login. Please contact TurboFix support.' }, 403)
+
+  const body = await req.json()
+  const readOnlyActions = ['list', 'reveal_contact']
+  if (owner.role !== 'owner' && !readOnlyActions.includes(String(body.action ?? ''))) {
+    return reply({ error: 'Only the company owner can manage team and machine assignments.' }, 403)
+  }
 
   if (user.app_metadata?.directory_user_id !== owner.id) {
     await admin.auth.admin.updateUserById(user.id, {
@@ -82,7 +87,6 @@ serve(async (req) => {
     })
   }
 
-  const body = await req.json()
   if (body.action === 'update_machine') {
     const machineId = String(body.machine_id ?? '')
     const name = String(body.name ?? '').trim()
@@ -238,6 +242,7 @@ serve(async (req) => {
         has_email: Boolean(email),
         has_phone: Boolean(phone),
         has_contact: Boolean(email || phone),
+        can_reveal_contact: true,
         portal_access: member.id === owner.id || member.portal_access !== false,
         can_receive_alerts: Boolean(phone),
       })}),

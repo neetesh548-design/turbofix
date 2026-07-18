@@ -103,15 +103,17 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const [machinesRes, ticketsRes, usersRes] = await Promise.all([
+      const [machinesRes, ticketsRes, directoryRes] = await Promise.all([
         supabase.from('machines').select('*'),
         supabase.from('tickets').select('id,machine_id,status,issue_text,created_at'),
-        supabase.from('users').select('id,name,role,email,phone'),
+        supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
       ]);
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
-      if (usersRes.error) throw new Error(`Response team could not be loaded: ${usersRes.error.message}`);
+      if (directoryRes.error || directoryRes.data?.error) throw new Error(`Response team could not be loaded: ${directoryRes.data?.error || directoryRes.error?.message}`);
+
+      const directoryMembers = directoryRes.data?.members || [];
 
       const trackRecordByMachine = {};
       const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -130,7 +132,16 @@ export default function Machines() {
         trackRecordByMachine[t.machine_id] = record;
       });
 
-      const teamById = Object.fromEntries((usersRes.data || []).map((member) => [member.id, member]));
+      const teamById = Object.fromEntries(directoryMembers.map((member) => [member.user_id, {
+        user_id: member.user_id,
+        name: member.name,
+        role: member.role,
+        email_masked: member.email_masked,
+        phone_masked: member.phone_masked,
+        has_email: member.has_email,
+        has_phone: member.has_phone,
+        can_reveal_contact: member.can_reveal_contact !== false,
+      }]));
       const mData = (machinesRes.data || []).map(m => ({
         machine_id: m.id,
         machine_name: m.name,
@@ -160,13 +171,16 @@ export default function Machines() {
       setMachines(mData);
       window.setTimeout(() => syncLocalMachinePhotos(mData), 0);
 
-      const teamData = (usersRes.data || []).map(u => ({
-        user_id: u.id,
+      const teamData = directoryMembers.map(u => ({
+        user_id: u.user_id,
         name: u.name,
         role: u.role,
-        email: u.email,
-        phone: u.phone,
-        can_receive_alerts: true,
+        email_masked: u.email_masked,
+        phone_masked: u.phone_masked,
+        has_email: u.has_email,
+        has_phone: u.has_phone,
+        can_reveal_contact: u.can_reveal_contact !== false,
+        can_receive_alerts: u.can_receive_alerts,
       }));
       setTeam(teamData);
       setEscalationPath([]);
@@ -377,8 +391,8 @@ export default function Machines() {
 
   const getAssignment = (machine, key) => machine?.assignments?.[key] || null;
   const getAssignmentName = (machine, key) => getAssignment(machine, key)?.name || 'Not assigned';
-  const assignable = (role) => team.filter((member) => member.role === role && member.can_receive_alerts);
-  const technicians = assignable('maintenance_technician');
+  const assignable = (role) => team.filter((member) => (Array.isArray(role) ? role : [role]).includes(member.role));
+  const technicians = assignable(['technician', 'maintenance_technician']);
   const supervisors = assignable('supervisor');
   const engineers = assignable('maintenance_engineer');
   const maintenanceHeads = assignable('maintenance_head');
