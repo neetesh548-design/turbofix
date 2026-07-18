@@ -26,9 +26,18 @@ serve(async (req) => {
   const { data: { user }, error: userError } = await callerClient.auth.getUser()
   if (userError || !user) return reply({ error: 'Your session has expired. Please sign in again.' }, 401)
 
-  const { data: owner, error: ownerError } = await admin
-    .from('users').select('id,company_id,role').eq('id', user.id).single()
-  if (ownerError || !owner) return reply({ error: 'Your company access could not be verified.' }, 403)
+  let { data: owner } = await admin
+    .from('users').select('id,company_id,role').eq('id', user.id).maybeSingle()
+
+  // Some early TurboFix accounts were migrated into Supabase Auth after their
+  // directory profile was created, so their auth UUID can differ from users.id.
+  // Resolve those owners by the verified Auth email instead of blocking them.
+  if (!owner && user.email) {
+    const result = await admin
+      .from('users').select('id,company_id,role').ilike('email', user.email).maybeSingle()
+    owner = result.data
+  }
+  if (!owner) return reply({ error: 'Your owner profile is not linked to this login. Please contact TurboFix support.' }, 403)
   if (owner.role !== 'owner') return reply({ error: 'Only the company owner can onboard team members.' }, 403)
 
   const body = await req.json()

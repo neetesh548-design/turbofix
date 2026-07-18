@@ -72,7 +72,14 @@ export default function Team() {
           plant_location: plantLocation.trim(), shift: shift.trim(), portal_access: portalAccess,
         },
       });
-      if (onboardErr) throw new Error(data?.error || onboardErr.message || 'Team member could not be onboarded.');
+      if (onboardErr) {
+        let functionMessage = data?.error;
+        try {
+          const errorBody = await onboardErr.context?.json();
+          functionMessage = errorBody?.error || errorBody?.message || functionMessage;
+        } catch {}
+        throw new Error(functionMessage || onboardErr.message || 'Team member could not be onboarded.');
+      }
       if (data?.error) throw new Error(data.error);
 
       setSuccess(`Account for "${name}" successfully onboarded as ${getLabel(role)}.`);
