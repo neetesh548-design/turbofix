@@ -90,6 +90,35 @@ serve(async (req) => {
     const status = String(body.status ?? 'healthy').toLowerCase()
     if (!name) return reply({ error: 'Machine name is required.' }, 400)
     if (!['healthy', 'down', 'maintenance'].includes(status)) return reply({ error: 'Select a valid machine condition.' }, 400)
+    const stakeholderFields = {
+      technician_user_id: String(body.technician_user_id ?? '').trim() || null,
+      supervisor_id: String(body.supervisor_id ?? '').trim() || null,
+      engineer_user_id: String(body.engineer_user_id ?? '').trim() || null,
+      maintenance_head_user_id: String(body.maintenance_head_user_id ?? '').trim() || null,
+    }
+    const stakeholderIds = [...new Set(Object.values(stakeholderFields).filter(Boolean))]
+    if (stakeholderIds.length) {
+      const { data: validStakeholders, error: stakeholderError } = await admin.from('users')
+        .select('id,role').eq('company_id', owner.company_id).in('id', stakeholderIds)
+      if (stakeholderError || (validStakeholders?.length ?? 0) !== stakeholderIds.length) {
+        return reply({ error: 'One or more selected stakeholders are not part of your company.' }, 400)
+      }
+      const rolesById = Object.fromEntries((validStakeholders ?? []).map((member) => [member.id, member.role]))
+      const allowedRoles: Record<string, string[]> = {
+        technician_user_id: ['technician', 'maintenance_technician'],
+        supervisor_id: ['supervisor'],
+        engineer_user_id: ['maintenance_engineer'],
+        maintenance_head_user_id: ['maintenance_head'],
+      }
+      for (const [field, stakeholderId] of Object.entries(stakeholderFields)) {
+        if (stakeholderId && !allowedRoles[field].includes(rolesById[stakeholderId])) {
+          return reply({ error: 'A selected stakeholder does not match the required responsibility.' }, 400)
+        }
+      }
+    }
+    const technician = stakeholderFields.technician_user_id
+      ? await admin.from('users').select('phone').eq('id', stakeholderFields.technician_user_id).maybeSingle()
+      : { data: null }
     const { data: updated, error: updateError } = await admin.from('machines').update({
       name,
       location,
@@ -97,6 +126,8 @@ serve(async (req) => {
       hourly_downtime_cost: Math.max(0, Number(body.hourly_downtime_cost) || 0),
       maintenance_interval_days: Math.max(1, Number(body.maintenance_interval_days) || 90),
       last_maintenance_date: body.last_maintenance_date || null,
+      ...stakeholderFields,
+      assigned_technician_phone: technician.data?.phone || '',
     }).eq('id', machineId).eq('company_id', owner.company_id).select('*').maybeSingle()
     if (updateError) return reply({ error: updateError.message }, 400)
     if (!updated) return reply({ error: 'Machine was not found in your company.' }, 404)

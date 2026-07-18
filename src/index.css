@@ -4551,6 +4551,11 @@ details.faq-item p {
 .machine-owner-edit-grid, .team-edit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-bottom: 16px; }
 .machine-owner-edit-grid label, .team-edit-grid label { display: grid; gap: 6px; color: #b8c6d2; font-size: .68rem; font-weight: 750; }
 .machine-owner-edit-grid input, .machine-owner-edit-grid select, .team-edit-grid input, .team-edit-grid select { min-width: 0; height: 42px; border: 1px solid #3b4d61; border-radius: 8px; padding: 0 11px; color: #edf4f8; background: #101a25; }
+.machine-stakeholder-edit { margin: 0 0 18px; border: 1px solid #334b60; border-radius: 10px; padding: 16px; background: rgba(9, 18, 27, .35); }
+.machine-stakeholder-edit legend { padding: 0 7px; color: #e8f1f7; font-size: .78rem; font-weight: 850; }
+.machine-stakeholder-edit > p { margin: 0 0 14px; color: #8397aa; font-size: .66rem; }
+.machine-stakeholder-edit .machine-owner-edit-grid { margin-bottom: 0; }
+.machine-stakeholder-edit > a { display: inline-block; margin-top: 12px; color: #8deead; font-size: .68rem; font-weight: 800; }
 .team-edit-card { margin-bottom: 20px; border: 1px solid #334458; border-radius: 12px; }
 .team-edit-access { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; color: #c7d4de; font-size: .76rem; }
 .team-edit-access input { accent-color: #36dc76; }

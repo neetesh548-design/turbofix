@@ -130,6 +130,7 @@ export default function Machines() {
         trackRecordByMachine[t.machine_id] = record;
       });
 
+      const teamById = Object.fromEntries((usersRes.data || []).map((member) => [member.id, member]));
       const mData = (machinesRes.data || []).map(m => ({
         machine_id: m.id,
         machine_name: m.name,
@@ -145,7 +146,15 @@ export default function Machines() {
         last_maintenance_date: m.last_maintenance_date,
         next_maintenance_due: m.next_maintenance_due,
         image_url: m.image_url,
-        assignments: {},
+        technician_user_id: m.technician_user_id,
+        engineer_user_id: m.engineer_user_id,
+        maintenance_head_user_id: m.maintenance_head_user_id,
+        assignments: {
+          technician: teamById[m.technician_user_id] || null,
+          supervisor: teamById[m.supervisor_id] || null,
+          engineer: teamById[m.engineer_user_id] || null,
+          maintenance_head: teamById[m.maintenance_head_user_id] || null,
+        },
         wa_link: null,
       }));
       setMachines(mData);
@@ -282,6 +291,10 @@ export default function Machines() {
       hourly_downtime_cost: selectedMachine.hourly_downtime_cost ?? '',
       maintenance_interval_days: selectedMachine.maintenance_interval_days || 90,
       last_maintenance_date: selectedMachine.last_maintenance_date?.slice(0, 10) || '',
+      technician_user_id: selectedMachine.technician_user_id || '',
+      supervisor_id: selectedMachine.supervisor_id || '',
+      engineer_user_id: selectedMachine.engineer_user_id || '',
+      maintenance_head_user_id: selectedMachine.maintenance_head_user_id || '',
     });
   };
 
@@ -303,6 +316,16 @@ export default function Machines() {
         maintenance_interval_days: data.machine.maintenance_interval_days,
         last_maintenance_date: data.machine.last_maintenance_date,
         next_maintenance_due: data.machine.next_maintenance_due,
+        technician_user_id: data.machine.technician_user_id,
+        supervisor_id: data.machine.supervisor_id,
+        engineer_user_id: data.machine.engineer_user_id,
+        maintenance_head_user_id: data.machine.maintenance_head_user_id,
+        assignments: {
+          technician: team.find((member) => member.user_id === data.machine.technician_user_id) || null,
+          supervisor: team.find((member) => member.user_id === data.machine.supervisor_id) || null,
+          engineer: team.find((member) => member.user_id === data.machine.engineer_user_id) || null,
+          maintenance_head: team.find((member) => member.user_id === data.machine.maintenance_head_user_id) || null,
+        },
       };
       setSelectedMachine(updated);
       setMachines((current) => current.map((machine) => machine.machine_id === updated.machine_id ? updated : machine));
@@ -330,7 +353,10 @@ export default function Machines() {
         maintenance_interval_days: maintenanceIntervalDays ? Number(maintenanceIntervalDays) : 90,
         last_maintenance_date: lastMaintenanceDate || null,
         assigned_technician_phone: technicianUserId ? team.find(t => t.user_id === technicianUserId)?.phone || '' : '',
+        technician_user_id: technicianUserId || null,
         supervisor_id: supervisorUserId || null,
+        engineer_user_id: engineerUserId || null,
+        maintenance_head_user_id: headUserId || null,
         factory_id: factoryId,
       }).select().single();
       if (insertErr) throw new Error(insertErr.message);
@@ -1111,6 +1137,17 @@ export default function Machines() {
                   <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} /></label>
                   <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} /></label>
                 </div>
+                <fieldset className="machine-stakeholder-edit">
+                  <legend>People connected to this machine</legend>
+                  <p>Select the responsible people once. TurboFix uses the same connection in the machine workspace and response path.</p>
+                  <div className="machine-owner-edit-grid">
+                    <label><span>Primary technician</span><select value={machineEdit.technician_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, technician_user_id: e.target.value })}><option value="">Not assigned</option>{technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                    <label><span>Supervisor</span><select value={machineEdit.supervisor_id} onChange={(e) => setMachineEdit({ ...machineEdit, supervisor_id: e.target.value })}><option value="">Not assigned</option>{supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                    <label><span>Maintenance engineer</span><select value={machineEdit.engineer_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, engineer_user_id: e.target.value })}><option value="">Not assigned</option>{engineers.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                    <label><span>Maintenance head</span><select value={machineEdit.maintenance_head_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_head_user_id: e.target.value })}><option value="">Not assigned</option>{maintenanceHeads.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                  </div>
+                  {team.length === 0 && <a href="team.html">Add people in Team first →</a>}
+                </fieldset>
                 <button className="vault-btn vault-btn-primary" disabled={machineEditSaving}>{machineEditSaving ? 'Saving…' : 'Save changes'}</button>
               </form>}
 
