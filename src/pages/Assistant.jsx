@@ -66,6 +66,7 @@ export default function Assistant() {
   const [answer, setAnswer] = useState('');
   const [answerSource, setAnswerSource] = useState('');
   const [contextFiles, setContextFiles] = useState([]);
+  const [retrieval, setRetrieval] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -112,6 +113,7 @@ export default function Assistant() {
     setAnswer('');
     setAnswerSource('');
     setContextFiles([]);
+    setRetrieval(null);
     setError('');
   };
 
@@ -134,6 +136,7 @@ export default function Assistant() {
     setError('');
     setAnswer('');
     setAnswerSource('');
+    setRetrieval(null);
     
     try {
       const { data, error: functionError } = await supabase.functions.invoke('ai_assistant', {
@@ -147,6 +150,7 @@ export default function Assistant() {
       setAnswer(data.recommendation);
       setAnswerSource('ai');
       setContextFiles(data.context_files || []);
+      setRetrieval(data.retrieval || null);
     } catch (requestError) {
       console.warn("AI Assistant edge function failed, falling back to local summary:", requestError);
       try {
@@ -184,7 +188,7 @@ export default function Assistant() {
           </label>
           <button className="btn btn-primary assistant-submit" disabled={loading || !question.trim()}>{loading ? 'Checking maintenance data…' : 'Get recommendation'}</button>
         </form>
-        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}</small>}</div>}
+        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}{retrieval ? ` · ${retrieval.nodes_used} relevant facts · ~${retrieval.estimated_tokens} context tokens` : ''}</small>}</div>}
       </div>
       <aside className="assistant-side">
         {selected !== 'all' && (selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)) && (
