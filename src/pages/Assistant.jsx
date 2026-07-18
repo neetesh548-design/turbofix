@@ -79,7 +79,9 @@ export default function Assistant() {
   }, []);
   const [imagePreview, setImagePreview] = useState('');
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const recorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     Promise.all([
@@ -162,44 +164,63 @@ export default function Assistant() {
 
   const removeImage = () => setImagePreview('');
 
-  const toggleVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setError('Voice input needs Chrome (Android or desktop). Please type your question here.');
+  const transcribeAudio = async (blob) => {
+    setTranscribing(true);
+    setError('');
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+        body: { action: 'transcribe', audio: dataUrl },
+      });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
+      const transcript = String(data.transcript || '').trim();
+      if (!transcript) { setError('No speech was detected. Please try again or type your question.'); return; }
+      setQuestion((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript));
+      setAnswer('');
+    } catch (err) {
+      setError(err.message || 'Could not transcribe the recording. Please type your question.');
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const toggleVoice = async () => {
+    if (listening) { recorderRef.current?.stop(); return; }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setError('Voice recording is not supported on this device. Please type your question.');
       return;
     }
-    if (listening) { recognitionRef.current?.stop(); return; }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-    let finalText = '';
-    recognition.onresult = (speechEvent) => {
-      let interim = '';
-      for (let i = speechEvent.resultIndex; i < speechEvent.results.length; i += 1) {
-        const transcript = speechEvent.results[i][0].transcript;
-        if (speechEvent.results[i].isFinal) finalText += transcript;
-        else interim += transcript;
-      }
-      setQuestion(`${finalText}${interim}`.replace(/\s+/g, ' ').trimStart());
-      setAnswer('');
-    };
-    recognition.onerror = (speechEvent) => {
-      setError(speechEvent.error === 'not-allowed' ? 'Microphone permission was denied.' : 'Voice input failed. Please try again.');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (recordEvent) => { if (recordEvent.data.size) audioChunksRef.current.push(recordEvent.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setListening(false);
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        await transcribeAudio(blob);
+      };
+      recorderRef.current = recorder;
+      setError('');
+      setListening(true);
+      recorder.start();
+    } catch (err) {
       setListening(false);
-    };
-    recognition.onend = () => setListening(false);
-    recognitionRef.current = recognition;
-    setError('');
-    setListening(true);
-    recognition.start();
+      setError(err?.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Microphone was not available.');
+    }
   };
 
   const ask = async (event) => {
     event.preventDefault();
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
-    if (listening) recognitionRef.current?.stop();
+    if (listening) recorderRef.current?.stop();
 
     setLoading(true);
     setError('');
@@ -260,10 +281,11 @@ export default function Assistant() {
               <Camera className="size-4" /> Attach photo
               <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
             </label>
-            <button type="button" className={`btn btn-ghost btn-sm${listening ? ' recording' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={toggleVoice}>
+            <button type="button" className={`btn btn-ghost btn-sm${listening ? ' recording' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={toggleVoice} disabled={transcribing}>
               {listening ? <><Square className="size-4" /> Stop</> : <><Mic className="size-4" /> Speak</>}
             </button>
-            {listening && <span style={{ color: 'var(--brand)', fontSize: '0.8rem' }}>Listening… speak your question</span>}
+            {listening && <span style={{ color: 'var(--brand)', fontSize: '0.8rem' }}>Recording… tap Stop when done</span>}
+            {transcribing && <span style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Transcribing your question…</span>}
           </div>
           {imagePreview && (
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>

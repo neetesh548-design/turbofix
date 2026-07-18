@@ -269,6 +269,31 @@ serve(async (req) => {
     if (!directoryUser) return reply(req, { error: 'Your team profile is not linked to this login.' }, 403)
 
     const body = await req.json()
+
+    // Voice transcription: record on the client, transcribe here with Gemini so
+    // English/Hindi/Marathi are all supported consistently across devices.
+    if (text(body.action) === 'transcribe') {
+      const audio = text(body.audio)
+      const audioMatch = audio.match(/^data:(audio\/[a-zA-Z0-9.+;=-]+);base64,(.+)$/)
+      if (!audioMatch) return reply(req, { error: 'The recording could not be read.' }, 400)
+      const audioMime = audioMatch[1].split(';')[0]
+      const audioBase64 = audioMatch[2]
+      if (audioBase64.length > 14_000_000) return reply(req, { error: 'Recording is too long. Keep it under a minute.' }, 413)
+      const transcribeKey = Deno.env.get('GEMINI_API_KEY')
+      if (!transcribeKey) return reply(req, { error: 'Voice input is not configured.' }, 503)
+      const transcribeResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${transcribeKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [
+          { text: 'Transcribe this maintenance question verbatim. The speaker may use English, Hindi, or Marathi (or a mix). Return only the transcribed text in its spoken language — no translation, quotes, or commentary.' },
+          { inline_data: { mime_type: audioMime, data: audioBase64 } },
+        ] }] }),
+      })
+      if (!transcribeResp.ok) return reply(req, { error: 'Voice transcription is temporarily unavailable.' }, 502)
+      const transcribeData = await transcribeResp.json()
+      const transcript = String(transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+      return reply(req, { transcript })
+    }
+
     const question = text(body.question)
     const selected = text(body.selected) || 'all'
     if (!question) return reply(req, { error: 'Enter a maintenance question.' }, 400)
