@@ -69,6 +69,9 @@ export default function Assistant() {
   const [retrieval, setRetrieval] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const signedInUser = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; }
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -80,10 +83,22 @@ export default function Assistant() {
       const members = directoryRes.data?.members || [];
       const memberNames = Object.fromEntries(members.map((member) => [member.user_id, member.name]));
       const assignments = directoryRes.data?.machine_assignments || {};
-      setMachines((mRes.data || []).map(m => ({
+      // Non-owner roles can only ask about machines linked to their profile.
+      const roleAssignmentKey = {
+        maintenance_technician: 'technician_user_id',
+        technician: 'technician_user_id',
+        supervisor: 'supervisor_id',
+        maintenance_engineer: 'engineer_user_id',
+        maintenance_head: 'maintenance_head_user_id',
+      }[signedInUser?.role];
+      const mapped = (mRes.data || []).map(m => ({
         machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url,
         primary_technician_name: memberNames[assignments[m.id]?.technician_user_id] || '',
-      })));
+      }));
+      const visibleMachines = roleAssignmentKey
+        ? mapped.filter(m => String(assignments[m.machine_id]?.[roleAssignmentKey] || '') === String(signedInUser?.user_id || ''))
+        : mapped;
+      setMachines(visibleMachines);
       setTickets(tRes.data || []);
       setEvents(eRes.data || []);
     }).catch(() => {
