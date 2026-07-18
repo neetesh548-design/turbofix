@@ -5,13 +5,119 @@ import { supabase } from '@/supabaseClient';
 const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0 },
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
+  owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
+const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+function asNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function ticketHours(ticket, now = new Date()) {
+  const opened = new Date(ticket.created_at || ticket.reported_at || '');
+  if (Number.isNaN(opened.getTime())) return 0;
+  const resolvedValue = ticket.resolved_at || ticket.closed_at;
+  const resolved = resolvedValue ? new Date(resolvedValue) : now;
+  if (Number.isNaN(resolved.getTime())) return 0;
+  return Math.max(0, (resolved.getTime() - opened.getTime()) / 3_600_000);
+}
+
+function computeMaintenanceInsights(machines, tickets, now = new Date()) {
+  const machineMap = Object.fromEntries(machines.map((machine) => [machine.id, machine.name || machine.id]));
+  const resolvedDurations = tickets
+    .filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase()))
+    .map((ticket) => ticketHours(ticket, now))
+    .filter((hours) => hours > 0);
+  const mttr = resolvedDurations.length
+    ? resolvedDurations.reduce((total, hours) => total + hours, 0) / resolvedDurations.length
+    : 0;
+
+  const timesByMachine = {};
+  tickets.forEach((ticket) => {
+    const opened = new Date(ticket.created_at || ticket.reported_at || '');
+    if (!ticket.machine_id || Number.isNaN(opened.getTime())) return;
+    (timesByMachine[ticket.machine_id] ||= []).push(opened);
+  });
+  const intervals = [];
+  Object.values(timesByMachine).forEach((times) => {
+    times.sort((a, b) => a - b);
+    for (let index = 1; index < times.length; index += 1) {
+      const hours = (times[index] - times[index - 1]) / 3_600_000;
+      if (hours > 0.5) intervals.push(hours);
+    }
+  });
+
+  const cutoff = new Date(now.getTime() - (30 * 24 * 3_600_000));
+  const recentCounts = {};
+  tickets.forEach((ticket) => {
+    const opened = new Date(ticket.created_at || ticket.reported_at || '');
+    if (ticket.machine_id && !Number.isNaN(opened.getTime()) && opened >= cutoff) {
+      recentCounts[ticket.machine_id] = (recentCounts[ticket.machine_id] || 0) + 1;
+    }
+  });
+  const activeMachines = Object.keys(recentCounts).length;
+  const repeatMachines = Object.values(recentCounts).filter((count) => count >= 3).length;
+  const topProblemMachines = Object.entries(recentCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([machineId, count]) => ({ machine_id: machineId, machine_name: machineMap[machineId] || machineId, ticket_count: count }));
+
+  return {
+    mtbf_hours: intervals.length ? Math.round((intervals.reduce((total, hours) => total + hours, 0) / intervals.length) * 10) / 10 : 0,
+    mttr_hours: Math.round(mttr * 10) / 10,
+    repeat_breakdown_pct: activeMachines ? Math.round((repeatMachines / activeMachines) * 100) : 0,
+    top_problem_machines: topProblemMachines,
+  };
+}
+
+function computeOwnerImpact(machines, tickets, now = new Date()) {
+  const cutoff = new Date(now.getTime() - (30 * 24 * 3_600_000));
+  const machineMap = Object.fromEntries(machines.map((machine) => [machine.id, machine]));
+  const recent = tickets.filter((ticket) => {
+    const opened = new Date(ticket.created_at || ticket.reported_at || '');
+    return !Number.isNaN(opened.getTime()) && opened >= cutoff;
+  });
+  const counts = {};
+  const costs = {};
+  let downtimeHours = 0;
+  let downtimeCost = 0;
+  let maintenanceCost = 0;
+
+  recent.forEach((ticket) => {
+    const machine = machineMap[ticket.machine_id] || {};
+    const hours = ticketHours(ticket, now);
+    const cost = hours * asNumber(machine.hourly_downtime_cost);
+    downtimeHours += hours;
+    downtimeCost += cost;
+    maintenanceCost += asNumber(ticket.maintenance_cost)
+      || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost));
+    counts[ticket.machine_id] = (counts[ticket.machine_id] || 0) + 1;
+    costs[ticket.machine_id] = (costs[ticket.machine_id] || 0) + cost;
+  });
+
+  const repeatLossExposure = Object.entries(costs)
+    .filter(([machineId]) => (counts[machineId] || 0) >= 3)
+    .reduce((total, [, cost]) => total + cost, 0);
+  const [topId, topCost = 0] = Object.entries(costs).sort((a, b) => b[1] - a[1])[0] || [];
+  const configured = machines.filter((machine) => asNumber(machine.hourly_downtime_cost) > 0).length;
+
+  return {
+    downtime_hours: Math.round(downtimeHours * 10) / 10,
+    downtime_cost: Math.round(downtimeCost),
+    maintenance_cost: Math.round(maintenanceCost),
+    repeat_loss_exposure: Math.round(repeatLossExposure),
+    cost_coverage_pct: machines.length ? Math.round((configured / machines.length) * 100) : 0,
+    top_cost_machine: topId ? { machine_id: topId, machine_name: machineMap[topId]?.name || topId, cost: Math.round(topCost) } : null,
+  };
+}
+
 async function fetchDashboardData() {
   const [machinesRes, ticketsRes, factoryRes] = await Promise.all([
-    supabase.from('machines').select('id,name,location,status'),
-    supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at'),
+    supabase.from('machines').select('*'),
+    supabase.from('tickets').select('*'),
     supabase.from('factories').select('name').limit(1),
   ]);
 
@@ -40,6 +146,8 @@ async function fetchDashboardData() {
       reported_at: t.created_at,
     };
   });
+  const ownerImpact = computeOwnerImpact(machines, tickets);
+  const maintenanceInsights = computeMaintenanceInsights(machines, tickets);
 
   return {
     company_name: companyName,
@@ -52,7 +160,8 @@ async function fetchDashboardData() {
       avg_hours_to_fix: 0,
       total_tickets: tickets.length,
     },
-    auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
+    auto_insights: maintenanceInsights,
+    owner_impact: ownerImpact,
     needs_attention: needsAttention,
     recent_activity: [],
     weekly_trend: [],
@@ -75,7 +184,7 @@ export default function Dashboard() {
     return () => { mounted = false; };
   }, []);
 
-  const { kpis, auto_insights: insights } = data;
+  const { kpis, auto_insights: insights, owner_impact: impact } = data;
   const topMachine = insights.top_problem_machines?.[0];
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
 
@@ -124,6 +233,23 @@ export default function Dashboard() {
           <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
           <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
           <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
+        </section>
+
+        <div className="decision-section-label">Owner impact · last 30 days</div>
+        <section className="decision-insight-grid">
+          <Insight label="Downtime" value={`${impact.downtime_hours || 0} hrs`} detail="Automatically calculated from tickets" />
+          <Insight label="Estimated production loss" value={money.format(impact.downtime_cost || 0)} detail="Based on each machine's hourly value" />
+          <Insight label="Maintenance spend" value={money.format(impact.maintenance_cost || 0)} detail="Parts, labour and repair costs recorded" />
+          <Insight label="Repeat-loss exposure" value={money.format(impact.repeat_loss_exposure || 0)} detail="Cost linked to machines with 3+ issues" />
+        </section>
+
+        <section className="decision-panel decision-owner-brief">
+          <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
+          {impact.cost_coverage_pct > 0 ? <>
+            <p><strong>{kpis.open_tickets || 0}</strong> open tickets across <strong>{kpis.machines_down || 0}</strong> affected machines. Estimated 30-day production loss is <strong>{money.format(impact.downtime_cost || 0)}</strong>.</p>
+            <p>{impact.top_cost_machine ? <><strong>{impact.top_cost_machine.machine_name}</strong> has the highest measured impact at <strong>{money.format(impact.top_cost_machine.cost)}</strong>. Review this machine first.</> : 'No cost-bearing breakdowns were recorded in this period.'}</p>
+            <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
+          </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
         </section>
 
         <section className="decision-columns">

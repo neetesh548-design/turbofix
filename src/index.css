@@ -200,6 +200,13 @@ input:focus, select:focus, textarea:focus {
 .decision-insight strong { display: block; margin: 12px 0 6px; font-size: 1.25rem; }
 .decision-columns { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; margin-top: 18px; }
 .decision-panel { padding: 22px; }
+.decision-owner-brief { margin-top: 18px; }
+.decision-owner-brief p { color: var(--text); line-height: 1.65; margin: 8px 0; }
+.decision-owner-brief small { display: block; color: var(--slate); margin-top: 14px; }
+.machine-owner-details { cursor: pointer; }
+.machine-owner-details summary { font-weight: 700; font-size: 1rem; color: var(--text); }
+.machine-owner-details summary span { color: var(--slate); font-weight: 500; font-size: .82rem; margin-left: 8px; }
+.machine-owner-details > p { color: var(--slate); margin: 10px 0 18px; }
 .decision-panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 18px; }.decision-panel-heading h2 { margin-top: 6px; font-size: 1.45rem; }.trend-caption { color: var(--slate); font-size: .78rem; }
 .attention-row, .planner-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); }.attention-row > div, .planner-row > div { flex: 1; min-width: 0; }.attention-row strong, .attention-row span, .planner-row strong, .planner-row span { display: block; }.attention-row span, .planner-row span { color: var(--slate); font-size: .8rem; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.attention-row b { font-size: .72rem; color: var(--slate); }.status-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }.status-dot.danger { background: var(--red); box-shadow: 0 0 10px var(--red); }.status-dot.warning { background: var(--amber); }.status-dot.success { background: var(--brand); }
 .decision-empty { color: var(--slate); padding: 18px 0 4px; font-size: .9rem; }

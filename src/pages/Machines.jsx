@@ -37,6 +37,9 @@ export default function Machines() {
   // Onboarding Form states
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [hourlyDowntimeCost, setHourlyDowntimeCost] = useState('');
+  const [maintenanceIntervalDays, setMaintenanceIntervalDays] = useState('90');
+  const [lastMaintenanceDate, setLastMaintenanceDate] = useState('');
   const [technicianUserId, setTechnicianUserId] = useState('');
   const [supervisorUserId, setSupervisorUserId] = useState('');
   const [engineerUserId, setEngineerUserId] = useState('');
@@ -90,7 +93,7 @@ export default function Machines() {
     setError('');
     try {
       const [machinesRes, ticketsRes, usersRes] = await Promise.all([
-        supabase.from('machines').select('id,name,location,status,assigned_technician_phone,supervisor_id,factory_id'),
+        supabase.from('machines').select('id,name,location,status,assigned_technician_phone,supervisor_id,factory_id,hourly_downtime_cost,maintenance_interval_days,last_maintenance_date,next_maintenance_due'),
         supabase.from('tickets').select('id,machine_id,status'),
         supabase.from('users').select('id,name,role,email,phone'),
       ]);
@@ -109,6 +112,10 @@ export default function Machines() {
         assigned_technician_phone: m.assigned_technician_phone,
         supervisor_id: m.supervisor_id,
         factory_id: m.factory_id,
+        hourly_downtime_cost: m.hourly_downtime_cost,
+        maintenance_interval_days: m.maintenance_interval_days,
+        last_maintenance_date: m.last_maintenance_date,
+        next_maintenance_due: m.next_maintenance_due,
         assignments: {},
         wa_link: null,
       }));
@@ -226,6 +233,9 @@ export default function Machines() {
 
       const { data: newRow, error: insertErr } = await supabase.from('machines').insert({
         name, location,
+        hourly_downtime_cost: hourlyDowntimeCost ? Number(hourlyDowntimeCost) : 0,
+        maintenance_interval_days: maintenanceIntervalDays ? Number(maintenanceIntervalDays) : 90,
+        last_maintenance_date: lastMaintenanceDate || null,
         assigned_technician_phone: technicianUserId ? team.find(t => t.user_id === technicianUserId)?.phone || '' : '',
         supervisor_id: supervisorUserId || null,
         factory_id: factoryId,
@@ -238,7 +248,7 @@ export default function Machines() {
 
       setSuccess(`Machine ${newRow.id} successfully onboarded!`);
       setShowAddForm(false);
-      setName(''); setLocation(''); setTechnicianUserId(''); setSupervisorUserId(''); setEngineerUserId(''); setHeadUserId('');
+      setName(''); setLocation(''); setHourlyDowntimeCost(''); setMaintenanceIntervalDays('90'); setLastMaintenanceDate(''); setTechnicianUserId(''); setSupervisorUserId(''); setEngineerUserId(''); setHeadUserId('');
       setOnboardPhotoFile(null);
       fetchData();
     } catch (err) {
@@ -778,6 +788,25 @@ export default function Machines() {
                       </div>
                     </div>
                   </section>
+
+                  <details className="machine-form-section machine-owner-details">
+                    <summary>Owner insights <span>Optional · set once</span></summary>
+                    <p>These values power downtime-cost and preventive-maintenance insights automatically. Technicians never need to enter them.</p>
+                    <div className="machine-form-grid">
+                      <div className="vault-field">
+                        <label htmlFor="hourlyDowntimeCost">Production value at risk (₹/hour)</label>
+                        <input type="number" min="0" step="100" id="hourlyDowntimeCost" value={hourlyDowntimeCost} onChange={(e) => setHourlyDowntimeCost(e.target.value)} placeholder="Example: 12000" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="lastMaintenanceDate">Last maintenance date</label>
+                        <input type="date" id="lastMaintenanceDate" value={lastMaintenanceDate} onChange={(e) => setLastMaintenanceDate(e.target.value)} />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="maintenanceIntervalDays">Service interval (days)</label>
+                        <input type="number" min="1" id="maintenanceIntervalDays" value={maintenanceIntervalDays} onChange={(e) => setMaintenanceIntervalDays(e.target.value)} />
+                      </div>
+                    </div>
+                  </details>
 
                   <section className="machine-form-section">
                     <div className="machine-form-section-heading">
