@@ -14,6 +14,7 @@ services, admin — keeps working without changes.
 
 import json
 import logging
+import secrets
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
@@ -421,6 +422,19 @@ class SupabaseTicketRepository(TicketRepository):
             "photo_media_id": row.get("proof_image_url", ""),
             "language": "",
             "closed_by": "",
+            "factory_id": factory_id,
+            "current_escalation_level": row.get("current_escalation_level", 1),
+            "next_escalation_at": str(row.get("next_escalation_at") or ""),
+            "escalation_paused": row.get("escalation_paused", False),
+            "delegated_from": row.get("delegated_from", ""),
+            "delegation_count": row.get("delegation_count", 0),
+            "outsource_vendor": row.get("outsource_vendor", ""),
+            "outsource_reason": row.get("outsource_reason", ""),
+            "outsource_evidence_url": row.get("outsource_evidence_url", ""),
+            "closure_evidence_url": row.get("closure_evidence_url", ""),
+            "closure_approved_by": row.get("closure_approved_by", ""),
+            "rejection_count": row.get("rejection_count", 0),
+            "rejection_reason": row.get("rejection_reason", ""),
         }
 
     def next_ticket_id(self) -> str:
@@ -500,6 +514,292 @@ class SupabaseTicketRepository(TicketRepository):
         if not rows:
             return None
         return self._row_to_dict(rows[0])
+
+    # -- Escalation methods ---------------------------------------------------
+
+    def update_escalation_level(self, ticket_id: str, level: int,
+                                next_at: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "current_escalation_level": level,
+                "next_escalation_at": next_at,
+            })
+            return True
+        except Exception:
+            return False
+
+    def pause_escalation(self, ticket_id: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "escalation_paused": True,
+                "next_escalation_at": None,
+            })
+            return True
+        except Exception:
+            return False
+
+    def resume_escalation(self, ticket_id: str, next_at: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "escalation_paused": False,
+                "next_escalation_at": next_at,
+            })
+            return True
+        except Exception:
+            return False
+
+    def submit_closure_evidence(self, ticket_id: str,
+                                evidence_url: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "closure_evidence_url": evidence_url,
+                "status": "pending_approval",
+            })
+            return True
+        except Exception:
+            return False
+
+    def approve_closure(self, ticket_id: str, approved_by: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "status": "resolved",
+                "closure_approved_by": approved_by,
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+                "escalation_paused": True,
+                "next_escalation_at": None,
+            })
+            return True
+        except Exception:
+            return False
+
+    def reject_closure(self, ticket_id: str, reason: str) -> bool:
+        try:
+            row = _client.select_one("tickets", {"id": f"eq.{ticket_id}",
+                                                  "select": "rejection_count"})
+            count = (row.get("rejection_count", 0) if row else 0) + 1
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "status": "Open",
+                "rejection_count": count,
+                "rejection_reason": reason,
+                "closure_evidence_url": None,
+            })
+            return True
+        except Exception:
+            return False
+
+    def delegate_ticket(self, ticket_id: str, from_phone: str,
+                        to_phone: str) -> bool:
+        try:
+            row = _client.select_one("tickets", {"id": f"eq.{ticket_id}",
+                                                  "select": "delegation_count"})
+            count = (row.get("delegation_count", 0) if row else 0) + 1
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "delegated_from": from_phone,
+                "delegation_count": count,
+            })
+            return True
+        except Exception:
+            return False
+
+    def mark_outsourced(self, ticket_id: str, vendor: str, reason: str,
+                        evidence_url: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "status": "outsourced",
+                "outsource_vendor": vendor,
+                "outsource_reason": reason,
+                "outsource_evidence_url": evidence_url,
+                "escalation_paused": True,
+                "next_escalation_at": None,
+            })
+            return True
+        except Exception:
+            return False
+
+    def get_open_escalatable(self) -> List[dict]:
+        rows = _client.select("tickets", {
+            "status": "in.Open,in_progress",
+            "escalation_paused": "eq.false",
+            "next_escalation_at": "not.is.null",
+        })
+        return [self._row_to_dict(r) for r in rows]
+
+    def set_status(self, ticket_id: str, status: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "status": status,
+            })
+            return True
+        except Exception:
+            return False
+
+
+# ---------------------------------------------------------------------------
+# EscalationConfigRepository — reads company thresholds
+# ---------------------------------------------------------------------------
+
+class SupabaseEscalationConfigRepository:
+
+    def get_thresholds(self, factory_id: str,
+                       chain_type: str = "breakdown") -> List[dict]:
+        rows = _client.select("escalation_config", {
+            "factory_id": f"eq.{factory_id}",
+            "chain_type": f"eq.{chain_type}",
+            "order": "level.asc",
+        })
+        return [
+            {
+                "level": r["level"],
+                "threshold_min": r["threshold_min"],
+                "role_label": r["role_label"],
+                "notify_phone": r.get("notify_phone", ""),
+            }
+            for r in rows
+        ]
+
+    def get_threshold_for_level(self, factory_id: str, chain_type: str,
+                                level: int) -> Optional[dict]:
+        row = _client.select_one("escalation_config", {
+            "factory_id": f"eq.{factory_id}",
+            "chain_type": f"eq.{chain_type}",
+            "level": f"eq.{level}",
+        })
+        if not row:
+            return None
+        return {
+            "level": row["level"],
+            "threshold_min": row["threshold_min"],
+            "role_label": row["role_label"],
+            "notify_phone": row.get("notify_phone", ""),
+        }
+
+    def upsert_threshold(self, factory_id: str, chain_type: str, level: int,
+                         threshold_min: int, role_label: str,
+                         notify_phone: str = "") -> bool:
+        existing = _client.select_one("escalation_config", {
+            "factory_id": f"eq.{factory_id}",
+            "chain_type": f"eq.{chain_type}",
+            "level": f"eq.{level}",
+        })
+        data = {
+            "factory_id": factory_id,
+            "chain_type": chain_type,
+            "level": level,
+            "threshold_min": threshold_min,
+            "role_label": role_label,
+            "notify_phone": notify_phone,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        try:
+            if existing:
+                _client.update("escalation_config", {
+                    "factory_id": f"eq.{factory_id}",
+                    "chain_type": f"eq.{chain_type}",
+                    "level": f"eq.{level}",
+                }, data)
+            else:
+                _client.insert("escalation_config", data)
+            return True
+        except Exception:
+            return False
+
+    def delete_threshold(self, factory_id: str, chain_type: str,
+                         level: int) -> bool:
+        return _client.delete("escalation_config", {
+            "factory_id": f"eq.{factory_id}",
+            "chain_type": f"eq.{chain_type}",
+            "level": f"eq.{level}",
+        })
+
+
+# ---------------------------------------------------------------------------
+# PartRequestRepository — consumables/spares chain
+# ---------------------------------------------------------------------------
+
+class SupabasePartRequestRepository:
+
+    def _row_to_dict(self, row: dict) -> dict:
+        return {
+            "id": row.get("id", ""),
+            "request_code": row.get("request_code", ""),
+            "factory_id": row.get("factory_id", ""),
+            "machine_id": row.get("machine_id", ""),
+            "requested_by_phone": row.get("requested_by_phone", ""),
+            "part_name": row.get("part_name", ""),
+            "part_number": row.get("part_number", ""),
+            "qty": row.get("qty", 1),
+            "status": row.get("status", "open"),
+            "stock_status": row.get("stock_status", ""),
+            "issued_by": row.get("issued_by", ""),
+            "issue_evidence_url": row.get("issue_evidence_url", ""),
+            "po_vendor": row.get("po_vendor", ""),
+            "po_amount": row.get("po_amount"),
+            "po_approved_by": row.get("po_approved_by", ""),
+            "linked_ticket_id": row.get("linked_ticket_id", ""),
+            "current_escalation_level": row.get("current_escalation_level", 1),
+            "next_escalation_at": str(row.get("next_escalation_at") or ""),
+            "created_at": str(row.get("created_at", "")),
+        }
+
+    def create(self, data: dict) -> dict:
+        code = f"PR{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
+        row = {
+            "request_code": code,
+            "factory_id": data.get("factory_id"),
+            "machine_id": data.get("machine_id"),
+            "requested_by_phone": data.get("requested_by_phone", ""),
+            "part_name": data["part_name"],
+            "part_number": data.get("part_number", ""),
+            "qty": data.get("qty", 1),
+            "linked_ticket_id": data.get("linked_ticket_id", ""),
+        }
+        _client.insert("part_requests", row)
+        return {**row, "status": "open", "current_escalation_level": 1}
+
+    def get(self, request_id: str) -> Optional[dict]:
+        row = _client.select_one("part_requests", {"id": f"eq.{request_id}"})
+        if not row:
+            row = _client.select_one("part_requests",
+                                     {"request_code": f"eq.{request_id}"})
+        return self._row_to_dict(row) if row else None
+
+    def list_by_factory(self, factory_id: str) -> List[dict]:
+        rows = _client.select("part_requests", {
+            "factory_id": f"eq.{factory_id}",
+            "order": "created_at.desc",
+        })
+        return [self._row_to_dict(r) for r in rows]
+
+    def update_status(self, request_id: str, status: str,
+                      extras: Optional[dict] = None) -> bool:
+        patch = {"status": status,
+                 "updated_at": datetime.now(timezone.utc).isoformat()}
+        if extras:
+            patch.update(extras)
+        try:
+            _client.update("part_requests",
+                           {"id": f"eq.{request_id}"}, patch)
+            return True
+        except Exception:
+            return False
+
+    def update_escalation(self, request_id: str, level: int,
+                          next_at: str) -> bool:
+        try:
+            _client.update("part_requests", {"id": f"eq.{request_id}"}, {
+                "current_escalation_level": level,
+                "next_escalation_at": next_at,
+            })
+            return True
+        except Exception:
+            return False
+
+    def get_open_escalatable(self) -> List[dict]:
+        rows = _client.select("part_requests", {
+            "status": "in.open,escalated,po_pending",
+            "next_escalation_at": "not.is.null",
+        })
+        return [self._row_to_dict(r) for r in rows]
 
 
 # ---------------------------------------------------------------------------
@@ -843,3 +1143,148 @@ class SupabaseTechnicianWorkRepository(TechnicianWorkRepository):
 
     def upsert(self, row: dict) -> None:
         log.warning("TechnicianWorkRepository.upsert: table not in Supabase yet")
+
+
+# ---------------------------------------------------------------------------
+# AIFeedbackRepository — tracks diagnosis accuracy per machine
+# ---------------------------------------------------------------------------
+
+class SupabaseAIFeedbackRepository:
+
+    def record_feedback(self, factory_id: str, machine_id: str,
+                        confirmed: bool) -> None:
+        existing = _client.select_one("ai_feedback_stats", {
+            "factory_id": f"eq.{factory_id}",
+            "machine_id": f"eq.{machine_id}",
+        })
+        if existing:
+            total = existing.get("total_diagnoses", 0) + 1
+            conf = existing.get("confirmed", 0) + (1 if confirmed else 0)
+            overr = existing.get("overridden", 0) + (0 if confirmed else 1)
+            accuracy = round((conf / total) * 100, 2) if total > 0 else 0
+            _client.update("ai_feedback_stats", {
+                "factory_id": f"eq.{factory_id}",
+                "machine_id": f"eq.{machine_id}",
+            }, {
+                "total_diagnoses": total,
+                "confirmed": conf,
+                "overridden": overr,
+                "accuracy_pct": accuracy,
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+            })
+        else:
+            conf = 1 if confirmed else 0
+            overr = 0 if confirmed else 1
+            _client.insert("ai_feedback_stats", {
+                "factory_id": factory_id,
+                "machine_id": machine_id,
+                "total_diagnoses": 1,
+                "confirmed": conf,
+                "overridden": overr,
+                "accuracy_pct": 100.0 if confirmed else 0.0,
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+            })
+
+    def get_accuracy(self, factory_id: str, machine_id: str) -> Optional[dict]:
+        row = _client.select_one("ai_feedback_stats", {
+            "factory_id": f"eq.{factory_id}",
+            "machine_id": f"eq.{machine_id}",
+        })
+        if not row:
+            return None
+        return {
+            "total_diagnoses": row.get("total_diagnoses", 0),
+            "confirmed": row.get("confirmed", 0),
+            "overridden": row.get("overridden", 0),
+            "accuracy_pct": float(row.get("accuracy_pct", 0)),
+        }
+
+    def get_factory_stats(self, factory_id: str) -> List[dict]:
+        rows = _client.select("ai_feedback_stats", {
+            "factory_id": f"eq.{factory_id}",
+            "order": "accuracy_pct.asc",
+        })
+        return [
+            {
+                "machine_id": r.get("machine_id", ""),
+                "total_diagnoses": r.get("total_diagnoses", 0),
+                "confirmed": r.get("confirmed", 0),
+                "overridden": r.get("overridden", 0),
+                "accuracy_pct": float(r.get("accuracy_pct", 0)),
+            }
+            for r in rows
+        ]
+
+    def confirm_diagnosis(self, ticket_id: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "ai_diagnosis_confirmed": True,
+            })
+            return True
+        except Exception:
+            return False
+
+    def override_diagnosis(self, ticket_id: str, reason: str) -> bool:
+        try:
+            _client.update("tickets", {"id": f"eq.{ticket_id}"}, {
+                "ai_diagnosis_confirmed": False,
+                "technician_override_reason": reason,
+            })
+            return True
+        except Exception:
+            return False
+
+
+# ---------------------------------------------------------------------------
+# ShiftConfigRepository — factory shift schedules
+# ---------------------------------------------------------------------------
+
+class SupabaseShiftConfigRepository:
+
+    def get_shifts(self, factory_id: str) -> List[dict]:
+        rows = _client.select("shift_config", {
+            "factory_id": f"eq.{factory_id}",
+            "order": "start_time.asc",
+        })
+        return [
+            {
+                "id": r.get("id", ""),
+                "shift_name": r.get("shift_name", ""),
+                "start_time": str(r.get("start_time", "")),
+                "end_time": str(r.get("end_time", "")),
+                "timezone": r.get("timezone", "Asia/Kolkata"),
+            }
+            for r in rows
+        ]
+
+    def upsert_shift(self, factory_id: str, shift_name: str,
+                     start_time: str, end_time: str,
+                     tz: str = "Asia/Kolkata") -> bool:
+        existing = _client.select_one("shift_config", {
+            "factory_id": f"eq.{factory_id}",
+            "shift_name": f"eq.{shift_name}",
+        })
+        data = {
+            "factory_id": factory_id,
+            "shift_name": shift_name,
+            "start_time": start_time,
+            "end_time": end_time,
+            "timezone": tz,
+        }
+        try:
+            if existing:
+                _client.update("shift_config", {
+                    "factory_id": f"eq.{factory_id}",
+                    "shift_name": f"eq.{shift_name}",
+                }, data)
+            else:
+                _client.insert("shift_config", data)
+            return True
+        except Exception:
+            return False
+
+    def delete_shift(self, factory_id: str, shift_name: str) -> bool:
+        return _client.delete("shift_config", {
+            "factory_id": f"eq.{factory_id}",
+            "shift_name": f"eq.{shift_name}",
+        })

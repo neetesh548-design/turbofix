@@ -27,6 +27,61 @@ _CLOSE_RE = re.compile(
     re.IGNORECASE,
 )
 
+_APPROVE_RE = re.compile(
+    r"(?:approve|approved|accept|ok)\s*(T[\w-]+)",
+    re.IGNORECASE,
+)
+
+_REJECT_RE = re.compile(
+    r"(?:reject|rejected|denied|deny)\s*(T[\w-]+)\s*(.*)",
+    re.IGNORECASE,
+)
+
+_DELEGATE_RE = re.compile(
+    r"(?:delegate|assign|transfer)\s*(T[\w-]+)\s+(?:to\s+)?(\+?\d{10,15})",
+    re.IGNORECASE,
+)
+
+_OUTSOURCE_RE = re.compile(
+    r"(?:outsource|outsourced|vendor)\s*(T[\w-]+)\s+(\S+)\s*(.*)",
+    re.IGNORECASE,
+)
+
+_WAITING_PARTS_RE = re.compile(
+    r"(?:waiting[_ ]?parts|parts[_ ]?needed|need[_ ]?parts)\s*(T[\w-]+)",
+    re.IGNORECASE,
+)
+
+_CONFIRM_AI_RE = re.compile(
+    r"(?:confirm|correct|accurate|right)\s*(T[\w-]+)",
+    re.IGNORECASE,
+)
+
+_OVERRIDE_AI_RE = re.compile(
+    r"(?:override|wrong|incorrect|inaccurate)\s*(T[\w-]+)\s*(.*)",
+    re.IGNORECASE,
+)
+
+_PARTS_REQUEST_RE = re.compile(
+    r"(?:parts?|spare|consumable|need)\s+([\w-]+)\s+(.+?)(?:\s+(\d+))?$",
+    re.IGNORECASE,
+)
+
+_PO_APPROVE_RE = re.compile(
+    r"(?:po[_ ]?approve|approve[_ ]?po)\s*(PO[\w-]+)",
+    re.IGNORECASE,
+)
+
+_PO_REJECT_RE = re.compile(
+    r"(?:po[_ ]?reject|reject[_ ]?po)\s*(PO[\w-]+)\s*(.*)",
+    re.IGNORECASE,
+)
+
+_ISSUE_PART_RE = re.compile(
+    r"(?:issue|issued|dispatch)\s*(PR[\w-]+)",
+    re.IGNORECASE,
+)
+
 
 def _merge_description(existing: str, transcript: str) -> str:
     if not existing or existing == _PLACEHOLDER_DESCRIPTION:
@@ -189,7 +244,97 @@ async def handle_text_message(
     machines: MachineRepository,
     events: EventRepository,
 ) -> None:
-    """Handle an incoming text message — either a new ticket or a closure command."""
+    """Handle an incoming text message — escalation commands, closure, or new ticket."""
+    confirm_match = _CONFIRM_AI_RE.search(text)
+    if confirm_match:
+        background_tasks.add_task(
+            handle_confirm_ai_command, phone, confirm_match.group(1), tickets,
+        )
+        return
+
+    override_match = _OVERRIDE_AI_RE.search(text)
+    if override_match:
+        background_tasks.add_task(
+            handle_override_ai_command, phone, override_match.group(1),
+            override_match.group(2).strip() or "Technician override", tickets,
+        )
+        return
+
+    approve_match = _APPROVE_RE.search(text)
+    if approve_match:
+        background_tasks.add_task(
+            handle_approve_command, phone, approve_match.group(1), tickets, machines, events,
+        )
+        return
+
+    reject_match = _REJECT_RE.search(text)
+    if reject_match:
+        background_tasks.add_task(
+            handle_reject_command, phone, reject_match.group(1),
+            reject_match.group(2).strip() or "No reason given", tickets, machines, events,
+        )
+        return
+
+    delegate_match = _DELEGATE_RE.search(text)
+    if delegate_match:
+        to_phone = delegate_match.group(2)
+        if not to_phone.startswith("+"):
+            to_phone = "+" + to_phone
+        background_tasks.add_task(
+            handle_delegate_command, phone, delegate_match.group(1), to_phone,
+            tickets, machines, events,
+        )
+        return
+
+    outsource_match = _OUTSOURCE_RE.search(text)
+    if outsource_match:
+        background_tasks.add_task(
+            handle_outsource_command, phone, outsource_match.group(1),
+            outsource_match.group(2), outsource_match.group(3).strip(),
+            tickets, machines, events,
+        )
+        return
+
+    waiting_match = _WAITING_PARTS_RE.search(text)
+    if waiting_match:
+        background_tasks.add_task(
+            handle_waiting_parts_command, phone, waiting_match.group(1),
+            tickets, machines, events,
+        )
+        return
+
+    po_approve_match = _PO_APPROVE_RE.search(text)
+    if po_approve_match:
+        background_tasks.add_task(
+            handle_po_approve_command, phone, po_approve_match.group(1),
+        )
+        return
+
+    po_reject_match = _PO_REJECT_RE.search(text)
+    if po_reject_match:
+        background_tasks.add_task(
+            handle_po_reject_command, phone, po_reject_match.group(1),
+            po_reject_match.group(2).strip() or "No reason",
+        )
+        return
+
+    issue_match = _ISSUE_PART_RE.search(text)
+    if issue_match:
+        background_tasks.add_task(
+            handle_issue_part_command, phone, issue_match.group(1),
+        )
+        return
+
+    parts_match = _PARTS_REQUEST_RE.search(text)
+    if parts_match:
+        background_tasks.add_task(
+            handle_parts_request_command, phone, parts_match.group(1),
+            parts_match.group(2).strip(),
+            int(parts_match.group(3)) if parts_match.group(3) else 1,
+            machines,
+        )
+        return
+
     close_match = _CLOSE_RE.search(text)
     if close_match:
         ticket_id_prefix = close_match.group(1)
@@ -229,6 +374,27 @@ async def handle_text_message(
     })
     sessions.open(phone, ticket_id, parsed.machine_id)
     log.info("ticket.created", ticket_id=ticket_id, machine_id=parsed.machine_id, phone=phone)
+
+    try:
+        from app.services import escalation_service
+        ticket_row = tickets.get(ticket_id)
+        factory_id = ticket_row.get("factory_id", "") if ticket_row else ""
+        if factory_id:
+            escalation_service.initialize_ticket_escalation(ticket_id, factory_id)
+    except Exception as exc:
+        log.error("escalation.init_failed", ticket_id=ticket_id, error=str(exc))
+
+    try:
+        from app.services import intelligence_service
+        ticket_row = ticket_row or tickets.get(ticket_id)
+        factory_id = ticket_row.get("factory_id", "") if ticket_row else ""
+        if factory_id:
+            background_tasks.add_task(
+                intelligence_service.check_and_flag_on_creation,
+                ticket_id, factory_id, parsed.machine_id,
+            )
+    except Exception as exc:
+        log.error("intelligence.repeat_check_failed", ticket_id=ticket_id, error=str(exc))
 
     if parsed.description:
         background_tasks.add_task(
@@ -447,6 +613,321 @@ async def handle_close_command(
         translated_message=translated,
         worker_language=worker_lang,
     )
+
+
+async def handle_approve_command(
+    phone: str,
+    ticket_id_input: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+    events: EventRepository,
+) -> None:
+    """Maintenance Head approves closure evidence."""
+    from app.services import escalation_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("approve.ticket_not_found", input=ticket_id_input)
+        return
+
+    ticket_id = ticket["ticket_id"]
+    if ticket.get("status") != "pending_approval":
+        log.info("approve.not_pending", ticket_id=ticket_id)
+        return
+
+    ok = await escalation_service.approve_ticket_closure(ticket_id, phone)
+    if ok:
+        _log_event(
+            events, ticket.get("machine_id", ""), ticket.get("company_code", ""),
+            ticket_id, "closure_approved", phone, f"Closure approved by {phone}",
+        )
+        machine = machines.get(ticket.get("machine_id", ""))
+        refreshed = tickets.get(ticket_id)
+        if machine and refreshed:
+            await fanout_service.notify_closure(machine, refreshed, phone)
+
+
+async def handle_reject_command(
+    phone: str,
+    ticket_id_input: str,
+    reason: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+    events: EventRepository,
+) -> None:
+    """Maintenance Head rejects closure evidence."""
+    from app.services import escalation_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("reject.ticket_not_found", input=ticket_id_input)
+        return
+
+    ticket_id = ticket["ticket_id"]
+    if ticket.get("status") != "pending_approval":
+        log.info("reject.not_pending", ticket_id=ticket_id)
+        return
+
+    technician_phone = ""
+    machine = machines.get(ticket.get("machine_id", ""))
+    if machine:
+        technician_phone = machine.get("assigned_technician_phone", "")
+
+    ok = await escalation_service.reject_ticket_closure(
+        ticket_id, reason, technician_phone,
+    )
+    if ok:
+        _log_event(
+            events, ticket.get("machine_id", ""), ticket.get("company_code", ""),
+            ticket_id, "closure_rejected", phone,
+            f"Closure rejected: {reason}",
+        )
+
+
+async def handle_delegate_command(
+    phone: str,
+    ticket_id_input: str,
+    to_phone: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+    events: EventRepository,
+) -> None:
+    """Delegate a ticket to a colleague."""
+    from app.services import escalation_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("delegate.ticket_not_found", input=ticket_id_input)
+        return
+
+    ticket_id = ticket["ticket_id"]
+    machine = machines.get(ticket.get("machine_id", ""))
+    if not _phone_authorized_for_ticket(phone, ticket, machine):
+        log.warning("delegate.unauthorized", ticket_id=ticket_id, phone=phone)
+        return
+
+    from app.services import intelligence_service
+
+    factory_id = ticket.get("factory_id", "")
+    if factory_id and intelligence_service.is_technician_overloaded(to_phone, factory_id):
+        log.warning("delegate.target_overloaded", ticket_id=ticket_id,
+                    to_phone=to_phone)
+
+    ok = escalation_service.delegate_to_colleague(ticket_id, phone, to_phone)
+    if ok:
+        _log_event(
+            events, ticket.get("machine_id", ""), ticket.get("company_code", ""),
+            ticket_id, "delegated", phone,
+            f"Delegated from {phone} to {to_phone}",
+        )
+        if machine:
+            await fanout_service.notify_ticket(machine, tickets.get(ticket_id) or ticket)
+
+
+async def handle_outsource_command(
+    phone: str,
+    ticket_id_input: str,
+    vendor: str,
+    reason: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+    events: EventRepository,
+) -> None:
+    """Manager marks ticket as outsourced to a third-party vendor."""
+    from app.services import escalation_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("outsource.ticket_not_found", input=ticket_id_input)
+        return
+
+    ticket_id = ticket["ticket_id"]
+    machine = machines.get(ticket.get("machine_id", ""))
+    if not _phone_authorized_for_ticket(phone, ticket, machine):
+        log.warning("outsource.unauthorized", ticket_id=ticket_id, phone=phone)
+        return
+
+    ok = escalation_service.mark_outsourced(
+        ticket_id, vendor, reason or "Outsourced", "",
+    )
+    if ok:
+        _log_event(
+            events, ticket.get("machine_id", ""), ticket.get("company_code", ""),
+            ticket_id, "outsourced", phone,
+            f"Outsourced to {vendor}: {reason}",
+        )
+
+
+async def handle_waiting_parts_command(
+    phone: str,
+    ticket_id_input: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+    events: EventRepository,
+) -> None:
+    """Technician marks ticket as waiting for parts — pauses escalation."""
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("waiting_parts.ticket_not_found", input=ticket_id_input)
+        return
+
+    ticket_id = ticket["ticket_id"]
+    machine = machines.get(ticket.get("machine_id", ""))
+    if not _phone_authorized_for_ticket(phone, ticket, machine):
+        log.warning("waiting_parts.unauthorized", ticket_id=ticket_id, phone=phone)
+        return
+
+    tickets.set_status(ticket_id, "waiting_parts")
+    tickets.pause_escalation(ticket_id)
+    _log_event(
+        events, ticket.get("machine_id", ""), ticket.get("company_code", ""),
+        ticket_id, "waiting_parts", phone,
+        f"Waiting for parts — escalation paused by {phone}",
+    )
+    log.info("ticket.waiting_parts", ticket_id=ticket_id, phone=phone)
+
+
+async def handle_closure_evidence(
+    phone: str,
+    ticket_id: str,
+    media_id: str,
+    tickets: TicketRepository,
+    machines: MachineRepository,
+) -> None:
+    """Technician sends evidence photo for closure — forward to Maintenance Head."""
+    from app.infrastructure import whatsapp
+    from app.services import escalation_service
+
+    try:
+        local_path = await whatsapp.download_media(media_id)
+    except Exception as exc:
+        log.error("closure_evidence.download_failed", ticket_id=ticket_id, error=str(exc))
+        return
+
+    ticket = tickets.get(ticket_id)
+    if not ticket:
+        return
+
+    machine = machines.get(ticket.get("machine_id", ""))
+    maintenance_head_phone = ""
+    if machine:
+        for key in ("informed_phone_1", "informed_phone_2", "informed_phone_3"):
+            p = machine.get(key, "")
+            if p:
+                maintenance_head_phone = p
+                break
+
+    await escalation_service.submit_closure(
+        ticket_id, local_path, maintenance_head_phone,
+    )
+    log.info("closure_evidence.submitted", ticket_id=ticket_id, phone=phone)
+
+
+async def handle_parts_request_command(
+    phone: str,
+    machine_id: str,
+    part_name: str,
+    qty: int,
+    machines: MachineRepository,
+) -> None:
+    """Handle a WhatsApp part request message."""
+    from app.services import consumables_service
+
+    machine = machines.get(machine_id)
+    if not machine:
+        log.warning("parts_request.machine_not_found", machine_id=machine_id, phone=phone)
+        return
+
+    factory_id = ""
+    company_code = machine.get("company_code", "")
+    if company_code:
+        from app.repositories.supabase_repo import _factory_id_for_code
+        factory_id = _factory_id_for_code(company_code) or ""
+
+    if not factory_id:
+        log.warning("parts_request.no_factory", machine_id=machine_id)
+        return
+
+    consumables_service.create_part_request(
+        factory_id=factory_id,
+        machine_id=machine_id,
+        requested_by_phone=phone,
+        part_name=part_name,
+        qty=qty,
+    )
+    log.info("parts_request.created", machine_id=machine_id, part=part_name,
+             qty=qty, phone=phone)
+
+
+async def handle_po_approve_command(phone: str, po_code: str) -> None:
+    """Store Manager/VP approves a purchase order via WhatsApp."""
+    from app.services import consumables_service
+
+    ok = await consumables_service.approve_purchase_order(po_code, phone)
+    if ok:
+        log.info("po.approved", po_code=po_code, approved_by=phone)
+    else:
+        log.warning("po.approve_failed", po_code=po_code, phone=phone)
+
+
+async def handle_po_reject_command(phone: str, po_code: str,
+                                   reason: str) -> None:
+    """Store Manager/VP rejects a purchase order via WhatsApp."""
+    from app.services import consumables_service
+
+    ok = await consumables_service.reject_purchase_order(po_code, phone, reason)
+    if ok:
+        log.info("po.rejected", po_code=po_code, rejected_by=phone)
+    else:
+        log.warning("po.reject_failed", po_code=po_code, phone=phone)
+
+
+async def handle_issue_part_command(phone: str, request_code: str) -> None:
+    """Store Incharge issues a requested part."""
+    from app.services import consumables_service
+
+    ok = await consumables_service.issue_part(request_code, issued_by=phone)
+    if ok:
+        log.info("issue.done", request_code=request_code, issued_by=phone)
+    else:
+        log.warning("issue.failed", request_code=request_code, phone=phone)
+
+
+async def handle_confirm_ai_command(
+    phone: str,
+    ticket_id_input: str,
+    tickets: TicketRepository,
+) -> None:
+    """Technician confirms AI diagnosis was correct."""
+    from app.services import intelligence_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("confirm_ai.ticket_not_found", input=ticket_id_input)
+        return
+
+    await intelligence_service.confirm_ai_diagnosis(ticket["ticket_id"], phone)
+    log.info("confirm_ai.done", ticket_id=ticket["ticket_id"], phone=phone)
+
+
+async def handle_override_ai_command(
+    phone: str,
+    ticket_id_input: str,
+    reason: str,
+    tickets: TicketRepository,
+) -> None:
+    """Technician overrides AI diagnosis with their own assessment."""
+    from app.services import intelligence_service
+
+    ticket = tickets.find_by_id_prefix(ticket_id_input)
+    if not ticket:
+        log.warning("override_ai.ticket_not_found", input=ticket_id_input)
+        return
+
+    await intelligence_service.override_ai_diagnosis(
+        ticket["ticket_id"], phone, reason,
+    )
+    log.info("override_ai.done", ticket_id=ticket["ticket_id"], phone=phone)
 
 
 async def sweep_expired_unnotified(

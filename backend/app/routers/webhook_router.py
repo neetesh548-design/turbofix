@@ -8,6 +8,7 @@ This router is intentionally thin:
 
 import hashlib
 import hmac
+import re
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 
@@ -95,9 +96,10 @@ async def receive_webhook(
         msg_type = message.get("type")
 
         if msg_type == "text":
+            text_body = message.get("text", {}).get("body", "")
             await ticket_service.handle_text_message(
                 phone=phone,
-                text=message.get("text", {}).get("body", ""),
+                text=text_body,
                 background_tasks=background_tasks,
                 sessions=sessions,
                 tickets=tickets,
@@ -115,16 +117,142 @@ async def receive_webhook(
                 events=events,
             )
         elif msg_type == "image":
-            await ticket_service.handle_image_message(
+            media_id = message.get("image", {}).get("id", "")
+            caption = message.get("image", {}).get("caption", "")
+            close_match = re.search(
+                r"(?:close|evidence|proof)\s*(T[\w-]+)", caption, re.IGNORECASE,
+            )
+            if close_match:
+                background_tasks.add_task(
+                    ticket_service.handle_closure_evidence,
+                    phone, close_match.group(1), media_id, tickets, machines,
+                )
+            else:
+                await ticket_service.handle_image_message(
+                    phone=phone,
+                    media_id=media_id,
+                    background_tasks=background_tasks,
+                    sessions=sessions,
+                    tickets=tickets,
+                    machines=machines,
+                    events=events,
+                )
+        else:
+            log.info("webhook.unsupported_type", msg_type=msg_type, phone=phone)
+
+    return Response(status_code=200)
+
+
+# ---------------------------------------------------------------------------
+# WaCRM webhook receiver — receives events from WaCRM (message.received, etc.)
+# ---------------------------------------------------------------------------
+
+def _verify_wacrm_signature(body: bytes, signature_header: str) -> bool:
+    """Verify X-Wacrm-Signature: t=unix,v1=hmac-sha256."""
+    if not config.WACRM_WEBHOOK_SECRET:
+        log.warning("wacrm_webhook.signature_skip", reason="WACRM_WEBHOOK_SECRET not set")
+        return True
+    if not signature_header:
+        return False
+
+    parts = {}
+    for part in signature_header.split(","):
+        key, _, val = part.partition("=")
+        parts[key.strip()] = val.strip()
+
+    timestamp = parts.get("t", "")
+    received_sig = parts.get("v1", "")
+    if not timestamp or not received_sig:
+        return False
+
+    signed_payload = f"{timestamp}.".encode() + body
+    expected = hmac.new(
+        config.WACRM_WEBHOOK_SECRET.encode(), signed_payload, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, received_sig)
+
+
+@router.post("/wacrm-webhook")
+@limiter.limit("120/minute")
+async def receive_wacrm_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    tickets: TicketRepository = Depends(get_tickets),
+    machines: MachineRepository = Depends(get_machines),
+    events: EventRepository = Depends(get_events),
+):
+    """Receive webhook events from WaCRM.
+
+    WaCRM fires events for: message.received, message.sent, message.delivered,
+    message.read, contact.created, contact.updated, conversation.opened,
+    conversation.closed.
+
+    We only act on message.received — the rest are logged for future use.
+    """
+    body = await request.body()
+    signature = request.headers.get("X-Wacrm-Signature", "")
+    if not _verify_wacrm_signature(body, signature):
+        log.warning("wacrm_webhook.invalid_signature")
+        return Response(status_code=403)
+
+    import json
+    payload = json.loads(body)
+    event_type = payload.get("event", "")
+    data = payload.get("data", {})
+
+    log.info("wacrm_webhook.received", event=event_type)
+
+    if event_type == "message.received":
+        message = data.get("message", {})
+        contact = data.get("contact", {})
+        phone = contact.get("phone", "") or message.get("from", "")
+        if phone and not phone.startswith("+"):
+            phone = "+" + phone
+        msg_type = message.get("type", "text")
+        sessions = get_sessions()
+
+        if msg_type == "text":
+            text_body = message.get("text", "") or message.get("body", "")
+            await ticket_service.handle_text_message(
                 phone=phone,
-                media_id=message.get("image", {}).get("id", ""),
+                text=text_body,
                 background_tasks=background_tasks,
                 sessions=sessions,
                 tickets=tickets,
                 machines=machines,
                 events=events,
             )
-        else:
-            log.info("webhook.unsupported_type", msg_type=msg_type, phone=phone)
+        elif msg_type == "audio":
+            media_id = message.get("media_id", "") or message.get("id", "")
+            await ticket_service.handle_audio_message(
+                phone=phone,
+                media_id=media_id,
+                background_tasks=background_tasks,
+                sessions=sessions,
+                tickets=tickets,
+                machines=machines,
+                events=events,
+            )
+        elif msg_type == "image":
+            media_id = message.get("media_id", "") or message.get("id", "")
+            caption = message.get("caption", "")
+            close_match = re.search(
+                r"(?:close|evidence|proof)\s*(T[\w-]+)", caption, re.IGNORECASE,
+            )
+            if close_match:
+                background_tasks.add_task(
+                    ticket_service.handle_closure_evidence,
+                    phone, close_match.group(1), media_id, tickets, machines,
+                )
+            else:
+                await ticket_service.handle_image_message(
+                    phone=phone,
+                    media_id=media_id,
+                    background_tasks=background_tasks,
+                    sessions=sessions,
+                    tickets=tickets,
+                    machines=machines,
+                    events=events,
+                )
 
     return Response(status_code=200)

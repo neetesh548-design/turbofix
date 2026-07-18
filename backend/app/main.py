@@ -53,14 +53,94 @@ async def _sweep_loop() -> None:
             log.error("sweep.error", error=str(exc))
 
 
+async def _escalation_loop() -> None:
+    """Background loop: check for overdue escalations and fire WhatsApp notifications."""
+    from app.services.escalation_service import run_escalation_sweep
+
+    while True:
+        await asyncio.sleep(config.ESCALATION_CHECK_INTERVAL_SECONDS)
+        try:
+            await run_escalation_sweep()
+        except Exception as exc:
+            log.error("escalation.sweep_error", error=str(exc))
+
+
+async def _shift_handover_loop() -> None:
+    """Background loop: check shift boundaries and send handover digests (every 60s)."""
+    from app.services.intelligence_service import run_shift_handover_check
+
+    while True:
+        await asyncio.sleep(60)
+        try:
+            await run_shift_handover_check()
+        except Exception as exc:
+            log.error("shift_handover.error", error=str(exc))
+
+
+async def _auto_reorder_loop() -> None:
+    """Background loop: check inventory levels and auto-create POs (every 5 min)."""
+    from app.services.consumables_service import run_auto_reorder_check
+
+    while True:
+        await asyncio.sleep(300)
+        try:
+            await run_auto_reorder_check()
+        except Exception as exc:
+            log.error("auto_reorder.error", error=str(exc))
+
+
+async def _predictive_loop() -> None:
+    """Background loop: predictive maintenance check (every 30 min)."""
+    from app.services.predictive_service import run_predictive_maintenance_check
+
+    while True:
+        await asyncio.sleep(1800)
+        try:
+            await run_predictive_maintenance_check()
+        except Exception as exc:
+            log.error("predictive.error", error=str(exc))
+
+
+async def _daily_digest_loop() -> None:
+    """Background loop: daily digest check (every 60s)."""
+    from app.services.predictive_service import run_daily_digest_check
+
+    while True:
+        await asyncio.sleep(60)
+        try:
+            await run_daily_digest_check()
+        except Exception as exc:
+            log.error("digest.error", error=str(exc))
+
+
+async def _drift_check_loop() -> None:
+    """Background loop: threshold drift check (every 6 hours)."""
+    from app.services.predictive_service import run_threshold_drift_check
+
+    while True:
+        await asyncio.sleep(21600)
+        try:
+            await run_threshold_drift_check()
+        except Exception as exc:
+            log.error("drift.error", error=str(exc))
+
+
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
     log.info("turbofix.startup", store=config.TICKET_STORE, doc_store=config.DOCUMENT_STORE)
     sweep_task = asyncio.create_task(_sweep_loop())
+    escalation_task = asyncio.create_task(_escalation_loop())
+    handover_task = asyncio.create_task(_shift_handover_loop())
+    reorder_task = asyncio.create_task(_auto_reorder_loop())
+    predictive_task = asyncio.create_task(_predictive_loop())
+    digest_task = asyncio.create_task(_daily_digest_loop())
+    drift_task = asyncio.create_task(_drift_check_loop())
     try:
         yield
     finally:
-        sweep_task.cancel()
+        for task in (sweep_task, escalation_task, handover_task,
+                     reorder_task, predictive_task, digest_task, drift_task):
+            task.cancel()
         log.info("turbofix.shutdown")
 
 

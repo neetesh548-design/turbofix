@@ -11,12 +11,15 @@ from app import config
 from app.admin_page import ADMIN_HTML
 from app.auth import create_admin_token, get_current_admin, Role, hash_password, validate_password_strength
 from app.dependencies import (
+    get_ai_feedback,
     get_custom_kpis,
     get_documents,
+    get_escalation_config,
     get_machine_records,
     get_machines,
     get_parts,
     get_settings,
+    get_shift_config,
     get_technician_work,
     get_tickets,
     get_users,
@@ -493,6 +496,501 @@ def update_gemini_config(body: GeminiConfigUpdate, _: bool = Depends(get_current
         log.info("admin.config.env_write_skipped", reason="read-only filesystem")
 
     return {"status": "success", "message": "Gemini API key updated successfully."}
+
+
+# ---------------------------------------------------------------------------
+# Escalation config CRUD
+# ---------------------------------------------------------------------------
+
+class EscalationThresholdRequest(BaseModel):
+    factory_id: str
+    chain_type: str = "breakdown"
+    level: int
+    threshold_min: int
+    role_label: str
+    notify_phone: str = ""
+
+
+@router.get("/escalation-config/{factory_id}")
+def get_escalation_thresholds(
+    factory_id: str,
+    chain_type: str = "breakdown",
+    _: bool = Depends(get_current_admin),
+    esc_config=Depends(get_escalation_config),
+):
+    return esc_config.get_thresholds(factory_id, chain_type)
+
+
+@router.post("/escalation-config")
+def upsert_escalation_threshold(
+    body: EscalationThresholdRequest,
+    _: bool = Depends(get_current_admin),
+    esc_config=Depends(get_escalation_config),
+):
+    if body.level < 1 or body.level > 5:
+        raise HTTPException(status_code=400, detail="level must be 1-5")
+    if body.threshold_min < 1:
+        raise HTTPException(status_code=400, detail="threshold_min must be positive")
+    if body.chain_type not in ("breakdown", "consumable"):
+        raise HTTPException(status_code=400, detail="chain_type must be breakdown or consumable")
+
+    existing = esc_config.get_threshold_for_level(
+        body.factory_id, body.chain_type, body.level)
+    old_threshold = existing["threshold_min"] if existing else 0
+
+    ok = esc_config.upsert_threshold(
+        factory_id=body.factory_id,
+        chain_type=body.chain_type,
+        level=body.level,
+        threshold_min=body.threshold_min,
+        role_label=body.role_label,
+        notify_phone=body.notify_phone,
+    )
+    if not ok:
+        raise HTTPException(status_code=500, detail="failed to save threshold")
+
+    if old_threshold and old_threshold != body.threshold_min:
+        from app.services.predictive_service import record_threshold_change
+        record_threshold_change(
+            body.factory_id, body.chain_type, body.level,
+            old_threshold, body.threshold_min, "admin",
+        )
+
+    log.info("admin.escalation_config_saved",
+             factory_id=body.factory_id, chain=body.chain_type, level=body.level)
+    return {"status": "saved", "level": body.level, "threshold_min": body.threshold_min}
+
+
+@router.delete("/escalation-config/{factory_id}/{chain_type}/{level}")
+def delete_escalation_threshold(
+    factory_id: str,
+    chain_type: str,
+    level: int,
+    _: bool = Depends(get_current_admin),
+    esc_config=Depends(get_escalation_config),
+):
+    ok = esc_config.delete_threshold(factory_id, chain_type, level)
+    if not ok:
+        raise HTTPException(status_code=404, detail="threshold not found")
+    return {"status": "deleted"}
+
+
+# ---------------------------------------------------------------------------
+# AI Feedback stats
+# ---------------------------------------------------------------------------
+
+@router.get("/ai-stats/{factory_id}")
+def get_ai_stats(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+    feedback=Depends(get_ai_feedback),
+):
+    return feedback.get_factory_stats(factory_id)
+
+
+@router.get("/ai-stats/{factory_id}/{machine_id}")
+def get_machine_ai_stats(
+    factory_id: str,
+    machine_id: str,
+    _: bool = Depends(get_current_admin),
+    feedback=Depends(get_ai_feedback),
+):
+    result = feedback.get_accuracy(factory_id, machine_id)
+    if not result:
+        return {"total_diagnoses": 0, "confirmed": 0, "overridden": 0, "accuracy_pct": 0}
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Shift config CRUD
+# ---------------------------------------------------------------------------
+
+class ShiftConfigRequest(BaseModel):
+    factory_id: str
+    shift_name: str
+    start_time: str
+    end_time: str
+    timezone: str = "Asia/Kolkata"
+
+
+@router.get("/shift-config/{factory_id}")
+def get_shifts(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+    shifts=Depends(get_shift_config),
+):
+    return shifts.get_shifts(factory_id)
+
+
+@router.post("/shift-config")
+def upsert_shift(
+    body: ShiftConfigRequest,
+    _: bool = Depends(get_current_admin),
+    shifts=Depends(get_shift_config),
+):
+    ok = shifts.upsert_shift(
+        factory_id=body.factory_id,
+        shift_name=body.shift_name,
+        start_time=body.start_time,
+        end_time=body.end_time,
+        tz=body.timezone,
+    )
+    if not ok:
+        raise HTTPException(status_code=500, detail="failed to save shift config")
+    return {"status": "saved", "shift_name": body.shift_name}
+
+
+@router.delete("/shift-config/{factory_id}/{shift_name}")
+def delete_shift(
+    factory_id: str,
+    shift_name: str,
+    _: bool = Depends(get_current_admin),
+    shifts=Depends(get_shift_config),
+):
+    ok = shifts.delete_shift(factory_id, shift_name)
+    if not ok:
+        raise HTTPException(status_code=404, detail="shift not found")
+    return {"status": "deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Technician workload (load-aware delegation)
+# ---------------------------------------------------------------------------
+
+@router.get("/workload/{factory_id}")
+def get_technician_workload(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.intelligence_service import get_technician_load
+    return get_technician_load(factory_id)
+
+
+# ---------------------------------------------------------------------------
+# Predictive maintenance
+# ---------------------------------------------------------------------------
+
+@router.get("/predictions/{factory_id}")
+def get_predictions(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.predictive_service import get_predictions as _get_preds
+    return _get_preds(factory_id)
+
+
+@router.post("/predictions/{prediction_id}/acknowledge")
+def acknowledge_prediction(
+    prediction_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.predictive_service import acknowledge_prediction as _ack
+    ok = _ack(prediction_id, "admin")
+    if not ok:
+        raise HTTPException(status_code=404, detail="prediction not found")
+    return {"status": "acknowledged"}
+
+
+# ---------------------------------------------------------------------------
+# Downtime cost
+# ---------------------------------------------------------------------------
+
+@router.get("/downtime/{factory_id}")
+def get_downtime_summary(
+    factory_id: str,
+    days: int = 30,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.predictive_service import get_factory_downtime_summary
+    return get_factory_downtime_summary(factory_id, days)
+
+
+@router.get("/downtime/ticket/{ticket_id}")
+def get_ticket_downtime(
+    ticket_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.predictive_service import calculate_ticket_downtime_cost
+    result = calculate_ticket_downtime_cost(ticket_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="ticket not found")
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Threshold drift
+# ---------------------------------------------------------------------------
+
+@router.get("/threshold-drift/{factory_id}")
+def get_threshold_drift(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.services.predictive_service import check_threshold_drift
+    return check_threshold_drift(factory_id)
+
+
+# ---------------------------------------------------------------------------
+# Daily digest config
+# ---------------------------------------------------------------------------
+
+class DigestConfigRequest(BaseModel):
+    factory_id: str
+    send_time: str = "08:00"
+    timezone: str = "Asia/Kolkata"
+    recipient_phones: list = []
+    enabled: bool = True
+
+
+@router.get("/digest-config/{factory_id}")
+def get_digest_config(
+    factory_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.repositories.supabase_repo import _client
+    row = _client.select_one("digest_config", {"factory_id": f"eq.{factory_id}"})
+    if not row:
+        return {"factory_id": factory_id, "enabled": False, "recipient_phones": []}
+    return {
+        "factory_id": row.get("factory_id", ""),
+        "send_time": str(row.get("send_time", "08:00")),
+        "timezone": row.get("timezone", "Asia/Kolkata"),
+        "recipient_phones": row.get("recipient_phones") or [],
+        "enabled": row.get("enabled", True),
+        "last_sent_at": str(row.get("last_sent_at") or ""),
+    }
+
+
+@router.post("/digest-config")
+def upsert_digest_config(
+    body: DigestConfigRequest,
+    _: bool = Depends(get_current_admin),
+):
+    from app.repositories.supabase_repo import _client
+    existing = _client.select_one("digest_config", {
+        "factory_id": f"eq.{body.factory_id}",
+    })
+    data = {
+        "factory_id": body.factory_id,
+        "send_time": body.send_time,
+        "timezone": body.timezone,
+        "recipient_phones": body.recipient_phones,
+        "enabled": body.enabled,
+    }
+    try:
+        if existing:
+            _client.update("digest_config", {
+                "factory_id": f"eq.{body.factory_id}",
+            }, data)
+        else:
+            _client.insert("digest_config", data)
+        return {"status": "saved"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# WaCRM management (contacts, conversations, broadcasts, account)
+# ---------------------------------------------------------------------------
+
+@router.get("/wacrm/status")
+async def wacrm_status(_: bool = Depends(get_current_admin)):
+    """Check WaCRM connection status and account info."""
+    from app.infrastructure.wacrm_client import is_configured, get_account_info
+    if not is_configured():
+        return {"connected": False, "reason": "WACRM_API_URL or WACRM_API_KEY not set"}
+    try:
+        info = await get_account_info()
+        if not info:
+            return {"connected": False, "reason": "API key invalid or WaCRM unreachable"}
+        return {"connected": True, "account": info}
+    except Exception as exc:
+        return {"connected": False, "reason": str(exc)}
+
+
+@router.get("/wacrm/contacts")
+async def wacrm_list_contacts(
+    search: str = "",
+    tag: str = "",
+    limit: int = 50,
+    cursor: str = "",
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    return await wacrm_client.list_contacts(search=search, tag=tag, limit=limit, cursor=cursor)
+
+
+class WaCRMContactCreate(BaseModel):
+    phone: str
+    name: str = ""
+    company: str = ""
+    tags: list = []
+
+
+@router.post("/wacrm/contacts")
+async def wacrm_create_contact(
+    body: WaCRMContactCreate,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    result = await wacrm_client.get_or_create_contact(
+        phone=body.phone, name=body.name, company=body.company, tags=body.tags,
+    )
+    if not result:
+        raise HTTPException(status_code=500, detail="Failed to create contact in WaCRM")
+    return result
+
+
+class WaCRMContactUpdate(BaseModel):
+    name: str = ""
+    company: str = ""
+    tags: Optional[list] = None
+
+
+@router.patch("/wacrm/contacts/{contact_id}")
+async def wacrm_update_contact(
+    contact_id: str,
+    body: WaCRMContactUpdate,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    result = await wacrm_client.update_contact(
+        contact_id=contact_id, name=body.name, company=body.company, tags=body.tags,
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Contact not found or update failed")
+    return result
+
+
+@router.get("/wacrm/conversations")
+async def wacrm_list_conversations(
+    status: str = "",
+    contact_id: str = "",
+    limit: int = 50,
+    cursor: str = "",
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    return await wacrm_client.list_conversations(
+        status=status, contact_id=contact_id, limit=limit, cursor=cursor,
+    )
+
+
+@router.get("/wacrm/conversations/{conversation_id}")
+async def wacrm_get_conversation(
+    conversation_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    result = await wacrm_client.get_conversation(conversation_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return result
+
+
+@router.get("/wacrm/conversations/{conversation_id}/messages")
+async def wacrm_conversation_messages(
+    conversation_id: str,
+    limit: int = 50,
+    cursor: str = "",
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    return await wacrm_client.get_conversation_messages(
+        conversation_id=conversation_id, limit=limit, cursor=cursor,
+    )
+
+
+class WaCRMSendMessage(BaseModel):
+    to: str
+    text: str
+
+
+@router.post("/wacrm/messages/send")
+async def wacrm_send_message(
+    body: WaCRMSendMessage,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure.whatsapp import send_text_message
+    await send_text_message(body.to, body.text)
+    return {"status": "sent", "to": body.to}
+
+
+class WaCRMBroadcastRequest(BaseModel):
+    name: str
+    template_name: str
+    template_language: str = "en_US"
+    recipients: list = []
+
+
+@router.post("/wacrm/broadcasts")
+async def wacrm_launch_broadcast(
+    body: WaCRMBroadcastRequest,
+    _: bool = Depends(get_current_admin),
+):
+    if not body.recipients:
+        raise HTTPException(status_code=400, detail="recipients list is empty")
+    from app.infrastructure.whatsapp import send_broadcast
+    result = await send_broadcast(
+        name=body.name,
+        template_name=body.template_name,
+        language=body.template_language,
+        recipients=body.recipients,
+    )
+    return result
+
+
+@router.get("/wacrm/broadcasts/{broadcast_id}")
+async def wacrm_broadcast_status(
+    broadcast_id: str,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    result = await wacrm_client.get_broadcast_status(broadcast_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Broadcast not found")
+    return result
+
+
+@router.get("/wacrm/webhooks")
+async def wacrm_list_webhooks(_: bool = Depends(get_current_admin)):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    return await wacrm_client.list_webhooks()
+
+
+class WaCRMWebhookRegister(BaseModel):
+    url: str
+    events: list = ["message.received"]
+
+
+@router.post("/wacrm/webhooks")
+async def wacrm_register_webhook(
+    body: WaCRMWebhookRegister,
+    _: bool = Depends(get_current_admin),
+):
+    from app.infrastructure import wacrm_client
+    if not wacrm_client.is_configured():
+        raise HTTPException(status_code=503, detail="WaCRM not configured")
+    result = await wacrm_client.register_webhook(url=body.url, events=body.events)
+    if not result:
+        raise HTTPException(status_code=500, detail="Failed to register webhook")
+    return result
 
 
 @router.get("", response_class=HTMLResponse)

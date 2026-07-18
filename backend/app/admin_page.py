@@ -285,6 +285,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
         <button class="nav-item active" data-nav="overview"><span class="nav-icon">◫</span> Overview</button>
         <button class="nav-item" data-nav="companies"><span class="nav-icon">▣</span> Companies</button>
         <button class="nav-item" data-nav="onboard"><span class="nav-icon">＋</span> Onboard company</button>
+        <button class="nav-item" data-nav="wacrm"><span class="nav-icon">✉</span> WhatsApp CRM</button>
       </nav>
       <div class="sidebar-health">
         <strong><span class="live">●</span> Platform status</strong>
@@ -372,6 +373,36 @@ ADMIN_HTML = r"""<!DOCTYPE html>
               </div>
             </form>
             <div class="status" id="aiConfigStatus" role="status"></div>
+          </div>
+        </section>
+
+        <!-- WACRM WHATSAPP CRM SECTION -->
+        <section class="panel" id="wacrmSection" style="display:none; margin-top:26px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 19px;">
+          <div class="panel-head">
+            <div>
+              <h2>WhatsApp CRM (WaCRM)</h2>
+              <p>Manage WhatsApp contacts, conversations, broadcasts, and messaging from a shared inbox powered by WaCRM.</p>
+            </div>
+            <button class="btn btn-outline" id="wacrmRefresh">Refresh</button>
+          </div>
+
+          <!-- Connection status -->
+          <div id="wacrmStatus" style="margin-top:16px; padding:14px; border:1px solid var(--line); border-radius:11px; background:#182331;">
+            <span style="color:var(--muted); font-size:13px;">Checking WaCRM connection…</span>
+          </div>
+
+          <!-- Tabs -->
+          <div style="display:flex; gap:7px; overflow-x:auto; margin-top:20px; padding:2px; border-bottom:1px solid var(--line);">
+            <button class="workspace-tab active" data-wacrm-tab="contacts">Contacts</button>
+            <button class="workspace-tab" data-wacrm-tab="conversations">Conversations</button>
+            <button class="workspace-tab" data-wacrm-tab="send">Send Message</button>
+            <button class="workspace-tab" data-wacrm-tab="broadcast">Broadcast</button>
+            <button class="workspace-tab" data-wacrm-tab="webhooks">Webhooks</button>
+          </div>
+
+          <!-- Tab content -->
+          <div id="wacrmContent" style="min-height:200px; margin-top:16px;">
+            <div class="empty">Select a tab to view WaCRM data.</div>
           </div>
         </section>
       </main>
@@ -860,8 +891,16 @@ $("companyFilter").addEventListener("change", renderCompanies);
 document.querySelectorAll("[data-nav]").forEach((button) => button.addEventListener("click", () => {
   document.querySelectorAll("[data-nav]").forEach((item) => item.classList.remove("active"));
   button.classList.add("active");
-  if (button.dataset.nav === "onboard") openOnboard();
-  else { $("companyFilter").value = "all"; renderCompanies(); $(button.dataset.nav === "companies" ? "companyDirectory" : "adminApp").scrollIntoView({behavior: "smooth", block: "start"}); }
+  const wacrmEl = $("wacrmSection");
+  if (button.dataset.nav === "wacrm") {
+    wacrmEl.style.display = "block";
+    initWacrmSection();
+    wacrmEl.scrollIntoView({behavior: "smooth", block: "start"});
+  } else {
+    wacrmEl.style.display = "none";
+    if (button.dataset.nav === "onboard") openOnboard();
+    else { $("companyFilter").value = "all"; renderCompanies(); $(button.dataset.nav === "companies" ? "companyDirectory" : "adminApp").scrollIntoView({behavior: "smooth", block: "start"}); }
+  }
 }));
 
 $("onboardForm").addEventListener("submit", async (event) => {
@@ -940,6 +979,190 @@ $("aiConfigForm").addEventListener("submit", async (event) => {
     button.textContent = "Save Configuration";
   }
 });
+
+// ---------------------------------------------------------------------------
+// WaCRM Section
+// ---------------------------------------------------------------------------
+let wacrmTab = "contacts";
+let wacrmConnected = false;
+
+async function loadWacrmStatus() {
+  const el = $("wacrmStatus");
+  try {
+    const response = await api("/admin/wacrm/status");
+    const data = await response.json();
+    wacrmConnected = data.connected;
+    if (data.connected) {
+      const acct = data.account || {};
+      el.innerHTML = `<span style="color:var(--green); font-weight:800;">● Connected</span><span style="margin-left:12px; color:var(--muted); font-size:13px;">${esc(acct.name || "WaCRM")} ${acct.phone ? "· " + esc(acct.phone) : ""}</span>`;
+    } else {
+      el.innerHTML = `<span style="color:var(--amber); font-weight:800;">● Not connected</span><span style="margin-left:12px; color:var(--muted); font-size:13px;">${esc(data.reason || "Set WACRM_API_URL and WACRM_API_KEY in environment variables")}</span>`;
+    }
+  } catch (err) {
+    el.innerHTML = `<span style="color:var(--red);">● Error checking status</span><span style="margin-left:12px; color:var(--muted); font-size:13px;">${esc(err.message)}</span>`;
+  }
+}
+
+async function loadWacrmContacts() {
+  const el = $("wacrmContent");
+  if (!wacrmConnected) { el.innerHTML = `<div class="empty">WaCRM is not connected. Configure WACRM_API_URL and WACRM_API_KEY first.</div>`; return; }
+  el.innerHTML = `<div class="empty">Loading contacts…</div>`;
+  try {
+    const response = await api("/admin/wacrm/contacts?limit=50");
+    const result = await response.json();
+    const contacts = result.data || [];
+    if (!contacts.length) { el.innerHTML = `<div class="empty">No contacts found in WaCRM.</div>`; return; }
+    el.innerHTML = `<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;"><input class="search" id="wacrmContactSearch" type="search" placeholder="Search contacts…" style="max-width:260px;"><button class="btn btn-primary" id="wacrmAddContact">+ Add Contact</button></div><div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Tags</th></tr></thead><tbody>${contacts.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("")}</tbody></table></div>`;
+    $("wacrmAddContact").addEventListener("click", showAddContactForm);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function showAddContactForm() {
+  const el = $("wacrmContent");
+  el.innerHTML = `<div style="max-width:480px;"><h3 style="font-size:16px;margin-bottom:16px;">Add new contact</h3><form id="wacrmAddContactForm"><div class="field" style="margin-top:0;"><label for="wacrmNewPhone">Phone number</label><input type="tel" id="wacrmNewPhone" placeholder="+919820012345" required></div><div class="field"><label for="wacrmNewName">Name</label><input type="text" id="wacrmNewName" placeholder="Contact name"></div><div class="field"><label for="wacrmNewCompany">Company</label><input type="text" id="wacrmNewCompany" placeholder="Company name"></div><div class="field"><label for="wacrmNewTags">Tags (comma-separated)</label><input type="text" id="wacrmNewTags" placeholder="technician, factory-a"></div><div class="form-footer" style="margin-top:16px;"><button type="button" class="btn btn-outline" id="wacrmCancelContact">Cancel</button><button type="submit" class="btn btn-primary">Save Contact</button></div></form><div class="status" id="wacrmContactStatus" role="status"></div></div>`;
+  $("wacrmCancelContact").addEventListener("click", () => renderWacrmTab());
+  $("wacrmAddContactForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = $("wacrmContactStatus");
+    status.textContent = "Saving…";
+    try {
+      const tags = $("wacrmNewTags").value.split(",").map(t => t.trim()).filter(Boolean);
+      const response = await api("/admin/wacrm/contacts", { method: "POST", body: JSON.stringify({ phone: $("wacrmNewPhone").value.trim(), name: $("wacrmNewName").value.trim(), company: $("wacrmNewCompany").value.trim(), tags }) });
+      if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Failed to add contact"); }
+      status.textContent = "Contact saved!";
+      status.className = "status success";
+      setTimeout(() => renderWacrmTab(), 1000);
+    } catch (err) { status.textContent = err.message; status.className = "status"; }
+  });
+}
+
+async function loadWacrmConversations() {
+  const el = $("wacrmContent");
+  if (!wacrmConnected) { el.innerHTML = `<div class="empty">WaCRM is not connected.</div>`; return; }
+  el.innerHTML = `<div class="empty">Loading conversations…</div>`;
+  try {
+    const response = await api("/admin/wacrm/conversations?limit=30");
+    const result = await response.json();
+    const convos = result.data || [];
+    if (!convos.length) { el.innerHTML = `<div class="empty">No conversations yet. Conversations appear here when customers message your WhatsApp number.</div>`; return; }
+    el.innerHTML = `<div class="stack-list">${convos.map(c => `<div class="stack-row" style="cursor:pointer;" data-convo-id="${esc(c.id || c.conversation_id || "")}"><strong>${esc(c.contact_name || c.contact_phone || "Unknown")}</strong><span>${esc(c.status || "open")} · ${esc(c.last_message || "No messages")} · ${activityText(c.updated_at || c.last_message_at || "")}</span></div>`).join("")}</div>`;
+    el.querySelectorAll("[data-convo-id]").forEach(row => row.addEventListener("click", () => loadConvoMessages(row.dataset.convoId)));
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+async function loadConvoMessages(convoId) {
+  const el = $("wacrmContent");
+  el.innerHTML = `<div class="empty">Loading messages…</div>`;
+  try {
+    const response = await api(`/admin/wacrm/conversations/${encodeURIComponent(convoId)}/messages?limit=30`);
+    const result = await response.json();
+    const msgs = result.data || [];
+    el.innerHTML = `<div style="margin-bottom:12px;"><button class="btn btn-outline" id="wacrmBackConvos">← Back to conversations</button></div><div class="stack-list" style="max-height:400px; overflow-y:auto;">${msgs.length ? msgs.map(m => `<div class="stack-row" style="border-left:3px solid ${m.direction === "outgoing" || m.from_me ? "var(--green)" : "var(--blue)"};"><strong>${m.direction === "outgoing" || m.from_me ? "You" : esc(m.contact_name || m.from || "Customer")}</strong><span>${esc(m.text || m.body || m.content || "[media]")} · ${activityText(m.created_at || m.timestamp || "")}</span></div>`).join("") : `<div class="empty">No messages in this conversation.</div>`}</div>`;
+    $("wacrmBackConvos").addEventListener("click", loadWacrmConversations);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function showSendMessageForm() {
+  const el = $("wacrmContent");
+  el.innerHTML = `<div style="max-width:480px;"><h3 style="font-size:16px;margin-bottom:16px;">Send WhatsApp message</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Send a text message to any phone number via ${wacrmConnected ? "WaCRM" : "direct Meta API"}.</p><form id="wacrmSendForm"><div class="field" style="margin-top:0;"><label for="wacrmSendTo">Recipient phone</label><input type="tel" id="wacrmSendTo" placeholder="+919820012345" required></div><div class="field"><label for="wacrmSendText">Message</label><textarea id="wacrmSendText" rows="4" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#101722;color:var(--ink);resize:vertical;" placeholder="Type your message…" required></textarea></div><div class="form-footer" style="margin-top:16px;"><button type="submit" class="btn btn-primary">Send Message</button></div></form><div class="status" id="wacrmSendStatus" role="status"></div></div>`;
+  $("wacrmSendForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = $("wacrmSendStatus");
+    status.textContent = "Sending…";
+    try {
+      const response = await api("/admin/wacrm/messages/send", { method: "POST", body: JSON.stringify({ to: $("wacrmSendTo").value.trim(), text: $("wacrmSendText").value.trim() }) });
+      if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Message failed to send"); }
+      status.textContent = "Message sent successfully!";
+      status.className = "status success";
+      $("wacrmSendText").value = "";
+    } catch (err) { status.textContent = err.message; status.className = "status"; }
+  });
+}
+
+function showBroadcastForm() {
+  const el = $("wacrmContent");
+  el.innerHTML = `<div style="max-width:560px;"><h3 style="font-size:16px;margin-bottom:16px;">Launch broadcast</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Send a template message to multiple recipients at once. ${wacrmConnected ? "Broadcasts go through WaCRM for delivery tracking." : "Without WaCRM, messages are sent individually via Meta API."}</p><form id="wacrmBroadcastForm"><div class="field" style="margin-top:0;"><label for="wacrmBcName">Broadcast name</label><input type="text" id="wacrmBcName" placeholder="e.g. Weekly maintenance reminder" required></div><div class="field"><label for="wacrmBcTemplate">Template name</label><input type="text" id="wacrmBcTemplate" placeholder="e.g. turbofix_escalation" required></div><div class="field"><label for="wacrmBcLang">Template language</label><input type="text" id="wacrmBcLang" value="en_US" required></div><div class="field"><label for="wacrmBcRecipients">Recipients (one per line: phone,param1,param2)</label><textarea id="wacrmBcRecipients" rows="5" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#101722;color:var(--ink);resize:vertical;font-family:monospace;font-size:12px;" placeholder="+919820012345,Neetesh,Machine-A\n+919876543210,Rahul,Machine-B" required></textarea><small style="display:block;margin-top:6px;color:var(--subtle);">Format: phone_number,param1,param2… (first value is phone, rest are template parameters)</small></div><div class="form-footer" style="margin-top:16px;"><button type="submit" class="btn btn-primary">Launch Broadcast</button></div></form><div class="status" id="wacrmBcStatus" role="status"></div></div>`;
+  $("wacrmBroadcastForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = $("wacrmBcStatus");
+    status.textContent = "Launching broadcast…";
+    try {
+      const lines = $("wacrmBcRecipients").value.trim().split("\n").filter(Boolean);
+      const recipients = lines.map(line => {
+        const parts = line.split(",").map(p => p.trim());
+        return { to: parts[0], params: parts.slice(1) };
+      });
+      const response = await api("/admin/wacrm/broadcasts", { method: "POST", body: JSON.stringify({ name: $("wacrmBcName").value.trim(), template_name: $("wacrmBcTemplate").value.trim(), template_language: $("wacrmBcLang").value.trim(), recipients }) });
+      if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Broadcast failed"); }
+      const result = await response.json();
+      status.textContent = `Broadcast launched! ${result.total_recipients || recipients.length} recipients, ${result.accepted || "all"} accepted.`;
+      status.className = "status success";
+    } catch (err) { status.textContent = err.message; status.className = "status"; }
+  });
+}
+
+async function loadWacrmWebhooks() {
+  const el = $("wacrmContent");
+  if (!wacrmConnected) { el.innerHTML = `<div class="empty">WaCRM is not connected.</div>`; return; }
+  el.innerHTML = `<div class="empty">Loading webhooks…</div>`;
+  try {
+    const response = await api("/admin/wacrm/webhooks");
+    const hooks = await response.json();
+    el.innerHTML = `<div style="margin-bottom:12px;"><button class="btn btn-primary" id="wacrmAddWebhook">+ Register Webhook</button></div>${Array.isArray(hooks) && hooks.length ? `<div class="stack-list">${hooks.map(h => `<div class="stack-row"><strong>${esc(h.url || "—")}</strong><span>Events: ${esc((h.events || []).join(", ") || "all")} · ID: ${esc(h.id || "—")}</span></div>`).join("")}</div>` : `<div class="empty">No webhooks registered. Register one to receive inbound messages from WaCRM.</div>`}`;
+    $("wacrmAddWebhook").addEventListener("click", showRegisterWebhookForm);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function showRegisterWebhookForm() {
+  const el = $("wacrmContent");
+  const defaultUrl = location.origin + "/wacrm-webhook";
+  el.innerHTML = `<div style="max-width:480px;"><h3 style="font-size:16px;margin-bottom:16px;">Register webhook endpoint</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Tell WaCRM where to forward incoming messages. The URL below points to this TurboFix backend.</p><form id="wacrmWebhookForm"><div class="field" style="margin-top:0;"><label for="wacrmHookUrl">Webhook URL</label><input type="url" id="wacrmHookUrl" value="${esc(defaultUrl)}" required></div><div class="field"><label for="wacrmHookEvents">Events (comma-separated)</label><input type="text" id="wacrmHookEvents" value="message.received,message.delivered,message.read"></div><div class="form-footer" style="margin-top:16px;"><button type="button" class="btn btn-outline" id="wacrmCancelHook">Cancel</button><button type="submit" class="btn btn-primary">Register</button></div></form><div class="status" id="wacrmHookStatus" role="status"></div></div>`;
+  $("wacrmCancelHook").addEventListener("click", loadWacrmWebhooks);
+  $("wacrmWebhookForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = $("wacrmHookStatus");
+    status.textContent = "Registering…";
+    try {
+      const events = $("wacrmHookEvents").value.split(",").map(e => e.trim()).filter(Boolean);
+      const response = await api("/admin/wacrm/webhooks", { method: "POST", body: JSON.stringify({ url: $("wacrmHookUrl").value.trim(), events }) });
+      if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Registration failed"); }
+      const result = await response.json();
+      status.textContent = `Webhook registered! ID: ${result.id || "—"}. Secret: ${result.secret || "check WaCRM dashboard"}.`;
+      status.className = "status success";
+      setTimeout(loadWacrmWebhooks, 2000);
+    } catch (err) { status.textContent = err.message; status.className = "status"; }
+  });
+}
+
+function renderWacrmTab() {
+  switch (wacrmTab) {
+    case "contacts": loadWacrmContacts(); break;
+    case "conversations": loadWacrmConversations(); break;
+    case "send": showSendMessageForm(); break;
+    case "broadcast": showBroadcastForm(); break;
+    case "webhooks": loadWacrmWebhooks(); break;
+  }
+}
+
+function initWacrmSection() {
+  loadWacrmStatus();
+  renderWacrmTab();
+  document.querySelectorAll("[data-wacrm-tab]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-wacrm-tab]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    wacrmTab = btn.dataset.wacrmTab;
+    renderWacrmTab();
+  }));
+  $("wacrmRefresh").addEventListener("click", () => { loadWacrmStatus(); renderWacrmTab(); });
+}
 
 if (token) showApp(); else showLogin();
 </script>

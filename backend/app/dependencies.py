@@ -232,3 +232,31 @@ def get_technician_work() -> TechnicianWorkRepository:
     from app.repositories.local.technician_work_repo import LocalTechnicianWorkRepository
     return LocalTechnicianWorkRepository(config.TRACKER_XLSX_PATH)
 
+
+# ---------------------------------------------------------------------------
+# Escalation config + Part requests (Supabase-only for now)
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def get_escalation_config():
+    from app.repositories.supabase_repo import SupabaseEscalationConfigRepository
+    return SupabaseEscalationConfigRepository()
+
+
+@lru_cache(maxsize=1)
+def get_part_requests():
+    from app.repositories.supabase_repo import SupabasePartRequestRepository
+    return SupabasePartRequestRepository()
+
+
+@lru_cache(maxsize=1)
+def get_ai_feedback():
+    from app.repositories.supabase_repo import SupabaseAIFeedbackRepository
+    return SupabaseAIFeedbackRepository()
+
+
+@lru_cache(maxsize=1)
+def get_shift_config():
+    from app.repositories.supabase_repo import SupabaseShiftConfigRepository
+    return SupabaseShiftConfigRepository()
+

@@ -50,6 +50,24 @@ WHATSAPP_TICKET_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_TICKET_TEMPLATE_LANGUAGE
 WHATSAPP_CLOSURE_TEMPLATE_NAME = os.getenv("WHATSAPP_CLOSURE_TEMPLATE_NAME", "turbofix_ticket_closed")
 WHATSAPP_CLOSURE_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_CLOSURE_TEMPLATE_LANGUAGE", "en_US")
 
+WHATSAPP_ESCALATION_TEMPLATE_NAME = os.getenv("WHATSAPP_ESCALATION_TEMPLATE_NAME", "turbofix_escalation")
+WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE", "en_US")
+WHATSAPP_APPROVAL_TEMPLATE_NAME = os.getenv("WHATSAPP_APPROVAL_TEMPLATE_NAME", "turbofix_closure_approval")
+WHATSAPP_APPROVAL_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_APPROVAL_TEMPLATE_LANGUAGE", "en_US")
+WHATSAPP_REJECTION_TEMPLATE_NAME = os.getenv("WHATSAPP_REJECTION_TEMPLATE_NAME", "turbofix_closure_rejected")
+WHATSAPP_REJECTION_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_REJECTION_TEMPLATE_LANGUAGE", "en_US")
+WHATSAPP_PART_REQUEST_TEMPLATE_NAME = os.getenv("WHATSAPP_PART_REQUEST_TEMPLATE_NAME", "turbofix_part_request")
+WHATSAPP_PART_REQUEST_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_PART_REQUEST_TEMPLATE_LANGUAGE", "en_US")
+
+ESCALATION_CHECK_INTERVAL_SECONDS = int(os.getenv("ESCALATION_CHECK_INTERVAL_SECONDS", "30"))
+
+# WaCRM integration — when set, all WhatsApp sends route through the WaCRM public API
+# instead of calling Meta's Cloud API directly. This gives you shared inbox, CRM contacts,
+# broadcasts, and conversation tracking via the WaCRM dashboard.
+WACRM_API_URL = os.getenv("WACRM_API_URL", "")  # e.g. https://your-crm.example.com
+WACRM_API_KEY = os.getenv("WACRM_API_KEY", "")  # e.g. wacrm_live_xxxxxxx
+WACRM_WEBHOOK_SECRET = os.getenv("WACRM_WEBHOOK_SECRET", "")  # whsec_xxx for verifying inbound
+
 MEDIA_STORE_DIR = Path(os.getenv("MEDIA_STORE_DIR", str(BACKEND_DIR / "media_store")))
 MEDIA_STORE_DIR.mkdir(parents=True, exist_ok=True)
 
