@@ -31,6 +31,7 @@ export default function Support() {
   const [busyId, setBusyId] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [activeSummary, setActiveSummary] = useState('needs');
   const user = useMemo(() => { try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; } }, []);
 
   const load = async () => {
@@ -63,6 +64,12 @@ export default function Support() {
     });
     return Object.entries(counts).filter(([, count]) => count >= 3).map(([machineId, count]) => ({ machineId, count }));
   }, [tickets]);
+  const resolved = interventions.filter((item) => item.status === 'resolved');
+
+  const showSummary = (summary) => {
+    setActiveSummary(summary);
+    window.requestAnimationFrame(() => document.getElementById('support-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   const decide = async (item, decision) => {
     setBusyId(item.id);
@@ -88,8 +95,9 @@ export default function Support() {
     <div className="decision-heading"><div><span className="eyebrow eyebrow-light">Resolve together</span><h1>Support &amp; Decisions</h1><p>{roleContribution(user?.role)}</p></div><a className="btn btn-ghost btn-sm" href="assistant.html">Ask TurboFix</a></div>
     <div className="support-principle"><HeartHandshake /><div><strong>Focus on the machine, not the person</strong><span>This workspace shows blockers, evidence and root-cause opportunities. It does not rank people or measure individual productivity.</span></div></div>
     {error && <div className="decision-alert">{error}</div>}{message && <div className="technician-alert success"><CheckCircle2 />{message}</div>}
-    <section className="support-summary"><article><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span></article><article><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span></article><article><ShieldCheck /><strong>{interventions.filter((item) => item.status === 'resolved').length}</strong><span>exceptions resolved</span></article></section>
-    <div className="decision-section-label">Needs your contribution</div>
+    <section className="support-summary" aria-label="Support summary filters"><button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span><em>View details →</em></button><button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span><em>View machines →</em></button><button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}><ShieldCheck /><strong>{resolved.length}</strong><span>exceptions resolved</span><em>View history →</em></button></section>
+    <div id="support-details" className="support-details" tabIndex="-1">
+    {activeSummary === 'needs' && <><div className="decision-section-label">Needs your contribution</div>
     <section className="support-list">
       {loading && <div className="support-empty">Loading support requests…</div>}
       {!loading && !visible.length && <div className="support-empty"><CheckCircle2 /><strong>No exception needs your attention</strong><span>Routine maintenance continues automatically.</span></div>}
@@ -102,8 +110,9 @@ export default function Support() {
           {item.intervention_type === 'technical_help' && ['maintenance_engineer', 'supervisor', 'maintenance_head'].includes(user?.role) && <button className="primary" disabled={busyId === item.id} onClick={() => decide(item, 'acknowledged')}>I can help</button>}
         </div>
       </article>; })}
-    </section>
-    {['maintenance_engineer', 'maintenance_head'].includes(user?.role) && <><div className="decision-section-label">Root-cause opportunities</div><section className="support-list">{repeated.length ? repeated.map(({ machineId, count }) => <article className="support-card compact" key={machineId}><div className="support-card-icon"><Search /></div><div className="support-card-main"><span>Pattern detected</span><h2>{machineMap[machineId]?.name || machineId}</h2><p>{count} issues in the last 30 days. Investigate the system cause instead of repeating the repair.</p></div><div className="support-card-actions"><a className="primary" href={`assistant.html?machine_id=${encodeURIComponent(machineId)}`}>Start root-cause review</a></div></article>) : <div className="support-empty">No repeat-failure pattern detected.</div>}</section></>}
+    </section></>}
+    {activeSummary === 'repeat' && <><div className="decision-section-label">Repeat-failure signals</div><section className="support-list">{repeated.length ? repeated.map(({ machineId, count }) => <article className="support-card compact" key={machineId}><div className="support-card-icon"><Search /></div><div className="support-card-main"><span>Pattern detected</span><h2>{machineMap[machineId]?.name || machineId}</h2><p>{count} issues in the last 30 days. Investigate the system cause instead of repeating the repair.</p><small>This is a machine-level signal. It is not attributed to an employee.</small></div><div className="support-card-actions"><a className="primary" href={`assistant.html?machine_id=${encodeURIComponent(machineId)}`}>{['maintenance_engineer', 'maintenance_head'].includes(user?.role) ? 'Start root-cause review' : 'View machine context'}</a></div></article>) : <div className="support-empty"><CheckCircle2 /><strong>No repeat-failure pattern detected</strong><span>Machines with three or more issues in 30 days will appear here.</span></div>}</section></>}
+    {activeSummary === 'resolved' && <><div className="decision-section-label">Resolved exceptions</div><section className="support-list">{resolved.length ? resolved.map((item) => { const machine = machineMap[item.machine_id]; return <article className="support-card compact" key={item.id}><div className="support-card-icon resolved"><CheckCircle2 /></div><div className="support-card-main"><span>{typeLabel(item.intervention_type)}</span><h2>{machine?.name || item.machine_id}</h2><p>{item.decision === 'approved' ? 'Repair verified and issue closed.' : item.decision || item.reason || 'Exception resolved.'}</p><small>{item.resolved_at ? `Resolved ${new Date(item.resolved_at).toLocaleString()}` : 'Resolution recorded'}</small></div><div className="support-card-actions"><a href={`assistant.html?machine_id=${encodeURIComponent(item.machine_id)}`}>View machine context</a></div></article>; }) : <div className="support-empty"><ShieldCheck /><strong>No resolved exceptions yet</strong><span>Completed support and approval decisions will appear here.</span></div>}</section></>}
+    </div>
   </div></AppShell>;
 }
-

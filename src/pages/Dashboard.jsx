@@ -6,6 +6,7 @@ const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0 },
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
   owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null },
+  drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
@@ -148,6 +149,20 @@ async function fetchDashboardData() {
   });
   const ownerImpact = computeOwnerImpact(machines, tickets);
   const maintenanceInsights = computeMaintenanceInsights(machines, tickets);
+  const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
+    ticket_id: ticket.id,
+    machine_id: ticket.machine_id,
+    machine_name: machineMap[ticket.machine_id] || 'Unknown',
+    description: ticket.issue_text || (typeof ticket.ai_summary === 'object' ? ticket.ai_summary?.summary : ticket.ai_summary) || 'Maintenance work',
+    hours: Math.round(ticketHours(ticket) * 10) / 10,
+  }));
+  const averageRepairHours = resolvedWork.length
+    ? Math.round((resolvedWork.reduce((total, item) => total + item.hours, 0) / resolvedWork.length) * 10) / 10
+    : 0;
+  const machineDetails = machinesWithOpen.size ? machines.filter((machine) => machinesWithOpen.has(machine.id)).map((machine) => ({
+    machine_id: machine.id, machine_name: machine.name, location: machine.location,
+    open_count: openTickets.filter((ticket) => ticket.machine_id === machine.id).length,
+  })) : [];
 
   return {
     company_name: companyName,
@@ -157,11 +172,17 @@ async function fetchDashboardData() {
       urgent_open: urgentOpen,
       total_machines: machines.length,
       plant_health_pct: healthPct,
-      avg_hours_to_fix: 0,
+      avg_hours_to_fix: averageRepairHours,
       total_tickets: tickets.length,
     },
     auto_insights: maintenanceInsights,
     owner_impact: ownerImpact,
+    drilldown: {
+      machines_down: machineDetails,
+      urgent_issues: needsAttention.filter((item) => item.urgency === 'High' || item.urgency === 'Critical'),
+      open_work: needsAttention,
+      resolved_work: resolvedWork,
+    },
     needs_attention: needsAttention,
     recent_activity: [],
     weekly_trend: [],
@@ -172,6 +193,7 @@ export default function Dashboard() {
   const [data, setData] = useState(fallback);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeDetail, setActiveDetail] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -187,6 +209,17 @@ export default function Dashboard() {
   const { kpis, auto_insights: insights, owner_impact: impact } = data;
   const topMachine = insights.top_problem_machines?.[0];
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
+  const detailConfig = {
+    health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
+    machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
+    urgent: { title: 'Urgent issues', items: data.drilldown?.urgent_issues || [], empty: 'No urgent issue is currently open.' },
+    open: { title: 'Open maintenance work', items: data.drilldown?.open_work || [], empty: 'No open maintenance work.' },
+    repair: { title: 'Recent completed work behind the average', items: data.drilldown?.resolved_work || [], empty: 'No completed repair duration is available yet.' },
+  };
+  const revealDetail = (detail) => {
+    setActiveDetail(detail);
+    window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  };
 
   return (
     <AppShell active="overview">
@@ -205,12 +238,13 @@ export default function Dashboard() {
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
         <section className="decision-hero-grid">
-          <div className={`decision-health-card ${healthTone}`}>
+          <button type="button" className={`decision-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
             <div className="decision-card-kicker">Plant health</div>
             <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
             <p>{kpis.machines_down || 0} machines currently need attention out of {kpis.total_machines || 0}.</p>
             <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
-          </div>
+            <small className="decision-click-hint">View affected machines →</small>
+          </button>
           <div className="decision-next-card">
             <div className="decision-card-kicker">Recommended next action</div>
             <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
@@ -221,11 +255,16 @@ export default function Dashboard() {
 
         <div className="decision-section-label">Needs action now</div>
         <section className="decision-kpi-grid">
-          <Metric label="Machines down" value={kpis.machines_down} tone="danger" />
-          <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" />
-          <Metric label="Open work" value={kpis.open_tickets} />
-          <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} />
+          <Metric label="Machines down" value={kpis.machines_down} tone="danger" onClick={() => revealDetail('machines')} />
+          <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" onClick={() => revealDetail('urgent')} />
+          <Metric label="Open work" value={kpis.open_tickets} onClick={() => revealDetail('open')} />
+          <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} onClick={() => revealDetail('repair')} />
         </section>
+
+        {activeDetail && <section className="decision-panel dashboard-drilldown" id="dashboard-drilldown" tabIndex="-1">
+          <div className="decision-panel-heading"><div><div className="decision-card-kicker">Number explained</div><h2>{detailConfig[activeDetail].title}</h2></div><button type="button" className="dashboard-drilldown-close" onClick={() => setActiveDetail('')}>Close</button></div>
+          {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : 'tickets.html'} key={`${item.ticket_id || item.machine_id || index}-${index}`}><span><strong>{item.machine_name || 'Unknown machine'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || 'Open'}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
+        </section>}
 
         <div className="decision-section-label">Maintenance intelligence</div>
         <section className="decision-insight-grid">
@@ -269,6 +308,6 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, tone = '' }) { return <div className="decision-metric"><span className={`metric-value ${tone}`}>{value ?? '—'}</span><span className="metric-label">{label}</span></div>; }
+function Metric({ label, value, tone = '', onClick }) { return <button type="button" className="decision-metric clickable" onClick={onClick}><span className={`metric-value ${tone}`}>{value ?? '—'}</span><span className="metric-label">{label}</span><small className="decision-click-hint">View details →</small></button>; }
 function Insight({ label, value, detail }) { return <div className="decision-insight"><span className="decision-card-kicker">{label}</span><strong>{value}</strong><span>{detail}</span></div>; }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
