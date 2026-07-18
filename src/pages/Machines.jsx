@@ -93,10 +93,14 @@ export default function Machines() {
     setError('');
     try {
       const [machinesRes, ticketsRes, usersRes] = await Promise.all([
-        supabase.from('machines').select('id,name,location,status,assigned_technician_phone,supervisor_id,factory_id,hourly_downtime_cost,maintenance_interval_days,last_maintenance_date,next_maintenance_due'),
+        supabase.from('machines').select('*'),
         supabase.from('tickets').select('id,machine_id,status'),
         supabase.from('users').select('id,name,role,email,phone'),
       ]);
+
+      if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
+      if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
+      if (usersRes.error) throw new Error(`Response team could not be loaded: ${usersRes.error.message}`);
 
       const openByMachine = {};
       (ticketsRes.data || []).forEach(t => {
