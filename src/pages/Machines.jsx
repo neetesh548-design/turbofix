@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, ArrowLeft, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List,
+  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -27,6 +27,8 @@ export default function Machines() {
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState(null);
+  const [machineEdit, setMachineEdit] = useState(null);
+  const [machineEditSaving, setMachineEditSaving] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
@@ -77,6 +79,10 @@ export default function Machines() {
   // Calendar Year/Month
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
+
+  let signedInUser = null;
+  try { signedInUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
+  const isOwner = signedInUser?.role === 'owner';
 
 
   useEffect(() => {
@@ -264,6 +270,48 @@ export default function Machines() {
       } catch (syncError) {
         console.warn('Machine photo remains available only in this browser:', syncError);
       }
+    }
+  };
+
+  const openMachineEdit = () => {
+    setError('');
+    setMachineEdit({
+      name: selectedMachine.machine_name || '',
+      location: selectedMachine.location || '',
+      status: selectedMachine.status || 'healthy',
+      hourly_downtime_cost: selectedMachine.hourly_downtime_cost ?? '',
+      maintenance_interval_days: selectedMachine.maintenance_interval_days || 90,
+      last_maintenance_date: selectedMachine.last_maintenance_date?.slice(0, 10) || '',
+    });
+  };
+
+  const saveMachineEdit = async (event) => {
+    event.preventDefault();
+    setMachineEditSaving(true);
+    setError('');
+    try {
+      const { data, error: updateError } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'update_machine', machine_id: selectedMachine.machine_id, ...machineEdit },
+      });
+      if (updateError || data?.error || !data?.machine) throw new Error(data?.error || updateError?.message || 'Machine details could not be updated.');
+      const updated = {
+        ...selectedMachine,
+        machine_name: data.machine.name,
+        location: data.machine.location,
+        status: data.machine.status,
+        hourly_downtime_cost: data.machine.hourly_downtime_cost,
+        maintenance_interval_days: data.machine.maintenance_interval_days,
+        last_maintenance_date: data.machine.last_maintenance_date,
+        next_maintenance_due: data.machine.next_maintenance_due,
+      };
+      setSelectedMachine(updated);
+      setMachines((current) => current.map((machine) => machine.machine_id === updated.machine_id ? updated : machine));
+      setMachineEdit(null);
+      setSuccess('Machine details updated successfully.');
+    } catch (saveError) {
+      setError(saveError.message || 'Machine details could not be updated.');
+    } finally {
+      setMachineEditSaving(false);
     }
   };
 
@@ -1046,11 +1094,25 @@ export default function Machines() {
                   <p><MapPin />{selectedMachine.location || 'Location not set'}</p>
                 </div>
                 <div className="machine-workspace-actions">
+                  {isOwner && <button type="button" className="machine-action secondary" onClick={openMachineEdit}><Pencil />Edit details</button>}
                   <button type="button" className="machine-action secondary" onClick={() => setWsTab('docs')}><Upload />Add document</button>
                   <a className="machine-action secondary" href={`records.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}&upload=1`}><FileCheck2 />Add old records</a>
                   <a className="machine-action primary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Ask TurboFix AI</a>
                 </div>
               </header>
+
+              {machineEdit && <form className="machine-owner-edit" onSubmit={saveMachineEdit}>
+                <div className="machine-owner-edit-heading"><div><span>Owner edit</span><h3>Machine details</h3><p>These changes appear across the shared company workspace.</p></div><button type="button" onClick={() => setMachineEdit(null)}>Cancel</button></div>
+                <div className="machine-owner-edit-grid">
+                  <label><span>Machine name</span><input value={machineEdit.name} onChange={(e) => setMachineEdit({ ...machineEdit, name: e.target.value })} required /></label>
+                  <label><span>Location</span><input value={machineEdit.location} onChange={(e) => setMachineEdit({ ...machineEdit, location: e.target.value })} /></label>
+                  <label><span>Condition</span><select value={machineEdit.status} onChange={(e) => setMachineEdit({ ...machineEdit, status: e.target.value })}><option value="healthy">Operational</option><option value="maintenance">Under maintenance</option><option value="down">Down</option></select></label>
+                  <label><span>Downtime cost per hour</span><input type="number" min="0" step="0.01" value={machineEdit.hourly_downtime_cost} onChange={(e) => setMachineEdit({ ...machineEdit, hourly_downtime_cost: e.target.value })} /></label>
+                  <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} /></label>
+                  <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} /></label>
+                </div>
+                <button className="vault-btn vault-btn-primary" disabled={machineEditSaving}>{machineEditSaving ? 'Saving…' : 'Save changes'}</button>
+              </form>}
 
               <section className="machine-workspace-pulse" aria-label="Machine at a glance">
                 <div className={selectedMachine.has_open_tickets ? 'attention' : 'good'}><span><Activity /></span><p><small>Current condition</small><strong>{selectedMachine.has_open_tickets ? 'Needs attention' : 'Running normally'}</strong></p></div>

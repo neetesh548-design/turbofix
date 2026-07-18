@@ -83,6 +83,58 @@ serve(async (req) => {
   }
 
   const body = await req.json()
+  if (body.action === 'update_machine') {
+    const machineId = String(body.machine_id ?? '')
+    const name = String(body.name ?? '').trim()
+    const location = String(body.location ?? '').trim()
+    const status = String(body.status ?? 'healthy').toLowerCase()
+    if (!name) return reply({ error: 'Machine name is required.' }, 400)
+    if (!['healthy', 'down', 'maintenance'].includes(status)) return reply({ error: 'Select a valid machine condition.' }, 400)
+    const { data: updated, error: updateError } = await admin.from('machines').update({
+      name,
+      location,
+      status,
+      hourly_downtime_cost: Math.max(0, Number(body.hourly_downtime_cost) || 0),
+      maintenance_interval_days: Math.max(1, Number(body.maintenance_interval_days) || 90),
+      last_maintenance_date: body.last_maintenance_date || null,
+    }).eq('id', machineId).eq('company_id', owner.company_id).select('*').maybeSingle()
+    if (updateError) return reply({ error: updateError.message }, 400)
+    if (!updated) return reply({ error: 'Machine was not found in your company.' }, 404)
+    return reply({ machine: updated })
+  }
+
+  if (body.action === 'update_team_member') {
+    const targetId = String(body.user_id ?? '')
+    const name = String(body.name ?? '').trim()
+    const role = String(body.role ?? '')
+    const email = String(body.email ?? '').trim().toLowerCase()
+    const phone = String(body.phone ?? '').trim()
+    const managerUserId = String(body.manager_user_id ?? '').trim() || null
+    if (!name) return reply({ error: 'Team member name is required.' }, 400)
+    const { data: target } = await admin.from('users').select('id,company_id,role').eq('id', targetId).eq('company_id', owner.company_id).maybeSingle()
+    if (!target) return reply({ error: 'Team member was not found in your company.' }, 404)
+    if (target.role === 'owner' && role !== 'owner') return reply({ error: 'The company owner role cannot be changed here.' }, 400)
+    if (target.role !== 'owner' && role === 'owner') return reply({ error: 'Another owner cannot be created here.' }, 400)
+    if (managerUserId) {
+      const { data: manager } = await admin.from('users').select('id').eq('id', managerUserId).eq('company_id', owner.company_id).maybeSingle()
+      if (!manager || manager.id === targetId) return reply({ error: 'Select a valid reporting manager.' }, 400)
+    }
+    const patch = {
+      name, role, email, phone,
+      manager_user_id: target.role === 'owner' ? null : managerUserId,
+      department: String(body.department ?? '').trim(),
+      plant_location: String(body.plant_location ?? '').trim(),
+      shift: String(body.shift ?? '').trim(),
+      portal_access: body.portal_access !== false,
+    }
+    const { error: updateError } = await admin.from('users').update(patch).eq('id', targetId)
+    if (updateError) return reply({ error: updateError.message }, 400)
+    if (targetId !== owner.id) {
+      await admin.auth.admin.updateUserById(targetId, { user_metadata: { name, role } }).catch(() => {})
+    }
+    return reply({ status: 'updated' })
+  }
+
   if (body.action === 'create_machine_photo_upload') {
     const machineId = String(body.machine_id ?? '')
     const extension = String(body.extension ?? 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg'
@@ -134,7 +186,7 @@ serve(async (req) => {
 
   if (body.action === 'list') {
     const { data: members, error: listError } = await admin.from('users')
-      .select('id,name,role,email,phone,created_at')
+      .select('id,name,role,email,phone,created_at,manager_user_id,department,plant_location,shift,portal_access')
       .eq('company_id', owner.company_id)
       .order('created_at', { ascending: true })
     if (listError) return reply({ error: listError.message }, 400)
@@ -146,12 +198,16 @@ serve(async (req) => {
         user_id: member.id,
         name: member.name,
         role: member.role,
+        manager_user_id: member.manager_user_id,
+        department: member.department,
+        plant_location: member.plant_location,
+        shift: member.shift,
         email_masked: maskEmail(email),
         phone_masked: maskPhone(phone),
         has_email: Boolean(email),
         has_phone: Boolean(phone),
         has_contact: Boolean(email || phone),
-        portal_access: member.id === owner.id || Boolean(member.email || member.phone),
+        portal_access: member.id === owner.id || member.portal_access !== false,
         can_receive_alerts: Boolean(phone),
       })}),
     })
@@ -183,6 +239,11 @@ serve(async (req) => {
 
   const { error: insertError } = await admin.from('users').insert({
     id: memberId, company_id: owner.company_id, name, phone, email, role,
+    manager_user_id: body.manager_user_id || null,
+    department: String(body.department ?? '').trim(),
+    plant_location: String(body.plant_location ?? '').trim(),
+    shift: String(body.shift ?? '').trim(),
+    portal_access: portalAccess,
   })
   if (insertError) {
     if (authCreated) await admin.auth.admin.deleteUser(memberId)

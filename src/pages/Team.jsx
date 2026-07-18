@@ -13,6 +13,8 @@ export default function Team() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [editingMember, setEditingMember] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -63,8 +65,13 @@ export default function Team() {
         can_reveal_contact: u.can_reveal_contact !== false,
         portal_access: u.portal_access,
         can_receive_alerts: u.can_receive_alerts,
+        manager_user_id: u.manager_user_id || '',
+        department: u.department || '',
+        plant_location: u.plant_location || '',
+        shift: u.shift || '',
       }));
-      setTeam(tData);
+      const namesById = Object.fromEntries(tData.map((member) => [member.user_id, member.name]));
+      setTeam(tData.map((member) => ({ ...member, manager_name: namesById[member.manager_user_id] || '' })));
       setCustomRoles([]);
     } catch (err) {
       setError(err.message || 'An error occurred while loading team list.');
@@ -121,6 +128,32 @@ export default function Team() {
 
   const getLabel = (roleVal) => getRoleLabel(roleVal, customRoles);
 
+  const saveMemberEdit = async (event) => {
+    event.preventDefault();
+    setEditSaving(true); setError(''); setSuccess('');
+    try {
+      const { data, error: updateError } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'update_team_member', ...editingMember },
+      });
+      if (updateError || data?.error) throw new Error(data?.error || updateError?.message || 'Team member could not be updated.');
+      setEditingMember(null);
+      setSuccess('Team member details updated successfully.');
+      await fetchData();
+    } catch (err) { setError(err.message); }
+    finally { setEditSaving(false); }
+  };
+
+  const startMemberEdit = async (member) => {
+    setError('');
+    try {
+      const { data, error: contactError } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'reveal_contact', user_id: member.user_id },
+      });
+      if (contactError || data?.error) throw new Error(data?.error || contactError?.message || 'Contact details could not be loaded.');
+      setEditingMember({ ...member, phone: data.phone || '', email: data.email || '' });
+    } catch (err) { setError(err.message); }
+  };
+
   const isOwner = currentUser && currentUser.role === 'owner';
   const techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
   const portalCount = team.filter((member) => member.portal_access).length;
@@ -166,6 +199,22 @@ export default function Team() {
 
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
+
+        {editingMember && <form className="vault-card team-edit-card" onSubmit={saveMemberEdit}>
+          <div className="team-edit-heading"><div><span>Owner edit</span><h2>Edit {editingMember.name}</h2><p>Changes apply across the shared company workspace.</p></div><button type="button" onClick={() => setEditingMember(null)}>Cancel</button></div>
+          <div className="team-edit-grid">
+            <label><span>Full name</span><input value={editingMember.name} onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })} required /></label>
+            <label><span>Role</span><select value={editingMember.role} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}>{editingMember.role === 'owner' && <option value="owner">Owner / Plant Director</option>}{allAvailableRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label><span>Mobile number</span><input value={editingMember.phone || ''} onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })} placeholder="+91 98765 43210" /></label>
+            <label><span>Email</span><input type="email" value={editingMember.email || ''} onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })} /></label>
+            <label><span>Department</span><input value={editingMember.department || ''} onChange={(e) => setEditingMember({ ...editingMember, department: e.target.value })} /></label>
+            <label><span>Plant / work area</span><input value={editingMember.plant_location || ''} onChange={(e) => setEditingMember({ ...editingMember, plant_location: e.target.value })} /></label>
+            <label><span>Shift</span><input value={editingMember.shift || ''} onChange={(e) => setEditingMember({ ...editingMember, shift: e.target.value })} /></label>
+            {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
+          </div>
+          <label className="team-edit-access"><input type="checkbox" checked={editingMember.portal_access !== false} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, portal_access: e.target.checked })} /><span>Portal access enabled</span></label>
+          <button className="vault-btn vault-btn-primary" disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
+        </form>}
 
         {!loading && team.length > 0 && <section className="postlogin-summary" aria-label="Team summary filters">
           {[['all', team.length, 'All members'], ['technicians', techniciansCount, 'Technicians'], ['portal', portalCount, 'Portal access'], ['alerts', responseCount, 'Can receive alerts']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View people →</small></button>)}
@@ -256,11 +305,12 @@ export default function Team() {
                   <th>Contact Info</th>
                   <th>Authorization Badge</th>
                   <th>Access</th>
+                  {isOwner && <th>Action</th>}
                 </tr>
               </thead>
               <tbody>
                 {visibleTeam.length === 0 ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>{team.length ? 'No team members match this view.' : 'No team members found for this plant.'}</td></tr>
+                  <tr><td colSpan={isOwner ? 6 : 5} style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>{team.length ? 'No team members match this view.' : 'No team members found for this plant.'}</td></tr>
                 ) : visibleTeam.map((u) => (
                   <tr key={u.user_id}>
                     <td>
@@ -285,6 +335,7 @@ export default function Team() {
                       <span className={`team-access-status ${u.portal_access ? 'active' : 'offline'}`}>{u.portal_access ? 'Portal access' : 'Offline staff'}</span>
                       {!u.can_receive_alerts && <small className="team-alert-warning">Cannot receive mobile alerts</small>}
                     </td>
+                    {isOwner && <td><button type="button" className="team-edit-button" onClick={() => startMemberEdit(u)}>Edit</button></td>}
                   </tr>
                 ))}
               </tbody>
