@@ -1,21 +1,43 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-const Home = lazy(() => import('./pages/Home'));
-const WhyTurboFix = lazy(() => import('./pages/WhyTurboFix'));
-const QRGenerator = lazy(() => import('./pages/QRGenerator'));
-const Vault = lazy(() => import('./pages/Vault'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const Machines = lazy(() => import('./pages/Machines'));
-const Tickets = lazy(() => import('./pages/Tickets'));
-const Team = lazy(() => import('./pages/Team'));
-const Settings = lazy(() => import('./pages/Settings'));
-const Assistant = lazy(() => import('./pages/Assistant'));
-const ShutdownPlanner = lazy(() => import('./pages/ShutdownPlanner'));
-const Technician = lazy(() => import('./pages/Technician'));
-const Records = lazy(() => import('./pages/Records'));
-const Support = lazy(() => import('./pages/Support'));
+const loaders = {
+  '/': () => import('./pages/Home'),
+  '/why-turbofix.html': () => import('./pages/WhyTurboFix'),
+  '/qr-generator.html': () => import('./pages/QRGenerator'),
+  '/vault.html': () => import('./pages/Vault'),
+  '/dashboard.html': () => import('./pages/Dashboard'),
+  '/reset-password.html': () => import('./pages/ResetPassword'),
+  '/machines.html': () => import('./pages/Machines'),
+  '/tickets.html': () => import('./pages/Tickets'),
+  '/team.html': () => import('./pages/Team'),
+  '/settings.html': () => import('./pages/Settings'),
+  '/assistant.html': () => import('./pages/Assistant'),
+  '/shutdown-planner.html': () => import('./pages/ShutdownPlanner'),
+  '/technician.html': () => import('./pages/Technician'),
+  '/records.html': () => import('./pages/Records'),
+  '/support.html': () => import('./pages/Support'),
+};
+
+const Home = lazy(loaders['/']);
+const WhyTurboFix = lazy(loaders['/why-turbofix.html']);
+const QRGenerator = lazy(loaders['/qr-generator.html']);
+const Vault = lazy(loaders['/vault.html']);
+const Dashboard = lazy(loaders['/dashboard.html']);
+const ResetPassword = lazy(loaders['/reset-password.html']);
+const Machines = lazy(loaders['/machines.html']);
+const Tickets = lazy(loaders['/tickets.html']);
+const Team = lazy(loaders['/team.html']);
+const Settings = lazy(loaders['/settings.html']);
+const Assistant = lazy(loaders['/assistant.html']);
+const ShutdownPlanner = lazy(loaders['/shutdown-planner.html']);
+const Technician = lazy(loaders['/technician.html']);
+const Records = lazy(loaders['/records.html']);
+const Support = lazy(loaders['/support.html']);
+
+// Start the current page chunk immediately instead of waiting for React Router.
+const currentPath = window.location.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '') || '/';
+loaders[currentPath]?.();
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;

@@ -56,15 +56,9 @@ export default function Vault() {
     sbScript.onload = () => document.body.appendChild(script);
     sbScript.onerror = () => document.body.appendChild(script);
 
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = `${import.meta.env.BASE_URL}assets/vault.css`;
-    document.head.appendChild(style);
-    
     return () => {
       sbScript.remove();
       script.remove();
-      style.remove();
     };
   }, []);
 
