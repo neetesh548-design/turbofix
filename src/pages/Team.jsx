@@ -38,15 +38,26 @@ export default function Team() {
     setLoading(true);
     setError('');
     try {
-      const { data: usersData, error: usersErr } = await supabase.from('users').select('id,name,role,email,phone');
-      if (usersErr) throw new Error(usersErr.message);
-      const tData = (usersData || []).map(u => ({
-        user_id: u.id,
+      const { data: directoryData, error: directoryErr } = await supabase.functions.invoke('onboard_team_member', {
+        body: { action: 'list' },
+      });
+      if (directoryErr) {
+        let message = directoryErr.message;
+        try {
+          const errorBody = await directoryErr.context?.json();
+          message = errorBody?.error || errorBody?.message || message;
+        } catch {}
+        throw new Error(message);
+      }
+      if (directoryData?.error) throw new Error(directoryData.error);
+      const tData = (directoryData?.members || []).map(u => ({
+        user_id: u.user_id,
         name: u.name,
         role: u.role,
         email: u.email,
         phone: u.phone,
-        can_receive_alerts: true,
+        portal_access: u.portal_access,
+        can_receive_alerts: u.can_receive_alerts,
       }));
       setTeam(tData);
       setCustomRoles([]);

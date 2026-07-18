@@ -76,6 +76,25 @@ serve(async (req) => {
   }
 
   const body = await req.json()
+  if (body.action === 'list') {
+    const { data: members, error: listError } = await admin.from('users')
+      .select('id,name,role,email,phone,created_at')
+      .eq('company_id', owner.company_id)
+      .order('created_at', { ascending: true })
+    if (listError) return reply({ error: listError.message }, 400)
+    return reply({
+      members: (members ?? []).map((member) => ({
+        user_id: member.id,
+        name: member.name,
+        role: member.role,
+        email: member.email,
+        phone: member.phone,
+        portal_access: Boolean(member.email || member.phone),
+        can_receive_alerts: Boolean(member.phone),
+      })),
+    })
+  }
+
   const name = String(body.name ?? '').trim()
   const phone = String(body.phone ?? '').trim()
   const email = String(body.email ?? '').trim().toLowerCase()
