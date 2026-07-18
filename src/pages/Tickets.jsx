@@ -9,6 +9,7 @@ export default function Tickets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
 
   useEffect(() => {
     fetchTicketsAndEscalation();
@@ -33,6 +34,8 @@ export default function Tickets() {
         status: t.status,
         issue_text: t.issue_text,
         ai_summary: t.ai_summary,
+        urgency: typeof t.ai_summary === 'object' ? t.ai_summary?.urgency : '',
+        description: t.issue_text,
         created_at: t.created_at,
         reporter_phone: t.reporter_phone,
       }));
@@ -67,6 +70,14 @@ export default function Tickets() {
       return dtStr;
     }
   };
+
+  const openCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open').length;
+  const urgentCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && String(ticket.urgency).toLowerCase() === 'high').length;
+  const closedCount = tickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
+  const visibleTickets = tickets.filter((ticket) => activeFilter === 'all'
+    || (activeFilter === 'open' && String(ticket.status).toLowerCase() === 'open')
+    || (activeFilter === 'urgent' && String(ticket.status).toLowerCase() === 'open' && String(ticket.urgency).toLowerCase() === 'high')
+    || (activeFilter === 'closed' && ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())));
 
   return (
     <AppShell active="tickets">
@@ -115,6 +126,10 @@ export default function Tickets() {
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
 
+        {!loading && tickets.length > 0 && <section className="postlogin-summary" aria-label="Ticket summary filters">
+          {[['all', tickets.length, 'All tickets'], ['open', openCount, 'Open work'], ['urgent', urgentCount, 'Urgent issues'], ['closed', closedCount, 'Closed tickets']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View details →</small></button>)}
+        </section>}
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading tickets...</div>
         ) : tickets.length === 0 ? (
@@ -137,7 +152,8 @@ export default function Tickets() {
                 </tr>
               </thead>
               <tbody>
-                {tickets.map((t) => {
+                {visibleTickets.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No tickets match this view.</td></tr>}
+                {visibleTickets.map((t) => {
                   const ticketId = t.ticket_id || t.id || '—';
                   const status = String(t.status || 'Open').toLowerCase();
                   const currentTier = getCurrentEscalationLevel({ ...t, status: status === 'open' ? 'Open' : 'Closed' }, escalationPath);

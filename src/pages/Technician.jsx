@@ -299,7 +299,7 @@ export default function Technician() {
         {loading ? <div className="technician-empty">Loading your work queue…</div> : (
           <div className="technician-grid">
             <section className="technician-queue">
-              <div className="technician-section-heading"><div><span className="eyebrow eyebrow-light">Today</span><h2>My work queue</h2></div><span className="technician-count">{tickets.length} open</span></div>
+              <div className="technician-section-heading"><div><span className="eyebrow eyebrow-light">Today</span><h2>My work queue</h2></div><button type="button" className="technician-count postlogin-inline-count" onClick={() => document.querySelector('.technician-ticket')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>{tickets.length} open <small>View work</small></button></div>
               {tickets.length === 0 ? <div className="technician-empty"><ClipboardCheck className="size-9" /><strong>No open work right now</strong><span>New breakdowns and assigned tasks will appear here.</span></div> : tickets.map((ticket) => {
                 const item = { ...defaultWork, ...(work[ticket.ticket_id] || {}) };
                 return <button key={ticket.ticket_id} className={`technician-ticket${selectedId === ticket.ticket_id ? ' active' : ''}`} onClick={() => setSelectedId(ticket.ticket_id)}><span className={`technician-priority ${String(ticket.urgency || 'Low').toLowerCase()}`}>{ticket.urgency || 'Normal'}</span><span className="technician-ticket-main"><strong>{ticket.machine_name || ticket.machine_id || 'Machine'}</strong><span>{ticket.description || 'Inspection required'}</span></span><span className="technician-ticket-status">{item.status.replace('_', ' ')}</span></button>;
@@ -320,7 +320,7 @@ export default function Technician() {
                   </div>
                   <span className={`technician-state ${selectedWork.status}`}>{selectedWork.status.replace('_', ' ')}</span>
                 </div>
-                <div className="technician-progress"><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div></div>
+                <button type="button" className="technician-progress postlogin-progress-button" onClick={() => document.querySelector('.technician-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div><small>View checklist →</small></button>
                 <div className="technician-actions">
                   <button className="btn btn-primary" onClick={startWork} disabled={saving || isLocked}><Play className="size-4" />{selectedWork.status === 'in_progress' ? 'Work in progress' : 'Start work'}</button>
                   {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}

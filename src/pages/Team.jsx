@@ -12,6 +12,7 @@ export default function Team() {
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   // Form states
   const [name, setName] = useState('');
@@ -121,6 +122,13 @@ export default function Team() {
   const getLabel = (roleVal) => getRoleLabel(roleVal, customRoles);
 
   const isOwner = currentUser && currentUser.role === 'owner';
+  const techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
+  const portalCount = team.filter((member) => member.portal_access).length;
+  const responseCount = team.filter((member) => member.can_receive_alerts).length;
+  const visibleTeam = team.filter((member) => activeFilter === 'all'
+    || (activeFilter === 'technicians' && member.role === 'maintenance_technician')
+    || (activeFilter === 'portal' && member.portal_access)
+    || (activeFilter === 'alerts' && member.can_receive_alerts));
 
   // Combine default and custom roles for select dropdown
   const allAvailableRoles = [
@@ -158,6 +166,10 @@ export default function Team() {
 
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
+
+        {!loading && team.length > 0 && <section className="postlogin-summary" aria-label="Team summary filters">
+          {[['all', team.length, 'All members'], ['technicians', techniciansCount, 'Technicians'], ['portal', portalCount, 'Portal access'], ['alerts', responseCount, 'Can receive alerts']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View people →</small></button>)}
+        </section>}
 
         {showAddForm && (
           <div className="vault-card" style={{ marginBottom: '20px' }}>
@@ -247,9 +259,9 @@ export default function Team() {
                 </tr>
               </thead>
               <tbody>
-                {team.length === 0 ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No team members found for this plant.</td></tr>
-                ) : team.map((u) => (
+                {visibleTeam.length === 0 ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>{team.length ? 'No team members match this view.' : 'No team members found for this plant.'}</td></tr>
+                ) : visibleTeam.map((u) => (
                   <tr key={u.user_id}>
                     <td>
                       <div style={{ fontWeight: '600' }}>{u.name}</div>

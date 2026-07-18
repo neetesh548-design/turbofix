@@ -574,6 +574,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Machine onboarding: a short, readable sequence instead of a wide field wall. */
 .machines-directory-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+.postlogin-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
+.postlogin-summary button { display: grid; gap: 4px; min-height: 104px; padding: 17px 18px; border: 1px solid #344252; border-radius: 13px; color: #aab8c9; background: linear-gradient(145deg, #1d2732, #18212b); text-align: left; cursor: pointer; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.postlogin-summary button:hover, .postlogin-summary button.active { transform: translateY(-2px); border-color: rgba(74,222,128,.58); background: linear-gradient(145deg, #20332d, #182820); }
+.postlogin-summary strong { color: #f8fafc; font: 850 1.75rem/1 Rajdhani, sans-serif; }
+.postlogin-summary button.active strong { color: #4ade80; }
+.postlogin-summary span { font-size: .8rem; font-weight: 750; }
+.postlogin-summary small { margin-top: 4px; color: #60d98d; font-size: .67rem; }
+.postlogin-number-link { color: inherit; text-decoration: none; cursor: pointer; }
+.postlogin-number-link em { display: block; margin-top: 5px; color: #4ade80; font-size: .68rem; font-style: normal; font-weight: 750; }
+.postlogin-inline-count { cursor: pointer; }
+.postlogin-inline-count small { margin-left: 4px; color: #4ade80; font-size: .58rem; }
+.postlogin-progress-button { display: block; width: 100%; color: inherit; text-align: left; cursor: pointer; }
+.postlogin-progress-button > small { display: block; margin-top: 8px; color: #4ade80; font-size: .68rem; text-align: right; }
 .machines-directory-actions { display: flex; align-items: center; gap: 12px; }
 .machines-view-toggle { display: flex; padding: 4px; border: 1px solid #3a4655; border-radius: 10px; background: #151e27; }
 .machines-view-toggle button { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 11px; border: 0; border-radius: 7px; color: #91a2b5; background: transparent; font: inherit; font-size: .78rem; font-weight: 750; cursor: pointer; }
@@ -641,8 +654,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-topbar { padding: 10px 18px; }
   .app-content .decision-page, .app-content .assistant-page, .app-content .planner-page { padding-top: 34px; }
 }
-@media (max-width: 760px) { .machines-directory-header { display: grid; } .machines-directory-actions { display: grid; grid-template-columns: 1fr; } .machines-view-toggle { width: fit-content; } .machines-onboard-toggle { width: 100%; } .machine-form-grid, .machine-role-grid { grid-template-columns: 1fr; } .machine-onboard-header, .machine-form-actions { display: grid; } .machine-onboard-time { justify-self: start; } .machine-team-notice { grid-template-columns: 1fr; margin-left: 0; } .machine-submit { width: 100% !important; } }
+@media (max-width: 760px) { .postlogin-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .machines-directory-header { display: grid; } .machines-directory-actions { display: grid; grid-template-columns: 1fr; } .machines-view-toggle { width: fit-content; } .machines-onboard-toggle { width: 100%; } .machine-form-grid, .machine-role-grid { grid-template-columns: 1fr; } .machine-onboard-header, .machine-form-actions { display: grid; } .machine-onboard-time { justify-self: start; } .machine-team-notice { grid-template-columns: 1fr; margin-left: 0; } .machine-submit { width: 100% !important; } }
 @media (max-width: 560px) {
+  .postlogin-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .postlogin-summary button { min-height: 92px; padding: 14px; }
   .app-topbar { min-height: 64px; }
   .app-company-name { max-width: 34vw; font-size: 16px; }
   .app-role-badge { display: none; }
@@ -3190,9 +3205,11 @@ details.faq-item p {
 .shutdown-review-date span { color: #8494a7; font-size: .68rem; font-weight: 750; text-transform: uppercase; }
 .shutdown-review-date strong { color: #f1f5f9; font-size: .94rem; }
 .shutdown-review-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-.shutdown-review-metrics div { display: grid; gap: 3px; min-width: 0; border: 1px solid #354252; border-radius: 10px; padding: 11px 8px; background: rgba(255, 255, 255, .018); text-align: center; }
+.shutdown-review-metrics button { display: grid; gap: 3px; min-width: 0; border: 1px solid #354252; border-radius: 10px; padding: 11px 8px; color: inherit; background: rgba(255, 255, 255, .018); text-align: center; cursor: pointer; }
+.shutdown-review-metrics button:hover { border-color: rgba(74,222,128,.55); background: rgba(34,197,94,.08); }
 .shutdown-review-metrics strong { color: #f8fafc; font: 850 1.35rem/1 Rajdhani, sans-serif; }
 .shutdown-review-metrics span { color: #8797aa; font-size: .61rem; line-height: 1.2; }
+.shutdown-review-metrics small { color: #4ade80; font-size: .54rem; }
 .shutdown-capacity { margin: 18px 0; }
 .shutdown-capacity > div:first-child { display: flex; justify-content: space-between; gap: 10px; color: #9cabbc; font-size: .76rem; }
 .shutdown-capacity > div:first-child strong { color: #e2e8f0; }
