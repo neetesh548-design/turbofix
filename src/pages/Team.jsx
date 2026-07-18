@@ -54,8 +54,10 @@ export default function Team() {
         user_id: u.user_id,
         name: u.name,
         role: u.role,
-        email: u.email,
-        phone: u.phone,
+        email_masked: u.email_masked,
+        phone_masked: u.phone_masked,
+        has_contact: u.has_contact,
+        can_reveal_contact: u.can_reveal_contact !== false,
         portal_access: u.portal_access,
         can_receive_alerts: u.can_receive_alerts,
       }));

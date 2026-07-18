@@ -11,6 +11,13 @@ const reply = (body: Record<string, unknown>, status = 200) => new Response(
   { status, headers: { ...cors, 'Content-Type': 'application/json' } },
 )
 
+const maskPhone = (value: string) => value ? `${'*'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}` : ''
+const maskEmail = (value: string) => {
+  if (!value || !value.includes('@')) return ''
+  const [local, domain] = value.split('@')
+  return `${local.slice(0, 1)}***@${domain}`
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return reply({ error: 'Method not allowed' }, 405)
@@ -76,6 +83,15 @@ serve(async (req) => {
   }
 
   const body = await req.json()
+  if (body.action === 'reveal_contact') {
+    const targetId = String(body.user_id ?? '')
+    const { data: target, error: targetError } = await admin.from('users')
+      .select('id,company_id,phone,email').eq('id', targetId).eq('company_id', owner.company_id).maybeSingle()
+    if (targetError) return reply({ error: targetError.message }, 400)
+    if (!target) return reply({ error: 'Team member was not found in your company.' }, 404)
+    return reply({ phone: target.phone || '', email: target.email || '' })
+  }
+
   if (body.action === 'list') {
     const { data: members, error: listError } = await admin.from('users')
       .select('id,name,role,email,phone,created_at')
@@ -87,8 +103,9 @@ serve(async (req) => {
         user_id: member.id,
         name: member.name,
         role: member.role,
-        email: member.email,
-        phone: member.phone,
+        email_masked: maskEmail(member.email || ''),
+        phone_masked: maskPhone(member.phone || ''),
+        has_contact: Boolean(member.email || member.phone),
         portal_access: Boolean(member.email || member.phone),
         can_receive_alerts: Boolean(member.phone),
       })),
