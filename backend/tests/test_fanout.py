@@ -64,11 +64,33 @@ def test_notify_ticket_prefers_ai_summary_over_raw_description(monkeypatch):
 
     _, params = sent[0]
     assert params == [
-        "CNC Lathe 1",
         "T20260707-abcd",
+        "CNC Lathe 1",
+        "Location not recorded",
         "Likely cause: worn bearing | Suggested action: replace it",
         "Medium",
-        "919900099999",
+        "919900011111",
+    ]
+
+
+def test_all_new_ticket_placeholders_are_generated_in_meta_order():
+    params = fanout_service._template_params(
+        _ticket(),
+        _machine(location="Shop Floor A", assigned_technician_name="Rahul Sharma"),
+    )
+    assert params == [
+        "T20260707-abcd", "CNC Lathe 1", "Shop Floor A",
+        "spindle making loud noise", "Medium", "Rahul Sharma",
+    ]
+
+
+def test_all_closure_placeholders_are_generated_in_meta_order():
+    params = fanout_service._closure_params(
+        _ticket(resolution="Bearing replaced", hours_to_fix="1.5"), "Rahul Sharma"
+    )
+    assert params == [
+        "T20260707-abcd", "CNC Lathe 1", "Bearing replaced",
+        "Rahul Sharma", "1.5 hours",
     ]
 
 

@@ -45,14 +45,16 @@ async def download_media(media_id: str) -> str:
     return str(dest)
 
 
-async def send_template_message(to: str, params: List[str]) -> None:
-    """Send the pre-approved ticket notification template to `to`."""
+async def _send_named_template(
+    to: str, template_name: str, language: str, params: List[str]
+) -> None:
+    """Send a Meta template with body values in placeholder order."""
     if _use_wacrm():
         from app.infrastructure import wacrm_client
         await wacrm_client.send_template_message(
             to=to,
-            template_name=config.WHATSAPP_TICKET_TEMPLATE_NAME,
-            language=config.WHATSAPP_TICKET_TEMPLATE_LANGUAGE,
+            template_name=template_name,
+            language=language,
             params=params,
         )
         return
@@ -66,8 +68,8 @@ async def send_template_message(to: str, params: List[str]) -> None:
         "to": to,
         "type": "template",
         "template": {
-            "name": config.WHATSAPP_TICKET_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_TICKET_TEMPLATE_LANGUAGE},
+            "name": template_name,
+            "language": {"code": language},
             "components": [{
                 "type": "body",
                 "parameters": [{"type": "text", "text": str(p)} for p in params],
@@ -79,44 +81,23 @@ async def send_template_message(to: str, params: List[str]) -> None:
         headers=headers,
         json=payload,
     )
-    log.info("whatsapp.template_sent", to=to, template=config.WHATSAPP_TICKET_TEMPLATE_NAME)
+    log.info("whatsapp.template_sent", to=to, template=template_name)
+
+
+async def send_template_message(to: str, params: List[str]) -> None:
+    """Send turbofix_new_ticket: ticket, machine, location, issue, urgency, assignee."""
+    await _send_named_template(
+        to, config.WHATSAPP_TICKET_TEMPLATE_NAME,
+        config.WHATSAPP_TICKET_TEMPLATE_LANGUAGE, params,
+    )
 
 
 async def send_closure_template(to: str, params: List[str]) -> None:
-    """Send the ticket-closed notification template to `to`."""
-    if _use_wacrm():
-        from app.infrastructure import wacrm_client
-        await wacrm_client.send_template_message(
-            to=to,
-            template_name=config.WHATSAPP_CLOSURE_TEMPLATE_NAME,
-            language=config.WHATSAPP_CLOSURE_TEMPLATE_LANGUAGE,
-            params=params,
-        )
-        return
-
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": to,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_CLOSURE_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_CLOSURE_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    await resilient_post(
-        _graph_url(f"{config.WHATSAPP_PHONE_NUMBER_ID}/messages"),
-        headers=headers,
-        json=payload,
+    """Send turbofix_ticket_closed: ticket, machine, resolution, closer, duration."""
+    await _send_named_template(
+        to, config.WHATSAPP_CLOSURE_TEMPLATE_NAME,
+        config.WHATSAPP_CLOSURE_TEMPLATE_LANGUAGE, params,
     )
-    log.info("whatsapp.closure_sent", to=to, template=config.WHATSAPP_CLOSURE_TEMPLATE_NAME)
 
 
 async def send_text_message(to: str, text: str) -> None:
@@ -145,40 +126,32 @@ async def send_text_message(to: str, text: str) -> None:
 
 
 async def send_escalation_template(to: str, params: List[str]) -> None:
-    """Send escalation notification template."""
-    if _use_wacrm():
-        from app.infrastructure import wacrm_client
-        await wacrm_client.send_template_message(
-            to=to,
-            template_name=config.WHATSAPP_ESCALATION_TEMPLATE_NAME,
-            language=config.WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE,
-            params=params,
-        )
-        return
-
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": to,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_ESCALATION_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    await resilient_post(
-        _graph_url(f"{config.WHATSAPP_PHONE_NUMBER_ID}/messages"),
-        headers=headers,
-        json=payload,
+    """Send turbofix_escalation in its six-placeholder order."""
+    await _send_named_template(
+        to, config.WHATSAPP_ESCALATION_TEMPLATE_NAME,
+        config.WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE, params,
     )
-    log.info("whatsapp.escalation_sent", to=to)
+
+
+async def send_approval_template(to: str, params: List[str]) -> None:
+    await _send_named_template(
+        to, config.WHATSAPP_APPROVAL_TEMPLATE_NAME,
+        config.WHATSAPP_APPROVAL_TEMPLATE_LANGUAGE, params,
+    )
+
+
+async def send_rejection_template(to: str, params: List[str]) -> None:
+    await _send_named_template(
+        to, config.WHATSAPP_REJECTION_TEMPLATE_NAME,
+        config.WHATSAPP_REJECTION_TEMPLATE_LANGUAGE, params,
+    )
+
+
+async def send_part_request_template(to: str, params: List[str]) -> None:
+    await _send_named_template(
+        to, config.WHATSAPP_PART_REQUEST_TEMPLATE_NAME,
+        config.WHATSAPP_PART_REQUEST_TEMPLATE_LANGUAGE, params,
+    )
 
 
 async def send_broadcast(name: str, template_name: str, language: str,

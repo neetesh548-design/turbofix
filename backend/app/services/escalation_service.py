@@ -26,90 +26,48 @@ _config_repo = SupabaseEscalationConfigRepository()
 _part_repo = SupabasePartRequestRepository()
 
 
+def _minutes_open(record: dict) -> str:
+    raw = record.get("reported_at") or record.get("created_at")
+    if not raw:
+        return "Not recorded"
+    try:
+        opened = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if opened.tzinfo is None:
+            opened = opened.replace(tzinfo=timezone.utc)
+        return str(max(0, int((datetime.now(timezone.utc) - opened).total_seconds() // 60)))
+    except (TypeError, ValueError):
+        return "Not recorded"
+
+
 async def _send_escalation_whatsapp(phone: str, params: list) -> None:
     from app.infrastructure import whatsapp
-    from app.infrastructure.http_client import resilient_post
 
     if not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
         log.info("escalation.whatsapp_skipped", reason="no_credentials")
         return
 
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_ESCALATION_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_ESCALATION_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    url = f"https://graph.facebook.com/{config.WHATSAPP_API_VERSION}/{config.WHATSAPP_PHONE_NUMBER_ID}/messages"
-    await resilient_post(url, headers=headers, json=payload)
+    await whatsapp.send_escalation_template(phone, params)
     log.info("escalation.whatsapp_sent", to=phone,
              template=config.WHATSAPP_ESCALATION_TEMPLATE_NAME)
 
 
 async def _send_approval_request(phone: str, params: list) -> None:
-    from app.infrastructure.http_client import resilient_post
+    from app.infrastructure import whatsapp
 
     if not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
         return
 
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_APPROVAL_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_APPROVAL_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    url = f"https://graph.facebook.com/{config.WHATSAPP_API_VERSION}/{config.WHATSAPP_PHONE_NUMBER_ID}/messages"
-    await resilient_post(url, headers=headers, json=payload)
+    await whatsapp.send_approval_template(phone, params)
     log.info("escalation.approval_request_sent", to=phone)
 
 
 async def _send_rejection_notification(phone: str, params: list) -> None:
-    from app.infrastructure.http_client import resilient_post
+    from app.infrastructure import whatsapp
 
     if not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
         return
 
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_REJECTION_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_REJECTION_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    url = f"https://graph.facebook.com/{config.WHATSAPP_API_VERSION}/{config.WHATSAPP_PHONE_NUMBER_ID}/messages"
-    await resilient_post(url, headers=headers, json=payload)
+    await whatsapp.send_rejection_template(phone, params)
     log.info("escalation.rejection_sent", to=phone)
 
 
@@ -138,12 +96,12 @@ async def escalate_ticket(ticket: dict) -> bool:
 
     if threshold["notify_phone"]:
         params = [
-            ticket.get("machine_name", ""),
             ticket_id,
+            ticket.get("machine_name", ""),
+            str(next_level),
+            _minutes_open(ticket),
             ticket.get("ai_summary") or ticket.get("description", ""),
-            ticket.get("urgency", "medium"),
             threshold["role_label"],
-            str(current_level),
         ]
         try:
             await _send_escalation_whatsapp(threshold["notify_phone"], params)
@@ -180,15 +138,16 @@ async def escalate_part_request(pr: dict) -> bool:
 
     if threshold["notify_phone"]:
         params = [
-            pr.get("part_name", ""),
-            pr.get("request_code", ""),
+            pr.get("request_code") or request_id,
+            pr.get("machine_id") or "Not specified",
+            pr.get("part_name") or "Part not specified",
             str(pr.get("qty", 1)),
-            pr.get("machine_id", ""),
-            threshold["role_label"],
-            str(current_level),
+            pr.get("requested_by_name") or pr.get("requested_by_phone") or "TurboFix user",
+            f"Escalated to {threshold['role_label']}",
         ]
         try:
-            await _send_escalation_whatsapp(threshold["notify_phone"], params)
+            from app.infrastructure import whatsapp
+            await whatsapp.send_part_request_template(threshold["notify_phone"], params)
         except Exception as exc:
             log.error("escalation.part_whatsapp_failed",
                       request_id=request_id, error=str(exc))
@@ -243,10 +202,10 @@ async def submit_closure(ticket_id: str, evidence_url: str,
     ticket = _ticket_repo.get(ticket_id)
     if ticket and maintenance_head_phone:
         params = [
-            ticket.get("machine_name", ""),
             ticket_id,
-            ticket.get("ai_summary") or ticket.get("description", ""),
-            evidence_url,
+            ticket.get("machine_name", ""),
+            ticket.get("technician_name") or ticket.get("closed_by")
+            or ticket.get("assigned_technician_name") or "Assigned technician",
         ]
         try:
             await _send_approval_request(maintenance_head_phone, params)
@@ -285,8 +244,8 @@ async def reject_ticket_closure(ticket_id: str, reason: str,
 
     if technician_phone:
         params = [
-            ticket.get("machine_name", "") if ticket else "",
             ticket_id,
+            ticket.get("machine_name", "") if ticket else "",
             reason,
         ]
         try:

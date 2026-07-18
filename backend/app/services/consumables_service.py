@@ -446,30 +446,17 @@ def _record_auto_reorder(factory_id: str, item_type: str,
 
 async def _send_po_notification(phone: str, params: list) -> None:
     """Send PO-related WhatsApp notification."""
-    from app.infrastructure.http_client import resilient_post
+    from app.infrastructure import whatsapp
 
     if not phone or not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
         return
 
-    headers = {
-        "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone,
-        "type": "template",
-        "template": {
-            "name": config.WHATSAPP_PART_REQUEST_TEMPLATE_NAME,
-            "language": {"code": config.WHATSAPP_PART_REQUEST_TEMPLATE_LANGUAGE},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in params],
-            }],
-        },
-    }
-    url = f"https://graph.facebook.com/{config.WHATSAPP_API_VERSION}/{config.WHATSAPP_PHONE_NUMBER_ID}/messages"
-    await resilient_post(url, headers=headers, json=payload)
+    # Legacy PO callers provide [reference, part, quantity/reason, status].
+    # Expand that data to the six placeholders used by turbofix_part_request.
+    if len(params) == 4:
+        reference, part, quantity, status = params
+        params = [reference, "Not specified", part, quantity, phone, status]
+    await whatsapp.send_part_request_template(phone, params)
     log.info("consumables.whatsapp_sent", to=phone)
 
 

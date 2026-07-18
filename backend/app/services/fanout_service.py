@@ -29,14 +29,26 @@ def _all_recipients(machine: dict, ticket: dict) -> list:
     return recipients
 
 
-def _template_params(ticket: dict) -> list:
+def _assignee(machine: dict) -> str:
+    assignment = machine.get("assignments") or {}
+    technician = assignment.get("technician") or {}
+    return (
+        machine.get("assigned_technician_name")
+        or technician.get("name")
+        or machine.get("assigned_technician_phone")
+        or "Unassigned"
+    )
+
+
+def _template_params(ticket: dict, machine: dict) -> list:
     brief = ticket.get("ai_summary") or ticket.get("description") or "(no description)"
     return [
-        ticket.get("machine_name", ""),
         ticket.get("ticket_id", ""),
+        ticket.get("machine_name") or machine.get("machine_name", ""),
+        ticket.get("location") or machine.get("location") or "Location not recorded",
         brief,
         ticket.get("urgency") or "Medium",
-        ticket.get("reporter_phone", ""),
+        _assignee(machine),
     ]
 
 
@@ -60,11 +72,20 @@ def _role_tailored_brief(ticket: dict, phone: str, machine: dict) -> str:
 
 
 def _closure_params(ticket: dict, closed_by_phone: str) -> list:
+    duration = ticket.get("hours_to_fix") or ticket.get("duration")
+    if duration:
+        duration = str(duration)
+        if duration.replace(".", "", 1).isdigit():
+            duration = f"{duration} hours"
+    else:
+        duration = "Not recorded"
     return [
-        ticket.get("machine_name", ""),
         ticket.get("ticket_id", ""),
-        ticket.get("ai_summary") or ticket.get("description") or "(no description)",
-        closed_by_phone,
+        ticket.get("machine_name", ""),
+        ticket.get("resolution") or ticket.get("closure_notes")
+        or ticket.get("ai_summary") or "Maintenance work completed",
+        ticket.get("closed_by") or closed_by_phone or "TurboFix technician",
+        duration,
     ]
 
 
@@ -90,13 +111,7 @@ async def notify_ticket(machine: dict, ticket: dict) -> None:
 
     for phone in recipients:
         brief = _role_tailored_brief(ticket, phone, machine)
-        params = [
-            ticket.get("machine_name", ""),
-            ticket.get("ticket_id", ""),
-            brief,
-            ticket.get("urgency") or "Medium",
-            ticket.get("reporter_phone", ""),
-        ]
+        params = _template_params({**ticket, "ai_summary": brief}, machine)
         try:
             await whatsapp.send_template_message(phone, params)
             log.info("fanout.sent", ticket_id=ticket_id, recipient=phone, role_tailored=True)
