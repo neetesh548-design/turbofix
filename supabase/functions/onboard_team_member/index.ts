@@ -1,0 +1,68 @@
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+const reply = (body: Record<string, unknown>, status = 200) => new Response(
+  JSON.stringify(body),
+  { status, headers: { ...cors, 'Content-Type': 'application/json' } },
+)
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  if (req.method !== 'POST') return reply({ error: 'Method not allowed' }, 405)
+
+  const url = Deno.env.get('SUPABASE_URL') ?? ''
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const authorization = req.headers.get('Authorization') ?? ''
+  if (!authorization) return reply({ error: 'Please sign in again.' }, 401)
+
+  const callerClient = createClient(url, anonKey, { global: { headers: { Authorization: authorization } } })
+  const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const { data: { user }, error: userError } = await callerClient.auth.getUser()
+  if (userError || !user) return reply({ error: 'Your session has expired. Please sign in again.' }, 401)
+
+  const { data: owner, error: ownerError } = await admin
+    .from('users').select('id,company_id,role').eq('id', user.id).single()
+  if (ownerError || !owner) return reply({ error: 'Your company access could not be verified.' }, 403)
+  if (owner.role !== 'owner') return reply({ error: 'Only the company owner can onboard team members.' }, 403)
+
+  const body = await req.json()
+  const name = String(body.name ?? '').trim()
+  const phone = String(body.phone ?? '').trim()
+  const email = String(body.email ?? '').trim().toLowerCase()
+  const password = String(body.password ?? '')
+  const role = String(body.role ?? 'maintenance_technician')
+  const portalAccess = body.portal_access !== false
+  if (!name) return reply({ error: 'Full name is required.' }, 400)
+  if (role === 'owner') return reply({ error: 'Another owner cannot be created here.' }, 400)
+  if (portalAccess && !email && !phone) return reply({ error: 'Email or mobile number is required for portal access.' }, 400)
+  if (portalAccess && password.length < 8) return reply({ error: 'Password must be at least 8 characters.' }, 400)
+
+  let memberId = crypto.randomUUID()
+  let authCreated = false
+  if (portalAccess) {
+    const loginEmail = email || `${phone.replace(/\D/g, '')}@phone.turbofix.co.in`
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
+      email: loginEmail, password, email_confirm: true,
+      user_metadata: { name, role, company_id: owner.company_id },
+    })
+    if (createError || !created.user) return reply({ error: createError?.message || 'Portal account could not be created.' }, 400)
+    memberId = created.user.id
+    authCreated = true
+  }
+
+  const { error: insertError } = await admin.from('users').insert({
+    id: memberId, company_id: owner.company_id, name, phone, email, role,
+  })
+  if (insertError) {
+    if (authCreated) await admin.auth.admin.deleteUser(memberId)
+    return reply({ error: insertError.message }, 400)
+  }
+
+  return reply({ status: 'created', user_id: memberId, name, role }, 201)
+})
