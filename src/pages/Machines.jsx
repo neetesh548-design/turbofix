@@ -99,7 +99,7 @@ export default function Machines() {
     try {
       const [machinesRes, ticketsRes, usersRes] = await Promise.all([
         supabase.from('machines').select('*'),
-        supabase.from('tickets').select('id,machine_id,status'),
+        supabase.from('tickets').select('id,machine_id,status,issue_text,created_at'),
         supabase.from('users').select('id,name,role,email,phone'),
       ]);
 
@@ -107,9 +107,21 @@ export default function Machines() {
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
       if (usersRes.error) throw new Error(`Response team could not be loaded: ${usersRes.error.message}`);
 
-      const openByMachine = {};
+      const trackRecordByMachine = {};
+      const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
       (ticketsRes.data || []).forEach(t => {
-        if (t.status === 'open') openByMachine[t.machine_id] = true;
+        const record = trackRecordByMachine[t.machine_id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '' };
+        const status = String(t.status || '').toLowerCase();
+        const createdAt = t.created_at ? new Date(t.created_at).getTime() : 0;
+        record.total += 1;
+        if (status === 'open') record.open += 1;
+        if (['closed', 'resolved'].includes(status)) record.resolved += 1;
+        if (createdAt >= recentCutoff) record.recent += 1;
+        if (createdAt >= (record.last_issue_at ? new Date(record.last_issue_at).getTime() : 0)) {
+          record.last_issue = t.issue_text || 'Maintenance issue';
+          record.last_issue_at = t.created_at || '';
+        }
+        trackRecordByMachine[t.machine_id] = record;
       });
 
       const mData = (machinesRes.data || []).map(m => ({
@@ -117,7 +129,8 @@ export default function Machines() {
         machine_name: m.name,
         location: m.location,
         status: m.status,
-        has_open_tickets: !!openByMachine[m.id],
+        has_open_tickets: (trackRecordByMachine[m.id]?.open || 0) > 0,
+        track_record: trackRecordByMachine[m.id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '' },
         assigned_technician_phone: m.assigned_technician_phone,
         supervisor_id: m.supervisor_id,
         factory_id: m.factory_id,
@@ -921,6 +934,15 @@ export default function Machines() {
                       <div className="machine-tile-content">
                         <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
                         <p><MapPin /> {m.location || 'Location not added'}</p>
+                        <div className="machine-track-record" aria-label={`${m.machine_name} track record`}>
+                          <span><strong>{m.track_record.open}</strong><small>Open issues</small></span>
+                          <span><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
+                          <span><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
+                        </div>
+                        <div className="machine-track-detail">
+                          <span><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
+                          <span><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
+                        </div>
                         <div className="machine-tile-team"><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
                         <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
                       </div>
