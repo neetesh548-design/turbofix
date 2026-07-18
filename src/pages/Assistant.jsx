@@ -15,7 +15,11 @@ const machineSuggestions = [
 ];
 
 function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
-  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open');
+  // Only consider tickets for machines the current user can see (machines is
+  // already scoped to the user's role/assignments), so the fallback answer
+  // matches the same scope as the dropdown and the edge function.
+  const visibleMachineIds = new Set(machines.map(m => m.machine_id));
+  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
   
   if (selectedMachineId && selectedMachineId !== 'all') {
     const machine = machines.find(m => m.machine_id === selectedMachineId);

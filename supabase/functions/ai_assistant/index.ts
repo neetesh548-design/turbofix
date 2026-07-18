@@ -272,10 +272,32 @@ serve(async (req) => {
     const question = text(body.question)
     const selected = text(body.selected) || 'all'
     if (!question) return reply(req, { error: 'Enter a maintenance question.' }, 400)
-    const { data: companyMachines, error: machineError } = await admin.from('machines').select('id,name').eq('company_id', directoryUser.company_id).order('name')
+    const { data: companyMachines, error: machineError } = await admin.from('machines')
+      .select('id,name,technician_user_id,supervisor_id,engineer_user_id,maintenance_head_user_id')
+      .eq('company_id', directoryUser.company_id).order('name')
     if (machineError) throw new Error('Machines could not be loaded.')
-    const targetIds = selected === 'all' ? (companyMachines || []).map((machine: any) => machine.id) : [selected]
-    if (targetIds.length === 0) return reply(req, { error: 'No machines are available in this plant.' }, 400)
+
+    // Non-owner roles may only reason about machines linked to their own profile.
+    // Enforced here (service role) so a technician cannot pass an unassigned
+    // machine_id directly and read data outside their responsibility.
+    const roleColumn: Record<string, string> = {
+      maintenance_technician: 'technician_user_id',
+      technician: 'technician_user_id',
+      supervisor: 'supervisor_id',
+      maintenance_engineer: 'engineer_user_id',
+      maintenance_head: 'maintenance_head_user_id',
+    }
+    const scopeColumn = roleColumn[String(directoryUser.role || '')]
+    const scopedMachines = scopeColumn
+      ? (companyMachines || []).filter((machine: any) => String(machine[scopeColumn] || '') === String(directoryUser.id))
+      : (companyMachines || [])
+    if (selected !== 'all' && scopeColumn && !scopedMachines.some((machine: any) => machine.id === selected)) {
+      return reply(req, { error: 'This machine is not assigned to you.' }, 403)
+    }
+    const targetIds = selected === 'all' ? scopedMachines.map((machine: any) => machine.id) : [selected]
+    if (targetIds.length === 0) {
+      return reply(req, { error: scopeColumn ? 'No machines are assigned to you yet.' : 'No machines are available in this plant.' }, 400)
+    }
     if (targetIds.length > 25) return reply(req, { error: 'Choose one machine for a detailed answer.' }, 400)
     const contexts = await Promise.all(targetIds.map((machineId: string) => buildMachineMarkdown(admin, directoryUser.company_id, machineId)))
     const retrievals = contexts.map((context) => ({
