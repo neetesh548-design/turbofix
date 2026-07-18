@@ -275,6 +275,16 @@ serve(async (req) => {
   if (portalAccess && !email && !phone) return reply({ error: 'Email or mobile number is required for portal access.' }, 400)
   if (portalAccess && password.length < 8) return reply({ error: 'Password must be at least 8 characters.' }, 400)
 
+  // RLS (get_auth_factory_id) reads public.profiles, so every portal user needs a
+  // profiles row in the owner's factory. Resolve that factory from the owner's own
+  // profile once, up front, so new members inherit the right data visibility.
+  const { data: ownerProfile } = await admin
+    .from('profiles').select('factory_id').eq('user_id', owner.id).maybeSingle()
+  const ownerFactoryId = ownerProfile?.factory_id ?? null
+  const profileRole = role === 'maintenance_technician' ? 'technician'
+    : role === 'maintenance_head' ? 'supervisor'
+    : (['owner', 'supervisor', 'technician'].includes(role) ? role : 'technician')
+
   let memberId = crypto.randomUUID()
   let authCreated = false
   if (portalAccess) {
@@ -299,6 +309,24 @@ serve(async (req) => {
   if (insertError) {
     if (authCreated) await admin.auth.admin.deleteUser(memberId)
     return reply({ error: insertError.message }, 400)
+  }
+
+  // Grant data visibility: without this profile row the member's RLS factory is
+  // NULL and they see zero tickets/machines. Roll back on failure so the owner can
+  // cleanly retry rather than being left with a member who can log in but sees nothing.
+  if (portalAccess && ownerFactoryId) {
+    const { error: profileError } = await admin.from('profiles').upsert({
+      user_id: memberId,
+      factory_id: ownerFactoryId,
+      role: profileRole,
+      full_name: name,
+      phone_e164: phone || null,
+    }, { onConflict: 'user_id' })
+    if (profileError) {
+      await admin.from('users').delete().eq('id', memberId)
+      if (authCreated) await admin.auth.admin.deleteUser(memberId)
+      return reply({ error: `Portal access could not be granted: ${profileError.message}` }, 400)
+    }
   }
 
   return reply({ status: 'created', user_id: memberId, name, role }, 201)

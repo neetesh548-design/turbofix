@@ -183,8 +183,14 @@ export default function Machines() {
         wa_link: null,
       });
       });
-      setMachines(mData);
-      window.setTimeout(() => syncLocalMachinePhotos(mData), 0);
+      // Technicians only see the machines assigned to them; owners, supervisors,
+      // engineers and maintenance heads see the full plant directory.
+      const isTechnician = ['maintenance_technician', 'technician'].includes(signedInUser?.role);
+      const visibleMachines = isTechnician
+        ? mData.filter((m) => String(m.technician_user_id || '') === String(signedInUser?.user_id || ''))
+        : mData;
+      setMachines(visibleMachines);
+      window.setTimeout(() => syncLocalMachinePhotos(visibleMachines), 0);
 
       const teamData = directoryMembers.map(u => ({
         user_id: u.user_id,
