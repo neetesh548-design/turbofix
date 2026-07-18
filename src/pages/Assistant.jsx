@@ -25,7 +25,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
     
     if (machineOpen.length === 0) {
-      return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Add manuals and service history if you need a deeper recommendation.`;
+      return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}. Add manuals and service history if you need a deeper recommendation.`;
     }
     
     // Sort open tickets by urgency: High -> Medium -> Low
@@ -37,7 +37,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     });
     const top = sorted[0];
     const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
-    return `${machine.machine_name || machine.machine_id} has ${machineOpen.length} open ticket(s). Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Confirm isolation and the machine manual before work.`;
+    return `${machine.machine_name || machine.machine_id} has ${machineOpen.length} open ticket(s). Primary technician: ${machine.primary_technician_name || 'not assigned'}. Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Confirm isolation and the machine manual before work.`;
   }
   
   // Plant-wide
@@ -65,6 +65,7 @@ export default function Assistant() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [answerSource, setAnswerSource] = useState('');
+  const [contextFiles, setContextFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -72,9 +73,16 @@ export default function Assistant() {
     Promise.all([
       supabase.from('machines').select('id,name,location,status,image_url'),
       supabase.from('tickets').select('*'),
-      supabase.from('events').select('*')
-    ]).then(([mRes, tRes, eRes]) => {
-      setMachines((mRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url })));
+      supabase.from('events').select('*'),
+      supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
+    ]).then(([mRes, tRes, eRes, directoryRes]) => {
+      const members = directoryRes.data?.members || [];
+      const memberNames = Object.fromEntries(members.map((member) => [member.user_id, member.name]));
+      const assignments = directoryRes.data?.machine_assignments || {};
+      setMachines((mRes.data || []).map(m => ({
+        machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url,
+        primary_technician_name: memberNames[assignments[m.id]?.technician_user_id] || '',
+      })));
       setTickets(tRes.data || []);
       setEvents(eRes.data || []);
     }).catch(() => {
@@ -98,11 +106,12 @@ export default function Assistant() {
   const suggestions = isPlantWide ? plantSuggestions : machineSuggestions;
   const scopeHelp = isPlantWide
     ? 'Uses data from every machine, open ticket, and maintenance event in this plant.'
-    : `Uses only ${selectedMachine?.machine_name || 'the selected machine'} and its maintenance history.`;
+    : `Uses the latest canonical MachineData file for ${selectedMachine?.machine_name || 'the selected machine'}.`;
 
   const clearResult = () => {
     setAnswer('');
     setAnswerSource('');
+    setContextFiles([]);
     setError('');
   };
 
@@ -128,7 +137,7 @@ export default function Assistant() {
     
     try {
       const { data, error: functionError } = await supabase.functions.invoke('ai_assistant', {
-        body: { selected, question: trimmedQuestion, machines, tickets, events }
+        body: { selected, question: trimmedQuestion }
       });
       
       if (functionError || !data || data.error) {
@@ -137,6 +146,7 @@ export default function Assistant() {
       
       setAnswer(data.recommendation);
       setAnswerSource('ai');
+      setContextFiles(data.context_files || []);
     } catch (requestError) {
       console.warn("AI Assistant edge function failed, falling back to local summary:", requestError);
       try {
@@ -174,7 +184,7 @@ export default function Assistant() {
           </label>
           <button className="btn btn-primary assistant-submit" disabled={loading || !question.trim()}>{loading ? 'Checking maintenance data…' : 'Get recommendation'}</button>
         </form>
-        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p></div>}
+        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}</small>}</div>}
       </div>
       <aside className="assistant-side">
         {selected !== 'all' && (selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)) && (
