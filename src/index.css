@@ -207,6 +207,18 @@ input:focus, select:focus, textarea:focus {
 .machine-owner-details summary { font-weight: 700; font-size: 1rem; color: var(--text); }
 .machine-owner-details summary span { color: var(--slate); font-weight: 500; font-size: .82rem; margin-left: 8px; }
 .machine-owner-details > p { color: var(--slate); margin: 10px 0 18px; }
+.technician-check.dynamic { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.technician-check-copy { display: flex; flex-direction: column; gap: 5px; }
+.technician-check-copy small, .technician-card-heading small { color: var(--slate); font-size: .76rem; }
+.technician-check-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.technician-check-actions button { border: 1px solid var(--border); background: transparent; color: var(--slate); border-radius: 999px; padding: 6px 10px; font-size: .72rem; cursor: pointer; }
+.technician-check-actions button.active { background: rgba(37, 211, 102, .15); color: #25d366; border-color: rgba(37, 211, 102, .45); }
+.technician-check-actions button.active.muted { background: rgba(148, 163, 184, .12); color: var(--slate); border-color: var(--slate); }
+.technician-check-actions button.active.help { background: rgba(245, 158, 11, .15); color: #f59e0b; border-color: rgba(245, 158, 11, .45); }
+.technician-optional-details { margin-top: 16px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.technician-optional-details summary { cursor: pointer; font-weight: 700; }
+.technician-optional-details summary span { color: var(--slate); font-size: .76rem; font-weight: 500; margin-left: 6px; }
+@media (max-width: 640px) { .technician-check.dynamic { align-items: flex-start; flex-direction: column; }.technician-check-actions { width: 100%; }.technician-check-actions button { flex: 1; } }
 .decision-panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 18px; }.decision-panel-heading h2 { margin-top: 6px; font-size: 1.45rem; }.trend-caption { color: var(--slate); font-size: .78rem; }
 .attention-row, .planner-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); }.attention-row > div, .planner-row > div { flex: 1; min-width: 0; }.attention-row strong, .attention-row span, .planner-row strong, .planner-row span { display: block; }.attention-row span, .planner-row span { color: var(--slate); font-size: .8rem; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.attention-row b { font-size: .72rem; color: var(--slate); }.status-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }.status-dot.danger { background: var(--red); box-shadow: 0 0 10px var(--red); }.status-dot.warning { background: var(--amber); }.status-dot.success { background: var(--brand); }
 .decision-empty { color: var(--slate); padding: 18px 0 4px; font-size: .9rem; }

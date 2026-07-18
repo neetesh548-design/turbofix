@@ -2,17 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
-
-const checklist = [
-  'Make the machine safe and apply lockout/tagout',
-  'Inspect the reported area and confirm the symptom',
-  'Check the machine manual or MachineData guidance',
-  'Test the repair and confirm the machine is ready',
-];
+import { generateChecklist } from '@/lib/dynamicChecklist';
 
 const defaultWork = {
   status: 'assigned',
   checklist: [],
+  checklist_status: {},
+  generated_checklist: [],
   notes: '',
   parts_used: '',
   evidence: [],
@@ -39,22 +35,37 @@ export default function Technician() {
   useEffect(() => {
     (async () => {
       try {
-        const [ticketsRes, machinesRes] = await Promise.all([
-          supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at').eq('status', 'open'),
-          supabase.from('machines').select('id,name'),
+        const [ticketsRes, machinesRes, documentsRes, partsRes] = await Promise.all([
+          supabase.from('tickets').select('*'),
+          supabase.from('machines').select('*'),
+          supabase.from('documents').select('id,machine_id,title,category'),
+          supabase.from('parts').select('*'),
         ]);
+        const allTickets = ticketsRes.data || [];
         const machineMap = {};
-        (machinesRes.data || []).forEach(m => { machineMap[m.id] = m.name; });
-        const items = (ticketsRes.data || []).map(t => ({
-          ticket_id: t.id, machine_id: t.machine_id, machine_name: machineMap[t.machine_id] || 'Unknown',
-          status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at, work: {},
+        (machinesRes.data || []).forEach(m => { machineMap[m.id] = m; });
+        const items = allTickets.filter(t => String(t.status || '').toLowerCase() === 'open').map(t => ({
+          ...t,
+          ticket_id: t.id,
+          machine_name: machineMap[t.machine_id]?.name || 'Unknown',
+          machine_location: machineMap[t.machine_id]?.location || '',
+          description: t.issue_text || (typeof t.ai_summary === 'object' ? t.ai_summary?.summary : t.ai_summary) || '',
         }));
         setTickets(items);
         
         const storedWork = {};
         items.forEach(t => {
           const localData = window.localStorage.getItem(`tf_work_${t.ticket_id}`);
-          storedWork[t.ticket_id] = localData ? JSON.parse(localData) : { ...defaultWork };
+          const existing = localData ? JSON.parse(localData) : { ...defaultWork };
+          const generated = existing.generated_checklist?.length ? existing.generated_checklist : generateChecklist({
+            ticket: t,
+            machine: machineMap[t.machine_id] || {},
+            history: allTickets,
+            documents: documentsRes.data || [],
+            parts: partsRes.data || [],
+          });
+          storedWork[t.ticket_id] = { ...defaultWork, ...existing, generated_checklist: generated };
+          window.localStorage.setItem(`tf_work_${t.ticket_id}`, JSON.stringify(storedWork[t.ticket_id]));
         });
         setWork(storedWork);
         if (items.length) setSelectedId(items[0].ticket_id);
@@ -65,8 +76,12 @@ export default function Technician() {
 
   const selectedTicket = tickets.find((ticket) => ticket.ticket_id === selectedId) || null;
   const selectedWork = selectedTicket ? { ...defaultWork, ...(work[selectedId] || {}) } : defaultWork;
-  const completedCount = selectedWork.checklist.length;
-  const readyToSubmit = completedCount === checklist.length && selectedWork.notes.trim().length > 0;
+  const checklist = selectedWork.generated_checklist || [];
+  const checklistStatus = selectedWork.checklist_status || {};
+  const completedCount = checklist.filter((item) => ['done', 'not_needed'].includes(checklistStatus[item.id])).length;
+  const mandatoryComplete = checklist.filter((item) => item.mandatory).every((item) => checklistStatus[item.id] === 'done');
+  const allResponded = checklist.every((item) => ['done', 'not_needed'].includes(checklistStatus[item.id]));
+  const readyToSubmit = checklist.length > 0 && mandatoryComplete && allResponded;
   const isLocked = ['submitted', 'closed'].includes(selectedWork.status);
 
   const updateDraft = (updates) => {
@@ -102,11 +117,14 @@ export default function Technician() {
     } catch {}
   };
 
-  const toggleChecklist = async (index) => {
-    const next = selectedWork.checklist.includes(index)
-      ? selectedWork.checklist.filter((item) => item !== index)
-      : [...selectedWork.checklist, index];
-    try { await persistWork({ status: 'in_progress', checklist: next.sort((a, b) => a - b) }); } catch {}
+  const setChecklistItemStatus = async (item, status) => {
+    if (item.mandatory && status === 'not_needed') return;
+    const nextStatus = { ...checklistStatus, [item.id]: status };
+    const completedIndexes = checklist.map((entry, index) => nextStatus[entry.id] === 'done' ? index : null).filter((index) => index !== null);
+    try {
+      await persistWork({ status: 'in_progress', checklist_status: nextStatus, checklist: completedIndexes });
+      if (status === 'help') setMessage('Help requested. Your progress and machine context are saved for support.');
+    } catch {}
   };
 
   const uploadEvidence = async (file, kind) => {
@@ -246,8 +264,8 @@ export default function Technician() {
                   <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Mic className="size-4" />Voice note<input type="file" accept="audio/*" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'voice'); event.target.value = ''; }} /></label>
                 </div>
                 {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
-                <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><h3>Repair checklist</h3></div>{checklist.map((item, index) => <label key={item} className={`technician-check${selectedWork.checklist.includes(index) ? ' done' : ''}`}><input type="checkbox" checked={selectedWork.checklist.includes(index)} disabled={saving || isLocked} onChange={() => toggleChecklist(index)} /><span>{item}</span></label>)}</div>
-                <div className="technician-two-col"><label className="technician-field"><span><FileText className="size-4" />Technician notes</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="What did you find and what did you fix?" /></label><label className="technician-field"><span><Package className="size-4" />Spares and consumables</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Part name, quantity, batch or reason" /></label></div>
+                <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small></div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
+                <details className="technician-optional-details"><summary>Add details <span>Optional</span></summary><div className="technician-two-col"><label className="technician-field"><span><FileText className="size-4" />Repair note</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Speak or type only if useful" /></label><label className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional part name and quantity" /></label></div></details>
                 <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : 'Complete all checks and add notes before submission.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : 'Submit for closure'}</button>}</div>
               </>}
             </section>
