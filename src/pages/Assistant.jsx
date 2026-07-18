@@ -189,7 +189,7 @@ export default function Assistant() {
           <label className="assistant-field">
             <span>Answer using</span>
             <select aria-label="Answer using" value={selected} onChange={changeScope}>
-              <option value="all">All machines — plant-wide</option>
+              <option value="all">{signedInUser?.role && signedInUser.role !== 'owner' ? 'All my machines' : 'All machines — plant-wide'}</option>
               {machines.length > 0 && <optgroup label="One machine">
                 {machines.map((machine) => <option key={machine.machine_id} value={machine.machine_id}>{machine.machine_name} · {machine.machine_id}</option>)}
               </optgroup>}
