@@ -162,6 +162,18 @@ export default function AppShell({ children, active }) {
     }
   }, [machines, selected]);
 
+  // Sync selected scope with URL machine parameters
+  useEffect(() => {
+    if (!authed) return;
+    const queryParams = new URLSearchParams(window.location.search);
+    const queryMachineId = queryParams.get('machine') || queryParams.get('machine_id');
+    if (queryMachineId) {
+      setSelected(queryMachineId);
+    } else {
+      setSelected('all');
+    }
+  }, [authed, window.location.search, sidebarOpen]);
+
   const _selectedMachine = useMemo(
     () => machines.find((machine) => machine.machine_id === selected),
     [machines, selected]
