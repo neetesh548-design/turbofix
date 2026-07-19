@@ -21,8 +21,9 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     if (!machine) return 'Machine not found.';
     const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
     const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
+    const machineLabel = `${machine.machine_name} [${machine.machine_id}]`;
     if (machineOpen.length === 0) {
-      return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}.`;
+      return `${machineLabel} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}.`;
     }
     const sorted = [...machineOpen].sort((a, b) => {
       const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -32,7 +33,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     });
     const top = sorted[0];
     const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
-    return `${machine.machine_name || machine.machine_id} has ${machineOpen.length} open ticket(s). Primary technician: ${machine.primary_technician_name || 'not assigned'}. Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
+    return `Hey friend, ${machineLabel} has ${machineOpen.length} open ticket(s). Primary technician: ${machine.primary_technician_name || 'not assigned'}. Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
   }
   
   if (openTickets.length === 0) {
@@ -45,9 +46,10 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     return aVal - bVal;
   });
   const top = sorted[0];
-  const machineName = machines.find(m => m.machine_id === top.machine_id)?.machine_name || top.machine_id || 'Machine';
+  const machineObj = machines.find(m => m.machine_id === top.machine_id);
+  const machineName = machineObj ? `${machineObj.machine_name} [${machineObj.machine_id}]` : top.machine_id || 'Machine';
   const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
-  return `Plant-wide view: ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
+  return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
 }
 
 function isTokenExpired(token) {
@@ -119,6 +121,7 @@ export default function AppShell({ children, active }) {
   const [_transcribing, setTranscribing] = useState(false);
   const recorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const [seniorMode, setSeniorMode] = useState(() => localStorage.getItem('tf_senior_mode') === 'true');
 
   // Fetch only when sidebar is opened
   useEffect(() => {
@@ -284,8 +287,9 @@ export default function AppShell({ children, active }) {
     setRetrieval(null);
     
     try {
+      const friendlyInstruction = "[SYSTEM INSTRUCTION: Answer in a very warm, friendly, simple, conversational style like a close work friend or peer helper. Address the user directly, keep text extremely readable and structured, and explain any complex terms simply. Include machine IDs next to machine names whenever you refer to them.]\n\n";
       const { data, error: functionError } = await supabase.functions.invoke('ai_assistant', {
-        body: { selected, question: trimmedQuestion, ...(imagePreview ? { image: imagePreview } : {}) }
+        body: { selected, question: friendlyInstruction + trimmedQuestion, ...(imagePreview ? { image: imagePreview } : {}) }
       });
       
       if (functionError || !data || data.error) {
@@ -415,15 +419,34 @@ export default function AppShell({ children, active }) {
       </button>
 
       {/* Slide-out Sidebar Panel */}
-      <aside className={`app-sidebar-panel${sidebarOpen ? ' open' : ''}`}>
+      <aside className={`app-sidebar-panel${sidebarOpen ? ' open' : ''}${seniorMode ? ' senior-text' : ''}`}>
         <header className="app-sidebar-header">
           <div className="app-sidebar-title">
             <Sparkles className="glow-icon" size={18} />
             <span>AI Assistant</span>
           </div>
-          <button type="button" className="app-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close assistant">
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={toggleSeniorMode}
+              style={{
+                background: seniorMode ? 'var(--brand)' : 'transparent',
+                color: seniorMode ? '#000' : 'var(--slate)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+              title="Toggle Large Text Mode"
+            >
+              Aa (Large Text)
+            </button>
+            <button type="button" className="app-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close assistant">
+              <X size={18} />
+            </button>
+          </div>
         </header>
 
         <div className="app-sidebar-body">
@@ -433,7 +456,7 @@ export default function AppShell({ children, active }) {
               <select value={selected} onChange={changeScope}>
                 <option value="all">All machines — plant-wide</option>
                 {machines.map((m) => (
-                  <option key={m.machine_id} value={m.machine_id}>{m.machine_name}</option>
+                  <option key={m.machine_id} value={m.machine_id}>{m.machine_name} [{m.machine_id}]</option>
                 ))}
               </select>
             </label>

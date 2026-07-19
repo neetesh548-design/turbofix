@@ -5130,6 +5130,28 @@ details.faq-item p {
   padding-top: 6px;
 }
 
+/* Senior Mode font sizes */
+.app-sidebar-panel.senior-text textarea {
+  font-size: 1.15rem !important;
+  line-height: 1.6 !important;
+}
+.app-sidebar-panel.senior-text .app-sidebar-response .response-text {
+  font-size: 1.25rem !important;
+  line-height: 1.65 !important;
+}
+.app-sidebar-panel.senior-text .app-sidebar-scope-selector select {
+  font-size: 1.05rem !important;
+  padding: 10px 14px !important;
+}
+.app-sidebar-panel.senior-text .app-sidebar-suggestions button {
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
+}
+.app-sidebar-panel.senior-text .app-sidebar-submit {
+  font-size: 1rem !important;
+  padding: 8px 18px !important;
+}
+
 /* Mobile responsive */
 @media (max-width: 640px) {
   .app-sidebar-panel {
