@@ -38,6 +38,10 @@ export default function QRGateway() {
   const [activeTickets, setActiveTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
 
+  // Duplicate Check and verification state
+  const [duplicateTicket, setDuplicateTicket] = useState(null);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+
   // Reporter state (remembered)
   const [reporterId] = useState(() => localStorage.getItem('tf_reporter_id') || 'EMP-OPERATOR');
 
@@ -164,28 +168,66 @@ export default function QRGateway() {
     }
   };
 
-  const submitTicket = async () => {
+  const submitTicket = async (bypassDuplicateCheck = false) => {
     if (!extractedInfo) return;
-    
-    const { data: factories } = await supabase.from('factories').select('id').limit(1);
-    const factoryId = factories?.[0]?.id || null;
-
-    const payload = {
-      machine_id: machine.id,
-      status: 'open',
-      issue_text: extractedInfo.issue,
-      urgency: extractedInfo.urgency,
-      type: 'breakdown',
-      reporter_phone: reporterId,
-      factory_id: factoryId,
-      ai_summary: {
-        voice_reported: true,
-        extracted_condition: extractedInfo.condition,
-        reporter_id: reporterId
-      }
-    };
+    setCheckingDuplicate(true);
 
     try {
+      // 1. Check for duplicate open tickets on this machine
+      if (!bypassDuplicateCheck) {
+        const { data: existingOpen } = await supabase
+          .from('tickets')
+          .select('id, issue_text, created_at')
+          .eq('machine_id', machine.id)
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (existingOpen && existingOpen.length > 0) {
+          setDuplicateTicket(existingOpen[0]);
+          const alertMsg = lang === 'hi-IN'
+            ? 'इस मशीन के लिए पहले से ही एक खुला टिकट मौजूद है।'
+            : 'An open ticket is already active for this machine.';
+          setAssistantPrompt(alertMsg);
+          speak(alertMsg);
+          setCheckingDuplicate(false);
+          return;
+        }
+      }
+
+      // 2. Perform team verification checks to flag unverified reporters
+      let verified = false;
+      const { data: matchedUser } = await supabase
+        .from('users')
+        .select('role')
+        .or(`phone.eq.${reporterId},user_id.eq.${reporterId}`)
+        .limit(1);
+      
+      if (matchedUser && matchedUser.length > 0) {
+        verified = true;
+      }
+
+      const { data: factories } = await supabase.from('factories').select('id').limit(1);
+      const factoryId = factories?.[0]?.id || null;
+
+      const payload = {
+        machine_id: machine.id,
+        status: 'open',
+        issue_text: extractedInfo.issue,
+        urgency: extractedInfo.urgency,
+        type: 'breakdown',
+        reporter_phone: reporterId.match(/^\d+$/) ? reporterId : null,
+        factory_id: factoryId,
+        lifecycle_stage: verified ? 'open' : 'unverified',
+        ai_summary: {
+          voice_reported: true,
+          extracted_condition: extractedInfo.condition,
+          reporter_id: reporterId,
+          verified_reporter: verified,
+          flag: verified ? null : 'unverified_reporter'
+        }
+      };
+
       const { error } = await supabase.from('tickets').insert(payload);
       if (error) throw error;
 
@@ -196,9 +238,40 @@ export default function QRGateway() {
       setAssistantPrompt(successText);
       speak(successText);
       setExtractedInfo(null);
+      setDuplicateTicket(null);
       setSuccess(true);
     } catch (err) {
       alert('Error logging ticket: ' + err.message);
+    } finally {
+      setCheckingDuplicate(false);
+    }
+  };
+
+  const appendTicket = async () => {
+    if (!duplicateTicket || !extractedInfo) return;
+    setCheckingDuplicate(true);
+    try {
+      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterId}]: ${extractedInfo.issue}`;
+      const { error } = await supabase
+        .from('tickets')
+        .update({ issue_text: mergedText })
+        .eq('id', duplicateTicket.id);
+
+      if (error) throw error;
+
+      const successText = lang === 'hi-IN'
+        ? `विवरण मौजूदा टिकट में जोड़ दिया गया है!`
+        : `Details successfully appended to the open ticket!`;
+      
+      setAssistantPrompt(successText);
+      speak(successText);
+      setExtractedInfo(null);
+      setDuplicateTicket(null);
+      setSuccess(true);
+    } catch (err) {
+      alert('Error appending to ticket: ' + err.message);
+    } finally {
+      setCheckingDuplicate(false);
     }
   };
 
@@ -335,32 +408,77 @@ export default function QRGateway() {
 
       {/* Confirmation Sliding Overlay Card */}
       {extractedInfo && (
-        <div style={{ background: 'rgba(21, 30, 40, 0.85)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
-              {lang === 'hi-IN' ? 'समस्या रिपोर्ट पुष्टि' : 'Confirm Issue Report'}
-            </h4>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              {lang === 'hi-IN' ? 'मशीन स्थिति:' : 'Machine Condition:'} <strong style={{ color: '#ef4444' }}>{extractedInfo.condition.replace('_', ' ').toUpperCase()}</strong>
-            </span>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              type="button" 
-              onClick={() => setExtractedInfo(null)}
-              style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
-            >
-              {lang === 'hi-IN' ? 'फिर से बोलें' : 'Speak Again'}
-            </button>
-            <button 
-              type="button" 
-              onClick={submitTicket}
-              style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}
-            >
-              {lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit'}
-            </button>
-          </div>
+        <div style={{ background: 'rgba(21, 30, 40, 0.95)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {duplicateTicket ? (
+            <>
+              <div style={{ textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  ⚠️ {lang === 'hi-IN' ? 'समान टिकट पहले से खुला है' : 'Similar Ticket Open'}
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0' }}>
+                  {lang === 'hi-IN' 
+                    ? 'क्या आप इस टिकट में जानकारी जोड़ना चाहते हैं या नया टिकट बनाना चाहते हैं?' 
+                    : 'Do you want to append comments to it or log a separate new breakdown?'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={appendTicket}
+                  disabled={checkingDuplicate}
+                  style={{ width: '100%', padding: '12px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {lang === 'hi-IN' ? 'विवरण जोड़ें (अनुशंसित)' : 'Append Details (Recommended)'}
+                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setDuplicateTicket(null)}
+                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => submitTicket(true)}
+                    disabled={checkingDuplicate}
+                    style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    {lang === 'hi-IN' ? 'नया टिकट बनाएं' : 'Create Separate'}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
+                  {lang === 'hi-IN' ? 'समस्या रिपोर्ट पुष्टि' : 'Confirm Issue Report'}
+                </h4>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  {lang === 'hi-IN' ? 'मशीन स्थिति:' : 'Machine Condition:'} <strong style={{ color: '#ef4444' }}>{extractedInfo.condition.replace('_', ' ').toUpperCase()}</strong>
+                </span>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setExtractedInfo(null)}
+                  style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {lang === 'hi-IN' ? 'फिर से बोलें' : 'Speak Again'}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => submitTicket(false)}
+                  disabled={checkingDuplicate}
+                  style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}
+                >
+                  {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
