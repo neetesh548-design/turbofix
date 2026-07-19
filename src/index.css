@@ -5185,6 +5185,14 @@ details.faq-item p {
     box-shadow: none !important;
   }
   
+  .printable-sticker-tag .sticker-brand span {
+    color: #000000 !important;
+  }
+  
+  .printable-sticker-tag .sticker-brand svg path {
+    fill: #000000 !important;
+  }
+  
   .printable-sticker-tag .sticker-title {
     color: #000000 !important;
     font-size: 1.4rem !important;

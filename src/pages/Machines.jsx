@@ -2412,6 +2412,10 @@ export default function Machines() {
               {/* TAB 6: QR CODE */}
               {wsTab === 'qr' && (
                 <div className="printable-sticker-tag" style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div className="sticker-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '14px' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 0 3px rgba(245,158,11,0.6))' }}><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', color: '#fff', fontFamily: 'Rajdhani, sans-serif' }}>TURBOFIX</span>
+                  </div>
                   <h3 className="sticker-title" style={{ margin: '0 0 10px', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Tag</h3>
                   <p className="sticker-desc" style={{ fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '16px' }}>Scan with WhatsApp to report breakdown events directly.</p>
                   
