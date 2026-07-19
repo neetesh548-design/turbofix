@@ -4705,3 +4705,30 @@ details.faq-item p {
   .machine-workspace-tabs + div > form > div { width: auto !important; grid-column: auto !important; }
   .machine-workspace-tabs + div > form > button { width: 100%; grid-column: auto !important; margin-top: 4px !important; }
 }
+
+/* Custom glowing focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--brand, #22a35a) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(34, 163, 90, 0.45) !important;
+}
+
+/* Accessible Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  background: var(--brand, #22a35a);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  z-index: 10000;
+  transition: top 0.2s ease;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 20px;
+}
+
+

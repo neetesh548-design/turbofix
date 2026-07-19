@@ -278,6 +278,7 @@ export default function Home() {
   const videoRef = useRef(null);
 
   useEffect(() => {
+    document.title = 'TurboFix — AI Maintenance Decision Platform';
     if (!window.location.hash) return;
     const sectionId = window.location.hash.slice(1);
     window.setTimeout(() => document.getElementById(sectionId)?.scrollIntoView(), 80);
@@ -536,11 +537,20 @@ export default function Home() {
                 <form onSubmit={handleLeadSubmit}>
                   <div className="marketing-form-heading"><span><Factory /></span><div><h3>{copy.formTitle}</h3><p>{copy.formNote}</p></div></div>
                   <div className="marketing-form-grid">
-                    <label><span>{copy.name}</span><input name="name" type="text" placeholder="Rakesh Shah" autoComplete="name" required /></label>
-                    <label><span>{copy.phone}</span><input name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" required /></label>
-                    <label><span>{copy.company}</span><input name="company" type="text" placeholder="Acme Forge Pvt Ltd" autoComplete="organization" /></label>
-                    <label><span>{copy.machines}</span><input name="machines" type="number" min="1" placeholder="25" /></label>
-                    <label className="marketing-form-wide"><span>{copy.challenge}</span><select name="challenge" defaultValue=""><option value="" disabled>{copy.challengePlaceholder}</option>{copy.challengeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+                    <label htmlFor="lead-name"><span>{copy.name}</span></label>
+                    <input id="lead-name" name="name" type="text" placeholder="Rakesh Shah" autoComplete="name" required aria-required="true" />
+                    
+                    <label htmlFor="lead-phone"><span>{copy.phone}</span></label>
+                    <input id="lead-phone" name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" required aria-required="true" />
+                    
+                    <label htmlFor="lead-company"><span>{copy.company}</span></label>
+                    <input id="lead-company" name="company" type="text" placeholder="Acme Forge Pvt Ltd" autoComplete="organization" />
+                    
+                    <label htmlFor="lead-machines"><span>{copy.machines}</span></label>
+                    <input id="lead-machines" name="machines" type="number" min="1" placeholder="25" />
+                    
+                    <label htmlFor="lead-challenge" className="marketing-form-wide"><span>{copy.challenge}</span></label>
+                    <select id="lead-challenge" name="challenge" defaultValue="" className="marketing-form-wide"><option value="" disabled>{copy.challengePlaceholder}</option>{copy.challengeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select>
                   </div>
                   <button className="marketing-btn marketing-btn-primary marketing-submit" type="submit">{copy.submit}<ArrowRight /></button>
                   <small className="marketing-privacy"><LockKeyhole />{copy.formNote}</small>

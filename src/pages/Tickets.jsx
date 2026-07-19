@@ -33,6 +33,7 @@ export default function Tickets() {
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
+    document.title = 'Tickets | TurboFix';
     fetchTicketsAndEscalation();
   }, []);
 
@@ -41,7 +42,7 @@ export default function Tickets() {
     setError('');
     try {
       const [ticketsRes, machinesRes] = await Promise.all([
-        supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone,wo_number,lifecycle_stage,root_cause,repair_action,parts_used,labour_minutes,downtime_minutes,started_at,resolved_at,verified_at,closure_approved_by'),
+        supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone,wo_number,lifecycle_stage,root_cause,repair_action,parts_used,labour_minutes,downtime_minutes,started_at,resolved_at,verified_at,closure_approved_by,repeat_failure_flag,repeat_failure_count'),
         supabase.from('machines').select('id,name'),
       ]);
 
@@ -71,6 +72,8 @@ export default function Tickets() {
         resolved_at: t.resolved_at,
         verified_at: t.verified_at,
         closure_approved_by: t.closure_approved_by,
+        repeat_failure_flag: t.repeat_failure_flag,
+        repeat_failure_count: t.repeat_failure_count,
       }));
       setTickets(data);
       setEscalationPath([]);
@@ -201,7 +204,7 @@ export default function Tickets() {
                     <React.Fragment key={ticketId}>
                     <tr onClick={() => setExpandedId(isExpanded ? null : ticketId)} style={{ cursor: 'pointer' }}>
                       <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white' }}>{t.wo_number || (ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId)}</td>
-                      <td style={{ fontWeight: '600', color: 'white' }}>{t.machine_name || t.machine_id}</td>
+                      <td style={{ fontWeight: '600', color: 'white' }}>{t.machine_name || t.machine_id}{t.repeat_failure_flag && <span title="Recurring failure — RCA recommended" style={{ marginLeft: '8px', fontSize: '0.66rem', fontWeight: 700, textTransform: 'uppercase', color: '#F87171', border: '1px solid #F87171', borderRadius: '999px', padding: '1px 7px', whiteSpace: 'nowrap' }}>Repeat ×{(t.repeat_failure_count || 0) + 1}</span>}</td>
                       <td style={{ whiteSpace: 'nowrap', color: '#cbd5e1' }}>{formatDateTime(t.reported_at)}</td>
                       <td>
                         {t.urgency ? (

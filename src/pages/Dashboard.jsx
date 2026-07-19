@@ -196,6 +196,7 @@ export default function Dashboard() {
   const [activeDetail, setActiveDetail] = useState('');
 
   useEffect(() => {
+    document.title = 'Dashboard | TurboFix';
     let mounted = true;
     fetchDashboardData()
       .then((next) => {

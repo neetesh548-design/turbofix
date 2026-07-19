@@ -48,7 +48,10 @@ export default function Support() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    document.title = 'Support | TurboFix';
+    load();
+  }, []);
 
   const machineMap = Object.fromEntries(machines.map((machine) => [machine.id, machine]));
   const ticketMap = Object.fromEntries(tickets.map((ticket) => [ticket.id, ticket]));

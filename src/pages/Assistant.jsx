@@ -84,6 +84,7 @@ export default function Assistant() {
   const audioChunksRef = useRef([]);
 
   useEffect(() => {
+    document.title = 'AI Assistant | TurboFix';
     Promise.all([
       supabase.from('machines').select('id,name,location,status,image_url'),
       supabase.from('tickets').select('*'),
@@ -300,7 +301,7 @@ export default function Assistant() {
       <aside className="assistant-side">
         {selected !== 'all' && (selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)) && (
           <div style={{ width: '100%', height: '140px', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <img src={selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt={`${selectedMachine?.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
         <div className="decision-card-kicker">How scope works</div>

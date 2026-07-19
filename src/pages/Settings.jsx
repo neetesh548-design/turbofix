@@ -118,6 +118,7 @@ export default function Settings() {
   }, [currentUser]);
 
   useEffect(() => {
+    document.title = 'Settings | TurboFix';
     fetchSettings();
   }, [fetchSettings]);
 

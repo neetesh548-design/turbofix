@@ -60,6 +60,7 @@ export default function ShutdownPlanner() {
   const [hourOverrides, setHourOverrides] = useState({});
 
   useEffect(() => {
+    document.title = 'Shutdown Planner | TurboFix';
     Promise.all([
       supabase.from('machines').select('id,name,location,status'),
       supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at'),

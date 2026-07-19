@@ -20,6 +20,7 @@ export default function Vault() {
   const [hasSession, setHasSession] = useState(hasValidSession);
 
   useEffect(() => {
+    document.title = 'Staff Login | TurboFix';
     const syncSessionVisibility = () => {
       setHasSession(hasValidSession());
     };

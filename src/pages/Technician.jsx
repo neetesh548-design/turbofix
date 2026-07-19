@@ -38,6 +38,7 @@ export default function Technician() {
   const canApprove = ['owner', 'supervisor', 'maintenance_head'].includes(user?.role);
 
   useEffect(() => {
+    document.title = 'Technician Hub | TurboFix';
     (async () => {
       try {
         const [ticketsRes, machinesRes, documentsRes, partsRes, interventionsRes] = await Promise.all([
@@ -355,7 +356,7 @@ export default function Technician() {
                 <div className="technician-work-header" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                   {(selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)) && (
                     <div style={{ width: '56px', height: '56px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                      <img src={selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                       <img src={selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)} alt={`${selectedTicket.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
                   <div style={{ flexGrow: 1 }}>

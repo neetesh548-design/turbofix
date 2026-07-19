@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 
 export default function ResetPassword() {
   useEffect(() => {
+    document.title = 'Reset Password | TurboFix';
     window.scrollTo(0, 0);
     const script = document.createElement('script');
     script.src = `${import.meta.env.BASE_URL}assets/vault.js`;

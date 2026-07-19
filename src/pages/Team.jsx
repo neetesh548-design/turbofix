@@ -30,6 +30,7 @@ export default function Team() {
 
 
   useEffect(() => {
+    document.title = 'Team Management | TurboFix';
     try {
       const u = JSON.parse(localStorage.getItem('tf_user') || 'null');
       setCurrentUser(u);

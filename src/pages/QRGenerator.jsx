@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 
 export default function QRGenerator() {
   useEffect(() => {
+    document.title = 'QR Tag Generator | TurboFix';
     window.scrollTo(0, 0);
   }, []);
 

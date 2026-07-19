@@ -15,6 +15,7 @@ const WORKSPACE_TABS = [
   { id: 'parts', label: 'Spare parts', hint: 'BOM and stock', Icon: PackageSearch },
   { id: 'consumables', label: 'Consumables', hint: 'Usage and stock', Icon: Droplets },
   { id: 'pm', label: 'Preventive', hint: 'PM schedule and compliance', Icon: ShieldCheck },
+  { id: 'reliability', label: 'Reliability', hint: 'Repeat failures, RCA and CAPA', Icon: Activity },
   { id: 'calendar', label: 'Calendar', hint: 'Order and replace', Icon: CalendarDays },
   { id: 'qr', label: 'QR tag', hint: 'Report from machine', Icon: QrCode },
 ];
@@ -92,6 +93,23 @@ export default function Machines() {
   const [pmSpares, setPmSpares] = useState('');
   const [pmEstMin, setPmEstMin] = useState('');
   const [pmTech, setPmTech] = useState('');
+  // Reliability improvement loop (RCA / CAPA / repeat failures) — roadmap P2
+  const [rcaReports, setRcaReports] = useState([]);
+  const [capaActions, setCapaActions] = useState([]);
+  const [repeatTickets, setRepeatTickets] = useState([]);
+  const [relLoading, setRelLoading] = useState(false);
+  const [relSaving, setRelSaving] = useState(false);
+  const [showRcaForm, setShowRcaForm] = useState(false);
+  const [rcaTicketId, setRcaTicketId] = useState('');
+  const [rcaFailureMode, setRcaFailureMode] = useState('');
+  const [rcaWhys, setRcaWhys] = useState(['', '', '', '', '']);
+  const [rcaRoot, setRcaRoot] = useState('');
+  const [rcaFishbone, setRcaFishbone] = useState('Machine');
+  const [capaForRca, setCapaForRca] = useState(null);
+  const [capaType, setCapaType] = useState('preventive');
+  const [capaDesc, setCapaDesc] = useState('');
+  const [capaOwner, setCapaOwner] = useState('');
+  const [capaDue, setCapaDue] = useState('');
   const [docsLoading, setDocsLoading] = useState(false);
   const [partsLoading, setPartsLoading] = useState(false);
   const [consumablesLoading, setConsumablesLoading] = useState(false);
@@ -126,7 +144,21 @@ export default function Machines() {
 
 
   useEffect(() => {
+    document.title = 'Machines | TurboFix';
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setReportIssueOpen(false);
+        setShowAddForm(false);
+        setShowRcaForm(false);
+        setShowPmForm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -341,6 +373,23 @@ export default function Machines() {
       setPmLogs([]);
     }
     setPmLoading(false);
+
+    setRelLoading(true);
+    try {
+      const [rcaRes, capaRes, repeatRes] = await Promise.all([
+        supabase.from('rca_reports').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('capa_actions').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('tickets').select('id,issue_text,created_at,repeat_failure_count').eq('machine_id', machineId).eq('repeat_failure_flag', true).order('created_at', { ascending: false }),
+      ]);
+      setRcaReports(rcaRes.data || []);
+      setCapaActions(capaRes.data || []);
+      setRepeatTickets(repeatRes.data || []);
+    } catch {
+      setRcaReports([]);
+      setCapaActions([]);
+      setRepeatTickets([]);
+    }
+    setRelLoading(false);
   };
 
   const uploadMachinePhoto = async (file, machineIdInput = null) => {
@@ -766,6 +815,127 @@ export default function Machines() {
   const pmCompliancePct = pmLogs.length
     ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
     : null;
+
+  // --- Reliability improvement loop: RCA → CAPA → PM revision (roadmap P2) ---
+  const resetRcaForm = () => {
+    setRcaTicketId(''); setRcaFailureMode(''); setRcaWhys(['', '', '', '', '']); setRcaRoot(''); setRcaFishbone('Machine');
+  };
+
+  const handleAddRca = async (e) => {
+    e.preventDefault();
+    if (!selectedMachine || !rcaRoot.trim()) return;
+    setRelSaving(true);
+    try {
+      const { error: insertErr } = await supabase.from('rca_reports').insert({
+        machine_id: selectedMachine.machine_id,
+        factory_id: selectedMachine.factory_id || null,
+        ticket_id: rcaTicketId || null,
+        failure_mode: rcaFailureMode.trim() || null,
+        five_whys: rcaWhys.map((w) => w.trim()).filter(Boolean),
+        root_cause: rcaRoot.trim(),
+        fishbone_category: rcaFishbone,
+        created_by: signedInUser?.name || signedInUser?.user_id || 'Staff',
+      });
+      if (insertErr) throw new Error(insertErr.message);
+      resetRcaForm();
+      setShowRcaForm(false);
+      setSuccess('Root-cause analysis saved.');
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRelSaving(false);
+    }
+  };
+
+  const handleDeleteRca = async (id) => {
+    if (!window.confirm('Delete this RCA and its actions?')) return;
+    try {
+      const { error: delErr } = await supabase.from('rca_reports').delete().eq('id', id);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
+    } catch {}
+  };
+
+  const handleAddCapa = async (rca) => {
+    if (!capaDesc.trim()) return;
+    setRelSaving(true);
+    try {
+      const { error: insertErr } = await supabase.from('capa_actions').insert({
+        rca_id: rca.id,
+        machine_id: selectedMachine.machine_id,
+        factory_id: selectedMachine.factory_id || null,
+        action_type: capaType,
+        description: capaDesc.trim(),
+        owner_user_id: capaOwner || null,
+        due_date: capaDue || null,
+      });
+      if (insertErr) throw new Error(insertErr.message);
+      setCapaDesc(''); setCapaOwner(''); setCapaDue(''); setCapaForRca(null);
+      setSuccess('Action added.');
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRelSaving(false);
+    }
+  };
+
+  const cycleCapaStatus = async (capa) => {
+    const next = capa.status === 'open' ? 'done' : capa.status === 'done' ? 'verified' : 'open';
+    try {
+      const { error: updErr } = await supabase.from('capa_actions')
+        .update({ status: next, effectiveness_verified: next === 'verified' }).eq('id', capa.id);
+      if (updErr) throw new Error(updErr.message);
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteCapa = async (id) => {
+    try {
+      const { error: delErr } = await supabase.from('capa_actions').delete().eq('id', id);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
+    } catch {}
+  };
+
+  // The closing arc: fold a preventive action into the machine's PM checklist so
+  // the permanent fix lives in the routine and survives staff turnover.
+  const applyCapaToPm = async (capa) => {
+    if (!selectedMachine) return;
+    setRelSaving(true);
+    try {
+      const item = { label: capa.description, mandatory: true };
+      let target = pmSchedules.find((pm) => pm.active !== false);
+      if (target) {
+        const checklist = Array.isArray(target.checklist) ? target.checklist : [];
+        if (!checklist.some((c) => c.label === item.label)) {
+          const { error: updErr } = await supabase.from('pm_schedules')
+            .update({ checklist: [...checklist, item] }).eq('id', target.id);
+          if (updErr) throw new Error(updErr.message);
+        }
+      } else {
+        // No PM schedule yet — create one so the preventive action has a home.
+        const { error: insErr } = await supabase.from('pm_schedules').insert({
+          machine_id: selectedMachine.machine_id,
+          factory_id: selectedMachine.factory_id || null,
+          title: 'Preventive actions (from RCA)',
+          trigger_type: 'calendar',
+          frequency_days: 90,
+          checklist: [item],
+        });
+        if (insErr) throw new Error(insErr.message);
+      }
+      const { error: capaErr } = await supabase.from('capa_actions').update({ applied_to_pm: true }).eq('id', capa.id);
+      if (capaErr) throw new Error(capaErr.message);
+      setSuccess('Preventive action added to the PM checklist. The routine now prevents this failure.');
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRelSaving(false);
+    }
+  };
 
   const triggerEscalationAlert = async (itemName, currentQty, reorderLevel, unit, machineName) => {
     try {
@@ -1383,7 +1553,7 @@ export default function Machines() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                               {m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) ? (
-                                <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt={`${m.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
                                 <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
                               )}
@@ -2021,6 +2191,139 @@ export default function Machines() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: RELIABILITY — Repeat failures → RCA → CAPA → PM revision (P2) */}
+              {wsTab === 'reliability' && (
+                <div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
+                    <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
+                  </div>
+
+                  {/* Repeat-failure signal */}
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                    <div style={{ flex: '1 1 200px', background: repeatTickets.length ? 'rgba(248,113,113,0.1)' : 'rgba(0,0,0,0.18)', border: `1px solid ${repeatTickets.length ? '#F87171' : 'var(--border)'}`, borderRadius: '10px', padding: '14px 16px' }}>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: repeatTickets.length ? '#F87171' : '#25D366', lineHeight: 1 }}>{repeatTickets.length}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Repeat breakdowns (90 days)</small>
+                    </div>
+                    <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{rcaReports.length}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Root-cause analyses</small>
+                    </div>
+                    <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{capaActions.filter((c) => c.action_type === 'preventive' && c.applied_to_pm).length}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Preventive fixes in PM</small>
+                    </div>
+                  </div>
+
+                  {repeatTickets.length > 0 && (
+                    <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '10px', padding: '12px 16px', marginBottom: '18px' }}>
+                      <strong style={{ color: '#F87171', fontSize: '0.85rem' }}>Recurring failures detected — an RCA is recommended.</strong>
+                      <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginTop: '6px' }}>{repeatTickets.slice(0, 3).map((t) => `${new Date(t.created_at).toLocaleDateString('en-IN')}: ${t.issue_text || 'Breakdown'}`).join(' · ')}</div>
+                    </div>
+                  )}
+
+                  {isOwner && <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', marginBottom: '16px' }} onClick={() => { setShowRcaForm(!showRcaForm); }}>{showRcaForm ? 'Cancel' : '+ New root-cause analysis'}</button>}
+
+                  {showRcaForm && (
+                    <form onSubmit={handleAddRca} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '18px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                        <div className="vault-field">
+                          <label>Related breakdown (optional)</label>
+                          <select value={rcaTicketId} onChange={(e) => setRcaTicketId(e.target.value)}>
+                            <option value="">Not linked</option>
+                            {repeatTickets.map((t) => <option key={t.id} value={t.id}>{new Date(t.created_at).toLocaleDateString('en-IN')} — {(t.issue_text || 'Breakdown').slice(0, 40)}</option>)}
+                          </select>
+                        </div>
+                        <div className="vault-field">
+                          <label>Failure mode</label>
+                          <input value={rcaFailureMode} onChange={(e) => setRcaFailureMode(e.target.value)} placeholder="e.g. bearing seizure" />
+                        </div>
+                        <div className="vault-field">
+                          <label>Fishbone category</label>
+                          <select value={rcaFishbone} onChange={(e) => setRcaFishbone(e.target.value)}>
+                            {['Man', 'Machine', 'Method', 'Material', 'Measurement', 'Environment'].map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.78rem', fontWeight: 600, marginBottom: '6px' }}>5 Whys — ask "why" until the root emerges</label>
+                        {rcaWhys.map((w, i) => (
+                          <input key={i} value={w} onChange={(e) => setRcaWhys(rcaWhys.map((val, idx) => idx === i ? e.target.value : val))} placeholder={`Why ${i + 1}?`} style={{ width: '100%', marginBottom: '6px' }} />
+                        ))}
+                      </div>
+                      <div className="vault-field">
+                        <label>Root cause <strong aria-hidden="true">*</strong></label>
+                        <textarea value={rcaRoot} onChange={(e) => setRcaRoot(e.target.value)} rows={2} placeholder="The true underlying cause — not the symptom" required />
+                      </div>
+                      <div><button type="submit" className="vault-btn vault-btn-primary" disabled={relSaving} style={{ background: 'var(--brand)', color: '#000' }}>{relSaving ? 'Saving…' : 'Save RCA'}</button></div>
+                    </form>
+                  )}
+
+                  {relLoading ? (
+                    <div style={{ textAlign: 'center', padding: '24px', color: 'var(--slate)' }}>Loading reliability data…</div>
+                  ) : rcaReports.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>No root-cause analyses yet. When a failure repeats, capture the root cause here so it can be permanently fixed.</div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '14px' }}>
+                      {rcaReports.map((rca) => {
+                        const actions = capaActions.filter((c) => c.rca_id === rca.id);
+                        return (
+                          <div key={rca.id} style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <strong style={{ color: 'white' }}>{rca.failure_mode || 'Root-cause analysis'}</strong>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#A78BFA', border: '1px solid #A78BFA' }}>{rca.fishbone_category}</span>
+                                </div>
+                                <div style={{ color: '#cbd5e1', fontSize: '0.85rem', marginTop: '6px' }}><span style={{ color: 'var(--slate)' }}>Root cause:</span> {rca.root_cause}</div>
+                                {Array.isArray(rca.five_whys) && rca.five_whys.length > 0 && (
+                                  <div style={{ color: 'var(--slate)', fontSize: '0.78rem', marginTop: '4px' }}>{rca.five_whys.map((w, i) => `${i + 1}. ${w}`).join('  →  ')}</div>
+                                )}
+                              </div>
+                              {isOwner && <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', height: 'fit-content' }} onClick={() => handleDeleteRca(rca.id)}>Delete</button>}
+                            </div>
+
+                            {/* CAPA actions */}
+                            <div style={{ marginTop: '12px', display: 'grid', gap: '6px' }}>
+                              {actions.map((capa) => (
+                                <div key={capa.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '8px 12px' }}>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: capa.action_type === 'preventive' ? '#34D399' : '#60A5FA' }}>{capa.action_type}</span>
+                                  <span style={{ flex: 1, minWidth: '140px', color: 'white', fontSize: '0.85rem' }}>{capa.description}{capa.due_date && <span style={{ color: 'var(--slate)', fontSize: '0.75rem' }}> · due {new Date(capa.due_date).toLocaleDateString('en-IN')}</span>}</span>
+                                  <button className="vault-btn vault-btn-ghost" style={{ padding: '3px 10px', fontSize: '0.72rem' }} onClick={() => cycleCapaStatus(capa)}>{capa.status === 'open' ? 'Open' : capa.status === 'done' ? 'Done' : 'Verified ✓'}</button>
+                                  {capa.action_type === 'preventive' && (capa.applied_to_pm
+                                    ? <span style={{ fontSize: '0.72rem', color: '#25D366', fontWeight: 600 }}>In PM ✓</span>
+                                    : <button className="vault-btn vault-btn-primary" style={{ padding: '3px 10px', fontSize: '0.72rem', background: 'var(--brand)', color: '#000' }} disabled={relSaving} onClick={() => applyCapaToPm(capa)}>Add to PM</button>)}
+                                  {isOwner && <button className="vault-btn vault-btn-ghost" style={{ padding: '3px 8px', fontSize: '0.72rem' }} onClick={() => handleDeleteCapa(capa.id)}>✕</button>}
+                                </div>
+                              ))}
+                            </div>
+
+                            {capaForRca === rca.id ? (
+                              <div style={{ marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                <select value={capaType} onChange={(e) => setCapaType(e.target.value)} style={{ width: '130px' }}>
+                                  <option value="preventive">Preventive</option>
+                                  <option value="corrective">Corrective</option>
+                                </select>
+                                <input value={capaDesc} onChange={(e) => setCapaDesc(e.target.value)} placeholder="Action to take" style={{ flex: 1, minWidth: '160px' }} />
+                                <select value={capaOwner} onChange={(e) => setCapaOwner(e.target.value)} style={{ width: '150px' }}>
+                                  <option value="">Owner (optional)</option>
+                                  {team.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
+                                </select>
+                                <input type="date" value={capaDue} onChange={(e) => setCapaDue(e.target.value)} style={{ width: '150px' }} />
+                                <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000' }} disabled={relSaving} onClick={() => handleAddCapa(rca)}>Add</button>
+                                <button className="vault-btn vault-btn-ghost" onClick={() => { setCapaForRca(null); setCapaDesc(''); }}>Cancel</button>
+                              </div>
+                            ) : (
+                              <button className="vault-btn vault-btn-ghost" style={{ marginTop: '10px', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => { setCapaForRca(rca.id); setCapaType('preventive'); setCapaDesc(''); setCapaOwner(''); setCapaDue(''); }}>+ Add corrective / preventive action</button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

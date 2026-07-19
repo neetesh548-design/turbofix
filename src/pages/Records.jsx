@@ -123,6 +123,15 @@ function UploadDialog({ machines, initialMachineId, open, onClose, onComplete })
     }
   }, [initialMachineId, machineId, machines]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const selectFiles = (selectedFiles) => {
@@ -206,6 +215,15 @@ function ReviewDialog({ record, machine, user, onClose, onUpdated }) {
     setDraft(clone(record?.extracted_data || EMPTY_EXTRACTION));
     setNotes(record?.review_notes || '');
   }, [record]);
+
+  useEffect(() => {
+    if (!record) return;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [record, onClose]);
 
   useEffect(() => {
     let active = true;
@@ -391,7 +409,10 @@ export default function Records() {
     }
   }, [initialMachineId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    document.title = 'AI Records | TurboFix';
+    load();
+  }, [load]);
 
   const machineMap = useMemo(() => Object.fromEntries(machines.map((machine) => [machine.machine_id, machine])), [machines]);
   const metrics = useMemo(() => ({
