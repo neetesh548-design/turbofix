@@ -42,6 +42,7 @@ export default function QRGateway() {
   // Duplicate Check and verification state
   const [duplicateTicket, setDuplicateTicket] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [errorAlert, setErrorAlert] = useState(null); // { title, desc }
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
@@ -189,16 +190,31 @@ export default function QRGateway() {
   };
 
   const startVoiceInput = () => {
+    setErrorAlert(null);
     if (recognitionRef.current) {
       if (isListening) {
         recognitionRef.current.stop();
       } else {
         setExtractedInfo(null);
         setSuccess(false);
-        recognitionRef.current.start();
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          setErrorAlert({
+            title: lang === 'hi-IN' ? 'माइक एक्सेस समस्या' : 'Microphone Access Blocked',
+            desc: lang === 'hi-IN'
+              ? 'टर्बोफिक्स को बोलने के लिए माइक अनुमति की आवश्यकता है। कृपया ब्राउज़र सेटिंग में अनुमति दें।'
+              : 'TurboFix needs microphone permissions to listen. Please enable it in your browser settings.'
+          });
+        }
       }
     } else {
-      alert('Speech Recognition is not supported by your browser. Please try Chrome or Safari.');
+      setErrorAlert({
+        title: lang === 'hi-IN' ? 'ब्राउज़र सपोर्ट नहीं है' : 'Browser Not Supported',
+        desc: lang === 'hi-IN'
+          ? 'आपका ब्राउज़र आवाज पहचान का समर्थन नहीं करता है। कृपया Chrome या Safari का उपयोग करें।'
+          : 'Voice Recognition is not supported on this browser. Please try Chrome or Safari.'
+      });
     }
   };
 
@@ -480,6 +496,14 @@ export default function QRGateway() {
             <p style={{ fontSize: '1.05rem', fontWeight: 600, color: '#e2e8f0', margin: '0 0 12px', lineHeight: '1.4' }}>
               {renderPromptText(assistantPrompt)}
             </p>
+
+            {errorAlert && (
+              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '12px', padding: '14px 18px', maxWidth: '340px', marginTop: '8px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 10 }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#ef4444' }}>{errorAlert.title}</span>
+                <span style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: '1.4' }}>{errorAlert.desc}</span>
+                <button type="button" onClick={() => setErrorAlert(null)} style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '4px 12px', fontSize: '0.75rem', color: 'white', cursor: 'pointer', marginTop: '4px' }}>Dismiss</button>
+              </div>
+            )}
 
             {/* Subtitles text (transcribed from user) */}
             {transcript && (
