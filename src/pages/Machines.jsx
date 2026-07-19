@@ -286,7 +286,10 @@ export default function Machines() {
         can_receive_alerts: u.can_receive_alerts,
       }));
       setTeam(teamData);
-      setEscalationPath([]);
+      const localEscalation = window.localStorage.getItem('tf_settings_escalation_path');
+      setEscalationPath(localEscalation ? JSON.parse(localEscalation) : [
+        { role: 'maintenance_technician', label: 'Maintenance Technician', threshold_hours: 2 }
+      ]);
     } catch (err) {
       setError(err.message || 'An error occurred while loading data.');
     } finally {
