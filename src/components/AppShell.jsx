@@ -21,7 +21,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     if (!machine) return 'Machine not found.';
     const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
     const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
-    const machineLabel = `${machine.machine_name} [${machine.machine_id}]`;
+    const machineLabel = `${machine.machine_name} [${machine.machine_id.slice(0, 8)}]`;
     if (machineOpen.length === 0) {
       return `${machineLabel} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}.`;
     }
@@ -47,7 +47,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
   });
   const top = sorted[0];
   const machineObj = machines.find(m => m.machine_id === top.machine_id);
-  const machineName = machineObj ? `${machineObj.machine_name} [${machineObj.machine_id}]` : top.machine_id || 'Machine';
+  const machineName = machineObj ? `${machineObj.machine_name} [${machineObj.machine_id.slice(0, 8)}]` : (top.machine_id ? top.machine_id.slice(0, 8) : 'Machine');
   const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
   return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
 }
@@ -464,7 +464,7 @@ export default function AppShell({ children, active }) {
               <select value={selected} onChange={changeScope}>
                 <option value="all">All machines — plant-wide</option>
                 {machines.map((m) => (
-                  <option key={m.machine_id} value={m.machine_id}>{m.machine_name} [{m.machine_id}]</option>
+                  <option key={m.machine_id} value={m.machine_id}>{m.machine_name} [{m.machine_id.slice(0, 8)}]</option>
                 ))}
               </select>
             </label>
