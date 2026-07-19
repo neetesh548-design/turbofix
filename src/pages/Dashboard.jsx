@@ -9,6 +9,7 @@ const fallback = {
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
   shift_handover: { machines_down: 0, critical: [], waiting_spare: [], waiting_approval: [], waiting_vendor: [], repeat: [], pm_due: [] },
   repair_replace: [],
+  data_quality: [], audit_log: [],
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
@@ -212,19 +213,43 @@ function computeRepairReplace(machines, tickets, workOrderParts, now = new Date(
   }).filter((r) => r.recommendation !== 'Repair').sort((a, b) => (b.ratio_pct || 0) - (a.ratio_pct || 0) || b.breakdowns - a.breakdowns);
 }
 
+// AI Data-Quality checks (roadmap §9.4, Tier 0): flag records that would make a
+// KPI lie — computed from existing tickets, zero entry. Trust layer under KPIs.
+function computeDataQuality(machines, tickets) {
+  const nameOf = (id) => machines.find((m) => m.id === id)?.name || 'Unknown machine';
+  const isClosed = (t) => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase());
+  const urgencyOf = (t) => String((t.ai_summary && typeof t.ai_summary === 'object' && t.ai_summary.urgency) || t.urgency || '').toLowerCase();
+  const flags = [];
+  const push = (type, t, detail) => flags.push({ type, machine: nameOf(t.machine_id), machine_id: t.machine_id, wo: t.wo_number || null, detail });
+  tickets.forEach((t) => {
+    if (isClosed(t)) {
+      if ((t.type || 'breakdown') === 'breakdown' && !t.root_cause) push('Missing root cause', t, 'Closed without a recorded root cause');
+      if (['high', 'critical'].includes(urgencyOf(t)) && !t.verified_at && !t.closure_approved_by) push('Unverified critical closure', t, 'Critical job closed without verification');
+      if (t.downtime_minutes != null && Number(t.downtime_minutes) > 0 && Number(t.downtime_minutes) < 5) push('Suspiciously short repair', t, `${t.downtime_minutes} min recorded`);
+      if (t.started_at && t.downtime_minutes == null) push('Missing downtime', t, 'Work started but downtime not captured');
+    }
+  });
+  const openByMachine = {};
+  tickets.filter((t) => String(t.status || '').toLowerCase() === 'open').forEach((t) => { (openByMachine[t.machine_id] ||= []).push(t); });
+  Object.entries(openByMachine).filter(([, arr]) => arr.length >= 2).forEach(([mid, arr]) => flags.push({ type: 'Possible duplicate work orders', machine: nameOf(mid), machine_id: mid, wo: null, detail: `${arr.length} open tickets on the same machine` }));
+  return flags.slice(0, 20);
+}
+
 async function fetchDashboardData() {
-  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes] = await Promise.all([
+  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes, auditRes] = await Promise.all([
     supabase.from('machines').select('*'),
     supabase.from('tickets').select('*'),
     supabase.from('factories').select('name').limit(1),
     supabase.from('pm_logs').select('on_time'),
     supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active'),
     supabase.from('work_order_parts').select('machine_id,total_cost,created_at'),
+    supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12),
   ]);
 
   const machines = machinesRes.data || [];
   const tickets = ticketsRes.data || [];
   const workOrderParts = wopRes.data || [];
+  const auditLog = auditRes.data || [];
   const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
   const pmLogs = pmLogsRes.data || [];
   const pmSchedules = pmSchedulesRes.data || [];
@@ -257,6 +282,7 @@ async function fetchDashboardData() {
   const maintenanceInsights = computeMaintenanceInsights(machines, tickets);
   const shiftHandover = computeShiftHandover(machines, tickets, pmSchedules);
   const repairReplace = computeRepairReplace(machines, tickets, workOrderParts);
+  const dataQuality = computeDataQuality(machines, tickets);
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -295,6 +321,8 @@ async function fetchDashboardData() {
     needs_attention: needsAttention,
     shift_handover: shiftHandover,
     repair_replace: repairReplace,
+    data_quality: dataQuality,
+    audit_log: auditLog,
     recent_activity: [],
     weekly_trend: [],
   };
@@ -429,6 +457,35 @@ export default function Dashboard() {
             </div>
           </section>
         )}
+
+        <section className="decision-columns">
+          <div className="decision-panel">
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality</h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
+            {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
+              <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
+                <span className="status-dot warning" />
+                <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
+              </a>
+            )) : <Empty text="Records look clean. KPIs are trustworthy." />}
+          </div>
+          <div className="decision-panel">
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
+            {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
+              const d = entry.details || {};
+              const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
+                : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
+                : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
+                : `Status: ${d.from || '—'} → ${d.to || '—'}`;
+              return (
+                <div className="attention-row" key={entry.id}>
+                  <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
+                  <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
+                </div>
+              );
+            }) : <Empty text="No recorded changes yet." />}
+          </div>
+        </section>
+        {(data.data_quality?.length > 8) && <p style={{ color: 'var(--slate)', fontSize: '0.8rem', margin: '4px 0 0' }}>Showing 8 of {data.data_quality.length} data-quality items.</p>}
 
         <section className="decision-panel decision-owner-brief">
           <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
