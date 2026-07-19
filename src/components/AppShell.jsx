@@ -123,6 +123,14 @@ export default function AppShell({ children, active }) {
   const audioChunksRef = useRef([]);
   const [seniorMode, setSeniorMode] = useState(() => localStorage.getItem('tf_senior_mode') === 'true');
 
+  const toggleSeniorMode = () => {
+    setSeniorMode((prev) => {
+      const next = !prev;
+      localStorage.setItem('tf_senior_mode', String(next));
+      return next;
+    });
+  };
+
   // Fetch only when sidebar is opened
   useEffect(() => {
     if (!sidebarOpen || !authed) return;
