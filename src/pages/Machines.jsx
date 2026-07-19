@@ -2420,7 +2420,7 @@ export default function Machines() {
                   
                   <div className="sticker-qr-box" style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                     <QRCodeSVG
-                      value={selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}: `}
+                      value={`${window.location.origin}${import.meta.env.BASE_URL || '/'}qr-gateway.html?id=${selectedMachine.machine_id}&name=${encodeURIComponent(selectedMachine.machine_name)}&loc=${encodeURIComponent(selectedMachine.location || '')}&wa=${encodeURIComponent(selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}`)}`}
                       size={180}
                     />
                   </div>

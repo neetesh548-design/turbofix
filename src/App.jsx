@@ -17,6 +17,7 @@ const loaders = {
   '/technician.html': () => import('./pages/Technician'),
   '/records.html': () => import('./pages/Records'),
   '/support.html': () => import('./pages/Support'),
+  '/qr-gateway.html': () => import('./pages/QRGateway'),
 };
 
 const Home = lazy(loaders['/']);
@@ -34,6 +35,7 @@ const ShutdownPlanner = lazy(loaders['/shutdown-planner.html']);
 const Technician = lazy(loaders['/technician.html']);
 const Records = lazy(loaders['/records.html']);
 const Support = lazy(loaders['/support.html']);
+const QRGateway = lazy(loaders['/qr-gateway.html']);
 
 // Start the current page chunk immediately instead of waiting for React Router.
 const currentPath = window.location.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '') || '/';
@@ -60,6 +62,7 @@ function App() {
           <Route path="/technician.html" element={<Technician />} />
           <Route path="/records.html" element={<Records />} />
           <Route path="/support.html" element={<Support />} />
+          <Route path="/qr-gateway.html" element={<QRGateway />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
