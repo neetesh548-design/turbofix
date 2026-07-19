@@ -43,6 +43,8 @@ export default function QRGateway() {
   const [duplicateTicket, setDuplicateTicket] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [errorAlert, setErrorAlert] = useState(null); // { title, desc }
+  const [showTextFallback, setShowTextFallback] = useState(false);
+  const [manualCondition, setManualCondition] = useState('running'); // running, stopped, unsafe, not_sure
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
@@ -111,9 +113,10 @@ export default function QRGateway() {
 
       rec.onerror = () => {
         setIsListening(false);
-        const errMsg = lang === 'hi-IN' ? 'मैं सुन नहीं पाया। कृपया फिर से बोलें।' : "Sorry, I didn't catch that. Please speak again.";
+        const errMsg = lang === 'hi-IN' ? 'मैं सुन नहीं पाया। नीचे लिखकर शिकायत दर्ज करें।' : "Could not hear you. Please write your complaint below.";
         setAssistantPrompt(errMsg);
         speak(errMsg);
+        setShowTextFallback(true);
       };
 
       rec.onend = () => {
@@ -121,6 +124,8 @@ export default function QRGateway() {
       };
 
       recognitionRef.current = rec;
+    } else {
+      setShowTextFallback(true);
     }
 
     // Greet user on load
@@ -444,6 +449,87 @@ export default function QRGateway() {
             </button>
           </div>
         </div>
+      ) : showTextFallback ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0', zIndex: 10 }}>
+          <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center' }}>
+              {lang === 'hi-IN' ? 'समस्या का विवरण लिखें' : 'Write Issue Description'}
+            </h3>
+            
+            <div>
+              <textarea 
+                rows={3}
+                value={transcript} 
+                onChange={(e) => setTranscript(e.target.value)}
+                placeholder={lang === 'hi-IN' ? 'मशीन की समस्या लिखें (उदा. ऑइल लीक हो रहा है)' : 'e.g. Oil leak near gearbox'}
+                style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px', fontWeight: 'bold' }}>
+                {lang === 'hi-IN' ? 'मशीन की स्थिति' : 'Machine Condition'}
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {[
+                  { id: 'running', label: lang === 'hi-IN' ? 'चालू है (समस्या के साथ)' : 'Running with issue', color: '#eab308' },
+                  { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : 'Stopped', color: '#ef4444' },
+                  { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : 'Unsafe', color: '#dc2626' },
+                  { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : 'Not Sure', color: '#64748b' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setManualCondition(item.id)}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '6px',
+                      background: manualCondition === item.id ? `${item.color}22` : '#0b1118',
+                      border: `2px solid ${manualCondition === item.id ? item.color : 'rgba(255,255,255,0.06)'}`,
+                      color: manualCondition === item.id ? '#ffffff' : '#94a3b8',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowTextFallback(false)}
+                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                {lang === 'hi-IN' ? 'बोलकर बताएं' : 'Speak Instead'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (!transcript.trim()) {
+                    alert(lang === 'hi-IN' ? 'कृपया समस्या का विवरण लिखें।' : 'Please describe the issue.');
+                    return;
+                  }
+                  const info = {
+                    issue: transcript.trim(),
+                    condition: manualCondition,
+                    urgency: manualCondition === 'unsafe' ? 'critical' : manualCondition === 'stopped' ? 'high' : 'medium'
+                  };
+                  setExtractedInfo(info);
+                  const confirmMsg = lang === 'hi-IN' ? 'क्या मैं यह रिपोर्ट दर्ज करूँ?' : 'Should I submit this ticket?';
+                  setAssistantPrompt(confirmMsg);
+                }}
+                style={{ flex: 1, padding: '12px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                {lang === 'hi-IN' ? 'समीक्षा करें' : 'Review Report'}
+              </button>
+            </div>
+
+          </div>
+        </div>
       ) : (
         <>
           {/* Voice Assistant Visualizer Area */}
@@ -487,6 +573,14 @@ export default function QRGateway() {
             <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '20px', zIndex: 5 }}>
               {isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
             </span>
+
+            <button 
+              type="button" 
+              onClick={() => { setShowTextFallback(true); setTranscript(''); }}
+              style={{ background: 'transparent', border: 'none', color: '#863bff', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '12px', zIndex: 5 }}
+            >
+              {lang === 'hi-IN' ? 'बोलने में समस्या? लिखकर दर्ज करें' : 'Trouble speaking? Click here to write'}
+            </button>
           </div>
 
           {/* Speech prompt & Live subtitles display */}
