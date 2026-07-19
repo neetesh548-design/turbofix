@@ -159,10 +159,31 @@ export default function QRGateway() {
   // Convert Speech to issue parameters
   const handleUserSpeech = (text) => {
     setTranscript(text);
+    const lowerText = text.toLowerCase().trim();
+
+    // If we are waiting for confirmation
+    if (extractedInfo) {
+      const isYes = lowerText.includes('हाँ') || lowerText.includes('हां') || lowerText.includes('दर्ज करो') || 
+                    lowerText.includes('करो') || lowerText.includes('कर दो') || lowerText.includes('yes') || 
+                    lowerText.includes('confirm') || lowerText.includes('ok') || lowerText.includes('okay');
+      
+      const isNo = lowerText.includes('नहीं') || lowerText.includes('रोको') || lowerText.includes('कैंसिल') || 
+                   lowerText.includes('no') || lowerText.includes('cancel') || lowerText.includes('stop');
+
+      if (isYes) {
+        submitTicket();
+        return;
+      } else if (isNo) {
+        setExtractedInfo(null);
+        const cancelMsg = lang === 'hi-IN' ? 'ठीक है, रद्द कर दिया गया है।' : 'Okay, cancelled.';
+        setAssistantPrompt(cancelMsg);
+        speak(cancelMsg);
+        return;
+      }
+    }
     
     let condition = 'running';
     let urgency = 'medium';
-    const lowerText = text.toLowerCase();
     
     const isStopped = lowerText.includes('बंद') || lowerText.includes('stop') || lowerText.includes('not working') || lowerText.includes('काम नहीं कर रहा');
     const isUnsafe = lowerText.includes('खतरा') || lowerText.includes('unsafe') || lowerText.includes('धुआं') || lowerText.includes('smoke') || lowerText.includes('करंट') || lowerText.includes('shock');
@@ -185,8 +206,8 @@ export default function QRGateway() {
 
     // Formulate response
     const confirmMessage = lang === 'hi-IN'
-      ? `क्या मैं यह रिपोर्ट दर्ज करूँ?`
-      : `Should I submit this ticket?`;
+      ? `मैंने आपकी समस्या सुनी: "${text}"। क्या मैं यह रिपोर्ट दर्ज करूँ? हाँ या ना कहें।`
+      : `I heard: "${text}". Should I submit this ticket? Say Yes or No.`;
     
     setTimeout(() => {
       setAssistantPrompt(confirmMessage);
