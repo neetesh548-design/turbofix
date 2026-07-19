@@ -141,6 +141,7 @@ export default function Vault() {
       <div class="vault-field">
         <label for="regOwnerPassword">Password</label>
         <input type="password" id="regOwnerPassword" autocomplete="new-password" minlength="8" required>
+        <small style="color: var(--slate); font-size: 11px; margin-top: 4px; display: block;">Must be at least 8 characters long.</small>
       </div>
       <div class="vault-field">
         <label for="regPaymentScreenshot">Payment screenshot confirmation</label>
