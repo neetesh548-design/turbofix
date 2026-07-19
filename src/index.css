@@ -4862,4 +4862,279 @@ details.faq-item p {
   width: 50%;
 }
 
+/* Persistent Right-Hand AI Assistant Sidebar & Trigger */
+.app-sidebar-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  background: var(--brand, #10b981);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-family: 'Rajdhani', -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app-sidebar-trigger:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6);
+}
+.app-sidebar-trigger.active {
+  background: #1f2937;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.app-sidebar-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  z-index: 1000;
+  background: #0f172a;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app-sidebar-panel.open {
+  transform: translateX(0);
+}
+
+.app-sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.app-sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Rajdhani', -apple-system, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  color: #fff;
+}
+.app-sidebar-title .glow-icon {
+  color: var(--brand, #10b981);
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6));
+}
+.app-sidebar-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.app-sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-sidebar-scope-selector label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+.app-sidebar-scope-selector select {
+  width: 100%;
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+}
+
+.app-sidebar-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.app-sidebar-suggestions button {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.app-sidebar-suggestions button:hover {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #fff;
+}
+
+.app-sidebar-chat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px;
+}
+.app-sidebar-chat-form textarea {
+  width: 100%;
+  background: transparent;
+  color: #fff;
+  border: none;
+  resize: none;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  outline: none !important;
+}
+.app-sidebar-input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sidebar-tool-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.sidebar-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.sidebar-tool-btn.recording {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  animation: pulse 1.5s infinite;
+}
+.app-sidebar-submit {
+  background: var(--brand, #10b981);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.app-sidebar-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.app-sidebar-preview {
+  position: relative;
+  display: inline-block;
+  margin-top: 4px;
+}
+.app-sidebar-preview img {
+  max-width: 120px;
+  max-height: 80px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.app-sidebar-preview button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #000;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.app-sidebar-alert {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+.app-sidebar-alert.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.app-sidebar-response {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.app-sidebar-response .response-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand, #10b981);
+  letter-spacing: 0.5px;
+}
+.app-sidebar-response .response-text {
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.app-sidebar-response .response-meta {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: 6px;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .app-sidebar-panel {
+    width: 100%;
+  }
+}
+
 

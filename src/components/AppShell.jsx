@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
+import { Sparkles, Mic, Square, X, Camera } from 'lucide-react';
+import { supabase } from '@/supabaseClient';
 
 /**
  * AppShell — the unified authenticated layout (Redesign P1).
@@ -9,6 +11,44 @@ import { canViewWorkspace, roleContribution } from '@/lib/roles';
  */
 
 const BASE = import.meta.env.BASE_URL;
+
+function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
+  const visibleMachineIds = new Set(machines.map(m => m.machine_id));
+  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
+  
+  if (selectedMachineId && selectedMachineId !== 'all') {
+    const machine = machines.find(m => m.machine_id === selectedMachineId);
+    if (!machine) return 'Machine not found.';
+    const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
+    const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
+    if (machineOpen.length === 0) {
+      return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}.`;
+    }
+    const sorted = [...machineOpen].sort((a, b) => {
+      const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
+      const aVal = urgencyMap[String(a.urgency || '').toLowerCase()] ?? 4;
+      const bVal = urgencyMap[String(b.urgency || '').toLowerCase()] ?? 4;
+      return aVal - bVal;
+    });
+    const top = sorted[0];
+    const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
+    return `${machine.machine_name || machine.machine_id} has ${machineOpen.length} open ticket(s). Primary technician: ${machine.primary_technician_name || 'not assigned'}. Start with ${top.id ? top.id.slice(0, 8) : 'ticket'}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
+  }
+  
+  if (openTickets.length === 0) {
+    return `All ${machines.length} machines are currently clear with no open maintenance tickets.`;
+  }
+  const sorted = [...openTickets].sort((a, b) => {
+    const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
+    const aVal = urgencyMap[String(a.urgency || '').toLowerCase()] ?? 4;
+    const bVal = urgencyMap[String(b.urgency || '').toLowerCase()] ?? 4;
+    return aVal - bVal;
+  });
+  const top = sorted[0];
+  const machineName = machines.find(m => m.machine_id === top.machine_id)?.machine_name || top.machine_id || 'Machine';
+  const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
+  return `Plant-wide view: ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
+}
 
 function isTokenExpired(token) {
   if (!token) return true;
@@ -60,6 +100,203 @@ export default function AppShell({ children, active }) {
       window.removeEventListener('storage', refresh);
     };
   }, [refresh]);
+
+  // Sidebar State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [machines, setMachines] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selected, setSelected] = useState('all');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [answerSource, setAnswerSource] = useState('');
+  const [contextFiles, setContextFiles] = useState([]);
+  const [_retrieval, setRetrieval] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [sidebarError, setSidebarError] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
+  const [listening, setListening] = useState(false);
+  const [_transcribing, setTranscribing] = useState(false);
+  const recorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  // Fetch only when sidebar is opened
+  useEffect(() => {
+    if (!sidebarOpen || !authed) return;
+    Promise.all([
+      supabase.from('machines').select('id,name,location,status,image_url'),
+      supabase.from('tickets').select('*'),
+      supabase.from('events').select('*'),
+      supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
+    ]).then(([mRes, tRes, eRes, directoryRes]) => {
+      const members = directoryRes.data?.members || [];
+      const memberNames = Object.fromEntries(members.map((member) => [member.user_id, member.name]));
+      const assignments = directoryRes.data?.machine_assignments || {};
+      const roleAssignmentKey = {
+        maintenance_technician: 'technician_user_id',
+        technician: 'technician_user_id',
+        supervisor: 'supervisor_id',
+        maintenance_engineer: 'engineer_user_id',
+        maintenance_head: 'maintenance_head_user_id',
+      }[user?.role];
+      const mapped = (mRes.data || []).map(m => ({
+        machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url,
+        primary_technician_name: memberNames[assignments[m.id]?.technician_user_id] || '',
+      }));
+      const visibleMachines = roleAssignmentKey
+        ? mapped.filter(m => String(assignments[m.machine_id]?.[roleAssignmentKey] || '') === String(user?.user_id || ''))
+        : mapped;
+      setMachines(visibleMachines);
+      setTickets(tRes.data || []);
+      setEvents(eRes.data || []);
+    }).catch(() => {
+      setMachines([]);
+      setTickets([]);
+      setEvents([]);
+    });
+  }, [sidebarOpen, authed, user]);
+
+  useEffect(() => {
+    if (selected !== 'all' && machines.length > 0 && !machines.some((machine) => machine.machine_id === selected)) {
+      setSelected('all');
+    }
+  }, [machines, selected]);
+
+  const _selectedMachine = useMemo(
+    () => machines.find((machine) => machine.machine_id === selected),
+    [machines, selected]
+  );
+  const isPlantWide = selected === 'all';
+  const suggestions = isPlantWide ? [
+    'Which machines require attention today?',
+    'What should we prioritize before the next shutdown?',
+    'Which open issue has the highest production risk?',
+  ] : [
+    'What should the technician check first?',
+    'What spare parts should we prepare?',
+    'Summarize this machine’s recent history.',
+  ];
+
+  const clearResult = () => {
+    setAnswer('');
+    setAnswerSource('');
+    setContextFiles([]);
+    setRetrieval(null);
+    setSidebarError('');
+  };
+
+  const changeScope = (event) => {
+    setSelected(event.target.value);
+    clearResult();
+  };
+
+  const changeQuestion = (value) => {
+    setQuestion(value);
+    clearResult();
+  };
+
+  const pickImage = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setSidebarError('Please choose an image file.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setSidebarError('Photo must be under 5 MB.'); return; }
+    setSidebarError('');
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(String(reader.result || ''));
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => setImagePreview('');
+
+  const transcribeAudio = async (blob) => {
+    setTranscribing(true);
+    setSidebarError('');
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+        body: { action: 'transcribe', audio: dataUrl },
+      });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
+      const transcript = String(data.transcript || '').trim();
+      if (!transcript) { setSidebarError('No speech was detected. Please try again.'); return; }
+      setQuestion((prev) => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript));
+      setAnswer('');
+    } catch (err) {
+      setSidebarError(err.message || 'Could not transcribe the recording.');
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const toggleVoice = async () => {
+    if (listening) { recorderRef.current?.stop(); return; }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setSidebarError('Voice recording is not supported.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (recordEvent) => { if (recordEvent.data.size) audioChunksRef.current.push(recordEvent.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setListening(false);
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        await transcribeAudio(blob);
+      };
+      recorderRef.current = recorder;
+      setSidebarError('');
+      setListening(true);
+      recorder.start();
+    } catch (_err) {
+      setListening(false);
+      setSidebarError('Microphone not available.');
+    }
+  };
+
+  const ask = async (event) => {
+    event.preventDefault();
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) return;
+    if (listening) recorderRef.current?.stop();
+
+    setLoading(true);
+    setSidebarError('');
+    setAnswer('');
+    setAnswerSource('');
+    setRetrieval(null);
+    
+    try {
+      const { data, error: functionError } = await supabase.functions.invoke('ai_assistant', {
+        body: { selected, question: trimmedQuestion, ...(imagePreview ? { image: imagePreview } : {}) }
+      });
+      
+      if (functionError || !data || data.error) {
+        throw new Error(functionError?.message || data?.error || 'Failed to get recommendation from AI');
+      }
+      
+      setAnswer(data.recommendation);
+      setAnswerSource('ai');
+      setContextFiles(data.context_files || []);
+      setRetrieval(data.retrieval || null);
+    } catch (requestError) {
+      console.warn("AI Assistant edge function failed, falling back to local summary:", requestError);
+      try {
+        const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
+        setAnswer(liveAnswer);
+        setAnswerSource('live_data');
+      } catch (_fallbackError) {
+        setSidebarError(requestError.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem('tf_token');
@@ -153,6 +390,102 @@ export default function AppShell({ children, active }) {
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
       </div>
+
+      {/* Persistent Floating AI Assistant Trigger */}
+      <button
+        type="button"
+        className={`app-sidebar-trigger${sidebarOpen ? ' active' : ''}`}
+        onClick={() => setSidebarOpen((open) => !open)}
+        aria-label="Open AI Assistant"
+      >
+        <Sparkles size={20} />
+        <span>Ask AI</span>
+      </button>
+
+      {/* Slide-out Sidebar Panel */}
+      <aside className={`app-sidebar-panel${sidebarOpen ? ' open' : ''}`}>
+        <header className="app-sidebar-header">
+          <div className="app-sidebar-title">
+            <Sparkles className="glow-icon" size={18} />
+            <span>AI Assistant</span>
+          </div>
+          <button type="button" className="app-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close assistant">
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="app-sidebar-body">
+          <div className="app-sidebar-scope-selector">
+            <label>
+              <span>Scope</span>
+              <select value={selected} onChange={changeScope}>
+                <option value="all">All machines — plant-wide</option>
+                {machines.map((m) => (
+                  <option key={m.machine_id} value={m.machine_id}>{m.machine_name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="app-sidebar-suggestions">
+            {suggestions.map((suggestion) => (
+              <button key={suggestion} type="button" onClick={() => changeQuestion(suggestion)}>
+                {suggestion}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={ask} className="app-sidebar-chat-form">
+            <textarea
+              value={question}
+              onChange={(e) => changeQuestion(e.target.value)}
+              placeholder={isPlantWide ? 'For example: Which machines should we service this weekend?' : 'For example: What should the technician check first?'}
+              rows={3}
+            />
+            <div className="app-sidebar-input-row">
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <label className="sidebar-tool-btn" title="Attach photo" style={{ cursor: 'pointer', margin: 0 }}>
+                  <Camera size={16} />
+                  <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) pickImage(e.target.files[0]); e.target.value = ''; }} />
+                </label>
+                <button type="button" className={`sidebar-tool-btn${listening ? ' recording' : ''}`} onClick={toggleVoice} title="Speak question">
+                  {listening ? <Square size={16} /> : <Mic size={16} />}
+                </button>
+              </div>
+              <button type="submit" className="app-sidebar-submit" disabled={loading || !question.trim()}>
+                {loading ? 'Thinking…' : 'Ask'}
+              </button>
+            </div>
+          </form>
+
+          {imagePreview && (
+            <div className="app-sidebar-preview">
+              <img src={imagePreview} alt="Attached input preview" />
+              <button type="button" onClick={removeImage} aria-label="Remove image"><X size={14} /></button>
+            </div>
+          )}
+
+          {sidebarError && (
+            <div className="app-sidebar-alert error" role="alert">
+              {sidebarError}
+            </div>
+          )}
+
+          {answer && (
+            <div className="app-sidebar-response">
+              <div className="response-header">
+                {answerSource === 'ai' ? 'TurboFix Recommendation' : 'Live Maintenance Summary'}
+              </div>
+              <div className="response-text">{answer}</div>
+              {contextFiles.length > 0 && (
+                <div className="response-meta">
+                  Context: {contextFiles.map((f) => f.file_name).join(', ')}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
