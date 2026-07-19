@@ -210,10 +210,24 @@ input:focus, select:focus, textarea:focus {
 .technician-check-copy { display: flex; flex-direction: column; gap: 5px; }
 .technician-check-copy small, .technician-card-heading small { color: var(--slate); font-size: .76rem; }
 .technician-check-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-.technician-check-actions button { border: 1px solid var(--border); background: transparent; color: var(--slate); border-radius: 999px; padding: 6px 10px; font-size: .72rem; cursor: pointer; }
-.technician-check-actions button.active { background: rgba(37, 211, 102, .15); color: #25d366; border-color: rgba(37, 211, 102, .45); }
-.technician-check-actions button.active.muted { background: rgba(148, 163, 184, .12); color: var(--slate); border-color: var(--slate); }
-.technician-check-actions button.active.help { background: rgba(245, 158, 11, .15); color: #f59e0b; border-color: rgba(245, 158, 11, .45); }
+.technician-check-actions button {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+  color: #94a3b8;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: .72rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+.technician-check-actions button:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.technician-check-actions button.active { background: rgba(37, 211, 102, .15) !important; color: #25d366 !important; border-color: rgba(37, 211, 102, .45) !important; }
+.technician-check-actions button.active.muted { background: rgba(148, 163, 184, .12) !important; color: #94a3b8 !important; border-color: #94a3b8 !important; }
+.technician-check-actions button.active.help { background: rgba(245, 158, 11, .15) !important; color: #f59e0b !important; border-color: rgba(245, 158, 11, .45) !important; }
 .technician-optional-details { margin-top: 16px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
 .technician-optional-details summary { cursor: pointer; font-weight: 700; }
 .technician-optional-details summary span { color: var(--slate); font-size: .76rem; font-weight: 500; margin-left: 6px; }
@@ -2072,13 +2086,33 @@ h1, h2, h3, .brand-name, .stat-num, .big-number, .payoff-value, .kpi-num {
 }
 .btn-whatsapp:hover { box-shadow: 0 0 40px rgba(37, 211, 102, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
 .btn-primary {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid var(--border);
-  color: var(--ink);
+  background: linear-gradient(135deg, #22c55e, #15803d) !important;
+  border: none !important;
+  color: #0c121a !important;
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.35) !important;
+  font-weight: 800 !important;
 }
-.btn-primary:hover { background: rgba(37, 211, 102, 0.14); border-color: rgba(37, 211, 102, 0.55); }
-.btn-ghost { border-color: rgba(148, 163, 184, 0.32); }
-.btn-ghost:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 20px rgba(37, 211, 102, 0.15); }
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4ade80, #16a34a) !important;
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5) !important;
+}
+.btn-primary:disabled {
+  background: #1e293b !important;
+  color: #64748b !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+.btn-ghost {
+  border-color: rgba(148, 163, 184, 0.4) !important;
+  color: var(--ink) !important;
+}
+.btn-ghost:hover {
+  border-color: var(--green) !important;
+  color: var(--green) !important;
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.15) !important;
+}
 
 /* Glowing section flourishes */
 .section-title { text-shadow: 0 0 40px rgba(37, 211, 102, 0.18); }
@@ -3005,9 +3039,30 @@ details.faq-item p {
 .technician-queue, .technician-workspace, .technician-checklist, .technician-close { border: 1px solid #344255; border-radius: 16px; background: linear-gradient(145deg, #1c2736, #172130); box-shadow: 0 10px 28px rgba(4,10,18,.22); }
 .technician-queue { padding: 20px; position: sticky; top: 24px; }
 .technician-workspace { padding: 26px; }
-.technician-ticket { display: flex; width: 100%; align-items: center; gap: 10px; margin-top: 9px; padding: 13px 10px; border: 1px solid transparent; border-radius: 11px; color: #a9b7c8; background: transparent; text-align: left; cursor: pointer; }
-.technician-ticket:hover { background: rgba(255,255,255,.05); }
-.technician-ticket.active { border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.1); }
+.technician-ticket {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  padding: 13px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 11px;
+  color: #a9b7c8;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.technician-ticket:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.technician-ticket.active {
+  border-color: rgba(34, 197, 94, 0.45) !important;
+  background: rgba(34, 197, 94, 0.08) !important;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.12) !important;
+}
 .technician-ticket-main { display: grid; min-width: 0; flex: 1; gap: 4px; }
 .technician-ticket-main strong { color: #f4f7fb; font-size: .88rem; }
 .technician-ticket-main span { overflow: hidden; color: #9baabd; font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
