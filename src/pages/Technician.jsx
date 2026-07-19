@@ -346,7 +346,22 @@ export default function Technician() {
         </div>
         {error && <div className="technician-alert error">{error}</div>}
         {message && <div className="technician-alert success"><CheckCircle2 className="size-4" />{message}</div>}
-        {loading ? <div className="technician-empty">Loading your work queue…</div> : (
+        {loading ? (
+          <div className="technician-skeleton-grid">
+            <div className="technician-skeleton-queue">
+              <div className="skeleton-block title skeleton-shimmer" />
+              <div className="skeleton-block card skeleton-shimmer" />
+              <div className="skeleton-block card skeleton-shimmer" />
+              <div className="skeleton-block card skeleton-shimmer" />
+            </div>
+            <div className="technician-skeleton-workspace">
+              <div className="skeleton-block header skeleton-shimmer" />
+              <div className="skeleton-block line skeleton-shimmer" />
+              <div className="skeleton-block line skeleton-shimmer" />
+              <div className="skeleton-block line half skeleton-shimmer" />
+            </div>
+          </div>
+        ) : (
           <div className="technician-grid">
             <section className="technician-queue">
               <div className="technician-section-heading"><div><span className="eyebrow eyebrow-light">Today</span><h2>My work queue</h2></div><button type="button" className="technician-count postlogin-inline-count" onClick={() => document.querySelector('.technician-ticket')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>{tickets.length} open <small>View work</small></button></div>

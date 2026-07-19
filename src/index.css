@@ -4803,4 +4803,63 @@ details.faq-item p {
   top: 20px;
 }
 
+/* Skeleton Loading Screen Shimmer and Blocks */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #1e293b 25%, #2d3748 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer-anim 1.5s infinite linear;
+}
+@keyframes skeleton-shimmer-anim {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.technician-skeleton-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.6fr);
+  gap: 22px;
+  align-items: start;
+}
+.technician-skeleton-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #344255;
+  border-radius: 16px;
+  background: #172130;
+}
+.technician-skeleton-workspace {
+  padding: 26px;
+  border: 1px solid #344255;
+  border-radius: 16px;
+  background: #172130;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.skeleton-block {
+  border-radius: 8px;
+}
+.skeleton-block.title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 10px;
+}
+.skeleton-block.card {
+  height: 80px;
+  width: 100%;
+}
+.skeleton-block.header {
+  height: 90px;
+  width: 100%;
+  border-radius: 12px;
+}
+.skeleton-block.line {
+  height: 16px;
+  width: 100%;
+}
+.skeleton-block.line.half {
+  width: 50%;
+}
+
 
