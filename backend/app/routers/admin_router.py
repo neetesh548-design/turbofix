@@ -993,6 +993,88 @@ async def wacrm_register_webhook(
     return result
 
 
+@router.get("/config/ai/usage")
+def get_ai_usage_dashboard(_: bool = Depends(get_current_admin)):
+    if not config.SUPABASE_URL or not config.SUPABASE_SERVICE_ROLE_KEY:
+        return {"metrics": {"total_calls": 0, "total_tokens": 0, "blocked_calls": 0, "rate_limited_calls": 0}, "recent_logs": []}
+    
+    headers = {
+        "apikey": config.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {config.SUPABASE_SERVICE_ROLE_KEY}",
+    }
+    
+    try:
+        with httpx.Client(timeout=10) as client:
+            rest_base = f"{config.SUPABASE_URL.rstrip('/')}/rest/v1"
+            params = {
+                "order": "created_at.desc",
+                "limit": "50"
+            }
+            logs_resp = client.get(f"{rest_base}/ai_usage_log", headers=headers, params=params)
+            logs = logs_resp.json() if logs_resp.status_code == 200 else []
+            if not isinstance(logs, list):
+                logs = []
+            
+            user_resp = client.get(f"{rest_base}/users?select=id,name", headers=headers)
+            user_list = user_resp.json() if user_resp.status_code == 200 else []
+            user_map = {}
+            if isinstance(user_list, list):
+                for u in user_list:
+                    if "id" in u and "name" in u:
+                        user_map[u["id"]] = u["name"]
+            
+            comp_resp = client.get(f"{rest_base}/companies?select=id,domain,name", headers=headers)
+            comp_list = comp_resp.json() if comp_resp.status_code == 200 else []
+            comp_map = {}
+            if isinstance(comp_list, list):
+                for c in comp_list:
+                    if "id" in c and "domain" in c and "name" in c:
+                        comp_map[c["id"]] = f"{c['domain']} ({c['name']})"
+            
+            formatted_logs = []
+            for log_entry in logs:
+                u_id = log_entry.get("user_id")
+                c_id = log_entry.get("company_id")
+                formatted_logs.append({
+                    "id": log_entry.get("id"),
+                    "user_name": user_map.get(u_id, u_id),
+                    "company_name": comp_map.get(c_id, c_id),
+                    "action": log_entry.get("action"),
+                    "question": log_entry.get("question"),
+                    "tokens_est": log_entry.get("tokens_est"),
+                    "latency_ms": log_entry.get("latency_ms"),
+                    "status": log_entry.get("status"),
+                    "error_msg": log_entry.get("error_msg"),
+                    "created_at": log_entry.get("created_at")
+                })
+                
+            summary_params = {
+                "select": "status,tokens_est",
+            }
+            summary_resp = client.get(f"{rest_base}/ai_usage_log", headers=headers, params=summary_params)
+            summary_data = summary_resp.json() if summary_resp.status_code == 200 else []
+            if not isinstance(summary_data, list):
+                summary_data = []
+            
+            total_calls = len(summary_data)
+            total_tokens = sum(int(r.get("tokens_est") or 0) for r in summary_data)
+            blocked_calls = sum(1 for r in summary_data if r.get("status") == "blocked")
+            rate_limited_calls = sum(1 for r in summary_data if r.get("status") == "rate_limited")
+            
+            return {
+                "metrics": {
+                    "total_calls": total_calls,
+                    "total_tokens": total_tokens,
+                    "blocked_calls": blocked_calls,
+                    "rate_limited_calls": rate_limited_calls
+                },
+                "recent_logs": formatted_logs
+            }
+    except Exception as e:
+        log.error("admin.ai_usage.failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to fetch AI usage: {str(e)}")
+
+
 @router.get("", response_class=HTMLResponse)
 def admin_console():
     """Serve the self-contained admin HTML page."""

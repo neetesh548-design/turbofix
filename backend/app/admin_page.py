@@ -376,6 +376,51 @@ ADMIN_HTML = r"""<!DOCTYPE html>
           </div>
         </section>
 
+        <!-- AI FIREWALL & USAGE MONITORING SECTION -->
+        <section class="panel" id="aiUsagePanel" style="margin-top:26px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 19px;">
+          <div class="panel-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h2>AI Firewall & Usage Monitoring</h2>
+              <p>Real-time monitoring of all AI Assistant queries, token metrics, rate limits, and block reasons.</p>
+            </div>
+            <button class="btn btn-outline" id="refreshAiUsageBtn">Refresh metrics</button>
+          </div>
+          <div class="metrics" style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div class="metric" style="padding: 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--line);">
+              <span class="metric-label" style="font-size: 12px; color: var(--subtle);">Total AI Queries</span>
+              <strong class="metric-value" id="aiTotalCalls" style="font-size: 24px; display: block; margin-top: 4px;">0</strong>
+            </div>
+            <div class="metric" style="padding: 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--line);">
+              <span class="metric-label" style="font-size: 12px; color: var(--subtle);">Estimated Tokens</span>
+              <strong class="metric-value" id="aiTotalTokens" style="font-size: 24px; display: block; margin-top: 4px;">0</strong>
+            </div>
+            <div class="metric" style="padding: 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--line);">
+              <span class="metric-label" style="font-size: 12px; color: var(--subtle);">Rate-Limited (Blocked)</span>
+              <strong class="metric-value" id="aiRateLimited" style="font-size: 24px; display: block; margin-top: 4px; color: var(--amber);">0</strong>
+            </div>
+            <div class="metric" style="padding: 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--line);">
+              <span class="metric-label" style="font-size: 12px; color: var(--subtle);">Injection / Safety Blocked</span>
+              <strong class="metric-value" id="aiBlocked" style="font-size: 24px; display: block; margin-top: 4px; color: var(--red);">0</strong>
+            </div>
+          </div>
+          <div style="margin-top: 20px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+              <thead>
+                <tr style="background: var(--surface-2); border-bottom: 1px solid var(--line);">
+                  <th style="padding: 10px;">Time</th>
+                  <th style="padding: 10px;">User / Client</th>
+                  <th style="padding: 10px;">Company</th>
+                  <th style="padding: 10px;">Action</th>
+                  <th style="padding: 10px;">Question Fragment</th>
+                  <th style="padding: 10px;">Tokens / Latency</th>
+                  <th style="padding: 10px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="aiUsageRows"></tbody>
+            </table>
+          </div>
+        </section>
+
         <!-- WACRM WHATSAPP CRM SECTION -->
         <section class="panel" id="wacrmSection" style="display:none; margin-top:26px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 19px;">
           <div class="panel-head">
@@ -521,11 +566,59 @@ async function loadAiConfig() {
   }
 }
 
+async function loadAiUsage() {
+  const btn = $("refreshAiUsageBtn");
+  btn.disabled = true;
+  btn.textContent = "Loading...";
+  try {
+    const response = await api("/admin/config/ai/usage");
+    if (response.ok) {
+      const data = await response.json();
+      $("aiTotalCalls").textContent = data.metrics.total_calls || 0;
+      $("aiTotalTokens").textContent = (data.metrics.total_tokens || 0).toLocaleString();
+      $("aiRateLimited").textContent = data.metrics.rate_limited_calls || 0;
+      $("aiBlocked").textContent = data.metrics.blocked_calls || 0;
+      
+      const rows = data.recent_logs;
+      if (!rows || rows.length === 0) {
+        $("aiUsageRows").innerHTML = `<tr><td colspan="7" class="empty" style="padding: 20px; text-align: center; color: var(--subtle);">No AI usage logged yet.</td></tr>`;
+      } else {
+        $("aiUsageRows").innerHTML = rows.map(r => {
+          let statusColor = "var(--green)";
+          if (r.status === "rate_limited") statusColor = "var(--amber)";
+          if (r.status === "blocked") statusColor = "var(--red)";
+          if (r.status === "error") statusColor = "var(--red)";
+          
+          const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const qText = r.question ? `"${esc(r.question)}..."` : "-";
+          const perf = r.status === "ok" ? `${r.tokens_est || 0} t / ${r.latency_ms || 0}ms` : "-";
+          
+          return `<tr style="border-bottom: 1px solid var(--line);">
+            <td style="padding: 10px; color: var(--subtle);">${time}</td>
+            <td style="padding: 10px;"><strong>${esc(r.user_name)}</strong></td>
+            <td style="padding: 10px;">${esc(r.company_name)}</td>
+            <td style="padding: 10px; font-family: monospace;">${esc(r.action)}</td>
+            <td style="padding: 10px; color: var(--muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${qText}</td>
+            <td style="padding: 10px;">${perf}</td>
+            <td style="padding: 10px; font-weight: bold; color: ${statusColor};">${esc(r.status)} ${r.error_msg ? `<span style="display:block; font-size:10px; font-weight:normal; color:var(--subtle);">${esc(r.error_msg)}</span>` : ''}</td>
+          </tr>`;
+        }).join("");
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to load AI usage dashboard:", error);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Refresh metrics";
+  }
+}
+
 function showApp() {
   $("loginBox").style.display = "none";
   $("adminApp").style.display = "block";
   loadCompanies();
   loadAiConfig();
+  loadAiUsage();
 }
 
 async function login() {
@@ -979,6 +1072,8 @@ $("aiConfigForm").addEventListener("submit", async (event) => {
     button.textContent = "Save Configuration";
   }
 });
+
+$("refreshAiUsageBtn").addEventListener("click", loadAiUsage);
 
 // ---------------------------------------------------------------------------
 // WaCRM Section
