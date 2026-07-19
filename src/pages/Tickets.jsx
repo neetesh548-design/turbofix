@@ -3,6 +3,26 @@ import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { getCurrentEscalationLevel } from '@/lib/escalation';
 
+// Canonical 10-state work-order lifecycle (roadmap §3.4).
+const LIFECYCLE = {
+  reported: { label: 'Reported', color: '#F87171' },
+  acknowledged: { label: 'Acknowledged', color: '#FBBF24' },
+  assigned: { label: 'Assigned', color: '#FBBF24' },
+  work_started: { label: 'Work started', color: '#60A5FA' },
+  waiting_spare: { label: 'Waiting for spare', color: '#F59E0B' },
+  waiting_approval: { label: 'Waiting for approval', color: '#F59E0B' },
+  waiting_vendor: { label: 'Waiting for vendor', color: '#F59E0B' },
+  repair_completed: { label: 'Repair completed', color: '#34D399' },
+  verification_pending: { label: 'Verification pending', color: '#A78BFA' },
+  closed: { label: 'Closed', color: '#25D366' },
+};
+const stageInfo = (ticket) => {
+  const raw = String(ticket.lifecycle_stage || '').toLowerCase();
+  if (LIFECYCLE[raw]) return LIFECYCLE[raw];
+  // Fallback for legacy rows with no lifecycle_stage yet.
+  return ['closed', 'resolved'].includes(String(ticket.status || '').toLowerCase()) ? LIFECYCLE.closed : LIFECYCLE.reported;
+};
+
 export default function Tickets() {
   const [tickets, setTickets] = useState([]);
   const [escalationPath, setEscalationPath] = useState([]);
@@ -10,6 +30,7 @@ export default function Tickets() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     fetchTicketsAndEscalation();
@@ -20,7 +41,7 @@ export default function Tickets() {
     setError('');
     try {
       const [ticketsRes, machinesRes] = await Promise.all([
-        supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone'),
+        supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at,reporter_phone,wo_number,lifecycle_stage,root_cause,repair_action,parts_used,labour_minutes,downtime_minutes,started_at,resolved_at,verified_at,closure_approved_by'),
         supabase.from('machines').select('id,name'),
       ]);
 
@@ -37,7 +58,19 @@ export default function Tickets() {
         urgency: typeof t.ai_summary === 'object' ? t.ai_summary?.urgency : '',
         description: t.issue_text,
         created_at: t.created_at,
+        reported_at: t.created_at,
         reporter_phone: t.reporter_phone,
+        wo_number: t.wo_number,
+        lifecycle_stage: t.lifecycle_stage,
+        root_cause: t.root_cause,
+        repair_action: t.repair_action,
+        parts_used: t.parts_used,
+        labour_minutes: t.labour_minutes,
+        downtime_minutes: t.downtime_minutes,
+        started_at: t.started_at,
+        resolved_at: t.resolved_at,
+        verified_at: t.verified_at,
+        closure_approved_by: t.closure_approved_by,
       }));
       setTickets(data);
       setEscalationPath([]);
@@ -141,12 +174,12 @@ export default function Tickets() {
             <table className="vault-table">
               <thead>
                 <tr>
-                  <th>Ticket ID</th>
+                  <th>Work Order</th>
                   <th>Machine Name</th>
                   <th>Reported At</th>
                   <th>Urgency</th>
                   <th>Description / AI Summary</th>
-                  <th>Escalation Stage</th>
+                  <th>Lifecycle Stage</th>
                   <th>Status</th>
                   <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
@@ -159,9 +192,15 @@ export default function Tickets() {
                   const currentTier = getCurrentEscalationLevel({ ...t, status: status === 'open' ? 'Open' : 'Closed' }, escalationPath);
                   const isOwnerAlerted = currentTier && currentTier.level === escalationPath.length - 1;
 
+                  const stage = stageInfo(t);
+                  const isClosed = ['closed', 'resolved'].includes(status);
+                  const isExpanded = expandedId === ticketId;
+                  const hasRecord = t.root_cause || t.repair_action || t.parts_used || t.labour_minutes || t.downtime_minutes;
+
                   return (
-                    <tr key={ticketId}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--slate-light)' }}>{ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId}</td>
+                    <React.Fragment key={ticketId}>
+                    <tr onClick={() => setExpandedId(isExpanded ? null : ticketId)} style={{ cursor: 'pointer' }}>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white' }}>{t.wo_number || (ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId)}</td>
                       <td style={{ fontWeight: '600', color: 'white' }}>{t.machine_name || t.machine_id}</td>
                       <td style={{ whiteSpace: 'nowrap', color: '#cbd5e1' }}>{formatDateTime(t.reported_at)}</td>
                       <td>
@@ -178,23 +217,14 @@ export default function Tickets() {
                         {t.description || (t.ai_summary && t.ai_summary.predicted_issue) || '—'}
                       </td>
                       <td>
-                        {status === 'open' && currentTier ? (
-                          isOwnerAlerted ? (
-                            <span className="vault-role-badge read-only" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(239, 68, 68, 0.15)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                              <span className="glow-dot down" /> Owner Alerted
-                            </span>
-                          ) : (
-                            <div>
-                              <span style={{ fontSize: '0.82rem', color: 'white', fontWeight: 'bold' }}>{currentTier.label}</span>
-                              {currentTier.hoursLeft !== null && (
-                                <div style={{ fontSize: '0.72rem', color: 'var(--slate)' }}>
-                                  Escalates in {currentTier.hoursLeft.toFixed(1)}h
-                                </div>
-                              )}
-                            </div>
-                          )
-                        ) : (
-                          <span style={{ color: 'var(--slate)' }}>—</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, padding: '3px 9px', borderRadius: '999px', color: stage.color, border: `1px solid ${stage.color}`, background: `${stage.color}1a`, whiteSpace: 'nowrap' }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: stage.color }} /> {stage.label}
+                        </span>
+                        {status === 'open' && currentTier && !isOwnerAlerted && currentTier.hoursLeft !== null && (
+                          <div style={{ fontSize: '0.68rem', color: 'var(--slate)', marginTop: '3px' }}>Escalates in {currentTier.hoursLeft.toFixed(1)}h</div>
+                        )}
+                        {status === 'open' && isOwnerAlerted && (
+                          <div style={{ fontSize: '0.68rem', color: '#F87171', marginTop: '3px' }}>Owner alerted</div>
                         )}
                       </td>
                       <td>
@@ -210,16 +240,41 @@ export default function Tickets() {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         {status === 'open' ? (
-                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={() => handleCloseTicket(ticketId)}>
+                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); handleCloseTicket(ticketId); }}>
                             Close Ticket
                           </button>
                         ) : (
                           <span style={{ fontSize: '0.8rem', color: 'var(--slate-light)' }}>
-                            Closed by {t.closed_by || 'Staff'}
+                            {t.closure_approved_by ? `Verified by ${t.closure_approved_by}` : 'Closed'}
                           </span>
                         )}
                       </td>
                     </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan="8" style={{ background: 'rgba(0,0,0,0.25)', padding: '16px 20px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px 20px' }}>
+                            {[
+                              ['Root cause', t.root_cause],
+                              ['Repair action', t.repair_action],
+                              ['Parts used', t.parts_used],
+                              ['Labour time', t.labour_minutes ? `${t.labour_minutes} min` : null],
+                              ['Machine downtime', t.downtime_minutes != null ? `${t.downtime_minutes} min` : null],
+                              ['Work started', t.started_at ? formatDateTime(t.started_at) : null],
+                              ['Closed', t.resolved_at ? formatDateTime(t.resolved_at) : null],
+                              ['Verified by', t.closure_approved_by],
+                            ].map(([label, value]) => (
+                              <div key={label}>
+                                <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
+                                <span style={{ color: value ? 'white' : 'var(--slate)', fontSize: '0.85rem' }}>{value || '—'}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {!hasRecord && !isClosed && <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '10px' }}>The technician has not recorded repair details yet. They appear here once work is submitted.</div>}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

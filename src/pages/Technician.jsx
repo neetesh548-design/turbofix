@@ -11,6 +11,8 @@ const defaultWork = {
   generated_checklist: [],
   notes: '',
   parts_used: '',
+  root_cause: '',
+  labour_minutes: '',
   evidence: [],
   started_at: '',
   submitted_at: '',
@@ -129,7 +131,15 @@ export default function Technician() {
 
   const startWork = async () => {
     try {
-      await persistWork({ status: 'in_progress', started_at: new Date().toISOString() });
+      const startedAt = new Date().toISOString();
+      await persistWork({ status: 'in_progress', started_at: startedAt });
+      // Durable work-order record (roadmap §3.4) — advance the lifecycle in the DB.
+      await supabase.from('tickets').update({
+        lifecycle_stage: 'work_started',
+        started_at: startedAt,
+        acknowledged_at: selectedTicket?.acknowledged_at || startedAt,
+        first_action_at: selectedTicket?.first_action_at || startedAt,
+      }).eq('id', selectedId);
       setMessage('Work started. Progress is now saved to the maintenance record.');
     } catch {}
   };
@@ -263,9 +273,20 @@ export default function Technician() {
       const updatedWork = await persistWork({ status: 'submitted', submitted_at: new Date().toISOString() });
       const photoEvidence = updatedWork.evidence.find(e => e.kind === 'photo');
       const proofUrl = photoEvidence ? photoEvidence.url : null;
-      
-      const { error: updateErr } = await supabase.from('tickets').update({ proof_image_url: proofUrl }).eq('id', selectedId);
-      
+
+      // Persist the full work-order record to the DB (roadmap §3.4) so repair
+      // detail, parts and labour no longer live only in the browser.
+      const labour = parseInt(updatedWork.labour_minutes, 10);
+      const { error: updateErr } = await supabase.from('tickets').update({
+        proof_image_url: proofUrl,
+        lifecycle_stage: 'verification_pending',
+        repair_action: (updatedWork.notes || '').trim() || null,
+        parts_used: (updatedWork.parts_used || '').trim() || null,
+        root_cause: (updatedWork.root_cause || '').trim() || null,
+        labour_minutes: Number.isFinite(labour) && labour > 0 ? labour : null,
+        started_at: selectedTicket?.started_at || updatedWork.started_at || null,
+      }).eq('id', selectedId);
+
       if (updateErr) throw new Error(updateErr.message);
       await requestIntervention('closure_approval', 'Checklist completed and repair submitted for verification.', 'Review the evidence and verify that the original symptom is resolved.', 'supervisor');
       setMessage('Repair submitted. A supervisor will only be notified because verification is required.');
@@ -281,9 +302,21 @@ export default function Technician() {
     setSaving(true);
     setError('');
     try {
-      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', selectedId);
+      const closedAt = new Date().toISOString();
+      const startRef = selectedTicket?.started_at || selectedWork.started_at;
+      const downtimeMinutes = startRef
+        ? Math.max(0, Math.round((new Date(closedAt).getTime() - new Date(startRef).getTime()) / 60000))
+        : null;
+      const { error: updateErr } = await supabase.from('tickets').update({
+        status: 'resolved',
+        lifecycle_stage: 'closed',
+        resolved_at: closedAt,
+        verified_at: closedAt,
+        closure_approved_by: user?.name || user?.user_id || 'Supervisor',
+        downtime_minutes: downtimeMinutes,
+      }).eq('id', selectedId);
       if (updateErr) throw new Error(updateErr.message);
-      
+
       const updatedWork = { ...selectedWork, status: 'closed', reviewed_at: new Date().toISOString(), reviewed_by: user?.name || user?.user_id || 'System' };
       window.localStorage.setItem(`tf_work_${selectedId}`, JSON.stringify(updatedWork));
       setWork((current) => ({ ...current, [selectedId]: updatedWork }));
@@ -340,7 +373,7 @@ export default function Technician() {
                 </div>
                 {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
                 <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
-                <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div></div></details>
+                <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div><div className="technician-field"><span><Wrench className="size-4" />Root cause</span><textarea value={selectedWork.root_cause} disabled={isLocked} onChange={(event) => updateDraft({ root_cause: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Why did it fail? Optional" />{captureActions('Root cause')}</div><div className="technician-field"><span><CheckCircle2 className="size-4" />Labour time (minutes)</span><input type="number" min="0" step="5" value={selectedWork.labour_minutes} disabled={isLocked} onChange={(event) => updateDraft({ labour_minutes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="e.g. 45" /></div></div></details>
                 <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : 'Submit for closure'}</button>}</div>
               </>}
             </section>
