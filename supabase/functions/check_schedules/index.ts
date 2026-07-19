@@ -101,9 +101,67 @@ serve(async (req) => {
           }
         }
       }
+
+      // --- Preventive Maintenance reminders (roadmap §3.5) ---
+      // Isolated so a PM failure can never disrupt consumable reminders above.
+      try {
+        const { data: pmDue } = await supabase
+          .from('pm_schedules')
+          .select('*, machines(name)')
+          .eq('factory_id', factory.id)
+          .eq('active', true)
+          .not('next_due_at', 'is', null)
+          .lte('next_due_at', today.toISOString());
+
+        for (const pm of (pmDue || [])) {
+          totalChecked++;
+          const { data: existingPmTicket } = await supabase
+            .from('tickets')
+            .select('id')
+            .eq('factory_id', factory.id)
+            .eq('machine_id', pm.machine_id)
+            .eq('type', 'preventive')
+            .eq('status', 'open')
+            .contains('ai_summary', { pm_schedule_id: pm.id })
+            .maybeSingle();
+          if (existingPmTicket) continue;
+
+          const dueDate = new Date(pm.next_due_at);
+          const overdue = today > dueDate;
+          const pmMessage = `[${factory.name}] ${overdue ? 'OVERDUE PM' : 'PM due'}: "${pm.title}" on ${pm.machines?.name || 'machine'}${overdue ? ` (was due ${dueDate.toLocaleDateString()})` : ' today'}.`;
+
+          await supabase.from('tickets').insert({
+            factory_id: factory.id,
+            machine_id: pm.machine_id,
+            issue_text: pmMessage,
+            status: 'open',
+            type: 'preventive',
+            urgency: overdue ? 'high' : 'medium',
+            lifecycle_stage: 'reported',
+            ai_summary: { pm_schedule_id: pm.id, summary: pmMessage },
+          });
+
+          const { data: pmSupervisors } = await supabase
+            .from('profiles')
+            .select('phone_e164')
+            .eq('factory_id', factory.id)
+            .eq('role', 'supervisor');
+          if (pmSupervisors && WHATSAPP_ACCESS_TOKEN && WHATSAPP_PHONE_NUMBER_ID) {
+            for (const sup of pmSupervisors) {
+              await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messaging_product: "whatsapp", to: sup.phone_e164.replace("+", ""), type: "text", text: { body: pmMessage } }),
+              });
+            }
+          }
+        }
+      } catch (pmErr) {
+        console.error(`PM schedule check failed for factory ${factory.id}:`, pmErr?.message || pmErr);
+      }
     }
 
-    return new Response(JSON.stringify({ status: "success", checked: totalChecked }), { 
+    return new Response(JSON.stringify({ status: "success", checked: totalChecked }), {
       headers: { "Content-Type": "application/json" }
     });
 

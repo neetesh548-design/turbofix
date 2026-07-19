@@ -14,6 +14,7 @@ const WORKSPACE_TABS = [
   { id: 'docs', label: 'Documents', hint: 'Manuals and diagrams', Icon: BookOpen },
   { id: 'parts', label: 'Spare parts', hint: 'BOM and stock', Icon: PackageSearch },
   { id: 'consumables', label: 'Consumables', hint: 'Usage and stock', Icon: Droplets },
+  { id: 'pm', label: 'Preventive', hint: 'PM schedule and compliance', Icon: ShieldCheck },
   { id: 'calendar', label: 'Calendar', hint: 'Order and replace', Icon: CalendarDays },
   { id: 'qr', label: 'QR tag', hint: 'Report from machine', Icon: QrCode },
 ];
@@ -77,6 +78,20 @@ export default function Machines() {
   const [docs, setDocs] = useState([]);
   const [parts, setParts] = useState([]);
   const [consumables, setConsumables] = useState([]);
+  const [pmSchedules, setPmSchedules] = useState([]);
+  const [pmLogs, setPmLogs] = useState([]);
+  const [pmLoading, setPmLoading] = useState(false);
+  const [pmSaving, setPmSaving] = useState(false);
+  const [showPmForm, setShowPmForm] = useState(false);
+  const [pmTitle, setPmTitle] = useState('');
+  const [pmTrigger, setPmTrigger] = useState('calendar');
+  const [pmFrequency, setPmFrequency] = useState('30');
+  const [pmInterval, setPmInterval] = useState('');
+  const [pmChecklist, setPmChecklist] = useState('');
+  const [pmTools, setPmTools] = useState('');
+  const [pmSpares, setPmSpares] = useState('');
+  const [pmEstMin, setPmEstMin] = useState('');
+  const [pmTech, setPmTech] = useState('');
   const [docsLoading, setDocsLoading] = useState(false);
   const [partsLoading, setPartsLoading] = useState(false);
   const [consumablesLoading, setConsumablesLoading] = useState(false);
@@ -312,6 +327,20 @@ export default function Machines() {
       })));
     } catch {}
     setConsumablesLoading(false);
+
+    setPmLoading(true);
+    try {
+      const [schedulesRes, logsRes] = await Promise.all([
+        supabase.from('pm_schedules').select('*').eq('machine_id', machineId).order('next_due_at', { ascending: true }),
+        supabase.from('pm_logs').select('*').eq('machine_id', machineId).order('completed_at', { ascending: false }),
+      ]);
+      setPmSchedules(schedulesRes.data || []);
+      setPmLogs(logsRes.data || []);
+    } catch {
+      setPmSchedules([]);
+      setPmLogs([]);
+    }
+    setPmLoading(false);
   };
 
   const uploadMachinePhoto = async (file, machineIdInput = null) => {
@@ -657,6 +686,86 @@ export default function Machines() {
       if (!delErr) loadMachineAssets(selectedMachine.machine_id);
     } catch {}
   };
+
+  // --- Preventive Maintenance (roadmap §3.5) ---
+  const resetPmForm = () => {
+    setPmTitle(''); setPmTrigger('calendar'); setPmFrequency('30'); setPmInterval('');
+    setPmChecklist(''); setPmTools(''); setPmSpares(''); setPmEstMin(''); setPmTech('');
+  };
+
+  const handleAddPm = async (e) => {
+    e.preventDefault();
+    if (!selectedMachine || !pmTitle.trim()) return;
+    setPmSaving(true);
+    try {
+      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
+      const factoryId = selectedMachine.factory_id || factoryRows?.[0]?.id || null;
+      const checklist = pmChecklist.split('\n').map((line) => line.trim()).filter(Boolean)
+        .map((label) => ({ label, mandatory: true }));
+      const { error: insertErr } = await supabase.from('pm_schedules').insert({
+        machine_id: selectedMachine.machine_id,
+        factory_id: factoryId,
+        title: pmTitle.trim(),
+        trigger_type: pmTrigger,
+        frequency_days: pmTrigger === 'calendar' ? (parseInt(pmFrequency, 10) || 30) : null,
+        interval_value: pmTrigger !== 'calendar' && pmInterval ? Number(pmInterval) : null,
+        checklist,
+        required_tools: pmTools.trim() || null,
+        required_spares: pmSpares.trim() || null,
+        estimated_minutes: pmEstMin ? parseInt(pmEstMin, 10) : null,
+        assigned_technician_id: pmTech || null,
+      });
+      if (insertErr) throw new Error(insertErr.message);
+      resetPmForm();
+      setShowPmForm(false);
+      setSuccess('Preventive maintenance schedule added.');
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPmSaving(false);
+    }
+  };
+
+  const handleCompletePm = async (schedule) => {
+    if (!selectedMachine) return;
+    setPmSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const onTime = schedule.next_due_at ? new Date(now) <= new Date(schedule.next_due_at) : true;
+      const { error: logErr } = await supabase.from('pm_logs').insert({
+        pm_schedule_id: schedule.id,
+        machine_id: selectedMachine.machine_id,
+        factory_id: schedule.factory_id,
+        due_at: schedule.next_due_at,
+        completed_at: now,
+        on_time: onTime,
+        completed_by: signedInUser?.name || signedInUser?.user_id || 'Staff',
+      });
+      if (logErr) throw new Error(logErr.message);
+      // Advancing last_done_at recomputes next_due_at via the DB trigger.
+      const { error: updErr } = await supabase.from('pm_schedules').update({ last_done_at: now }).eq('id', schedule.id);
+      if (updErr) throw new Error(updErr.message);
+      setSuccess(`"${schedule.title}" marked done${onTime ? ' on time' : ' (was overdue)'}.`);
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPmSaving(false);
+    }
+  };
+
+  const handleDeletePm = async (id) => {
+    if (!window.confirm('Delete this PM schedule?')) return;
+    try {
+      const { error: delErr } = await supabase.from('pm_schedules').delete().eq('id', id);
+      if (!delErr) loadMachineAssets(selectedMachine.machine_id);
+    } catch {}
+  };
+
+  const pmCompliancePct = pmLogs.length
+    ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
+    : null;
 
   const triggerEscalationAlert = async (itemName, currentQty, reorderLevel, unit, machineName) => {
     try {
@@ -1776,6 +1885,143 @@ export default function Machines() {
                         })}
                       </tbody>
                     </table>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: PREVENTIVE MAINTENANCE SCHEDULER (§3.5) */}
+              {wsTab === 'pm' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Preventive maintenance</h3>
+                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Scheduled PM tasks, reminders and compliance for this machine.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      {pmCompliancePct !== null && (
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: pmCompliancePct >= 90 ? '#25D366' : pmCompliancePct >= 70 ? '#FBBF24' : '#F87171' }}>{pmCompliancePct}%</div>
+                          <small style={{ color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>PM compliance</small>
+                        </div>
+                      )}
+                      {isOwner && <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000' }} onClick={() => setShowPmForm(!showPmForm)}>{showPmForm ? 'Cancel' : '+ Add PM task'}</button>}
+                    </div>
+                  </div>
+
+                  {showPmForm && (
+                    <form onSubmit={handleAddPm} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                      <div className="vault-field" style={{ gridColumn: '1 / -1' }}>
+                        <label>PM task title</label>
+                        <input value={pmTitle} onChange={(e) => setPmTitle(e.target.value)} placeholder="Example: Monthly greasing & belt check" required />
+                      </div>
+                      <div className="vault-field">
+                        <label>Trigger basis</label>
+                        <select value={pmTrigger} onChange={(e) => setPmTrigger(e.target.value)}>
+                          <option value="calendar">Calendar date</option>
+                          <option value="operating_hours">Operating hours</option>
+                          <option value="cycle_count">Cycle count</option>
+                          <option value="meter_reading">Meter reading</option>
+                          <option value="production_qty">Production quantity</option>
+                          <option value="condition">Condition-based</option>
+                        </select>
+                      </div>
+                      {pmTrigger === 'calendar' ? (
+                        <div className="vault-field">
+                          <label>Every (days)</label>
+                          <input type="number" min="1" value={pmFrequency} onChange={(e) => setPmFrequency(e.target.value)} />
+                        </div>
+                      ) : (
+                        <div className="vault-field">
+                          <label>Interval ({pmTrigger === 'operating_hours' ? 'hours' : pmTrigger === 'cycle_count' ? 'cycles' : pmTrigger === 'production_qty' ? 'units' : 'reading'})</label>
+                          <input type="number" min="0" value={pmInterval} onChange={(e) => setPmInterval(e.target.value)} placeholder="e.g. 500" />
+                        </div>
+                      )}
+                      <div className="vault-field">
+                        <label>Estimated duration (min)</label>
+                        <input type="number" min="0" value={pmEstMin} onChange={(e) => setPmEstMin(e.target.value)} placeholder="e.g. 45" />
+                      </div>
+                      <div className="vault-field">
+                        <label>Assigned technician</label>
+                        <select value={pmTech} onChange={(e) => setPmTech(e.target.value)}>
+                          <option value="">Machine's default technician</option>
+                          {technicians.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="vault-field" style={{ gridColumn: '1 / -1' }}>
+                        <label>Checklist (one step per line)</label>
+                        <textarea value={pmChecklist} onChange={(e) => setPmChecklist(e.target.value)} rows={3} placeholder={"Check oil level\nInspect belts for wear\nClean filters"} />
+                      </div>
+                      <div className="vault-field">
+                        <label>Required tools</label>
+                        <input value={pmTools} onChange={(e) => setPmTools(e.target.value)} placeholder="e.g. grease gun, torque wrench" />
+                      </div>
+                      <div className="vault-field">
+                        <label>Required spares</label>
+                        <input value={pmSpares} onChange={(e) => setPmSpares(e.target.value)} placeholder="e.g. air filter, V-belt" />
+                      </div>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <button type="submit" className="vault-btn vault-btn-primary" disabled={pmSaving} style={{ background: 'var(--brand)', color: '#000' }}>{pmSaving ? 'Saving…' : 'Save PM task'}</button>
+                      </div>
+                    </form>
+                  )}
+
+                  {pmLoading ? (
+                    <div style={{ textAlign: 'center', padding: '24px', color: 'var(--slate)' }}>Loading PM schedule…</div>
+                  ) : pmSchedules.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>No preventive maintenance scheduled yet. {isOwner ? 'Add a PM task to get automatic reminders before failures happen.' : 'Ask an owner to schedule PM tasks for this machine.'}</div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {pmSchedules.map((pm) => {
+                        const due = pm.next_due_at ? new Date(pm.next_due_at) : null;
+                        const days = due ? Math.ceil((due.getTime() - Date.now()) / 86400000) : null;
+                        const overdue = days !== null && days < 0;
+                        const soon = days !== null && days >= 0 && days <= 3;
+                        const tone = overdue ? '#F87171' : soon ? '#FBBF24' : '#25D366';
+                        const checklist = Array.isArray(pm.checklist) ? pm.checklist : [];
+                        const triggerLabel = { calendar: 'Calendar', operating_hours: 'Operating hours', cycle_count: 'Cycle count', meter_reading: 'Meter reading', production_qty: 'Production qty', condition: 'Condition-based' }[pm.trigger_type] || pm.trigger_type;
+                        return (
+                          <div key={pm.id} style={{ background: 'rgba(0,0,0,0.18)', border: `1px solid ${overdue || soon ? tone : 'var(--border)'}`, borderRadius: '10px', padding: '14px 16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                              <div style={{ minWidth: 0 }}>
+                                <strong style={{ color: 'white', fontSize: '0.98rem' }}>{pm.title}</strong>
+                                <div style={{ color: 'var(--slate)', fontSize: '0.78rem', marginTop: '3px' }}>
+                                  {triggerLabel}{pm.trigger_type === 'calendar' && pm.frequency_days ? ` · every ${pm.frequency_days}d` : pm.interval_value ? ` · every ${pm.interval_value}` : ''}{pm.estimated_minutes ? ` · ~${pm.estimated_minutes} min` : ''}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                <span style={{ color: tone, fontWeight: 700, fontSize: '0.82rem' }}>{due ? (overdue ? `Overdue ${Math.abs(days)}d` : days === 0 ? 'Due today' : `Due in ${days}d`) : 'Not scheduled'}</span>
+                                {due && <div style={{ color: 'var(--slate)', fontSize: '0.72rem' }}>{due.toLocaleDateString('en-IN')}</div>}
+                              </div>
+                            </div>
+                            {(checklist.length > 0 || pm.required_tools || pm.required_spares) && (
+                              <div style={{ marginTop: '10px', display: 'flex', gap: '18px', flexWrap: 'wrap', fontSize: '0.78rem' }}>
+                                {checklist.length > 0 && <div style={{ color: '#cbd5e1' }}><span style={{ color: 'var(--slate)' }}>Checklist:</span> {checklist.map((c) => c.label).join(' · ')}</div>}
+                                {pm.required_tools && <div style={{ color: '#cbd5e1' }}><span style={{ color: 'var(--slate)' }}>Tools:</span> {pm.required_tools}</div>}
+                                {pm.required_spares && <div style={{ color: '#cbd5e1' }}><span style={{ color: 'var(--slate)' }}>Spares:</span> {pm.required_spares}</div>}
+                              </div>
+                            )}
+                            <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
+                              <button className="vault-btn vault-btn-primary" style={{ padding: '5px 14px', fontSize: '0.78rem', background: 'var(--brand)', color: '#000' }} disabled={pmSaving} onClick={() => handleCompletePm(pm)}>Mark done</button>
+                              {isOwner && <button className="vault-btn vault-btn-ghost" style={{ padding: '5px 12px', fontSize: '0.78rem' }} onClick={() => handleDeletePm(pm.id)}>Delete</button>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {pmLogs.length > 0 && (
+                    <div style={{ marginTop: '20px' }}>
+                      <h4 style={{ color: 'var(--slate)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 8px' }}>Recent PM history</h4>
+                      <div style={{ display: 'grid', gap: '6px' }}>
+                        {pmLogs.slice(0, 6).map((log) => (
+                          <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#cbd5e1', padding: '6px 10px', background: 'rgba(0,0,0,0.15)', borderRadius: '6px' }}>
+                            <span>{new Date(log.completed_at).toLocaleDateString('en-IN')} · {log.completed_by || 'Staff'}</span>
+                            <span style={{ color: log.on_time ? '#25D366' : '#F87171', fontWeight: 600 }}>{log.on_time ? 'On time' : 'Late'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
