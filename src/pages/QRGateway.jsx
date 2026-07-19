@@ -32,6 +32,7 @@ export default function QRGateway() {
   const [transcript, setTranscript] = useState('');
   const [extractedInfo, setExtractedInfo] = useState(null); // { issue, condition, urgency }
   const [success, setSuccess] = useState(false);
+  const [technicianName, setTechnicianName] = useState('');
   
   // Status lookup state
   const [showStatus, setShowStatus] = useState(false);
@@ -56,6 +57,37 @@ export default function QRGateway() {
     const name = params.get('name') || 'Machine';
     const loc = params.get('loc') || 'Plant Floor';
     setMachine({ id, name, loc });
+
+    const fetchMachineDetails = async () => {
+      if (!id) return;
+      try {
+        const { data: mData } = await supabase
+          .from('machines')
+          .select('machine_name, location, technician_user_id')
+          .eq('machine_id', id)
+          .single();
+        if (mData) {
+          setMachine({
+            id,
+            name: mData.machine_name || name,
+            loc: mData.location || loc
+          });
+          if (mData.technician_user_id) {
+            const { data: uData } = await supabase
+              .from('users')
+              .select('name')
+              .eq('user_id', mData.technician_user_id)
+              .single();
+            if (uData && uData.name) {
+              setTechnicianName(uData.name);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching machine details:', err);
+      }
+    };
+    fetchMachineDetails();
 
     // Initialize Web Speech Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -234,11 +266,11 @@ export default function QRGateway() {
       if (error) throw error;
 
       const successText = lang === 'hi-IN'
-        ? `टिकट दर्ज हो गया है! धन्यवाद।`
-        : `Ticket logged successfully! Thank you.`;
+        ? `**धन्यवाद**! टिकट दर्ज हो गया है और टेक्नीशियन **${technicianName || 'सहायक'}** को सूचित कर दिया गया है।`
+        : `**Thank you**! Ticket registered and assigned to technician **${technicianName || 'staff'}**.`;
       
       setAssistantPrompt(successText);
-      speak(successText);
+      speak(successText.replace(/\*\*/g, ''));
       setExtractedInfo(null);
       setDuplicateTicket(null);
       setSuccess(true);
@@ -262,11 +294,11 @@ export default function QRGateway() {
       if (error) throw error;
 
       const successText = lang === 'hi-IN'
-        ? `विवरण मौजूदा टिकट में जोड़ दिया गया है!`
-        : `Details successfully appended to the open ticket!`;
+        ? `**धन्यवाद**! विवरण टेक्नीशियन **${technicianName || 'सहायक'}** के खुले टिकट में जोड़ दिया गया है।`
+        : `**Thank you**! Details appended to the open ticket for technician **${technicianName || 'staff'}**.`;
       
       setAssistantPrompt(successText);
-      speak(successText);
+      speak(successText.replace(/\*\*/g, ''));
       setExtractedInfo(null);
       setDuplicateTicket(null);
       setSuccess(true);
@@ -304,6 +336,14 @@ export default function QRGateway() {
     } finally {
       setLoadingTickets(false);
     }
+  };
+
+  const renderPromptText = (text) => {
+    if (typeof text !== 'string') return text;
+    const parts = text.split(/\*\*([^*]+)\*\*/g);
+    return parts.map((part, idx) => {
+      return idx % 2 === 1 ? <strong key={idx} style={{ color: '#ffffff', fontWeight: 'bold' }}>{part}</strong> : part;
+    });
   };
 
   return (
@@ -438,7 +478,7 @@ export default function QRGateway() {
             
             {/* Assistant voice query */}
             <p style={{ fontSize: '1.05rem', fontWeight: 600, color: '#e2e8f0', margin: '0 0 12px', lineHeight: '1.4' }}>
-              {assistantPrompt}
+              {renderPromptText(assistantPrompt)}
             </p>
 
             {/* Subtitles text (transcribed from user) */}
