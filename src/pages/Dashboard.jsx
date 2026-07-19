@@ -7,6 +7,7 @@ const fallback = {
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
   owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null, top_loss_machines: [], availability_pct: 100 },
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
+  shift_handover: { machines_down: 0, critical: [], waiting_spare: [], waiting_approval: [], waiting_vendor: [], repeat: [], pm_due: [] },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
@@ -141,18 +142,50 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
   };
 }
 
+// Shift handover (roadmap §7.3): auto-compiled so nothing critical slips between
+// shifts. Everything is derived from live tickets and PM schedules — zero entry.
+function computeShiftHandover(machines, tickets, pmSchedules, now = new Date()) {
+  const nameOf = (id) => machines.find((m) => m.id === id)?.name || 'Unknown machine';
+  const open = tickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
+  const urgencyOf = (t) => {
+    const s = t.ai_summary;
+    return String((s && typeof s === 'object' && s.urgency) || t.urgency || '').toLowerCase();
+  };
+  const stageOf = (t) => String(t.lifecycle_stage || '').toLowerCase();
+  const item = (t) => ({
+    id: t.id,
+    wo: t.wo_number || null,
+    machine: nameOf(t.machine_id),
+    machine_id: t.machine_id,
+    text: t.issue_text || (typeof t.ai_summary === 'object' ? t.ai_summary?.summary : '') || 'Maintenance issue',
+  });
+  return {
+    machines_down: new Set(open.map((t) => t.machine_id)).size,
+    critical: open.filter((t) => ['high', 'critical'].includes(urgencyOf(t))).map(item),
+    waiting_spare: open.filter((t) => stageOf(t) === 'waiting_spare').map(item),
+    waiting_approval: open.filter((t) => ['waiting_approval', 'verification_pending'].includes(stageOf(t))).map(item),
+    waiting_vendor: open.filter((t) => stageOf(t) === 'waiting_vendor' || t.outsource_vendor).map(item),
+    repeat: open.filter((t) => t.repeat_failure_flag).map(item),
+    pm_due: (pmSchedules || [])
+      .filter((p) => p.active !== false && p.next_due_at && new Date(p.next_due_at) <= now)
+      .map((p) => ({ id: p.id, machine: nameOf(p.machine_id), machine_id: p.machine_id, text: p.title, overdue: new Date(p.next_due_at) < now })),
+  };
+}
+
 async function fetchDashboardData() {
-  const [machinesRes, ticketsRes, factoryRes, pmLogsRes] = await Promise.all([
+  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes] = await Promise.all([
     supabase.from('machines').select('*'),
     supabase.from('tickets').select('*'),
     supabase.from('factories').select('name').limit(1),
     supabase.from('pm_logs').select('on_time'),
+    supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active'),
   ]);
 
   const machines = machinesRes.data || [];
   const tickets = ticketsRes.data || [];
   const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
   const pmLogs = pmLogsRes.data || [];
+  const pmSchedules = pmSchedulesRes.data || [];
   const pmCompliancePct = pmLogs.length
     ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
     : null;
@@ -180,6 +213,7 @@ async function fetchDashboardData() {
   });
   const ownerImpact = computeOwnerImpact(machines, tickets);
   const maintenanceInsights = computeMaintenanceInsights(machines, tickets);
+  const shiftHandover = computeShiftHandover(machines, tickets, pmSchedules);
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -216,6 +250,7 @@ async function fetchDashboardData() {
       resolved_work: resolvedWork,
     },
     needs_attention: needsAttention,
+    shift_handover: shiftHandover,
     recent_activity: [],
     weekly_trend: [],
   };
@@ -342,6 +377,54 @@ export default function Dashboard() {
             <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
           </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
         </section>
+
+        {(() => {
+          const h = data.shift_handover || {};
+          const groups = [
+            ['Critical open jobs', h.critical, '#F87171'],
+            ['Waiting for spare', h.waiting_spare, '#F59E0B'],
+            ['Waiting for approval / verification', h.waiting_approval, '#A78BFA'],
+            ['Waiting for vendor', h.waiting_vendor, '#F59E0B'],
+            ['Recurring failures', h.repeat, '#F87171'],
+          ];
+          const pmDue = h.pm_due || [];
+          const totalItems = groups.reduce((n, [, items]) => n + (items?.length || 0), 0) + pmDue.length;
+          const buildText = () => {
+            const lines = [`TurboFix shift handover — ${new Date().toLocaleString('en-IN')}`, `Machines down: ${h.machines_down || 0}`];
+            groups.forEach(([label, items]) => { if (items?.length) { lines.push(`\n${label} (${items.length}):`); items.forEach((i) => lines.push(`- ${i.machine}${i.wo ? ` [${i.wo}]` : ''}: ${i.text}`)); } });
+            if (pmDue.length) { lines.push(`\nPM due (${pmDue.length}):`); pmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
+            return lines.join('\n');
+          };
+          return (
+            <section className="decision-panel" style={{ marginTop: '12px' }}>
+              <div className="decision-panel-heading">
+                <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
+              </div>
+              {totalItems === 0 ? <Empty text="Nothing pending — clean handover." /> : (
+                <div style={{ display: 'grid', gap: '14px' }}>
+                  <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{h.machines_down || 0} machine{h.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
+                  {groups.map(([label, items, color]) => items?.length ? (
+                    <div key={label}>
+                      <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color, fontWeight: 700, marginBottom: '6px' }}>{label} · {items.length}</div>
+                      <div className="dashboard-detail-list">
+                        {items.map((i) => <a href={`machines.html?machine=${encodeURIComponent(i.machine_id)}`} key={i.id}><span><strong>{i.machine}</strong><small>{i.text}</small></span>{i.wo && <b style={{ color: 'var(--slate)', fontFamily: 'monospace' }}>{i.wo}</b>}</a>)}
+                      </div>
+                    </div>
+                  ) : null)}
+                  {pmDue.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#FBBF24', fontWeight: 700, marginBottom: '6px' }}>PM due · {pmDue.length}</div>
+                      <div className="dashboard-detail-list">
+                        {pmDue.map((p) => <a href={`machines.html?machine=${encodeURIComponent(p.machine_id)}`} key={p.id}><span><strong>{p.machine}</strong><small>{p.text}</small></span><b style={{ color: p.overdue ? '#F87171' : '#FBBF24' }}>{p.overdue ? 'Overdue' : 'Due'}</b></a>)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+        })()}
 
         <section className="decision-columns">
           <div className="decision-panel">
