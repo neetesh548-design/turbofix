@@ -3,9 +3,9 @@ import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 
 const fallback = {
-  kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0 },
+  kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0, pm_compliance_pct: null },
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
-  owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null },
+  owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null, top_loss_machines: [], availability_pct: 100 },
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
@@ -83,13 +83,15 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
   });
   const counts = {};
   const costs = {};
+  const downtimeByMachine = {};
   let downtimeHours = 0;
   let downtimeCost = 0;
   let maintenanceCost = 0;
 
   recent.forEach((ticket) => {
     const machine = machineMap[ticket.machine_id] || {};
-    const hours = ticketHours(ticket, now);
+    // Prefer the durable downtime captured at closure (§3.4); fall back to open duration.
+    const hours = ticket.downtime_minutes != null ? asNumber(ticket.downtime_minutes) / 60 : ticketHours(ticket, now);
     const cost = hours * asNumber(machine.hourly_downtime_cost);
     downtimeHours += hours;
     downtimeCost += cost;
@@ -97,6 +99,7 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
       || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost));
     counts[ticket.machine_id] = (counts[ticket.machine_id] || 0) + 1;
     costs[ticket.machine_id] = (costs[ticket.machine_id] || 0) + cost;
+    downtimeByMachine[ticket.machine_id] = (downtimeByMachine[ticket.machine_id] || 0) + hours;
   });
 
   const repeatLossExposure = Object.entries(costs)
@@ -105,6 +108,27 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
   const [topId, topCost = 0] = Object.entries(costs).sort((a, b) => b[1] - a[1])[0] || [];
   const configured = machines.filter((machine) => asNumber(machine.hourly_downtime_cost) > 0).length;
 
+  // Top loss-making machines — ranked by 30-day production-loss cost.
+  const topLossMachines = Object.entries(costs)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([machineId, cost]) => ({
+      machine_id: machineId,
+      machine_name: machineMap[machineId]?.name || machineId,
+      cost: Math.round(cost),
+      downtime_hours: Math.round((downtimeByMachine[machineId] || 0) * 10) / 10,
+      tickets: counts[machineId] || 0,
+    }))
+    .filter((m) => m.cost > 0 || m.downtime_hours > 0);
+
+  // Machine availability (30-day window, 24×7 basis): uptime / scheduled time.
+  const windowHours = 30 * 24;
+  const availabilityPct = machines.length
+    ? Math.round(
+        (machines.reduce((total, machine) => total + Math.max(0, 1 - (downtimeByMachine[machine.id] || 0) / windowHours), 0) / machines.length) * 100,
+      )
+    : 100;
+
   return {
     downtime_hours: Math.round(downtimeHours * 10) / 10,
     downtime_cost: Math.round(downtimeCost),
@@ -112,19 +136,26 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
     repeat_loss_exposure: Math.round(repeatLossExposure),
     cost_coverage_pct: machines.length ? Math.round((configured / machines.length) * 100) : 0,
     top_cost_machine: topId ? { machine_id: topId, machine_name: machineMap[topId]?.name || topId, cost: Math.round(topCost) } : null,
+    top_loss_machines: topLossMachines,
+    availability_pct: availabilityPct,
   };
 }
 
 async function fetchDashboardData() {
-  const [machinesRes, ticketsRes, factoryRes] = await Promise.all([
+  const [machinesRes, ticketsRes, factoryRes, pmLogsRes] = await Promise.all([
     supabase.from('machines').select('*'),
     supabase.from('tickets').select('*'),
     supabase.from('factories').select('name').limit(1),
+    supabase.from('pm_logs').select('on_time'),
   ]);
 
   const machines = machinesRes.data || [];
   const tickets = ticketsRes.data || [];
   const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
+  const pmLogs = pmLogsRes.data || [];
+  const pmCompliancePct = pmLogs.length
+    ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
+    : null;
 
   const openTickets = tickets.filter(t => t.status === 'open');
   const machinesWithOpen = new Set(openTickets.map(t => t.machine_id));
@@ -174,6 +205,7 @@ async function fetchDashboardData() {
       plant_health_pct: healthPct,
       avg_hours_to_fix: averageRepairHours,
       total_tickets: tickets.length,
+      pm_compliance_pct: pmCompliancePct,
     },
     auto_insights: maintenanceInsights,
     owner_impact: ownerImpact,
@@ -269,8 +301,10 @@ export default function Dashboard() {
 
         <div className="decision-section-label">Maintenance intelligence</div>
         <section className="decision-insight-grid">
+          <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" />
           <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
           <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
+          <Insight label="PM compliance" value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`} detail="Preventive tasks completed on time" />
           <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
           <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
         </section>
@@ -282,6 +316,23 @@ export default function Dashboard() {
           <Insight label="Maintenance spend" value={money.format(impact.maintenance_cost || 0)} detail="Parts, labour and repair costs recorded" />
           <Insight label="Repeat-loss exposure" value={money.format(impact.repeat_loss_exposure || 0)} detail="Cost linked to machines with 3+ issues" />
         </section>
+
+        {impact.top_loss_machines?.length > 0 && (
+          <section className="decision-panel" style={{ marginTop: '12px' }}>
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Where the money goes</div><h2>Top loss-making machines · 30 days</h2></div><span className="trend-caption">By production-loss cost</span></div>
+            <div className="dashboard-detail-list">
+              {impact.top_loss_machines.map((machine, index) => (
+                <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
+                    <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
+                  </span>
+                  <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="decision-panel decision-owner-brief">
           <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
