@@ -5159,4 +5159,67 @@ details.faq-item p {
   }
 }
 
+/* Printable Sticker Tag Styles */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  
+  .printable-sticker-tag,
+  .printable-sticker-tag * {
+    visibility: visible !important;
+  }
+  
+  .printable-sticker-tag {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 320px !important;
+    padding: 24px !important;
+    text-align: center !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px dashed #000000 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+  
+  .printable-sticker-tag .sticker-title {
+    color: #000000 !important;
+    font-size: 1.4rem !important;
+    font-weight: bold !important;
+    margin: 0 0 4px !important;
+  }
+  
+  .printable-sticker-tag .sticker-desc {
+    color: #334155 !important;
+    font-size: 0.8rem !important;
+    margin: 0 0 16px !important;
+  }
+  
+  .printable-sticker-tag .sticker-qr-box {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    margin: 0 auto 16px !important;
+    padding: 0 !important;
+  }
+  
+  .printable-sticker-tag .sticker-id {
+    color: #000000 !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+  }
+  
+  .printable-sticker-tag .sticker-loc {
+    color: #334155 !important;
+    font-size: 0.8rem !important;
+    margin-top: 4px !important;
+  }
+  
+  .printable-sticker-tag .sticker-print-btn {
+    display: none !important;
+  }
+}
+
 

@@ -2411,25 +2411,25 @@ export default function Machines() {
 
               {/* TAB 6: QR CODE */}
               {wsTab === 'qr' && (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <h3 style={{ margin: '0 0 10px', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Tag</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '16px' }}>Scan with WhatsApp to report breakdown events directly.</p>
+                <div className="printable-sticker-tag" style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <h3 className="sticker-title" style={{ margin: '0 0 10px', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Tag</h3>
+                  <p className="sticker-desc" style={{ fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '16px' }}>Scan with WhatsApp to report breakdown events directly.</p>
                   
-                  <div style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                  <div className="sticker-qr-box" style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                     <QRCodeSVG
                       value={selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}: `}
                       size={180}
                     />
                   </div>
 
-                  <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                  <div className="sticker-id" style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px', fontFamily: 'monospace' }}>
                     {selectedMachine.machine_id}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '4px' }}>
+                  <div className="sticker-loc" style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '4px' }}>
                     Location: {selectedMachine.location || '—'}
                   </div>
 
-                  <button className="vault-btn vault-btn-primary" style={{ marginTop: '18px', maxWidth: '200px', margin: '18px auto 0', background: 'var(--brand)', color: '#000' }} onClick={() => window.print()}>
+                  <button className="vault-btn vault-btn-primary sticker-print-btn" style={{ marginTop: '18px', maxWidth: '200px', margin: '18px auto 0', background: 'var(--brand)', color: '#000' }} onClick={() => window.print()}>
                     Print Tag
                   </button>
                 </div>
