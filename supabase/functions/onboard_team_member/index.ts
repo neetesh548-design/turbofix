@@ -120,6 +120,7 @@ serve(async (req) => {
       amc_provider: String(body.amc_provider ?? '').trim() || null,
       amc_expiry: body.amc_expiry || null,
       operating_hours: Math.max(0, Number(body.operating_hours) || 0),
+      replacement_cost: body.replacement_cost === '' || body.replacement_cost == null ? null : Math.max(0, Number(body.replacement_cost) || 0),
     }
     const stakeholderFields = {
       technician_user_id: String(body.technician_user_id ?? '').trim() || null,
