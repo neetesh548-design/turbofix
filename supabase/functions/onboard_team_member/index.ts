@@ -93,7 +93,34 @@ serve(async (req) => {
     const location = String(body.location ?? '').trim()
     const status = String(body.status ?? 'healthy').toLowerCase()
     if (!name) return reply({ error: 'Machine name is required.' }, 400)
-    if (!['healthy', 'down', 'maintenance'].includes(status)) return reply({ error: 'Select a valid machine condition.' }, 400)
+    // Legacy conditions (healthy/maintenance/down) plus the roadmap §3.1 status set.
+    const allowedStatuses = [
+      'healthy', 'maintenance', 'down',
+      'running', 'under_maintenance', 'breakdown',
+      'waiting_spare', 'waiting_vendor', 'shutdown', 'decommissioned',
+    ]
+    if (!allowedStatuses.includes(status)) return reply({ error: 'Select a valid machine condition.' }, 400)
+    const allowedCriticality = ['low', 'medium', 'high', 'critical']
+    const criticality = String(body.criticality ?? 'medium').toLowerCase()
+    // Identity, asset and vendor fields (roadmap §3.1 Machine Digital Profile).
+    const profileFields = {
+      asset_code: String(body.asset_code ?? '').trim() || null,
+      category: String(body.category ?? '').trim() || null,
+      manufacturer: String(body.manufacturer ?? '').trim() || null,
+      model: String(body.model ?? '').trim() || null,
+      serial_number: String(body.serial_number ?? '').trim() || null,
+      installation_date: body.installation_date || null,
+      department: String(body.department ?? '').trim() || null,
+      production_line: String(body.production_line ?? '').trim() || null,
+      criticality: allowedCriticality.includes(criticality) ? criticality : 'medium',
+      warranty_expiry: body.warranty_expiry || null,
+      warranty_notes: String(body.warranty_notes ?? '').trim() || null,
+      vendor_name: String(body.vendor_name ?? '').trim() || null,
+      vendor_contact: String(body.vendor_contact ?? '').trim() || null,
+      amc_provider: String(body.amc_provider ?? '').trim() || null,
+      amc_expiry: body.amc_expiry || null,
+      operating_hours: Math.max(0, Number(body.operating_hours) || 0),
+    }
     const stakeholderFields = {
       technician_user_id: String(body.technician_user_id ?? '').trim() || null,
       supervisor_id: String(body.supervisor_id ?? '').trim() || null,
@@ -130,6 +157,7 @@ serve(async (req) => {
       hourly_downtime_cost: Math.max(0, Number(body.hourly_downtime_cost) || 0),
       maintenance_interval_days: Math.max(1, Number(body.maintenance_interval_days) || 90),
       last_maintenance_date: body.last_maintenance_date || null,
+      ...profileFields,
       ...stakeholderFields,
       assigned_technician_phone: technician.data?.phone || '',
     }).eq('id', machineId).eq('company_id', owner.company_id).select('*').maybeSingle()

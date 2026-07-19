@@ -55,6 +55,24 @@ export default function Machines() {
   const [engineerUserId, setEngineerUserId] = useState('');
   const [headUserId, setHeadUserId] = useState('');
 
+  // Machine digital profile (roadmap §3.1) — identity, asset & vendor details
+  const [assetCode, setAssetCode] = useState('');
+  const [category, setCategory] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
+  const [model, setModel] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [installationDate, setInstallationDate] = useState('');
+  const [department, setDepartment] = useState('');
+  const [productionLine, setProductionLine] = useState('');
+  const [criticality, setCriticality] = useState('medium');
+  const [warrantyExpiry, setWarrantyExpiry] = useState('');
+  const [warrantyNotes, setWarrantyNotes] = useState('');
+  const [vendorName, setVendorName] = useState('');
+  const [vendorContact, setVendorContact] = useState('');
+  const [amcProvider, setAmcProvider] = useState('');
+  const [amcExpiry, setAmcExpiry] = useState('');
+  const [operatingHours, setOperatingHours] = useState('');
+
   // Sub-tabs State for Selected Machine
   const [docs, setDocs] = useState([]);
   const [parts, setParts] = useState([]);
@@ -171,6 +189,22 @@ export default function Machines() {
         last_maintenance_date: m.last_maintenance_date,
         next_maintenance_due: m.next_maintenance_due,
         image_url: m.image_url,
+        asset_code: m.asset_code,
+        category: m.category,
+        manufacturer: m.manufacturer,
+        model: m.model,
+        serial_number: m.serial_number,
+        installation_date: m.installation_date,
+        department: m.department,
+        production_line: m.production_line,
+        criticality: m.criticality,
+        warranty_expiry: m.warranty_expiry,
+        warranty_notes: m.warranty_notes,
+        vendor_name: m.vendor_name,
+        vendor_contact: m.vendor_contact,
+        amc_provider: m.amc_provider,
+        amc_expiry: m.amc_expiry,
+        operating_hours: m.operating_hours,
         technician_user_id: technicianUserId,
         engineer_user_id: engineerUserId,
         maintenance_head_user_id: maintenanceHeadUserId,
@@ -361,6 +395,22 @@ export default function Machines() {
       hourly_downtime_cost: selectedMachine.hourly_downtime_cost ?? '',
       maintenance_interval_days: selectedMachine.maintenance_interval_days || 90,
       last_maintenance_date: selectedMachine.last_maintenance_date?.slice(0, 10) || '',
+      asset_code: selectedMachine.asset_code || '',
+      category: selectedMachine.category || '',
+      manufacturer: selectedMachine.manufacturer || '',
+      model: selectedMachine.model || '',
+      serial_number: selectedMachine.serial_number || '',
+      installation_date: selectedMachine.installation_date?.slice(0, 10) || '',
+      department: selectedMachine.department || '',
+      production_line: selectedMachine.production_line || '',
+      criticality: selectedMachine.criticality || 'medium',
+      warranty_expiry: selectedMachine.warranty_expiry?.slice(0, 10) || '',
+      warranty_notes: selectedMachine.warranty_notes || '',
+      vendor_name: selectedMachine.vendor_name || '',
+      vendor_contact: selectedMachine.vendor_contact || '',
+      amc_provider: selectedMachine.amc_provider || '',
+      amc_expiry: selectedMachine.amc_expiry?.slice(0, 10) || '',
+      operating_hours: selectedMachine.operating_hours ?? '',
       technician_user_id: selectedMachine.technician_user_id || '',
       supervisor_id: selectedMachine.supervisor_id || '',
       engineer_user_id: selectedMachine.engineer_user_id || '',
@@ -386,6 +436,22 @@ export default function Machines() {
         maintenance_interval_days: data.machine.maintenance_interval_days,
         last_maintenance_date: data.machine.last_maintenance_date,
         next_maintenance_due: data.machine.next_maintenance_due,
+        asset_code: data.machine.asset_code,
+        category: data.machine.category,
+        manufacturer: data.machine.manufacturer,
+        model: data.machine.model,
+        serial_number: data.machine.serial_number,
+        installation_date: data.machine.installation_date,
+        department: data.machine.department,
+        production_line: data.machine.production_line,
+        criticality: data.machine.criticality,
+        warranty_expiry: data.machine.warranty_expiry,
+        warranty_notes: data.machine.warranty_notes,
+        vendor_name: data.machine.vendor_name,
+        vendor_contact: data.machine.vendor_contact,
+        amc_provider: data.machine.amc_provider,
+        amc_expiry: data.machine.amc_expiry,
+        operating_hours: data.machine.operating_hours,
         technician_user_id: data.machine.technician_user_id,
         supervisor_id: data.machine.supervisor_id,
         engineer_user_id: data.machine.engineer_user_id,
@@ -422,6 +488,22 @@ export default function Machines() {
         hourly_downtime_cost: hourlyDowntimeCost ? Number(hourlyDowntimeCost) : 0,
         maintenance_interval_days: maintenanceIntervalDays ? Number(maintenanceIntervalDays) : 90,
         last_maintenance_date: lastMaintenanceDate || null,
+        asset_code: assetCode.trim() || null,
+        category: category.trim() || null,
+        manufacturer: manufacturer.trim() || null,
+        model: model.trim() || null,
+        serial_number: serialNumber.trim() || null,
+        installation_date: installationDate || null,
+        department: department.trim() || null,
+        production_line: productionLine.trim() || null,
+        criticality: criticality || 'medium',
+        warranty_expiry: warrantyExpiry || null,
+        warranty_notes: warrantyNotes.trim() || null,
+        vendor_name: vendorName.trim() || null,
+        vendor_contact: vendorContact.trim() || null,
+        amc_provider: amcProvider.trim() || null,
+        amc_expiry: amcExpiry || null,
+        operating_hours: operatingHours ? Number(operatingHours) : 0,
         assigned_technician_phone: technicianUserId ? team.find(t => t.user_id === technicianUserId)?.phone || '' : '',
         technician_user_id: technicianUserId || null,
         supervisor_id: supervisorUserId || null,
@@ -438,6 +520,7 @@ export default function Machines() {
       setSuccess(`Machine ${newRow.id} successfully onboarded!`);
       setShowAddForm(false);
       setName(''); setLocation(''); setHourlyDowntimeCost(''); setMaintenanceIntervalDays('90'); setLastMaintenanceDate(''); setTechnicianUserId(''); setSupervisorUserId(''); setEngineerUserId(''); setHeadUserId('');
+      setAssetCode(''); setCategory(''); setManufacturer(''); setModel(''); setSerialNumber(''); setInstallationDate(''); setDepartment(''); setProductionLine(''); setCriticality('medium'); setWarrantyExpiry(''); setWarrantyNotes(''); setVendorName(''); setVendorContact(''); setAmcProvider(''); setAmcExpiry(''); setOperatingHours('');
       setOnboardPhotoFile(null);
       fetchData();
     } catch (err) {
@@ -985,6 +1068,82 @@ export default function Machines() {
                   </section>
 
                   <details className="machine-form-section machine-owner-details">
+                    <summary>Machine identity &amp; asset details <span>Optional · build the digital profile</span></summary>
+                    <p>Capture manufacturer, model and warranty once so every future breakdown, spare and report is tied to a complete machine record.</p>
+                    <div className="machine-form-grid">
+                      <div className="vault-field">
+                        <label htmlFor="assetCode">Asset tag / code</label>
+                        <input type="text" id="assetCode" value={assetCode} onChange={(e) => setAssetCode(e.target.value)} placeholder="Example: CNC-04" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="category">Category</label>
+                        <input type="text" id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Example: CNC / Compressor" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="criticality">Criticality</label>
+                        <select id="criticality" value={criticality} onChange={(e) => setCriticality(e.target.value)}>
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                          <option value="critical">Critical</option>
+                        </select>
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="manufacturer">Manufacturer</label>
+                        <input type="text" id="manufacturer" value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} placeholder="Example: Haas" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="model">Model</label>
+                        <input type="text" id="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Example: VF-2" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="serialNumber">Serial number</label>
+                        <input type="text" id="serialNumber" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="department">Department</label>
+                        <input type="text" id="department" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Example: Machining" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="productionLine">Production line</label>
+                        <input type="text" id="productionLine" value={productionLine} onChange={(e) => setProductionLine(e.target.value)} placeholder="Example: Line A" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="installationDate">Installation date</label>
+                        <input type="date" id="installationDate" value={installationDate} onChange={(e) => setInstallationDate(e.target.value)} />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="operatingHours">Operating hours</label>
+                        <input type="number" min="0" step="1" id="operatingHours" value={operatingHours} onChange={(e) => setOperatingHours(e.target.value)} placeholder="Example: 4200" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="warrantyExpiry">Warranty expiry</label>
+                        <input type="date" id="warrantyExpiry" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} />
+                      </div>
+                      <div className="vault-field machine-field-wide">
+                        <label htmlFor="warrantyNotes">Warranty notes</label>
+                        <input type="text" id="warrantyNotes" value={warrantyNotes} onChange={(e) => setWarrantyNotes(e.target.value)} placeholder="What the warranty covers" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="vendorName">Vendor</label>
+                        <input type="text" id="vendorName" value={vendorName} onChange={(e) => setVendorName(e.target.value)} placeholder="Supplier / dealer" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="vendorContact">Vendor contact</label>
+                        <input type="text" id="vendorContact" value={vendorContact} onChange={(e) => setVendorContact(e.target.value)} placeholder="Phone or email" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="amcProvider">AMC provider</label>
+                        <input type="text" id="amcProvider" value={amcProvider} onChange={(e) => setAmcProvider(e.target.value)} placeholder="Service contractor" />
+                      </div>
+                      <div className="vault-field">
+                        <label htmlFor="amcExpiry">AMC expiry</label>
+                        <input type="date" id="amcExpiry" value={amcExpiry} onChange={(e) => setAmcExpiry(e.target.value)} />
+                      </div>
+                    </div>
+                  </details>
+
+                  <details className="machine-form-section machine-owner-details">
                     <summary>Owner insights <span>Optional · set once</span></summary>
                     <p>These values power downtime-cost and preventive-maintenance insights automatically. Technicians never need to enter them.</p>
                     <div className="machine-form-grid">
@@ -1202,11 +1361,33 @@ export default function Machines() {
                 <div className="machine-owner-edit-grid">
                   <label><span>Machine name</span><input value={machineEdit.name} onChange={(e) => setMachineEdit({ ...machineEdit, name: e.target.value })} required /></label>
                   <label><span>Location</span><input value={machineEdit.location} onChange={(e) => setMachineEdit({ ...machineEdit, location: e.target.value })} /></label>
-                  <label><span>Condition</span><select value={machineEdit.status} onChange={(e) => setMachineEdit({ ...machineEdit, status: e.target.value })}><option value="healthy">Operational</option><option value="maintenance">Under maintenance</option><option value="down">Down</option></select></label>
+                  <label><span>Condition</span><select value={machineEdit.status} onChange={(e) => setMachineEdit({ ...machineEdit, status: e.target.value })}><option value="healthy">Running</option><option value="under_maintenance">Under maintenance</option><option value="breakdown">Breakdown</option><option value="waiting_spare">Waiting for spare</option><option value="waiting_vendor">Waiting for vendor</option><option value="shutdown">Shutdown</option><option value="decommissioned">Decommissioned</option></select></label>
                   <label><span>Downtime cost per hour</span><input type="number" min="0" step="0.01" value={machineEdit.hourly_downtime_cost} onChange={(e) => setMachineEdit({ ...machineEdit, hourly_downtime_cost: e.target.value })} /></label>
                   <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} /></label>
                   <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} /></label>
                 </div>
+                <fieldset className="machine-stakeholder-edit">
+                  <legend>Machine identity &amp; asset details</legend>
+                  <p>The digital profile — carried into every ticket, report and KPI for this machine.</p>
+                  <div className="machine-owner-edit-grid">
+                    <label><span>Asset tag / code</span><input value={machineEdit.asset_code} onChange={(e) => setMachineEdit({ ...machineEdit, asset_code: e.target.value })} placeholder="CNC-04" /></label>
+                    <label><span>Category</span><input value={machineEdit.category} onChange={(e) => setMachineEdit({ ...machineEdit, category: e.target.value })} /></label>
+                    <label><span>Criticality</span><select value={machineEdit.criticality} onChange={(e) => setMachineEdit({ ...machineEdit, criticality: e.target.value })}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select></label>
+                    <label><span>Manufacturer</span><input value={machineEdit.manufacturer} onChange={(e) => setMachineEdit({ ...machineEdit, manufacturer: e.target.value })} /></label>
+                    <label><span>Model</span><input value={machineEdit.model} onChange={(e) => setMachineEdit({ ...machineEdit, model: e.target.value })} /></label>
+                    <label><span>Serial number</span><input value={machineEdit.serial_number} onChange={(e) => setMachineEdit({ ...machineEdit, serial_number: e.target.value })} /></label>
+                    <label><span>Department</span><input value={machineEdit.department} onChange={(e) => setMachineEdit({ ...machineEdit, department: e.target.value })} /></label>
+                    <label><span>Production line</span><input value={machineEdit.production_line} onChange={(e) => setMachineEdit({ ...machineEdit, production_line: e.target.value })} /></label>
+                    <label><span>Installation date</span><input type="date" value={machineEdit.installation_date} onChange={(e) => setMachineEdit({ ...machineEdit, installation_date: e.target.value })} /></label>
+                    <label><span>Operating hours</span><input type="number" min="0" step="1" value={machineEdit.operating_hours} onChange={(e) => setMachineEdit({ ...machineEdit, operating_hours: e.target.value })} /></label>
+                    <label><span>Warranty expiry</span><input type="date" value={machineEdit.warranty_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_expiry: e.target.value })} /></label>
+                    <label><span>Warranty notes</span><input value={machineEdit.warranty_notes} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_notes: e.target.value })} /></label>
+                    <label><span>Vendor</span><input value={machineEdit.vendor_name} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_name: e.target.value })} /></label>
+                    <label><span>Vendor contact</span><input value={machineEdit.vendor_contact} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_contact: e.target.value })} /></label>
+                    <label><span>AMC provider</span><input value={machineEdit.amc_provider} onChange={(e) => setMachineEdit({ ...machineEdit, amc_provider: e.target.value })} /></label>
+                    <label><span>AMC expiry</span><input type="date" value={machineEdit.amc_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, amc_expiry: e.target.value })} /></label>
+                  </div>
+                </fieldset>
                 <fieldset className="machine-stakeholder-edit">
                   <legend>People connected to this machine</legend>
                   <p>Select the responsible people once. TurboFix uses the same connection in the machine workspace and response path.</p>
@@ -1245,6 +1426,69 @@ export default function Machines() {
               {wsTab === 'info' && (
                 <div className="machine-overview-grid">
                   <section className="machine-overview-main">
+                    {(() => {
+                      const m = selectedMachine;
+                      const statusLabels = { healthy: 'Running', running: 'Running', under_maintenance: 'Under maintenance', maintenance: 'Under maintenance', breakdown: 'Breakdown', down: 'Down', waiting_spare: 'Waiting for spare', waiting_vendor: 'Waiting for vendor', shutdown: 'Shutdown', decommissioned: 'Decommissioned' };
+                      const critColors = { low: 'var(--slate)', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' };
+                      const expiryBadge = (label, value) => {
+                        if (!value) return null;
+                        const days = Math.ceil((new Date(value).getTime() - Date.now()) / 86400000);
+                        const tone = days < 0 ? '#F87171' : days <= 30 ? '#FBBF24' : 'var(--slate)';
+                        const note = days < 0 ? 'Expired' : days <= 30 ? `${days}d left` : '';
+                        return { label, value: new Date(value).toLocaleDateString('en-IN'), tone, note };
+                      };
+                      const rows = [
+                        ['Asset code', m.asset_code], ['Category', m.category], ['Manufacturer', m.manufacturer],
+                        ['Model', m.model], ['Serial number', m.serial_number], ['Department', m.department],
+                        ['Production line', m.production_line],
+                        ['Installation', m.installation_date ? new Date(m.installation_date).toLocaleDateString('en-IN') : null],
+                        ['Operating hours', m.operating_hours ? `${Number(m.operating_hours).toLocaleString('en-IN')} h` : null],
+                        ['Vendor', m.vendor_name], ['Vendor contact', m.vendor_contact], ['AMC provider', m.amc_provider],
+                      ].filter(([, v]) => v);
+                      const badges = [expiryBadge('Warranty', m.warranty_expiry), expiryBadge('AMC', m.amc_expiry)].filter(Boolean);
+                      const hasProfile = rows.length > 0 || badges.length > 0 || m.warranty_notes;
+                      return (
+                        <div className="machine-section-heading" style={{ display: 'block', marginBottom: '18px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                              <span><FileCheck2 /></span>
+                              <div><h3>Machine profile</h3><p>Identity, warranty and vendor details for this asset.</p></div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
+                              {m.criticality && <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: critColors[m.criticality] || 'var(--slate)', border: `1px solid ${critColors[m.criticality] || 'var(--slate)'}` }}>{m.criticality}</span>}
+                              {isOwner && <button type="button" className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px' }} onClick={openMachineEdit}><Pencil size={13} /> Edit</button>}
+                            </div>
+                          </div>
+                          {hasProfile ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px 18px', marginTop: '14px', padding: '14px 16px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+                              {rows.map(([label, value]) => (
+                                <div key={label} style={{ minWidth: 0 }}>
+                                  <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
+                                  <strong style={{ color: 'white', fontSize: '0.9rem', wordBreak: 'break-word' }}>{value}</strong>
+                                </div>
+                              ))}
+                              {badges.map((b) => (
+                                <div key={b.label} style={{ minWidth: 0 }}>
+                                  <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{b.label} expiry</small>
+                                  <strong style={{ color: b.tone, fontSize: '0.9rem' }}>{b.value}{b.note && <span style={{ fontSize: '0.72rem', marginLeft: '6px' }}>({b.note})</span>}</strong>
+                                </div>
+                              ))}
+                              {m.warranty_notes && (
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                  <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Warranty notes</small>
+                                  <strong style={{ color: 'white', fontSize: '0.88rem', fontWeight: 500 }}>{m.warranty_notes}</strong>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '12px', padding: '14px 16px', background: 'rgba(0,0,0,0.18)', border: '1px dashed var(--border)', borderRadius: '10px', color: 'var(--slate)', fontSize: '0.85rem' }}>
+                              No profile details yet. {isOwner ? <button type="button" onClick={openMachineEdit} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Add manufacturer, model &amp; warranty →</button> : 'Ask an owner to add manufacturer, model and warranty.'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="machine-section-heading">
                       <div><span><ClipboardList /></span><div><h3>Breakdown response path</h3><p>Who responds first, and when the issue moves to the next level.</p></div></div>
                       <a href="settings.html#response">Change response rules <ChevronRight /></a>
