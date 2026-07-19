@@ -232,7 +232,24 @@ input:focus, select:focus, textarea:focus {
 .technician-optional-details summary { cursor: pointer; font-weight: 700; }
 .technician-optional-details summary span { color: var(--slate); font-size: .76rem; font-weight: 500; margin-left: 6px; }
 .technician-capture-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
-.technician-capture-actions button, .technician-capture-actions label { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,.03); color: var(--slate-light); padding: 7px 9px; font-size: .72rem; cursor: pointer; }
+.technician-capture-actions button, .technician-capture-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #cbd5e1;
+  padding: 7px 9px;
+  font-size: .72rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.technician-capture-actions button:hover:not(:disabled), .technician-capture-actions label:hover:not(.disabled) {
+  border-color: var(--green);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
 .technician-capture-actions input { display: none; }
 .technician-capture-actions .recording, .technician-actions .recording { color: #f87171; border-color: rgba(248,113,113,.5); animation: pulse-red 1.5s infinite; }
 .technician-capture-actions.compact { margin-top: 7px; }
