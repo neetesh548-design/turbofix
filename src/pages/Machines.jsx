@@ -125,6 +125,13 @@ export default function Machines() {
   const [newPartNum, setNewPartNum] = useState('');
   const [newPartQty, setNewPartQty] = useState('');
   const [newPartReorder, setNewPartReorder] = useState('');
+  const [newPartPrice, setNewPartPrice] = useState('');
+  // Spare-to-work-order linking + machine-wise cost (Tier 3)
+  const [workOrderParts, setWorkOrderParts] = useState([]);
+  const [machineTickets, setMachineTickets] = useState([]);
+  const [issueSparePartId, setIssueSparePartId] = useState(null);
+  const [issueSpareTicket, setIssueSpareTicket] = useState('');
+  const [issueSpareQty, setIssueSpareQty] = useState('1');
 
   const [newConsName, setNewConsName] = useState('');
   const [newConsQty, setNewConsQty] = useState('');
@@ -253,6 +260,7 @@ export default function Machines() {
         amc_provider: m.amc_provider,
         amc_expiry: m.amc_expiry,
         operating_hours: m.operating_hours,
+        replacement_cost: m.replacement_cost,
         technician_user_id: technicianUserId,
         engineer_user_id: engineerUserId,
         maintenance_head_user_id: maintenanceHeadUserId,
@@ -358,8 +366,8 @@ export default function Machines() {
 
     setPartsLoading(true);
     try {
-      const { data } = await supabase.from('parts').select('id,part_name,part_number,stock_qty,unit,reorder_level,lead_time_days,machine_id').eq('machine_id', machineId);
-      setParts((data || []).map(p => ({ part_id: p.id, part_name: p.part_name, part_number: p.part_number, quantity_on_hand: p.stock_qty, unit: p.unit || 'pcs', reorder_level: p.reorder_level || 0, lead_time_days: p.lead_time_days })));
+      const { data } = await supabase.from('parts').select('id,part_name,part_number,stock_qty,unit,reorder_level,lead_time_days,unit_price,machine_id').eq('machine_id', machineId);
+      setParts((data || []).map(p => ({ part_id: p.id, part_name: p.part_name, part_number: p.part_number, quantity_on_hand: p.stock_qty, unit: p.unit || 'pcs', reorder_level: p.reorder_level || 0, lead_time_days: p.lead_time_days, unit_price: p.unit_price || 0 })));
     } catch {}
     setPartsLoading(false);
 
@@ -389,22 +397,27 @@ export default function Machines() {
 
     setRelLoading(true);
     try {
-      const [rcaRes, capaRes, ticketsRes] = await Promise.all([
+      const [rcaRes, capaRes, ticketsRes, wopRes] = await Promise.all([
         supabase.from('rca_reports').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('capa_actions').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
-        supabase.from('tickets').select('id,issue_text,created_at,repeat_failure_count,repeat_failure_flag,type').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('tickets').select('id,issue_text,created_at,resolved_at,status,type,wo_number,repeat_failure_count,repeat_failure_flag,labour_minutes,downtime_minutes').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('work_order_parts').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
       ]);
       setRcaReports(rcaRes.data || []);
       setCapaActions(capaRes.data || []);
       const allT = ticketsRes.data || [];
+      setMachineTickets(allT);
       const breakdowns = allT.filter((t) => (t.type || 'breakdown') === 'breakdown');
       setMachineBreakdowns(breakdowns);
       setRepeatTickets(breakdowns.filter((t) => t.repeat_failure_flag));
+      setWorkOrderParts(wopRes.data || []);
     } catch {
       setRcaReports([]);
       setCapaActions([]);
       setRepeatTickets([]);
       setMachineBreakdowns([]);
+      setMachineTickets([]);
+      setWorkOrderParts([]);
     }
     setRelLoading(false);
   };
@@ -506,6 +519,7 @@ export default function Machines() {
       amc_provider: selectedMachine.amc_provider || '',
       amc_expiry: selectedMachine.amc_expiry?.slice(0, 10) || '',
       operating_hours: selectedMachine.operating_hours ?? '',
+      replacement_cost: selectedMachine.replacement_cost ?? '',
       technician_user_id: selectedMachine.technician_user_id || '',
       supervisor_id: selectedMachine.supervisor_id || '',
       engineer_user_id: selectedMachine.engineer_user_id || '',
@@ -547,6 +561,7 @@ export default function Machines() {
         amc_provider: data.machine.amc_provider,
         amc_expiry: data.machine.amc_expiry,
         operating_hours: data.machine.operating_hours,
+        replacement_cost: data.machine.replacement_cost,
         technician_user_id: data.machine.technician_user_id,
         supervisor_id: data.machine.supervisor_id,
         engineer_user_id: data.machine.engineer_user_id,
@@ -696,10 +711,11 @@ export default function Machines() {
         unit: 'pcs',
         reorder_level: parseFloat(newPartReorder) || 0,
         lead_time_days: 7,
+        unit_price: parseFloat(newPartPrice) || 0,
         factory_id: factoryId,
       });
       if (insertErr) throw new Error(insertErr.message);
-      setNewPartName(''); setNewPartNum(''); setNewPartQty(''); setNewPartReorder('');
+      setNewPartName(''); setNewPartNum(''); setNewPartQty(''); setNewPartReorder(''); setNewPartPrice('');
       loadMachineAssets(selectedMachine.machine_id);
     } catch (err) {
       alert(err.message);
@@ -715,6 +731,54 @@ export default function Machines() {
       if (!delErr) loadMachineAssets(selectedMachine.machine_id);
     } catch {}
   };
+
+  // Issue a spare against an open work order (Tier 3): records the consumption
+  // with its cost and decrements stock — the link that makes machine cost real.
+  const handleIssueSpare = async (part) => {
+    if (!selectedMachine || !issueSpareTicket) return;
+    const qty = parseFloat(issueSpareQty) || 0;
+    if (qty <= 0) { alert('Enter a quantity greater than zero.'); return; }
+    if (qty > Number(part.quantity_on_hand || 0)) { alert('Not enough stock on hand.'); return; }
+    setPartsLoading(true);
+    try {
+      const unitPrice = Number(part.unit_price || 0);
+      const { error: wopErr } = await supabase.from('work_order_parts').insert({
+        ticket_id: issueSpareTicket,
+        part_id: part.part_id,
+        machine_id: selectedMachine.machine_id,
+        factory_id: selectedMachine.factory_id || null,
+        part_name: part.part_name,
+        quantity: qty,
+        unit_price: unitPrice,
+        total_cost: Math.round(unitPrice * qty * 100) / 100,
+        created_by: signedInUser?.name || signedInUser?.user_id || 'Staff',
+      });
+      if (wopErr) throw new Error(wopErr.message);
+      const nextQty = Math.max(0, Number(part.quantity_on_hand || 0) - qty);
+      const { error: stockErr } = await supabase.from('parts').update({ stock_qty: nextQty }).eq('id', part.part_id);
+      if (stockErr) throw new Error(stockErr.message);
+      if (nextQty <= part.reorder_level) {
+        await triggerEscalationAlert(part.part_name, nextQty, part.reorder_level, part.unit, selectedMachine?.machine_name || 'Unknown');
+      }
+      setIssueSparePartId(null); setIssueSpareTicket(''); setIssueSpareQty('1');
+      setSuccess(`${qty} × ${part.part_name} issued to the work order.`);
+      loadMachineAssets(selectedMachine.machine_id);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setPartsLoading(false);
+    }
+  };
+
+  // Machine-wise maintenance cost (Tier 3): spares consumed + labour + downtime.
+  const LABOUR_RATE_PER_HOUR = 300; // assumed shop-floor labour rate (₹/hr)
+  const machineOpenTickets = machineTickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
+  const machineCost = (() => {
+    const partsCost = workOrderParts.reduce((sum, w) => sum + Number(w.total_cost || 0), 0);
+    const labourCost = machineTickets.reduce((sum, t) => sum + (Number(t.labour_minutes || 0) / 60) * LABOUR_RATE_PER_HOUR, 0);
+    const downtimeCost = machineTickets.reduce((sum, t) => sum + (Number(t.downtime_minutes || 0) / 60) * Number(selectedMachine?.hourly_downtime_cost || 0), 0);
+    return { partsCost: Math.round(partsCost), labourCost: Math.round(labourCost), downtimeCost: Math.round(downtimeCost), total: Math.round(partsCost + labourCost + downtimeCost) };
+  })();
 
   const handleAddConsumable = async (e) => {
     e.preventDefault();
@@ -1694,6 +1758,7 @@ export default function Machines() {
                     <label><span>Vendor contact</span><input value={machineEdit.vendor_contact} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_contact: e.target.value })} /></label>
                     <label><span>AMC provider</span><input value={machineEdit.amc_provider} onChange={(e) => setMachineEdit({ ...machineEdit, amc_provider: e.target.value })} /></label>
                     <label><span>AMC expiry</span><input type="date" value={machineEdit.amc_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, amc_expiry: e.target.value })} /></label>
+                    <label><span>Replacement cost (₹)</span><input type="number" min="0" step="1000" value={machineEdit.replacement_cost} onChange={(e) => setMachineEdit({ ...machineEdit, replacement_cost: e.target.value })} placeholder="For repair-vs-replace" /></label>
                   </div>
                 </fieldset>
                 <fieldset className="machine-stakeholder-edit">
@@ -1942,8 +2007,27 @@ export default function Machines() {
                       <label>Reorder Threshold</label>
                       <input type="number" value={newPartReorder} onChange={(e) => setNewPartReorder(e.target.value)} placeholder="e.g. 2" required />
                     </div>
+                    <div className="vault-field">
+                      <label>Unit price (₹)</label>
+                      <input type="number" min="0" step="1" value={newPartPrice} onChange={(e) => setNewPartPrice(e.target.value)} placeholder="e.g. 4500" />
+                    </div>
                     <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', marginTop: '22px', background: 'var(--brand)', color: '#000' }}>Add Part</button>
                   </form>
+
+                  {/* Machine-wise maintenance cost (Tier 3) */}
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                    {[
+                      ['Spares consumed', machineCost.partsCost, '#60A5FA'],
+                      ['Labour', machineCost.labourCost, '#A78BFA'],
+                      ['Downtime', machineCost.downtimeCost, '#FBBF24'],
+                      ['Total maintenance cost', machineCost.total, '#F87171'],
+                    ].map(([label, val, color]) => (
+                      <div key={label} style={{ flex: '1 1 150px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 14px' }}>
+                        <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color, lineHeight: 1 }}>₹{Number(val).toLocaleString('en-IN')}</div>
+                        <small style={{ color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
+                      </div>
+                    ))}
+                  </div>
 
                   {partsLoading ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: 'var(--slate)' }}>Loading spare parts...</div>
@@ -1957,12 +2041,14 @@ export default function Machines() {
                           <th>Part Number</th>
                           <th>Stock Level</th>
                           <th>Reorder Level</th>
+                          <th>Unit price</th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {parts.map((p) => (
-                          <tr key={p.part_id}>
+                          <React.Fragment key={p.part_id}>
+                          <tr>
                             <td style={{ fontWeight: 'bold', color: 'white' }}>{p.part_name}</td>
                             <td style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{p.part_number}</td>
                             <td>
@@ -1977,12 +2063,38 @@ export default function Machines() {
                               </div>
                             </td>
                             <td style={{ color: 'var(--slate)' }}>{p.reorder_level} {p.unit}</td>
-                            <td style={{ textAlign: 'right' }}>
+                            <td style={{ color: 'white' }}>₹{Number(p.unit_price || 0).toLocaleString('en-IN')}</td>
+                            <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                              <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '6px' }} disabled={machineOpenTickets.length === 0} title={machineOpenTickets.length === 0 ? 'No open work order to issue against' : 'Issue this spare to a work order'} onClick={() => { setIssueSparePartId(issueSparePartId === p.part_id ? null : p.part_id); setIssueSpareTicket(machineOpenTickets[0]?.id || ''); setIssueSpareQty('1'); }}>
+                                Issue
+                              </button>
                               <button className="vault-btn vault-btn-danger" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => handleDeletePart(p.part_id)}>
                                 Delete
                               </button>
                             </td>
                           </tr>
+                          {issueSparePartId === p.part_id && (
+                            <tr>
+                              <td colSpan="6" style={{ background: 'rgba(0,0,0,0.25)', padding: '12px 16px' }}>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                  <div className="vault-field" style={{ minWidth: '220px' }}>
+                                    <label style={{ fontSize: '0.72rem' }}>Issue to work order</label>
+                                    <select value={issueSpareTicket} onChange={(e) => setIssueSpareTicket(e.target.value)}>
+                                      {machineOpenTickets.map((t) => <option key={t.id} value={t.id}>{t.wo_number || t.id.slice(0, 8)} — {(t.issue_text || 'Breakdown').slice(0, 36)}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="vault-field" style={{ width: '90px' }}>
+                                    <label style={{ fontSize: '0.72rem' }}>Qty</label>
+                                    <input type="number" min="1" step="1" value={issueSpareQty} onChange={(e) => setIssueSpareQty(e.target.value)} />
+                                  </div>
+                                  <div style={{ color: 'var(--slate)', fontSize: '0.8rem', paddingBottom: '8px' }}>= ₹{((parseFloat(issueSpareQty) || 0) * Number(p.unit_price || 0)).toLocaleString('en-IN')}</div>
+                                  <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', marginBottom: '2px' }} disabled={partsLoading} onClick={() => handleIssueSpare(p)}>Confirm issue</button>
+                                  <button className="vault-btn vault-btn-ghost" style={{ marginBottom: '2px' }} onClick={() => setIssueSparePartId(null)}>Cancel</button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>

@@ -8,6 +8,7 @@ const fallback = {
   owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null, top_loss_machines: [], availability_pct: 100 },
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
   shift_handover: { machines_down: 0, critical: [], waiting_spare: [], waiting_approval: [], waiting_vendor: [], repeat: [], pm_due: [] },
+  repair_replace: [],
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
@@ -172,17 +173,58 @@ function computeShiftHandover(machines, tickets, pmSchedules, now = new Date()) 
   };
 }
 
+// Repair-vs-Replacement indicator (roadmap §6.3, Tier 4): flag machines that are
+// becoming uneconomical — annual maintenance cost high vs replacement, frequent
+// breakdowns. The decision stays with the manager; this only surfaces the signal.
+function computeRepairReplace(machines, tickets, workOrderParts, now = new Date()) {
+  const LABOUR_RATE = 300; // assumed labour rate ₹/hr (matches machine workspace)
+  const yearAgo = new Date(now.getTime() - (365 * 24 * 3_600_000));
+  const partsByMachine = {};
+  workOrderParts.forEach((w) => {
+    if (new Date(w.created_at) >= yearAgo) partsByMachine[w.machine_id] = (partsByMachine[w.machine_id] || 0) + asNumber(w.total_cost);
+  });
+  const machineMap = Object.fromEntries(machines.map((m) => [m.id, m]));
+  const labourByMachine = {};
+  const downtimeCostByMachine = {};
+  const breakdownsByMachine = {};
+  tickets.forEach((t) => {
+    const opened = new Date(t.created_at || t.reported_at || '');
+    if (Number.isNaN(opened.getTime()) || opened < yearAgo) return;
+    const machine = machineMap[t.machine_id] || {};
+    labourByMachine[t.machine_id] = (labourByMachine[t.machine_id] || 0) + (asNumber(t.labour_minutes) / 60) * LABOUR_RATE;
+    const dtHours = t.downtime_minutes != null ? asNumber(t.downtime_minutes) / 60 : 0;
+    downtimeCostByMachine[t.machine_id] = (downtimeCostByMachine[t.machine_id] || 0) + dtHours * asNumber(machine.hourly_downtime_cost);
+    if ((t.type || 'breakdown') === 'breakdown') breakdownsByMachine[t.machine_id] = (breakdownsByMachine[t.machine_id] || 0) + 1;
+  });
+  return machines.map((m) => {
+    const annualCost = (partsByMachine[m.id] || 0) + (labourByMachine[m.id] || 0) + (downtimeCostByMachine[m.id] || 0);
+    const replacement = asNumber(m.replacement_cost);
+    const ratio = replacement > 0 ? annualCost / replacement : null;
+    const breakdowns = breakdownsByMachine[m.id] || 0;
+    let recommendation = 'Repair';
+    if ((ratio != null && ratio >= 0.6) || breakdowns >= 8) recommendation = 'Consider replacement';
+    else if ((ratio != null && ratio >= 0.4) || breakdowns >= 6) recommendation = 'Engineering review';
+    return {
+      machine_id: m.id, machine_name: m.name || m.id,
+      annual_cost: Math.round(annualCost), replacement_cost: Math.round(replacement),
+      ratio_pct: ratio != null ? Math.round(ratio * 100) : null, breakdowns, recommendation,
+    };
+  }).filter((r) => r.recommendation !== 'Repair').sort((a, b) => (b.ratio_pct || 0) - (a.ratio_pct || 0) || b.breakdowns - a.breakdowns);
+}
+
 async function fetchDashboardData() {
-  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes] = await Promise.all([
+  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes] = await Promise.all([
     supabase.from('machines').select('*'),
     supabase.from('tickets').select('*'),
     supabase.from('factories').select('name').limit(1),
     supabase.from('pm_logs').select('on_time'),
     supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active'),
+    supabase.from('work_order_parts').select('machine_id,total_cost,created_at'),
   ]);
 
   const machines = machinesRes.data || [];
   const tickets = ticketsRes.data || [];
+  const workOrderParts = wopRes.data || [];
   const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
   const pmLogs = pmLogsRes.data || [];
   const pmSchedules = pmSchedulesRes.data || [];
@@ -214,6 +256,7 @@ async function fetchDashboardData() {
   const ownerImpact = computeOwnerImpact(machines, tickets);
   const maintenanceInsights = computeMaintenanceInsights(machines, tickets);
   const shiftHandover = computeShiftHandover(machines, tickets, pmSchedules);
+  const repairReplace = computeRepairReplace(machines, tickets, workOrderParts);
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -251,6 +294,7 @@ async function fetchDashboardData() {
     },
     needs_attention: needsAttention,
     shift_handover: shiftHandover,
+    repair_replace: repairReplace,
     recent_activity: [],
     weekly_trend: [],
   };
@@ -363,6 +407,23 @@ export default function Dashboard() {
                     <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
                   </span>
                   <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {data.repair_replace?.length > 0 && (
+          <section className="decision-panel" style={{ marginTop: '12px' }}>
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
+            <div className="dashboard-detail-list">
+              {data.repair_replace.map((m) => (
+                <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
+                  <span style={{ display: 'flex', flexDirection: 'column' }}>
+                    <strong>{m.machine_name}</strong>
+                    <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
+                  </span>
+                  <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
                 </a>
               ))}
             </div>
