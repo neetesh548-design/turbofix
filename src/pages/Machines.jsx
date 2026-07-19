@@ -97,6 +97,7 @@ export default function Machines() {
   const [rcaReports, setRcaReports] = useState([]);
   const [capaActions, setCapaActions] = useState([]);
   const [repeatTickets, setRepeatTickets] = useState([]);
+  const [machineBreakdowns, setMachineBreakdowns] = useState([]);
   const [relLoading, setRelLoading] = useState(false);
   const [relSaving, setRelSaving] = useState(false);
   const [showRcaForm, setShowRcaForm] = useState(false);
@@ -376,18 +377,22 @@ export default function Machines() {
 
     setRelLoading(true);
     try {
-      const [rcaRes, capaRes, repeatRes] = await Promise.all([
+      const [rcaRes, capaRes, ticketsRes] = await Promise.all([
         supabase.from('rca_reports').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('capa_actions').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
-        supabase.from('tickets').select('id,issue_text,created_at,repeat_failure_count').eq('machine_id', machineId).eq('repeat_failure_flag', true).order('created_at', { ascending: false }),
+        supabase.from('tickets').select('id,issue_text,created_at,repeat_failure_count,repeat_failure_flag,type').eq('machine_id', machineId).order('created_at', { ascending: false }),
       ]);
       setRcaReports(rcaRes.data || []);
       setCapaActions(capaRes.data || []);
-      setRepeatTickets(repeatRes.data || []);
+      const allT = ticketsRes.data || [];
+      const breakdowns = allT.filter((t) => (t.type || 'breakdown') === 'breakdown');
+      setMachineBreakdowns(breakdowns);
+      setRepeatTickets(breakdowns.filter((t) => t.repeat_failure_flag));
     } catch {
       setRcaReports([]);
       setCapaActions([]);
       setRepeatTickets([]);
+      setMachineBreakdowns([]);
     }
     setRelLoading(false);
   };
@@ -814,6 +819,12 @@ export default function Machines() {
 
   const pmCompliancePct = pmLogs.length
     ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
+    : null;
+
+  // First-Time-Fix rate (roadmap P2): a repeat breakdown means the prior fix
+  // did not hold, so FTF = breakdowns that did NOT recur / total breakdowns.
+  const ftfPct = machineBreakdowns.length
+    ? Math.round(((machineBreakdowns.length - repeatTickets.length) / machineBreakdowns.length) * 100)
     : null;
 
   // --- Reliability improvement loop: RCA → CAPA → PM revision (roadmap P2) ---
@@ -2217,6 +2228,10 @@ export default function Machines() {
                     <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
                       <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{capaActions.filter((c) => c.action_type === 'preventive' && c.applied_to_pm).length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Preventive fixes in PM</small>
+                    </div>
+                    <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }} title="Breakdowns that did not recur, over the last 90 days">
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, lineHeight: 1, color: ftfPct === null ? 'var(--slate)' : ftfPct >= 90 ? '#25D366' : ftfPct >= 70 ? '#FBBF24' : '#F87171' }}>{ftfPct === null ? '—' : `${ftfPct}%`}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>First-time fix rate</small>
                     </div>
                   </div>
 
