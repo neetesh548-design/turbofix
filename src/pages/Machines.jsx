@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Activity, ArrowLeft, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
+  Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
   ShieldCheck, Upload, Users, LayoutGrid, List, Pencil,
 } from 'lucide-react';
@@ -1602,16 +1602,20 @@ export default function Machines() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                        </table>
               </div>
             )}
           </>
         ) : (
           /* VIEW 2: DEDICATED FULL-PAGE MACHINE WORKSPACE VIEW */
           <div className="machine-workspace-page">
-            <button type="button" className="machine-workspace-back" onClick={() => setSelectedMachine(null)}>
-              <ArrowLeft /> Machines directory
-            </button>
+            <nav className="machine-workspace-breadcrumbs" aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '20px', fontFamily: 'Rajdhani, -apple-system, sans-serif', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
+              <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: 'var(--brand)', cursor: 'pointer', font: 'inherit', textDecoration: 'none' }} onClick={() => setSelectedMachine(null)}>
+                Machines Directory
+              </button>
+              <span>/</span>
+              <span style={{ color: '#fff' }}>{selectedMachine.machine_name}</span>
+            </nav>
 
             <div className="machine-workspace-shell">
               <header className="machine-workspace-hero" style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
