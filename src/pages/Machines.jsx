@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil,
+  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -2453,8 +2453,15 @@ export default function Machines() {
                 <option value="high">High</option>
                 <option value="critical">Critical</option>
               </select>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => setReportIssueOpen(false)} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
+                <a
+                  href={`mailto:log-issue@turbofix.com?subject=${encodeURIComponent(`[Breakdown] Machine ${selectedMachine.machine_id} - ${selectedMachine.machine_name}`)}&body=${encodeURIComponent(`Hi TurboFix,\n\nPlease log a breakdown ticket for the following machine:\n\nMachine ID: ${selectedMachine.machine_id}\nMachine Name: ${selectedMachine.machine_name}\nLocation: ${selectedMachine.location || 'Shop floor'}\nUrgency: ${issueUrgency.toUpperCase()}\n\nProblem Description:\n${issueText.trim() || '[Please describe the symptoms/problem here]'}\n\nThank you!`)}`}
+                  onClick={() => setReportIssueOpen(false)}
+                  style={{ textDecoration: 'none', background: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+                >
+                  <Mail size={14} /> Report via Email
+                </a>
                 <button type="button" onClick={reportIssue} disabled={issueSaving || !issueText.trim()} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 16px', fontWeight: 600, cursor: issueSaving || !issueText.trim() ? 'not-allowed' : 'pointer', opacity: issueSaving || !issueText.trim() ? 0.6 : 1 }}>{issueSaving ? 'Reporting…' : 'Create ticket'}</button>
               </div>
             </div>
