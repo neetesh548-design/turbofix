@@ -346,8 +346,8 @@ export default function Machines() {
 
     setPartsLoading(true);
     try {
-      const { data } = await supabase.from('parts').select('id,name,part_number,stock_qty,unit,reorder_level,lead_time_days,machine_id').eq('machine_id', machineId);
-      setParts((data || []).map(p => ({ part_id: p.id, part_name: p.name, part_number: p.part_number, quantity_on_hand: p.stock_qty, unit: p.unit || 'pcs', reorder_level: p.reorder_level || 0, lead_time_days: p.lead_time_days })));
+      const { data } = await supabase.from('parts').select('id,part_name,part_number,stock_qty,unit,reorder_level,lead_time_days,machine_id').eq('machine_id', machineId);
+      setParts((data || []).map(p => ({ part_id: p.id, part_name: p.part_name, part_number: p.part_number, quantity_on_hand: p.stock_qty, unit: p.unit || 'pcs', reorder_level: p.reorder_level || 0, lead_time_days: p.lead_time_days })));
     } catch {}
     setPartsLoading(false);
 
@@ -678,7 +678,7 @@ export default function Machines() {
       const factoryId = factoryRows?.[0]?.id;
       const { error: insertErr } = await supabase.from('parts').insert({
         machine_id: selectedMachine.machine_id,
-        name: newPartName,
+        part_name: newPartName,
         part_number: newPartNum,
         stock_qty: parseFloat(newPartQty) || 0,
         unit: 'pcs',
