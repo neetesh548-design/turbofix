@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail,
+  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -42,6 +42,12 @@ export default function Machines() {
   const [issueUrgency, setIssueUrgency] = useState('medium');
   const [issueSaving, setIssueSaving] = useState(false);
   const [reportIssueError, setReportIssueError] = useState('');
+  // Voice → confirm → submit flow (roadmap §3.3 / §9.1)
+  const [reportStep, setReportStep] = useState('capture'); // 'capture' | 'confirm'
+  const [issueListening, setIssueListening] = useState(false);
+  const [issueTranscribing, setIssueTranscribing] = useState(false);
+  const issueRecorderRef = useRef(null);
+  const issueChunksRef = useRef([]);
   
   // Workspace active tab: 'info' | 'docs' | 'parts' | 'consumables' | 'calendar' | 'qr'
   const [wsTab, setWsTab] = useState('info');
@@ -311,6 +317,66 @@ export default function Machines() {
       setError(err.message || 'An error occurred while loading data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Suggest an urgency from the spoken words so the confirmation step is pre-filled.
+  const suggestUrgency = (text) => {
+    const t = (text || '').toLowerCase();
+    if (/\b(fire|smoke|burning|spark|shock|injur|accident|gas leak|not safe|danger)\b/.test(t)) return 'critical';
+    if (/\b(stopped|not working|breakdown|down|leak|overheat|hot|noise|vibrat|smell|jam)\b/.test(t)) return 'high';
+    if (/\b(slow|minor|small|sometimes|occasional)\b/.test(t)) return 'low';
+    return 'medium';
+  };
+
+  const transcribeIssueAudio = async (blob) => {
+    setIssueTranscribing(true);
+    setReportIssueError('');
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', { body: { action: 'transcribe', audio: dataUrl } });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
+      const transcript = String(data.transcript || '').trim();
+      if (!transcript) { setReportIssueError('No speech was detected. Please try again or type the problem.'); return; }
+      const combined = issueText.trim() ? `${issueText.trim()} ${transcript}` : transcript;
+      setIssueText(combined);
+      setIssueUrgency(suggestUrgency(combined));
+    } catch (err) {
+      setReportIssueError(err.message || 'Could not transcribe the recording. Please type the problem.');
+    } finally {
+      setIssueTranscribing(false);
+    }
+  };
+
+  const toggleIssueVoice = async () => {
+    if (issueListening) { issueRecorderRef.current?.stop(); return; }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setReportIssueError('Voice recording is not supported on this device. Please type the problem.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      issueChunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size) issueChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setIssueListening(false);
+        const blob = new Blob(issueChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        await transcribeIssueAudio(blob);
+      };
+      issueRecorderRef.current = recorder;
+      setReportIssueError('');
+      setIssueListening(true);
+      recorder.start();
+    } catch (err) {
+      setIssueListening(false);
+      setReportIssueError(err?.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Microphone was not available.');
     }
   };
 
@@ -1896,7 +1962,7 @@ export default function Machines() {
                       <span className="machine-side-kicker">Recommended next action</span>
                       {selectedMachine.has_open_tickets ? <><CircleAlert /><h3>Review the open breakdown</h3><p>Confirm the assigned technician has started work and has the required manual and spares.</p><a href="tickets.html">Open breakdown tickets <ChevronRight /></a></> : machineData?.missing_sections?.length ? <><BookOpen /><h3>Complete machine knowledge</h3><p>Add {machineData.missing_sections[0]} so future AI guidance is safer and more specific.</p><button type="button" onClick={() => setWsTab('docs')}>Add missing document <ChevronRight /></button></> : <><ShieldCheck /><h3>Machine is ready</h3><p>Knowledge and response ownership are in place. Continue routine preventive maintenance.</p><a href="shutdown-planner.html">Review shutdown plan <ChevronRight /></a></>}
                     </section>
-                    <button type="button" className="vault-btn vault-btn-primary" style={{ width: '100%', marginTop: '12px', background: 'var(--brand)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }} onClick={() => { setIssueText(''); setIssueUrgency('medium'); setReportIssueError(''); setReportIssueOpen(true); }}>
+                    <button type="button" className="vault-btn vault-btn-primary" style={{ width: '100%', marginTop: '12px', background: 'var(--brand)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }} onClick={() => { setIssueText(''); setIssueUrgency('medium'); setReportIssueError(''); setReportStep('capture'); setReportIssueOpen(true); }}>
                       <CircleAlert size={16} /> Report issue
                     </button>
                     <section className="machine-response-team">
@@ -2560,29 +2626,58 @@ export default function Machines() {
         {reportIssueOpen && selectedMachine && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => !issueSaving && setReportIssueOpen(false)}>
             <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
-              <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
-              <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}{selectedMachine.assignments?.technician?.name ? ` · Technician: ${selectedMachine.assignments.technician.name}` : ' · No technician assigned'}</p>
-              {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
-              <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>What is the problem?</label>
-              <textarea value={issueText} onChange={(e) => setIssueText(e.target.value)} rows={4} autoFocus placeholder="Describe the breakdown or symptom" style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '14px', resize: 'vertical', fontFamily: 'inherit' }} />
-              <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>Urgency</label>
-              <select value={issueUrgency} onChange={(e) => setIssueUrgency(e.target.value)} style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '20px' }}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => setReportIssueOpen(false)} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
-                <a
-                  href={`mailto:log-issue@turbofix.com?subject=${encodeURIComponent(`[Breakdown] Machine ${selectedMachine.machine_id} - ${selectedMachine.machine_name}`)}&body=${encodeURIComponent(`Hi TurboFix,\n\nPlease log a breakdown ticket for the following machine:\n\nMachine ID: ${selectedMachine.machine_id}\nMachine Name: ${selectedMachine.machine_name}\nLocation: ${selectedMachine.location || 'Shop floor'}\nUrgency: ${issueUrgency.toUpperCase()}\n\nProblem Description:\n${issueText.trim() || '[Please describe the symptoms/problem here]'}\n\nThank you!`)}`}
-                  onClick={() => setReportIssueOpen(false)}
-                  style={{ textDecoration: 'none', background: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
-                >
-                  <Mail size={14} /> Report via Email
-                </a>
-                <button type="button" onClick={reportIssue} disabled={issueSaving || !issueText.trim()} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 16px', fontWeight: 600, cursor: issueSaving || !issueText.trim() ? 'not-allowed' : 'pointer', opacity: issueSaving || !issueText.trim() ? 0.6 : 1 }}>{issueSaving ? 'Reporting…' : 'Create ticket'}</button>
-              </div>
+              {(() => {
+                const techName = selectedMachine.assignments?.technician?.name;
+                const urgencyColor = { low: '#94a3b8', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' }[issueUrgency] || '#60A5FA';
+                const TechChip = (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: techName ? 'rgba(37,211,102,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${techName ? 'rgba(37,211,102,0.4)' : 'rgba(239,68,68,0.4)'}`, borderRadius: '10px', padding: '10px 14px' }}>
+                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: techName ? 'var(--brand)' : '#F87171', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif' }}>{techName ? techName.charAt(0).toUpperCase() : '!'}</span>
+                    <div style={{ lineHeight: 1.3 }}>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Will be assigned to</div>
+                      <strong style={{ color: techName ? '#25D366' : '#F87171', fontSize: '1rem' }}>{techName || 'No technician assigned'}</strong>
+                    </div>
+                  </div>
+                );
+                if (reportStep === 'confirm') {
+                  return (<>
+                    <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Confirm the issue</h3>
+                    <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>Please check this is correct before it goes to the technician.</p>
+                    {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
+                    <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '12px' }}>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}</div>
+                      <div style={{ color: 'white', fontSize: '0.95rem', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>{issueText.trim()}</div>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: urgencyColor, border: `1px solid ${urgencyColor}`, borderRadius: '999px', padding: '2px 10px' }}>{issueUrgency} priority</span>
+                    </div>
+                    <div style={{ marginBottom: '18px' }}>{TechChip}</div>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      <button type="button" onClick={() => setReportStep('capture')} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Back to edit</button>
+                      <button type="button" onClick={reportIssue} disabled={issueSaving} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 18px', fontWeight: 600, cursor: issueSaving ? 'not-allowed' : 'pointer', opacity: issueSaving ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: '6px' }}><CheckCircle2 size={15} /> {issueSaving ? 'Submitting…' : 'Confirm & submit'}</button>
+                    </div>
+                  </>);
+                }
+                return (<>
+                  <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
+                  <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}</p>
+                  {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
+                  <button type="button" onClick={toggleIssueVoice} disabled={issueTranscribing} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: issueListening ? 'rgba(239,68,68,0.15)' : 'rgba(37,211,102,0.12)', color: issueListening ? '#F87171' : '#25D366', border: `1px solid ${issueListening ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '12px', marginBottom: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                    {issueListening ? <><Square size={15} /> Stop &amp; transcribe</> : issueTranscribing ? 'Transcribing…' : <><Mic size={15} /> Speak the problem</>}
+                  </button>
+                  <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>What is the problem? <span style={{ color: '#64748b' }}>(spoken text appears here — edit if needed)</span></label>
+                  <textarea value={issueText} onChange={(e) => setIssueText(e.target.value)} rows={4} placeholder="Speak above, or type the breakdown or symptom" style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '14px', resize: 'vertical', fontFamily: 'inherit' }} />
+                  <label style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginBottom: '6px' }}>Urgency <span style={{ color: '#64748b' }}>(suggested from your words)</span></label>
+                  <select value={issueUrgency} onChange={(e) => setIssueUrgency(e.target.value)} style={{ width: '100%', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px', marginBottom: '16px' }}>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                  <div style={{ marginBottom: '18px' }}>{TechChip}</div>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => { if (issueListening) issueRecorderRef.current?.stop(); setReportIssueOpen(false); }} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
+                    <button type="button" onClick={() => { if (!issueText.trim()) { setReportIssueError('Please speak or type the problem first.'); return; } setReportIssueError(''); setReportStep('confirm'); }} disabled={issueSaving || issueTranscribing || !issueText.trim()} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 18px', fontWeight: 600, cursor: (!issueText.trim() || issueTranscribing) ? 'not-allowed' : 'pointer', opacity: (!issueText.trim() || issueTranscribing) ? 0.6 : 1 }}>Review &amp; confirm →</button>
+                  </div>
+                </>);
+              })()}
             </div>
           </div>
         )}
