@@ -43,7 +43,9 @@ export default function QRGateway() {
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   // Reporter state (remembered)
-  const [reporterId] = useState(() => localStorage.getItem('tf_reporter_id') || 'EMP-OPERATOR');
+  const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
+  const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
+  const [phoneInput, setPhoneInput] = useState('');
 
   const recognitionRef = useRef(null);
 
@@ -200,7 +202,7 @@ export default function QRGateway() {
       const { data: matchedUser } = await supabase
         .from('users')
         .select('role')
-        .or(`phone.eq.${reporterId},user_id.eq.${reporterId}`)
+        .or(`phone.eq.${reporterPhone},user_id.eq.${reporterPhone}`)
         .limit(1);
       
       if (matchedUser && matchedUser.length > 0) {
@@ -216,13 +218,13 @@ export default function QRGateway() {
         issue_text: extractedInfo.issue,
         urgency: extractedInfo.urgency,
         type: 'breakdown',
-        reporter_phone: reporterId.match(/^\d+$/) ? reporterId : null,
+        reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
         factory_id: factoryId,
         lifecycle_stage: verified ? 'open' : 'unverified',
         ai_summary: {
           voice_reported: true,
           extracted_condition: extractedInfo.condition,
-          reporter_id: reporterId,
+          reporter_id: reporterPhone,
           verified_reporter: verified,
           flag: verified ? null : 'unverified_reporter'
         }
@@ -251,7 +253,7 @@ export default function QRGateway() {
     if (!duplicateTicket || !extractedInfo) return;
     setCheckingDuplicate(true);
     try {
-      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterId}]: ${extractedInfo.issue}`;
+      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
       const { error } = await supabase
         .from('tickets')
         .update({ issue_text: mergedText })
@@ -273,6 +275,16 @@ export default function QRGateway() {
     } finally {
       setCheckingDuplicate(false);
     }
+  };
+
+  const handlePhoneProceed = () => {
+    if (!phoneInput.trim() || !phoneInput.match(/^\d{10}$/)) {
+      alert(lang === 'hi-IN' ? 'कृपया एक वैध 10 अंकों का मोबाइल नंबर दर्ज करें।' : 'Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    localStorage.setItem('tf_reporter_phone', phoneInput.trim());
+    setReporterPhone(phoneInput.trim());
+    setPhoneGate(false);
   };
 
   const handleFetchStatus = async () => {
@@ -332,154 +344,195 @@ export default function QRGateway() {
       <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0', zIndex: 10 }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>{machine.name}</h3>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Location: {machine.loc}</span>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            Location: {machine.loc}
+            {!phoneGate && reporterPhone && (
+              <button 
+                type="button" 
+                onClick={() => { setPhoneGate(true); setPhoneInput(reporterPhone); }}
+                style={{ background: 'transparent', border: 'none', color: '#863bff', cursor: 'pointer', marginLeft: '8px', textDecoration: 'underline', fontSize: '0.75rem', padding: 0 }}
+              >
+                (Change: {reporterPhone})
+              </button>
+            )}
+          </span>
         </div>
         <div style={{ fontSize: '0.75rem', color: '#863bff', background: 'rgba(134,59,255,0.1)', padding: '3px 8px', borderRadius: '6px', fontFamily: 'monospace' }}>
           ID: {machine.id ? machine.id.slice(0, 8) : ''}
         </div>
       </div>
 
-      {/* Voice Assistant Visualizer Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', margin: '40px 0' }}>
-        
-        {/* Glowing Orb ripple rings */}
-        {isListening && (
-          <>
-            <div style={{ position: 'absolute', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', animation: 'voice-ripple-1 2s infinite ease-out', zIndex: 1 }} />
-            <div style={{ position: 'absolute', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', animation: 'voice-ripple-2 2s infinite ease-out 1s', zIndex: 1 }} />
-          </>
-        )}
-
-        {/* Central Assistant Orb */}
-        <button
-          type="button"
-          onClick={startVoiceInput}
-          style={{
-            position: 'relative',
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            background: isListening 
-              ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
-              : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
-            border: '4px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 5,
-            outline: 'none',
-            animation: isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          <Mic size={40} color="white" />
-        </button>
-
-        {/* Orb instruction hint */}
-        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '20px', zIndex: 5 }}>
-          {isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
-        </span>
-      </div>
-
-      {/* Speech prompt & Live subtitles display */}
-      <div style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '0 20px', marginBottom: '24px', zIndex: 5 }}>
-        
-        {/* Assistant voice query */}
-        <p style={{ fontSize: '1.05rem', fontWeight: 600, color: '#e2e8f0', margin: '0 0 12px', lineHeight: '1.4' }}>
-          {assistantPrompt}
-        </p>
-
-        {/* Subtitles text (transcribed from user) */}
-        {transcript && (
-          <p style={{ fontSize: '0.9rem', color: '#863bff', fontStyle: 'italic', background: 'rgba(134,59,255,0.06)', border: '1px solid rgba(134,59,255,0.12)', padding: '10px 16px', borderRadius: '8px', maxWidth: '100%', wordBreak: 'break-word' }}>
-            "{transcript}"
-          </p>
-        )}
-
-        {/* Success screen visual confirmation */}
-        {success && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80', fontSize: '0.9rem', fontWeight: 'bold', marginTop: '10px' }}>
-            <CheckCircle2 size={18} />
-            <span>Success ✓</span>
+      {phoneGate ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '380px', width: '100%', margin: '0 auto', gap: '20px', zIndex: 10 }}>
+          <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center' }}>
+              {lang === 'hi-IN' ? 'मोबाइल नंबर सत्यापन' : 'Mobile Identification'}
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.4' }}>
+              {lang === 'hi-IN' ? 'शिकायत/अनुरोध दर्ज करने के लिए कृपया अपना मोबाइल नंबर दर्ज करें' : 'Please enter your Mobile Number to register complaints or requests.'}
+            </p>
+            <input 
+              type="tel" 
+              maxLength={10} 
+              value={phoneInput} 
+              onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))} 
+              placeholder="e.g. 9876543210" 
+              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', fontSize: '1.05rem', color: 'white', letterSpacing: '2px', textAlign: 'center' }}
+            />
+            <button 
+              type="button" 
+              onClick={handlePhoneProceed} 
+              style={{ width: '100%', padding: '14px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}
+            >
+              {lang === 'hi-IN' ? 'आगे बढ़ें' : 'Proceed'}
+            </button>
           </div>
-        )}
-      </div>
-
-      {/* Confirmation Sliding Overlay Card */}
-      {extractedInfo && (
-        <div style={{ background: 'rgba(21, 30, 40, 0.95)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {duplicateTicket ? (
-            <>
-              <div style={{ textAlign: 'center' }}>
-                <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                  ⚠️ {lang === 'hi-IN' ? 'समान टिकट पहले से खुला है' : 'Similar Ticket Open'}
-                </h4>
-                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0' }}>
-                  {lang === 'hi-IN' 
-                    ? 'क्या आप इस टिकट में जानकारी जोड़ना चाहते हैं या नया टिकट बनाना चाहते हैं?' 
-                    : 'Do you want to append comments to it or log a separate new breakdown?'}
-                </p>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  onClick={appendTicket}
-                  disabled={checkingDuplicate}
-                  style={{ width: '100%', padding: '12px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  {lang === 'hi-IN' ? 'विवरण जोड़ें (अनुशंसित)' : 'Append Details (Recommended)'}
-                </button>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setDuplicateTicket(null)}
-                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => submitTicket(true)}
-                    disabled={checkingDuplicate}
-                    style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    {lang === 'hi-IN' ? 'नया टिकट बनाएं' : 'Create Separate'}
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ textAlign: 'center' }}>
-                <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
-                  {lang === 'hi-IN' ? 'समस्या रिपोर्ट पुष्टि' : 'Confirm Issue Report'}
-                </h4>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                  {lang === 'hi-IN' ? 'मशीन स्थिति:' : 'Machine Condition:'} <strong style={{ color: '#ef4444' }}>{extractedInfo.condition.replace('_', ' ').toUpperCase()}</strong>
-                </span>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setExtractedInfo(null)}
-                  style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  {lang === 'hi-IN' ? 'फिर से बोलें' : 'Speak Again'}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => submitTicket(false)}
-                  disabled={checkingDuplicate}
-                  style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}
-                >
-                  {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit')}
-                </button>
-              </div>
-            </>
-          )}
         </div>
+      ) : (
+        <>
+          {/* Voice Assistant Visualizer Area */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', margin: '40px 0' }}>
+            
+            {/* Glowing Orb ripple rings */}
+            {isListening && (
+              <>
+                <div style={{ position: 'absolute', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', animation: 'voice-ripple-1 2s infinite ease-out', zIndex: 1 }} />
+                <div style={{ position: 'absolute', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', animation: 'voice-ripple-2 2s infinite ease-out 1s', zIndex: 1 }} />
+              </>
+            )}
+
+            {/* Central Assistant Orb */}
+            <button
+              type="button"
+              onClick={startVoiceInput}
+              style={{
+                position: 'relative',
+                width: '120px',
+                height: '120px',
+                borderRadius: '50%',
+                background: isListening 
+                  ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
+                  : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
+                border: '4px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 5,
+                outline: 'none',
+                animation: isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <Mic size={40} color="white" />
+            </button>
+
+            {/* Orb instruction hint */}
+            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '20px', zIndex: 5 }}>
+              {isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
+            </span>
+          </div>
+
+          {/* Speech prompt & Live subtitles display */}
+          <div style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '0 20px', marginBottom: '24px', zIndex: 5 }}>
+            
+            {/* Assistant voice query */}
+            <p style={{ fontSize: '1.05rem', fontWeight: 600, color: '#e2e8f0', margin: '0 0 12px', lineHeight: '1.4' }}>
+              {assistantPrompt}
+            </p>
+
+            {/* Subtitles text (transcribed from user) */}
+            {transcript && (
+              <p style={{ fontSize: '0.9rem', color: '#863bff', fontStyle: 'italic', background: 'rgba(134,59,255,0.06)', border: '1px solid rgba(134,59,255,0.12)', padding: '10px 16px', borderRadius: '8px', maxWidth: '100%', wordBreak: 'break-word' }}>
+                "{transcript}"
+              </p>
+            )}
+
+            {/* Success screen visual confirmation */}
+            {success && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80', fontSize: '0.9rem', fontWeight: 'bold', marginTop: '10px' }}>
+                <CheckCircle2 size={18} />
+                <span>Success ✓</span>
+              </div>
+            )}
+          </div>
+
+          {/* Confirmation Sliding Overlay Card */}
+          {extractedInfo && (
+            <div style={{ background: 'rgba(21, 30, 40, 0.95)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {duplicateTicket ? (
+                <>
+                  <div style={{ textAlign: 'center' }}>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      ⚠️ {lang === 'hi-IN' ? 'समान टिकट पहले से खुला है' : 'Similar Ticket Open'}
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0' }}>
+                      {lang === 'hi-IN' 
+                        ? 'क्या आप इस टिकट में जानकारी जोड़ना चाहते हैं या नया टिकट बनाना चाहते हैं?' 
+                        : 'Do you want to append comments to it or log a separate new breakdown?'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      onClick={appendTicket}
+                      disabled={checkingDuplicate}
+                      style={{ width: '100%', padding: '12px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      {lang === 'hi-IN' ? 'विवरण जोड़ें (अनुशंसित)' : 'Append Details (Recommended)'}
+                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setDuplicateTicket(null)}
+                        style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => submitTicket(true)}
+                        disabled={checkingDuplicate}
+                        style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        {lang === 'hi-IN' ? 'नया टिकट बनाएं' : 'Create Separate'}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ textAlign: 'center' }}>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
+                      {lang === 'hi-IN' ? 'समस्या रिपोर्ट पुष्टि' : 'Confirm Issue Report'}
+                    </h4>
+                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                      {lang === 'hi-IN' ? 'मशीन स्थिति:' : 'Machine Condition:'} <strong style={{ color: '#ef4444' }}>{extractedInfo.condition.replace('_', ' ').toUpperCase()}</strong>
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setExtractedInfo(null)}
+                      style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      {lang === 'hi-IN' ? 'फिर से बोलें' : 'Speak Again'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => submitTicket(false)}
+                      disabled={checkingDuplicate}
+                      style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}
+                    >
+                      {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit')}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Secondary control actions */}
