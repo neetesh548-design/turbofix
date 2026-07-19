@@ -5225,6 +5225,15 @@ details.faq-item p {
     margin-top: 4px !important;
   }
   
+  .printable-sticker-tag .sticker-instruction {
+    color: #0f172a !important;
+    font-size: 0.75rem !important;
+    font-weight: bold !important;
+    border-top: 1px dashed #cbd5e1 !important;
+    padding-top: 8px !important;
+    margin-top: 8px !important;
+  }
+  
   .printable-sticker-tag .sticker-print-btn {
     display: none !important;
   }

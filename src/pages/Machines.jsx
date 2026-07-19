@@ -2432,6 +2432,9 @@ export default function Machines() {
                   <div className="sticker-loc" style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '4px' }}>
                     Location: {selectedMachine.location || '—'}
                   </div>
+                  <div className="sticker-instruction" style={{ fontSize: '0.72rem', color: 'var(--slate)', marginTop: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Scan QR to report breakdown instantly
+                  </div>
 
                   <button className="vault-btn vault-btn-primary sticker-print-btn" style={{ marginTop: '18px', maxWidth: '200px', margin: '18px auto 0', background: 'var(--brand)', color: '#000' }} onClick={() => window.print()}>
                     Print Tag
