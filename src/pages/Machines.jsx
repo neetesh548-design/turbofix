@@ -272,6 +272,15 @@ export default function Machines() {
         ? mData.filter((m) => String(m.technician_user_id || '') === String(signedInUser?.user_id || ''))
         : mData;
       setMachines(visibleMachines);
+      const queryParams = new URLSearchParams(window.location.search);
+      const queryMachineId = queryParams.get('machine') || queryParams.get('machine_id');
+      if (queryMachineId) {
+        const found = visibleMachines.find(m => String(m.machine_id) === String(queryMachineId));
+        if (found) {
+          setSelectedMachine(found);
+          setWsTab('info');
+        }
+      }
       window.setTimeout(() => syncLocalMachinePhotos(visibleMachines), 0);
 
       const teamData = directoryMembers.map(u => ({
