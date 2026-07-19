@@ -214,6 +214,7 @@ export default function Team() {
             {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
           </div>
           <label className="team-edit-access"><input type="checkbox" checked={editingMember.portal_access !== false} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, portal_access: e.target.checked })} /><span>Portal access enabled</span></label>
+          {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
           <button className="vault-btn vault-btn-primary" disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
         </form>}
 
@@ -286,6 +287,7 @@ export default function Team() {
                   </div>
                 </div>
               </div>
+              {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
               <div className="team-onboard-actions">
                 <button type="submit" className="vault-btn vault-btn-primary">Onboard Member</button>
                 <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>

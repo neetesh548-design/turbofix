@@ -1500,6 +1500,8 @@ export default function Machines() {
                     </div>
                   </section>
 
+                  {error && <div className="vault-error show" style={{ marginBottom: '16px', gridColumn: 'span 2' }}>{error}</div>}
+
                   <div className="machine-form-actions">
                     <div><strong>TurboFix creates the machine ID and QR tag automatically.</strong><span>You can upload manuals, BOM, and diagrams after onboarding.</span></div>
                     <button type="submit" className="vault-btn vault-btn-primary machine-submit" disabled={technicians.length === 0}>Add machine</button>
