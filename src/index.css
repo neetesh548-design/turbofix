@@ -3039,7 +3039,7 @@ details.faq-item p {
   .settings-layout { display: block; }
   .settings-subnav { display: none; }
   .settings-mobile-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 18px; padding: 4px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
-  .settings-mobile-tabs button { min-height: 40px; padding: 0 13px; border: 0; border-radius: 8px; color: var(--muted-foreground); background: transparent; white-space: nowrap; font-size: .78rem; font-weight: 750; cursor: pointer; }
+  .settings-mobile-tabs button { min-height: 44px; padding: 0 13px; border: 0; border-radius: 8px; color: var(--muted-foreground); background: transparent; white-space: nowrap; font-size: .78rem; font-weight: 750; cursor: pointer; }
 .settings-mobile-tabs button.active { color: var(--primary-foreground); background: var(--primary); }
 }
 
@@ -3497,7 +3497,7 @@ details.faq-item p {
   .settings-layout { display: block; }
   .settings-subnav { display: none; }
   .settings-mobile-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 18px; padding: 5px; border: 1px solid #354356; border-radius: 12px; background: #151f2b; }
-  .settings-mobile-tabs button { min-height: 42px; padding: 0 13px; border: 0; border-radius: 8px; color: #9cabbc; background: transparent; white-space: nowrap; font-size: .76rem; font-weight: 800; }
+  .settings-mobile-tabs button { min-height: 44px; padding: 0 13px; border: 0; border-radius: 8px; color: #9cabbc; background: transparent; white-space: nowrap; font-size: .76rem; font-weight: 800; }
   .settings-mobile-tabs button.active { color: #052e16; background: #4ade80; }
 }
 
