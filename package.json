@@ -8,6 +8,8 @@
     "build": "vite build && cp dist/index.html dist/404.html && cp dist/index.html dist/why-turbofix.html && cp dist/index.html dist/vault.html && cp dist/index.html dist/dashboard.html && cp dist/index.html dist/qr-generator.html && cp dist/index.html dist/reset-password.html && cp dist/index.html dist/machines.html && cp dist/index.html dist/tickets.html && cp dist/index.html dist/team.html && cp dist/index.html dist/settings.html && cp dist/index.html dist/assistant.html && cp dist/index.html dist/shutdown-planner.html && cp dist/index.html dist/technician.html && cp dist/index.html dist/records.html && cp dist/index.html dist/support.html && cp dist/index.html dist/qr-gateway.html",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test:unit": "vitest",
+    "test:e2e": "npx playwright test",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
@@ -34,6 +36,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "gh-pages": "^6.3.0",
     "oxlint": "^1.71.0",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

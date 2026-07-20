@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { test, expect } from 'vitest';
 
 import { generateChecklist } from './dynamicChecklist.js';
 
@@ -9,10 +8,10 @@ test('generates a short electrical checklist from machine and company context', 
     machine: { id: 'CNC-01', name: 'CNC Lathe' },
   });
 
-  assert.ok(checklist.length <= 7);
-  assert.equal(checklist[0].mandatory, true);
-  assert.match(checklist[0].source, /CNC Lathe/);
-  assert.ok(checklist.some((item) => item.id === 'isolate-electrical' && item.mandatory));
+  expect(checklist.length).toBeLessThanOrEqual(7);
+  expect(checklist[0].mandatory).toBe(true);
+  expect(checklist[0].source).toMatch(/CNC Lathe/);
+  expect(checklist.some((item) => item.id === 'isolate-electrical' && item.mandatory)).toBe(true);
 });
 
 test('uses approved machine data and similar successful repairs without extra input', () => {
@@ -24,8 +23,8 @@ test('uses approved machine data and similar successful repairs without extra in
     parts: [{ machine_id: 'CNC-01', name: 'Spindle bearing', stock_qty: 2 }],
   });
 
-  assert.ok(checklist.some((item) => item.source === 'Approved machine data'));
-  assert.ok(checklist.some((item) => item.source === 'Machine repair history'));
-  assert.ok(checklist.some((item) => item.source === 'Live spare inventory'));
+  expect(checklist.some((item) => item.source === 'Approved machine data')).toBe(true);
+  expect(checklist.some((item) => item.source === 'Machine repair history')).toBe(true);
+  expect(checklist.some((item) => item.source === 'Live spare inventory')).toBe(true);
 });
 

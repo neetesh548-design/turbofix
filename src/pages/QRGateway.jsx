@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Cpu, ArrowRight, Sparkles, Mic, CheckCircle2, Volume2, VolumeX, Camera, Image, Trash2 } from 'lucide-react';
 
+const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 const ORB_ANIMATIONS = `
 @keyframes voice-ripple-1 {
   0% { transform: scale(1); opacity: 0.5; }
@@ -56,6 +57,61 @@ export default function QRGateway() {
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
   const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
   const [phoneInput, setPhoneInput] = useState('');
+
+  // Offline queue state
+  const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
+  const [offlineQueued, setOfflineQueued] = useState(false);
+
+  // Auto-retry helper for transient edge function failures
+  const invokeWithRetry = async (functionName, options, maxRetries = 2) => {
+    let attempt = 0;
+    while (attempt <= maxRetries) {
+      try {
+        const result = await supabase.functions.invoke(functionName, options);
+        if (result.error && (result.error.message.includes('non-2xx') || result.error.message.includes('FetchError'))) {
+          throw result.error;
+        }
+        return result;
+      } catch (err) {
+        if (attempt === maxRetries) return { error: err };
+        console.warn(`Transient error, retrying ${functionName} (attempt ${attempt + 1})...`);
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        attempt++;
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleOnline = async () => {
+      console.log('Back online! Syncing offline tickets...');
+      const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+      if (queue.length === 0) return;
+
+      const newQueue = [];
+      for (const item of queue) {
+        try {
+          // If we had the actual endpoint, we would hit it here.
+          // For now, we will hit the edge function directly.
+          const { error } = await supabase.functions.invoke('ai_assistant', {
+            body: { action: 'log_ticket', payload: item }
+          });
+          if (error) {
+            console.error('Failed to sync offline ticket:', error);
+            newQueue.push(item);
+          } else {
+            console.log('Successfully synced offline ticket', item.machine_id);
+          }
+        } catch (err) {
+          console.error('Network error during sync:', err);
+          newQueue.push(item);
+        }
+      }
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(newQueue));
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
 
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -221,10 +277,10 @@ export default function QRGateway() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', { 
-        body: { action: 'transcribe', audio: dataUrl } 
+      const { data, error } = await invokeWithRetry('ai_assistant', {
+        body: { action: 'transcribe', audio_data: dataUrl.split(',')[1] }
       });
-      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
+      if (error || !data || data.error) throw new Error(data?.error || error?.message || 'Transcription failed.');
       const text = String(data.transcript || '').trim();
       if (!text) {
         let noSpeechMsg = '';
@@ -394,14 +450,56 @@ export default function QRGateway() {
   };
 
   const submitTicket = async (bypassDuplicateCheck = false) => {
-    if (!extractedInfo) return;
+    if (!extractedInfo || isSubmittingTicket) return;
+    setIsSubmittingTicket(true);
     setCheckingDuplicate(true);
     setUploadingPhoto(true);
 
     try {
+      // --- OFFLINE QUEUEING ---
+      if (!navigator.onLine) {
+        console.log('Device is offline. Queuing ticket locally.');
+        const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+        
+        const payload = {
+          machine_id: machine.id,
+          status: 'open',
+          issue_text: extractedInfo.issue,
+          urgency: extractedInfo.urgency,
+          type: 'breakdown',
+          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
+          factory_id: machine.factory_id, // Might be null if offline
+          lifecycle_stage: 'unverified', // Cannot verify offline
+          ai_summary: {
+            voice_reported: !showTextFallback,
+            extracted_condition: extractedInfo.condition,
+            reporter_id: reporterPhone,
+            verified_reporter: false,
+            flag: 'offline_submission',
+            photo_url: null
+          }
+        };
+        
+        queue.push(payload);
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+        setOfflineQueued(true);
+
+        const successText = lang === 'hi-IN' ? 'ऑफ़लाइन सहेजा गया। इंटरनेट आते ही सिंक हो जाएगा।'
+          : lang === 'mr-IN' ? 'ऑफलाइन सेव्ह केले. इंटरनेट आल्यावर सिंक होईल.'
+          : 'Saved offline. Ticket will sync when internet returns.';
+          
+        setAssistantPrompt(successText);
+        speak(successText);
+        setExtractedInfo(null);
+        setDuplicateTicket(null);
+        setSuccess(true);
+        return;
+      }
+      // ------------------------
+
       // 1. Check for duplicate open tickets on this machine
       if (!bypassDuplicateCheck) {
-        const { data: dupData, error: dupErr } = await supabase.functions.invoke('ai_assistant', {
+        const { data: dupData, error: dupErr } = await invokeWithRetry('ai_assistant', {
           body: { action: 'check_duplicate', machine_id: machine.id }
         });
         if (dupErr || !dupData || dupData.error) {
@@ -436,7 +534,7 @@ export default function QRGateway() {
       let factoryId = machine.factory_id;
       if (!factoryId) {
         // Fallback to fetching factory_id through public function
-        const { data: factData } = await supabase.functions.invoke('ai_assistant', {
+        const { data: factData } = await invokeWithRetry('ai_assistant', {
           body: { action: 'get_factory_id' }
         });
         factoryId = factData?.factory_id || null;
@@ -481,7 +579,7 @@ export default function QRGateway() {
         }
       };
 
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+      const { data, error: fnError } = await invokeWithRetry('ai_assistant', {
         body: { action: 'log_ticket', payload }
       });
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
@@ -512,6 +610,7 @@ export default function QRGateway() {
       speak(errMsg);
       setErrorAlert({ title: lang === 'hi-IN' ? 'सबमिट त्रुटि' : 'Submission Error', desc: err.message });
     } finally {
+      setIsSubmittingTicket(false);
       setCheckingDuplicate(false);
       setUploadingPhoto(false);
     }
@@ -541,7 +640,7 @@ export default function QRGateway() {
         uploadedUrl = publicUrl;
       }
 
-      const { data: fetchResult, error: fetchErr } = await supabase.functions.invoke('ai_assistant', {
+      const { data: fetchResult, error: fetchErr } = await invokeWithRetry('ai_assistant', {
         body: { action: 'get_ticket', ticket_id: duplicateTicket.id }
       });
       if (fetchErr || !fetchResult || fetchResult.error) {
@@ -556,7 +655,7 @@ export default function QRGateway() {
 
       const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
       
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+      const { data, error: fnError } = await invokeWithRetry('ai_assistant', {
         body: {
           action: 'update_ticket',
           ticket_id: duplicateTicket.id,
