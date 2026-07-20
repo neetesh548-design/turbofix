@@ -441,6 +441,23 @@ serve(async (req) => {
     if (text(body.action) === 'log_ticket') {
       const { payload } = body
       if (!payload || !payload.machine_id) return reply(req, { error: 'Invalid payload.' }, 400)
+
+      // Ensure factory_id is linked to the machine's factory if missing
+      if (!payload.factory_id && payload.machine_id) {
+        const { data: mRow } = await admin
+          .from('machines')
+          .select('factory_id')
+          .eq('id', payload.machine_id)
+          .maybeSingle();
+        if (mRow && mRow.factory_id) {
+          payload.factory_id = mRow.factory_id;
+        }
+      }
+      if (!payload.factory_id) {
+        const { data: fRow } = await admin.from('factories').select('id').limit(1).maybeSingle();
+        if (fRow) payload.factory_id = fRow.id;
+      }
+
       const { data, error } = await admin
         .from('tickets')
         .insert(payload)

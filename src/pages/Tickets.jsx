@@ -40,9 +40,12 @@ export default function Tickets() {
     setError('');
     try {
       const [ticketsRes, machinesRes] = await Promise.all([
-        supabase.from('tickets').select('id,machine_id,status,urgency,issue_text,ai_summary,created_at,reporter_phone,wo_number,lifecycle_stage,root_cause,repair_action,parts_used,labour_minutes,downtime_minutes,started_at,resolved_at,verified_at,closure_approved_by,repeat_failure_flag,repeat_failure_count'),
+        supabase.from('tickets').select('*'),
         supabase.from('machines').select('id,name'),
       ]);
+
+      if (ticketsRes.error) throw new Error(ticketsRes.error.message);
+      if (machinesRes.error) throw new Error(machinesRes.error.message);
 
       const machineMap = {};
       (machinesRes.data || []).forEach(m => { machineMap[m.id] = m.name; });
