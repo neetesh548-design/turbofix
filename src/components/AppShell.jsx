@@ -350,55 +350,15 @@ export default function AppShell({ children, active }) {
       <a className="skip-link" href="#main-content">Skip to main content</a>
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
-      <aside className="app-rail">
-        <a href={BASE} className="app-rail-brand" aria-label="TurboFix home">
-          <span className="app-logo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
-          </span>
-          <span className="app-brand-name"><b>TURBO</b>FIX</span>
-        </a>
-
-        <nav className="app-nav" aria-label="Main navigation">
-          <div className="app-nav-group">Workspace</div>
-          {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).map((item) => (
-            <a
-              key={item.id}
-              href={item.href}
-              className={`app-nav-item${active === item.id ? ' active' : ''}`}
-              onClick={() => setRailOpen(false)}
-            >
-              <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
-              <span>{item.label}</span>
-            </a>
-          ))}
-
-          {NAV_SOON.length > 0 && (
-            <>
-              <div className="app-nav-group">Coming soon</div>
-              {NAV_SOON.map((item) => (
-                <span key={item.id} className="app-nav-item soon" aria-disabled="true">
-                  <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d={item.icon} /></svg>
-                  <span>{item.label}</span>
-                  <span className="nav-soon-tag">soon</span>
-                </span>
-              ))}
-            </>
-          )}
-        </nav>
-
-        <div className="app-rail-foot">
-          <button type="button" className="app-logout" onClick={logout}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /></svg>
-            <span>Log out</span>
-          </button>
-        </div>
-      </aside>
-
       <div className="app-body">
         <header className="app-topbar">
-          <button type="button" className="app-hamburger" aria-label="Menu" onClick={() => setRailOpen((v) => !v)}>
-            <span></span><span></span><span></span>
-          </button>
+          <a href={BASE} className="app-topbar-brand" aria-label="TurboFix home">
+            <span className="app-logo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
+            </span>
+            <span className="app-brand-name"><b>TURBO</b>FIX</span>
+          </a>
+
           <div className="app-company">
             <span className="app-company-name">{company}</span>
             <span className="app-live"><span className="app-live-dot" />Live</span>
@@ -411,6 +371,23 @@ export default function AppShell({ children, active }) {
             </div>
           </div>
         </header>
+
+        <nav className="app-h-nav" aria-label="Main navigation">
+          {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).map((item) => (
+            <a
+              key={item.id}
+              href={item.href}
+              className={`app-h-nav-item${active === item.id ? ' active' : ''}`}
+            >
+              <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
+              <span>{item.label}</span>
+            </a>
+          ))}
+          <button type="button" className="app-h-nav-logout" onClick={logout} title="Log out">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /></svg>
+            <span>Log out</span>
+          </button>
+        </nav>
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
       </div>

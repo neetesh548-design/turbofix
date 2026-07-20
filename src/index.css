@@ -587,8 +587,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .skip-link:focus { top: 16px; }
 .app-nav-group { font-size: .72rem; padding-top: 20px; color: #aab6c5; }
 .app-nav-item { min-height: 44px; padding: 11px 13px; font-size: 15px; border-radius: 10px; }
-.app-rail { width: 260px; }
-.app-rail-brand { min-height: 72px; padding: 18px 20px; }
+/* Removed: app-rail was converted to horizontal tabs */
 .app-brand-name { font-size: 21px; }
 .app-topbar { min-height: 68px; height: auto; padding: 12px 28px; }
 .app-company-name { font-size: 18px; }
@@ -712,8 +711,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .machine-submit:disabled { cursor: not-allowed; color: #8b9aab !important; background: #2b3642 !important; border-color: #3b4856 !important; opacity: 1; }
 
 @media (max-width: 900px) {
-  .app-rail { width: min(290px, 86vw); }
   .app-topbar { padding: 10px 18px; }
+  .app-h-nav { font-size: 13px; }
+  .app-h-nav-item { padding: 0 12px; }
   .app-content .decision-page, .app-content .assistant-page, .app-content .planner-page { padding-top: 34px; }
 }
 @media (max-width: 760px) { .postlogin-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .machines-directory-header { display: grid; } .machines-directory-actions { display: grid; grid-template-columns: 1fr; } .machines-view-toggle { width: fit-content; } .machines-onboard-toggle { width: 100%; } .machine-form-grid, .machine-role-grid { grid-template-columns: 1fr; } .machine-onboard-header, .machine-form-actions { display: grid; } .machine-onboard-time { justify-self: start; } .machine-team-notice { grid-template-columns: 1fr; margin-left: 0; } .machine-submit { width: 100% !important; } }
@@ -2830,74 +2830,11 @@ details.faq-item p {
 
 .app-shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
 }
-
-/* --- Left rail --- */
-.app-rail {
-  width: 236px;
-  flex: none;
-  background: #12171c;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  z-index: 60;
-}
-.app-rail-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 18px 16px;
-  text-decoration: none;
-  color: var(--ink);
-  border-bottom: 1px solid var(--border);
-}
-.app-logo {
-  width: 34px; height: 34px; border-radius: 9px; flex: none;
-  display: grid; place-items: center;
-  background: linear-gradient(135deg, #22a35a, #125c31);
-  box-shadow: 0 4px 14px rgba(18, 92, 49, .35);
-}
-.app-brand-name { font-family: 'Rajdhani', var(--font-head, sans-serif); font-weight: 700; font-size: 19px; letter-spacing: .04em; }
-.app-brand-name b { color: var(--brand); font-weight: 800; }
-
-.app-nav { flex: 1; padding: 12px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
-.app-nav-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 10px 12px; border-radius: 8px;
-  color: var(--slate); text-decoration: none;
-  font-size: 14px; font-weight: 600; line-height: 1;
-  transition: background .18s var(--ease), color .18s var(--ease);
-}
-.app-nav-item .nav-ic { flex: none; opacity: .9; }
-.app-nav-item:hover { background: rgba(255, 255, 255, .04); color: var(--ink); }
-.app-nav-item.active { background: var(--green-light); color: var(--brand); }
-.app-nav-item.active .nav-ic { opacity: 1; }
-.app-nav-item.soon { cursor: default; opacity: .4; }
-.app-nav-item.soon:hover { background: none; color: var(--slate); }
-.nav-soon-tag {
-  margin-left: auto; font-size: 9px; text-transform: uppercase; letter-spacing: .08em;
-  border: 1px solid var(--border); border-radius: 999px; padding: 2px 6px; font-weight: 700;
-}
-.app-nav-group {
-  font-size: 10px; text-transform: uppercase; letter-spacing: .12em;
-  color: var(--slate-light); font-weight: 700; padding: 16px 12px 6px;
-}
-
-.app-rail-foot { padding: 12px 10px; border-top: 1px solid var(--border); }
-.app-logout {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 10px 12px; border-radius: 8px; cursor: pointer;
-  background: none; border: 1px solid var(--border); color: var(--slate);
-  font-size: 14px; font-weight: 600; font-family: inherit;
-  transition: border-color .18s var(--ease), color .18s var(--ease);
-}
-.app-logout:hover { color: var(--red); border-color: color-mix(in srgb, var(--red) 50%, transparent); }
 
 /* --- Body + top bar --- */
 .app-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -2908,6 +2845,24 @@ details.faq-item p {
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px);
 }
+
+.app-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  flex: none;
+}
+
+.app-logo {
+  width: 34px; height: 34px; border-radius: 9px; flex: none;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #22a35a, #125c31);
+  box-shadow: 0 4px 14px rgba(18, 92, 49, .35);
+}
+.app-brand-name { font-family: 'Rajdhani', var(--font-head, sans-serif); font-weight: 700; font-size: 19px; letter-spacing: .04em; }
+.app-brand-name b { color: var(--brand); font-weight: 800; }
 .app-company { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .app-company-name {
   font-weight: 700; font-size: 16px; letter-spacing: -.01em;
@@ -2927,6 +2882,43 @@ details.faq-item p {
   70% { box-shadow: 0 0 0 7px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
+
+/* --- Horizontal Navigation Tabs --- */
+.app-h-nav {
+  flex: none; display: flex; align-items: center; gap: 0;
+  padding: 0; background: #12171c; border-bottom: 1px solid var(--border);
+  overflow-x: auto; overflow-y: hidden;
+  max-height: 50px;
+}
+
+.app-h-nav-item {
+  display: flex; align-items: center; gap: 8px; flex: none;
+  padding: 0 16px; height: 50px; white-space: nowrap;
+  color: var(--slate); text-decoration: none;
+  font-size: 14px; font-weight: 600; line-height: 1;
+  transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease);
+  border-bottom: 3px solid transparent;
+  position: relative;
+}
+
+.app-h-nav-item .nav-ic { flex: none; opacity: .9; }
+.app-h-nav-item:hover { background: rgba(255, 255, 255, .04); color: var(--ink); }
+.app-h-nav-item.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  background: rgba(37, 211, 102, 0.08);
+}
+.app-h-nav-item.active .nav-ic { opacity: 1; }
+
+.app-h-nav-logout {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px; height: 50px;
+  margin-left: auto; flex: none;
+  cursor: pointer; background: none; border: none;
+  color: var(--slate); font-size: 14px; font-weight: 600;
+  transition: color .18s var(--ease);
+}
+.app-h-nav-logout:hover { color: var(--red); }
 .app-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .app-role-badge {
   font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
@@ -2951,26 +2943,20 @@ details.faq-item p {
 /* Trim the big top padding the injected pages carry, now that we have a top bar. */
 .app-content > div > section { padding-top: 30px; }
 
-/* --- Hamburger (mobile only) --- */
-.app-hamburger { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; padding: 6px; }
-.app-hamburger span { width: 20px; height: 2px; background: var(--ink); border-radius: 2px; }
-.app-scrim { display: none; }
-
+/* Horizontal nav responsive */
 @media (max-width: 900px) {
-  .app-rail {
-    position: fixed; left: 0; top: 0;
-    transform: translateX(-100%);
-    transition: transform .25s var(--ease);
-    box-shadow: var(--shadow-lg);
-  }
-  .app-shell.rail-open .app-rail { transform: none; }
-  .app-scrim {
-    display: block; position: fixed; inset: 0; z-index: 55;
-    background: rgba(0, 0, 0, .5);
-  }
-  .app-hamburger { display: flex; }
+  .app-topbar { padding: 0 14px; gap: 10px; }
+  .app-topbar-brand { display: none; }
   .app-company-name { max-width: 40vw; }
   .app-user-name { display: none; }
+  .app-h-nav { font-size: 12px; }
+  .app-h-nav-item { padding: 0 10px; }
+  .app-h-nav-logout { padding: 0 10px; }
+}
+
+@media (max-width: 640px) {
+  .app-h-nav-item span { display: none; }
+  .app-h-nav-logout span { display: none; }
 }
 
 /* Settings workspace */
@@ -3364,7 +3350,7 @@ details.faq-item p {
 }
 
 @media print {
-  .app-rail, .app-topbar, .shutdown-heading .btn, .shutdown-steps, .shutdown-select-all, .shutdown-edit-action, .shutdown-safety-note { display: none !important; }
+  .app-topbar, .app-h-nav, .shutdown-heading .btn, .shutdown-steps, .shutdown-select-all, .shutdown-edit-action, .shutdown-safety-note { display: none !important; }
   .app-main { margin: 0 !important; }
   .app-content { background: #fff !important; }
   .shutdown-page { max-width: none; padding: 0 !important; }
