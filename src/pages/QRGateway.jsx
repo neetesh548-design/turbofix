@@ -87,7 +87,7 @@ export default function QRGateway() {
             const { data: uData } = await supabase
               .from('users')
               .select('name')
-              .eq('user_id', mData.technician_user_id)
+              .eq('id', mData.technician_user_id)
               .single();
             if (uData && uData.name) {
               setTechnicianName(uData.name);
@@ -344,7 +344,7 @@ export default function QRGateway() {
       const { data: matchedUser } = await supabase
         .from('users')
         .select('role')
-        .or(`phone.eq.${reporterPhone},user_id.eq.${reporterPhone}`)
+        .or(`phone.eq.${reporterPhone},id.eq.${reporterPhone}`)
         .limit(1);
       
       if (matchedUser && matchedUser.length > 0) {
@@ -951,7 +951,7 @@ export default function QRGateway() {
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(134,59,255,0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.82rem' }}>
                     <span style={{ color: '#cbd5e1' }}>{lang === 'hi-IN' ? 'आवंटित टेक्नीशियन:' : 'Assigned Technician:'}</span>
-                    <strong style={{ color: '#ffffff' }}>{technicianName || (lang === 'hi-IN' ? 'सहायक कर्मचारी' : 'Staff')}</strong>
+                    <strong style={{ color: '#a78bfa', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'सहायक कर्मचारी' : 'Staff')}</strong>
                   </div>
                   
                   <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
