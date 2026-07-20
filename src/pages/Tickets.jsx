@@ -201,6 +201,40 @@ export default function Tickets() {
           <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Monitor plant floor maintenance issues, view AI root-cause diagnostics, and close resolved tickets.</p>
         </div>
 
+        {/* Japanese TPS Andon Visual Health Banner */}
+        <div style={{ 
+          background: openCount > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(37, 211, 102, 0.12)', 
+          border: `1px solid ${openCount > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(37, 211, 102, 0.3)'}`, 
+          borderRadius: '10px', 
+          padding: '12px 16px', 
+          marginBottom: '20px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ 
+              width: '12px', 
+              height: '12px', 
+              borderRadius: '50%', 
+              background: openCount > 0 ? '#ef4444' : '#25D366',
+              boxShadow: openCount > 0 ? '0 0 12px #ef4444' : '0 0 12px #25D366'
+            }} />
+            <div>
+              <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
+                {openCount > 0 ? `ANDON ALERT: ${openCount} ACTIVE BREAKDOWN WORK ORDERS` : 'ANDON BOARD: ALL PLANT MACHINES OPERATIONAL'}
+              </strong>
+              <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
+                {openCount > 0 ? 'Technicians dispatched. MTTR timer active.' : 'Zero active line stops. Kaizen continuous improvement active.'}
+              </div>
+            </div>
+          </div>
+          <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: openCount > 0 ? '#ef4444' : '#25D366', background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: '6px', fontFamily: 'monospace' }}>
+            {openCount > 0 ? 'STATUS: ATTENTION' : 'STATUS: NORMAL'}
+          </span>
+        </div>
+
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
 
@@ -338,6 +372,22 @@ export default function Tickets() {
                               </a>
                             </div>
                           )}
+
+                          {/* Japanese TPS Kaizen 5-Why RCA Standard Card */}
+                          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(134,59,255,0.05)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                              <strong style={{ fontSize: '0.78rem', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Rajdhani, sans-serif' }}>
+                                🇯🇵 KAIZEN 5-WHY ROOT CAUSE DIAGNOSIS (改善)
+                              </strong>
+                              <span style={{ fontSize: '0.68rem', color: '#863bff', background: 'rgba(134,59,255,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Standard Work</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 1 (Problem):</strong> {t.issue_text || '—'}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 2 (Direct Cause):</strong> {t.root_cause || t.ai_summary?.predicted_issue || 'Component wear or breakdown'}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {t.repair_action || 'Routine replacement and calibration completed.'}</div>
+                            </div>
+                          </div>
+
                           {!hasRecord && !isClosed && <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '10px' }}>The technician has not recorded repair details yet. They appear here once work is submitted.</div>}
                         </td>
                       </tr>

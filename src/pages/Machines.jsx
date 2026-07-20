@@ -1458,8 +1458,38 @@ export default function Machines() {
                   <button type="button" className={directoryView === 'tiles' ? 'active' : ''} onClick={() => setDirectoryView('tiles')} aria-pressed={directoryView === 'tiles'} title="Tile view"><LayoutGrid /> <span>Tiles</span></button>
                 </div>
                 <button className="vault-btn vault-btn-ghost machines-onboard-toggle" onClick={() => setShowAddForm(!showAddForm)}>
-                  {showAddForm ? 'Cancel' : '+ Onboard Machine'}
+                  {showAddForm ? 'Close Onboarding' : '+ Register New Machine'}
                 </button>
+              </div>
+            </div>
+
+            {/* Japanese TPS Monozukuri & Andon Board Plant Banner */}
+            <div style={{
+              background: 'rgba(134, 59, 255, 0.08)',
+              border: '1px solid rgba(134, 59, 255, 0.2)',
+              borderRadius: '10px',
+              padding: '12px 16px',
+              margin: '16px 0 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.2rem' }}>🇯🇵</span>
+                <div>
+                  <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
+                    MONOZUKURI & KAIZEN FLEET GUARDIAN (物作り・改善)
+                  </strong>
+                  <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
+                    Total Fleet: {machines.length} Machines | Zero-Defect Poka-Yoke QR Tags Active | Standardized Work Protocols
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#25D366', background: 'rgba(37, 211, 102, 0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(37, 211, 102, 0.25)', fontFamily: 'monospace' }}>
+                  ANDON: FLEET MONITORED
+                </span>
               </div>
             </div>
 
