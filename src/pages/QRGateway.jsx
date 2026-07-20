@@ -865,13 +865,13 @@ export default function QRGateway() {
 
             {renderPhotoAttachment()}
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+             <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
               <button 
                 type="button" 
                 onClick={() => setShowTextFallback(false)}
-                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+                style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '1.1rem' }}
               >
-                {lang === 'hi-IN' ? 'बोलकर बताएं' : 'Speak Instead'}
+                {lang === 'hi-IN' ? 'रद्द करें' : lang === 'mr-IN' ? 'रद्द करा' : 'Cancel'}
               </button>
               <button 
                 type="button" 
@@ -879,7 +879,7 @@ export default function QRGateway() {
                   console.log("DEBUG: Review Report button clicked. Current transcript:", transcript);
                   if (!transcript.trim()) {
                     console.log("DEBUG: Transcript is empty, showing alert");
-                    alert(lang === 'hi-IN' ? 'कृपया समस्या का विवरण लिखें।' : 'Please describe the issue.');
+                    alert(lang === 'hi-IN' ? 'कृपया समस्या का विवरण लिखें।' : lang === 'mr-IN' ? 'कृपया समस्येचे वर्णन लिहा.' : 'Please describe the issue.');
                     return;
                   }
                   const info = {
@@ -889,12 +889,13 @@ export default function QRGateway() {
                   };
                   console.log("DEBUG: Setting extractedInfo:", info);
                   setExtractedInfo(info);
-                  const confirmMsg = lang === 'hi-IN' ? 'क्या मैं यह रिपोर्ट दर्ज करूँ?' : 'Should I submit this ticket?';
+                  const confirmMsg = lang === 'hi-IN' ? 'क्या मैं यह रिपोर्ट दर्ज करूँ?' : lang === 'mr-IN' ? 'मी हा अहवाल सादर करू का?' : 'Should I submit this ticket?';
                   setAssistantPrompt(confirmMsg);
                 }}
-                style={{ flex: 1, padding: '12px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+                style={{ flex: 1.5, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                {lang === 'hi-IN' ? 'समीक्षा करें' : 'Review Report'}
+                <span>{lang === 'hi-IN' ? 'समीक्षा और पुष्टि' : lang === 'mr-IN' ? 'पुनरावलोकन आणि पुष्टी' : 'Review & confirm'}</span>
+                <span style={{ fontSize: '1.2rem' }}>→</span>
               </button>
             </div>
 
