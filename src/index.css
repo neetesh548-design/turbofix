@@ -4631,6 +4631,28 @@ details.faq-item p {
 .machine-owner-edit-grid, .team-edit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-bottom: 16px; }
 .machine-owner-edit-grid label, .team-edit-grid label { display: grid; gap: 6px; color: #b8c6d2; font-size: .68rem; font-weight: 750; }
 .machine-owner-edit-grid input, .machine-owner-edit-grid select, .team-edit-grid input, .team-edit-grid select { min-width: 0; height: 44px; border: 1px solid #3b4d61; border-radius: 8px; padding: 0 11px; color: #edf4f8; background: #101a25; }
+
+/* High contrast bright white HTML5 date & time picker indicator for dark theme */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2) contrast(1.2);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.9;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+}
 .machine-stakeholder-edit { margin: 0 0 18px; border: 1px solid #334b60; border-radius: 10px; padding: 16px; background: rgba(9, 18, 27, .35); }
 .machine-stakeholder-edit legend { padding: 0 7px; color: #e8f1f7; font-size: .78rem; font-weight: 850; }
 .machine-stakeholder-edit > p { margin: 0 0 14px; color: #8397aa; font-size: .66rem; }
