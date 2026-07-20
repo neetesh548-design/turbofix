@@ -125,7 +125,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await page.locator('button', { hasText: /बंद है|Stopped/ }).click();
 
     // Click 'Review Report' to open confirmation overlay
-    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+    await page.locator('button', { hasText: /समीक्षा|Review/ }).click();
 
     // Verify confirmation overlay appears (we can assert that the submit button is visible)
     await expect(page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ })).toBeVisible();
@@ -214,7 +214,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('textarea')).toHaveValue('Leak is getting worse');
 
     // Click Review Report
-    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+    await page.locator('button', { hasText: /समीक्षा|Review/ }).click();
 
     // Trigger ticket insertion
     await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
@@ -275,7 +275,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('textarea')).toHaveValue('Air pipe leak');
 
     // Click Review Report
-    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+    await page.locator('button', { hasText: /समीक्षा|Review/ }).click();
 
     await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
 
@@ -361,7 +361,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     // Click Review Report
-    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+    await page.locator('button', { hasText: /समीक्षा|Review/ }).click();
 
     // Verify alert message was captured and validation stopped overlay from appearing
     expect(alertMsg).toMatch(/कृपया समस्या का विवरण लिखें|Please describe the issue/);

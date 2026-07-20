@@ -118,14 +118,59 @@ export default function QRGateway() {
     };
   }, [lang, phoneGate]);
 
-  // Speak function for TTS
+  // Speak function for TTS — picks the best available voice per language
   const speak = (text) => {
     if (!speakFeedback || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel(); // Stop active speech
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+
+    // Pick a natural-sounding voice; fall back gracefully
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      let best = null;
+      const langPrefix = lang.split('-')[0]; // 'en', 'hi', 'mr'
+
+      // Prefer names containing these keywords (natural / high-quality voices)
+      const preferredKeywords = lang === 'en-US'
+        ? ['google us', 'samantha', 'karen', 'daniel', 'google uk', 'rishi', 'moira', 'aaron']
+        : lang === 'hi-IN'
+        ? ['google हिन्दी', 'google hindi', 'lekha']
+        : ['google मराठी', 'google marathi'];
+
+      // Pass 1 — exact preferred match
+      for (const v of voices) {
+        const vName = v.name.toLowerCase();
+        if (preferredKeywords.some(k => vName.includes(k))) {
+          best = v;
+          break;
+        }
+      }
+
+      // Pass 2 — any voice matching the language
+      if (!best) {
+        best = voices.find(v => v.lang === lang)
+            || voices.find(v => v.lang.startsWith(langPrefix));
+      }
+
+      if (best) utterance.voice = best;
+    }
+
+    // Slow down English slightly for factory workers; Hindi/Marathi at normal pace
+    utterance.rate = lang === 'en-US' ? 0.85 : 0.9;
+    utterance.pitch = 1;
+
     window.speechSynthesis.speak(utterance);
   };
+
+  // Pre-load voices (Chrome loads them asynchronously)
+  useEffect(() => {
+    const loadVoices = () => window.speechSynthesis?.getVoices();
+    loadVoices();
+    window.speechSynthesis?.addEventListener?.('voiceschanged', loadVoices);
+    return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', loadVoices);
+  }, []);
 
   const greetUser = () => {
     let greetingText = '';
@@ -135,7 +180,7 @@ export default function QRGateway() {
       } else if (lang === 'mr-IN') {
         greetingText = 'नमस्कार! तक्रार नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका आणि भाषा निवडा.';
       } else {
-        greetingText = 'Hello! Please enter your mobile number and select your preferred language to register.';
+        greetingText = 'Welcome to TurboFix. Please type your 10 digit mobile number, then tap Proceed.';
       }
     } else {
       if (lang === 'hi-IN') {
@@ -143,7 +188,7 @@ export default function QRGateway() {
       } else if (lang === 'mr-IN') {
         greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
       } else {
-        greetingText = 'Hello! I am your TurboFix assistant. Tap the mic to describe the problem.';
+        greetingText = 'I am your TurboFix assistant. Tap the big purple button to speak your problem. Or tap Write to type it instead.';
       }
     }
     
@@ -168,7 +213,7 @@ export default function QRGateway() {
 
   const transcribeAudio = async (blob) => {
     setIsTranscribing(true);
-    setAssistantPrompt(lang === 'hi-IN' ? 'समझ रहा हूँ...' : 'Processing speech...');
+    setAssistantPrompt(lang === 'hi-IN' ? 'समझ रहा हूँ...' : lang === 'mr-IN' ? 'ऐकलेले समजत आहे...' : 'Understanding your words, please wait...');
     try {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -376,14 +421,16 @@ export default function QRGateway() {
 
       // 2. Perform team verification checks to flag unverified reporters
       let verified = false;
-      const { data: matchedUser } = await supabase
-        .from('users')
-        .select('role')
-        .or(`phone.eq.${reporterPhone},id.eq.${reporterPhone}`)
-        .limit(1);
-      
-      if (matchedUser && matchedUser.length > 0) {
-        verified = true;
+      if (reporterPhone) {
+        const { data: matchedUser } = await supabase
+          .from('users')
+          .select('role')
+          .or(`phone.eq.${reporterPhone},phone.eq.+91${reporterPhone}`)
+          .limit(1);
+        
+        if (matchedUser && matchedUser.length > 0) {
+          verified = true;
+        }
       }
 
       let factoryId = machine.factory_id;
@@ -457,7 +504,13 @@ export default function QRGateway() {
       setDuplicateTicket(null);
       setSuccess(true);
     } catch (err) {
-      alert('Error logging ticket: ' + err.message);
+      console.error('Error logging ticket:', err);
+      const errMsg = lang === 'hi-IN' ? 'टिकट दर्ज करने में समस्या हुई। कृपया दोबारा प्रयास करें।'
+        : lang === 'mr-IN' ? 'तिकीट नोंदवताना समस्या आली. कृपया पुन्हा प्रयत्न करा.'
+        : 'There was a problem submitting your ticket. Please try again.';
+      setAssistantPrompt(errMsg);
+      speak(errMsg);
+      setErrorAlert({ title: lang === 'hi-IN' ? 'सबमिट त्रुटि' : 'Submission Error', desc: err.message });
     } finally {
       setCheckingDuplicate(false);
       setUploadingPhoto(false);
@@ -557,7 +610,7 @@ export default function QRGateway() {
       } else if (lang === 'mr-IN') {
         greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
       } else {
-        greetingText = 'Hello! I am your TurboFix assistant. Tap the mic to describe the problem.';
+        greetingText = 'I am your TurboFix assistant. Tap the big purple button to speak your problem. Or tap Write to type it instead.';
       }
       setAssistantPrompt(greetingText);
       speak(greetingText);
