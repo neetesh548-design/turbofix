@@ -434,6 +434,7 @@ serve(async (req) => {
         action: 'transcribe', status: 'ok',
         latencyMs: Date.now() - startTime, ipAddress: clientIp,
       })
+      return reply(req, { transcript })
     }
 
     // Public Ticket Logging and Appending (allows anonymous QR Gateway operators to report breakdowns without signing in)
