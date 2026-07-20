@@ -494,11 +494,20 @@ serve(async (req) => {
         .select('ai_summary')
         .eq('id', ticket_id)
         .single()
+      return reply(req, { data })
+    }
+
+    if (text(body.action) === 'get_factory_id') {
+      const { data, error } = await admin
+        .from('factories')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
       if (error) {
-        console.error('Error fetching ticket details:', error)
+        console.error('Error fetching default factory:', error)
         return reply(req, { error: error.message }, 500)
       }
-      return reply(req, { data })
+      return reply(req, { factory_id: data?.id || null })
     }
 
     // Chat queries and diagnostic actions require full authenticated sessions

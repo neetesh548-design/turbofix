@@ -74,7 +74,7 @@ export default function QRGateway() {
       try {
         const { data: mData } = await supabase
           .from('machines')
-          .select('id, machine_name, location, technician_user_id')
+          .select('id, machine_name, location, technician_user_id, factory_id')
           .eq('machine_id', id)
           .single();
         if (mData) {
@@ -82,7 +82,8 @@ export default function QRGateway() {
             id: mData.id,
             name: mData.machine_name || name,
             loc: mData.location || loc,
-            tag: id
+            tag: id,
+            factory_id: mData.factory_id
           });
           if (mData.technician_user_id) {
             const { data: uData } = await supabase
@@ -349,8 +350,14 @@ export default function QRGateway() {
         verified = true;
       }
 
-      const { data: factories } = await supabase.from('factories').select('id').limit(1);
-      const factoryId = factories?.[0]?.id || null;
+      let factoryId = machine.factory_id;
+      if (!factoryId) {
+        // Fallback to fetching factory_id through public function
+        const { data: factData } = await supabase.functions.invoke('ai_assistant', {
+          body: { action: 'get_factory_id' }
+        });
+        factoryId = factData?.factory_id || null;
+      }
 
       // Upload Photo if present
       let uploadedUrl = null;
