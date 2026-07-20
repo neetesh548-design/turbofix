@@ -31,12 +31,10 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Deploy Frontend to GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+      # Frontend deployment is owned by .github/workflows/pages.yml, which uses
+      # the official actions/deploy-pages with the right permissions. Deploying
+      # again here raced that workflow and failed (no contents:write), which in
+      # turn skipped deploy-edge-functions on every run.
 
   deploy-edge-functions:
     runs-on: ubuntu-latest
