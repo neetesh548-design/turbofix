@@ -57,7 +57,9 @@ export default function QRGateway() {
   const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
   const [phoneInput, setPhoneInput] = useState('');
 
-  const recognitionRef = useRef(null);
+  const recorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
@@ -98,42 +100,6 @@ export default function QRGateway() {
     };
     fetchMachineDetails();
 
-    // Initialize Web Speech Recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = lang;
-
-      rec.onstart = () => {
-        setIsListening(true);
-        setTranscript('');
-        setAssistantPrompt(lang === 'hi-IN' ? 'सुन रहा हूँ... बोलिए' : 'Listening... Speak now');
-      };
-
-      rec.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        handleUserSpeech(text);
-      };
-
-      rec.onerror = () => {
-        setIsListening(false);
-        const errMsg = lang === 'hi-IN' ? 'मैं सुन नहीं पाया। नीचे लिखकर शिकायत दर्ज करें।' : "Could not hear you. Please write your complaint below.";
-        setAssistantPrompt(errMsg);
-        speak(errMsg);
-        setShowTextFallback(true);
-      };
-
-      rec.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = rec;
-    } else {
-      setShowTextFallback(true);
-    }
-
     // Greet user on load
     setTimeout(() => {
       greetUser();
@@ -162,63 +128,73 @@ export default function QRGateway() {
     speak(greetingText);
   };
 
-  // Convert Speech to issue parameters
-  const handleUserSpeech = (text) => {
-    setTranscript(text);
-    const lowerText = text.toLowerCase().trim();
+  const suggestUrgency = (text) => {
+    const t = (text || '').toLowerCase();
+    if (/\b(fire|smoke|burning|spark|shock|injur|accident|gas leak|not safe|danger)\b/.test(t)) return 'critical';
+    if (/\b(stopped|not working|breakdown|down|leak|overheat|hot|noise|vibrat|smell|jam)\b/.test(t)) return 'high';
+    if (/\b(slow|minor|small|sometimes|occasional)\b/.test(t)) return 'low';
+    return 'medium';
+  };
 
-    // If we are waiting for confirmation
-    if (extractedInfo) {
-      const isYes = lowerText.includes('हाँ') || lowerText.includes('हां') || lowerText.includes('दर्ज करो') || 
-                    lowerText.includes('करो') || lowerText.includes('कर दो') || lowerText.includes('yes') || 
-                    lowerText.includes('confirm') || lowerText.includes('ok') || lowerText.includes('okay');
-      
-      const isNo = lowerText.includes('नहीं') || lowerText.includes('रोको') || lowerText.includes('कैंसिल') || 
-                   lowerText.includes('no') || lowerText.includes('cancel') || lowerText.includes('stop');
+  const suggestCondition = (text) => {
+    const t = (text || '').toLowerCase();
+    if (/\b(unsafe|fire|smoke|burning|spark|shock|danger)\b/.test(t)) return 'unsafe';
+    if (/\b(stopped|not working|breakdown|down|jam)\b/.test(t)) return 'stopped';
+    return 'running';
+  };
 
-      if (isYes) {
-        submitTicket();
-        return;
-      } else if (isNo) {
-        setExtractedInfo(null);
-        const cancelMsg = lang === 'hi-IN' ? 'ठीक है, रद्द कर दिया गया है।' : 'Okay, cancelled.';
-        setAssistantPrompt(cancelMsg);
-        speak(cancelMsg);
+  const transcribeAudio = async (blob) => {
+    setIsTranscribing(true);
+    setAssistantPrompt(lang === 'hi-IN' ? 'समझ रहा हूँ...' : 'Processing speech...');
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', { 
+        body: { action: 'transcribe', audio: dataUrl } 
+      });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
+      const text = String(data.transcript || '').trim();
+      if (!text) {
+        const noSpeechMsg = lang === 'hi-IN' 
+          ? 'कोई आवाज नहीं सुनी गई। कृपया फिर से प्रयास करें या लिखें।' 
+          : 'No speech was detected. Please try again or type the problem.';
+        setAssistantPrompt(noSpeechMsg);
+        speak(noSpeechMsg);
         return;
       }
-    }
-    
-    let condition = 'running';
-    let urgency = 'medium';
-    
-    const isStopped = lowerText.includes('बंद') || lowerText.includes('stop') || lowerText.includes('not working') || lowerText.includes('काम नहीं कर रहा');
-    const isUnsafe = lowerText.includes('खतरा') || lowerText.includes('unsafe') || lowerText.includes('धुआं') || lowerText.includes('smoke') || lowerText.includes('करंट') || lowerText.includes('shock');
-
-    if (isUnsafe) {
-      condition = 'unsafe';
-      urgency = 'critical';
-    } else if (isStopped) {
-      condition = 'stopped';
-      urgency = 'high';
-    }
-
-    const info = {
-      issue: text,
-      condition,
-      urgency
-    };
-
-    setExtractedInfo(info);
-
-    // Formulate response
-    const confirmMessage = lang === 'hi-IN'
-      ? `मैंने आपकी समस्या सुनी: "${text}"। क्या मैं यह रिपोर्ट दर्ज करूँ? हाँ या ना कहें।`
-      : `I heard: "${text}". Should I submit this ticket? Say Yes or No.`;
-    
-    setTimeout(() => {
+      
+      setTranscript(text);
+      
+      const condition = suggestCondition(text);
+      const urgency = suggestUrgency(text);
+      const info = {
+        issue: text,
+        condition,
+        urgency
+      };
+      
+      setExtractedInfo(info);
+      
+      const confirmMessage = lang === 'hi-IN'
+        ? `दर्ज करें या नीचे विवरण ठीक करें।`
+        : `Confirm and submit your report below.`;
       setAssistantPrompt(confirmMessage);
       speak(confirmMessage);
-    }, 600);
+    } catch (err) {
+      console.error(err);
+      const errMsg = lang === 'hi-IN' 
+        ? 'ट्रांसक्रिप्शन नहीं हो सका। कृपया लिखकर दर्ज करें।' 
+        : 'Could not transcribe speech. Please type your problem.';
+      setAssistantPrompt(errMsg);
+      speak(errMsg);
+      setShowTextFallback(true);
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -284,31 +260,56 @@ export default function QRGateway() {
     );
   };
 
-  const startVoiceInput = () => {
+  const startVoiceInput = async () => {
     setErrorAlert(null);
-    if (recognitionRef.current) {
-      if (isListening) {
-        recognitionRef.current.stop();
-      } else {
-        setExtractedInfo(null);
-        setSuccess(false);
-        try {
-          recognitionRef.current.start();
-        } catch (e) {
-          setErrorAlert({
-            title: lang === 'hi-IN' ? 'माइक एक्सेस समस्या' : 'Microphone Access Blocked',
-            desc: lang === 'hi-IN'
-              ? 'टर्बोफिक्स को बोलने के लिए माइक अनुमति की आवश्यकता है। कृपया ब्राउज़र सेटिंग में अनुमति दें।'
-              : 'TurboFix needs microphone permissions to listen. Please enable it in your browser settings.'
-          });
-        }
-      }
-    } else {
+    if (isListening) {
+      recorderRef.current?.stop();
+      return;
+    }
+    
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       setErrorAlert({
-        title: lang === 'hi-IN' ? 'ब्राउज़र सपोर्ट नहीं है' : 'Browser Not Supported',
+        title: lang === 'hi-IN' ? 'माइक एक्सेस समस्या' : 'Microphone Access Blocked',
         desc: lang === 'hi-IN'
-          ? 'आपका ब्राउज़र आवाज पहचान का समर्थन नहीं करता है। कृपया Chrome या Safari का उपयोग करें।'
-          : 'Voice Recognition is not supported on this browser. Please try Chrome or Safari.'
+          ? 'आपका ब्राउज़र आवाज रिकॉर्डिंग का समर्थन नहीं करता है। कृपया Chrome या Safari का उपयोग करें।'
+          : 'Voice recording is not supported on this browser. Please try Chrome or Safari.'
+      });
+      setShowTextFallback(true);
+      return;
+    }
+
+    setExtractedInfo(null);
+    setSuccess(false);
+    setTranscript('');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size) chunksRef.current.push(e.data);
+      };
+      
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setIsListening(false);
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        await transcribeAudio(blob);
+      };
+
+      recorderRef.current = recorder;
+      setIsListening(true);
+      setAssistantPrompt(lang === 'hi-IN' ? 'सुन रहा हूँ... बोलिए' : 'Listening... Speak now');
+      recorder.start();
+    } catch (e) {
+      console.error(e);
+      setIsListening(false);
+      setErrorAlert({
+        title: lang === 'hi-IN' ? 'माइक एक्सेस समस्या' : 'Microphone Access Blocked',
+        desc: lang === 'hi-IN'
+          ? 'टर्बोफिक्स को बोलने के लिए माइक अनुमति की आवश्यकता है। कृपया ब्राउज़र सेटिंग में अनुमति दें।'
+          : 'TurboFix needs microphone permissions to listen. Please enable it in your browser settings.'
       });
     }
   };
@@ -765,37 +766,45 @@ export default function QRGateway() {
             <button
               type="button"
               onClick={startVoiceInput}
+              disabled={isTranscribing}
               style={{
                 position: 'relative',
                 width: '120px',
                 height: '120px',
                 borderRadius: '50%',
-                background: isListening 
+                background: isTranscribing
+                  ? 'radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(109,40,217,1) 100%)'
+                  : isListening 
                   ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
                   : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
                 border: '4px solid rgba(255,255,255,0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
+                cursor: isTranscribing ? 'default' : 'pointer',
                 zIndex: 5,
                 outline: 'none',
-                animation: isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
+                animation: isTranscribing ? 'voice-listening-orb 1s infinite ease-in-out' : isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
                 transition: 'all 0.3s ease'
               }}
             >
-              <Mic size={40} color="white" />
+              {isTranscribing ? (
+                <span className="spin" style={{ color: 'white', display: 'inline-block', fontSize: '1.8rem', animation: 'spin 1.2s linear infinite' }}>⏳</span>
+              ) : (
+                <Mic size={40} color="white" />
+              )}
             </button>
 
             {/* Orb instruction hint */}
             <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '20px', zIndex: 5 }}>
-              {isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
+              {isTranscribing ? (lang === 'hi-IN' ? 'अनुवाद हो रहा है...' : 'Transcribing...') : isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
             </span>
 
             <button 
               type="button" 
               onClick={() => { setShowTextFallback(true); setTranscript(''); }}
-              style={{ background: 'transparent', border: 'none', color: '#863bff', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '12px', zIndex: 5 }}
+              disabled={isTranscribing}
+              style={{ background: 'transparent', border: 'none', color: '#863bff', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '12px', zIndex: 5, opacity: isTranscribing ? 0.5 : 1 }}
             >
               {lang === 'hi-IN' ? 'बोलने में समस्या? लिखकर दर्ज करें' : 'Trouble speaking? Click here to write'}
             </button>
@@ -881,27 +890,73 @@ export default function QRGateway() {
               ) : (
                 <>
                   <div style={{ textAlign: 'center' }}>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
-                      {lang === 'hi-IN' ? 'समस्या रिपोर्ट पुष्टि' : 'Confirm Issue Report'}
+                    <h4 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+                      {lang === 'hi-IN' ? 'रिपोर्ट समीक्षा और पुष्टि' : 'Review & Confirm Report'}
                     </h4>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                      {lang === 'hi-IN' ? 'मशीन स्थिति:' : 'Machine Condition:'} <strong style={{ color: '#ef4444' }}>{extractedInfo.condition.replace('_', ' ').toUpperCase()}</strong>
-                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                      {lang === 'hi-IN' ? 'समस्या का विवरण (बदलाव कर सकते हैं):' : 'Issue Description (Edit if needed):'}
+                    </label>
+                    <textarea 
+                      rows={3}
+                      value={extractedInfo.issue}
+                      onChange={(e) => setExtractedInfo(prev => ({ ...prev, issue: e.target.value }))}
+                      style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'vertical', fontSize: '0.9rem' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                      {lang === 'hi-IN' ? 'मशीन की स्थिति:' : 'Machine Condition:'}
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {[
+                        { id: 'running', label: lang === 'hi-IN' ? 'चालू है' : 'Running', color: '#eab308' },
+                        { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : 'Stopped', color: '#ef4444' },
+                        { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : 'Unsafe', color: '#dc2626' },
+                        { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : 'Not Sure', color: '#64748b' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setExtractedInfo(prev => ({ ...prev, condition: item.id, urgency: item.id === 'unsafe' ? 'critical' : item.id === 'stopped' ? 'high' : prev.urgency }))}
+                          style={{
+                            padding: '10px',
+                            borderRadius: '6px',
+                            background: extractedInfo.condition === item.id ? `${item.color}22` : '#0b1118',
+                            border: `2px solid ${extractedInfo.condition === item.id ? item.color : 'rgba(255,255,255,0.06)'}`,
+                            color: extractedInfo.condition === item.id ? '#ffffff' : '#94a3b8',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(134,59,255,0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.82rem' }}>
+                    <span style={{ color: '#cbd5e1' }}>{lang === 'hi-IN' ? 'आवंटित टेक्नीशियन:' : 'Assigned Technician:'}</span>
+                    <strong style={{ color: '#ffffff' }}>{technicianName || (lang === 'hi-IN' ? 'सहायक कर्मचारी' : 'Staff')}</strong>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
                     <button 
                       type="button" 
                       onClick={() => setExtractedInfo(null)}
                       style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                      {lang === 'hi-IN' ? 'फिर से बोलें' : 'Speak Again'}
+                      {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
                     </button>
                     <button 
                       type="button" 
                       onClick={() => submitTicket(false)}
-                      disabled={checkingDuplicate}
-                      style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)' }}
+                      disabled={checkingDuplicate || !extractedInfo.issue.trim()}
+                      style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                       {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit')}
                     </button>
