@@ -13,6 +13,7 @@
 @import "./components/AnalyticsDashboard.css";
 @import "./components/ReportCenter.css";
 @import "./components/DevPortal.css";
+@import "./components/RealtimeCollaboration.css";
 
 @custom-variant dark (&:is(.dark *));
 
