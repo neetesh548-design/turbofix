@@ -16,6 +16,7 @@
 @import "./components/RealtimeCollaboration.css";
 @import "./components/PerformanceOptimization.css";
 @import "./components/Localization.css";
+@import "./components/CompanyCalendar.css";
 
 @custom-variant dark (&:is(.dark *));
 
