@@ -10,6 +10,8 @@
 @import "./components/FilterPanel.css";
 @import "./components/Charts.css";
 @import "./components/SavedSearches.css";
+@import "./components/AnalyticsDashboard.css";
+@import "./components/ReportCenter.css";
 
 @custom-variant dark (&:is(.dark *));
 
