@@ -668,6 +668,12 @@ export default function QRGateway() {
               {lang === 'hi-IN' ? 'समस्या का विवरण लिखें' : 'Write Issue Description'}
             </h3>
             
+            {assistantPrompt && (
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#e2e8f0', textAlign: 'center', lineHeight: '1.4', fontStyle: 'italic', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {assistantPrompt}
+              </p>
+            )}
+            
             <div>
               <textarea 
                 rows={3}

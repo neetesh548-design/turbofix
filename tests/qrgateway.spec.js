@@ -264,4 +264,81 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /बोलने के लिए दबाएं|Tap to speak/ })).toBeVisible();
   });
 
+  test('Scenario 7: Transcription Failure and Fallback to Manual Input', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    // Mock Gemini transcription failure (status 500)
+    await page.route('**/functions/v1/ai_assistant', async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal API Server Error' })
+      });
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Trigger recording
+    await page.locator('#voice-mic-button').click({ force: true });
+    await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
+    await page.locator('#voice-mic-button').click({ force: true });
+
+    // Verify error instruction is shown and fallback form opens
+    await expect(page.locator('textarea')).toBeVisible();
+    await expect(page.locator('textarea')).toHaveValue('');
+    await expect(page.locator('p', { hasText: /ट्रांसक्रिप्शन नहीं हो सका|Could not transcribe/ })).toBeVisible();
+  });
+
+  test('Scenario 8: Language Translation Toggle updates UI labels', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Verify default Hindi state
+    await expect(page.locator('span', { hasText: 'बोलने के लिए दबाएं' })).toBeVisible();
+    // Toggle language to English using the select dropdown
+    await page.locator('select').selectOption('en-US');
+
+    // Verify UI labels changed to English
+    await expect(page.locator('span', { hasText: 'Tap to speak' })).toBeVisible();
+    await expect(page.locator('button', { hasText: 'Trouble speaking? Click here to write' })).toBeVisible();
+
+    // Toggle language back to Hindi using the select dropdown
+    await page.locator('select').selectOption('hi-IN');
+    await expect(page.locator('span', { hasText: 'बोलने के लिए दबाएं' })).toBeVisible();
+  });
+
+  test('Scenario 9: Empty Description validation prevention', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Open manual entry form
+    await page.locator('button', { hasText: /लिखकर दर्ज करें|Click here to write/ }).click();
+    await expect(page.locator('textarea')).toBeVisible();
+
+    // Ensure description is empty
+    await page.locator('textarea').fill('');
+
+    // Capture dialog alert
+    let alertMsg = '';
+    page.on('dialog', async (dialog) => {
+      alertMsg = dialog.message();
+      await dialog.accept();
+    });
+
+    // Click Review Report
+    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+
+    // Verify alert message was captured and validation stopped overlay from appearing
+    expect(alertMsg).toMatch(/कृपया समस्या का विवरण लिखें|Please describe the issue/);
+    await expect(page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ })).not.toBeVisible();
+  });
+
 });
