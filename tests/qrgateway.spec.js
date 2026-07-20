@@ -182,13 +182,22 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    // Mock Gemini transcription response
+    // Mock Gemini transcription and public ticket update responses
     await page.route('**/functions/v1/ai_assistant', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ transcript: 'Leak is getting worse' })
-      });
+      const requestBody = route.request().postDataJSON();
+      if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: MOCK_TICKET })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ transcript: 'Leak is getting worse' })
+        });
+      }
     });
 
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
@@ -231,11 +240,20 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     await page.route('**/functions/v1/ai_assistant', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ transcript: 'Air pipe leak' })
-      });
+      const requestBody = route.request().postDataJSON();
+      if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: MOCK_TICKET })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ transcript: 'Air pipe leak' })
+        });
+      }
     });
 
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');

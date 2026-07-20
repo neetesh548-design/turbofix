@@ -434,7 +434,38 @@ serve(async (req) => {
         action: 'transcribe', status: 'ok',
         latencyMs: Date.now() - startTime, ipAddress: clientIp,
       })
-      return reply(req, { transcript })
+    }
+
+    // Public Ticket Logging and Appending (allows anonymous QR Gateway operators to report breakdowns without signing in)
+    if (text(body.action) === 'log_ticket') {
+      const { payload } = body
+      if (!payload || !payload.machine_id) return reply(req, { error: 'Invalid payload.' }, 400)
+      const { data, error } = await admin
+        .from('tickets')
+        .insert(payload)
+        .select('id, wo_number, created_at, lifecycle_stage, urgency')
+        .single()
+      if (error) {
+        console.error('Error inserting public ticket:', error)
+        return reply(req, { error: error.message }, 500)
+      }
+      return reply(req, { data })
+    }
+
+    if (text(body.action) === 'update_ticket') {
+      const { ticket_id, patches } = body
+      if (!ticket_id || !patches) return reply(req, { error: 'Invalid payload.' }, 400)
+      const { data, error } = await admin
+        .from('tickets')
+        .update(patches)
+        .eq('id', ticket_id)
+        .select('id, wo_number, created_at, lifecycle_stage, urgency')
+        .single()
+      if (error) {
+        console.error('Error updating public ticket:', error)
+        return reply(req, { error: error.message }, 500)
+      }
+      return reply(req, { data })
     }
 
     // Chat queries and diagnostic actions require full authenticated sessions

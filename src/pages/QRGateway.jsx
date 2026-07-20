@@ -394,13 +394,11 @@ export default function QRGateway() {
         }
       };
 
-      const { data: insertedTicket, error } = await supabase
-        .from('tickets')
-        .insert(payload)
-        .select('id, wo_number, created_at, lifecycle_stage, urgency')
-        .single();
-        
-      if (error) throw error;
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+        body: { action: 'log_ticket', payload }
+      });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
+      const insertedTicket = data.data;
 
       setSubmittedTicketInfo(insertedTicket);
 
@@ -457,17 +455,19 @@ export default function QRGateway() {
       };
 
       const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
-      const { data: updatedTicket, error } = await supabase
-        .from('tickets')
-        .update({ 
-          issue_text: mergedText,
-          ai_summary: mergedSummary
-        })
-        .eq('id', duplicateTicket.id)
-        .select('id, wo_number, created_at, lifecycle_stage, urgency')
-        .single();
-
-      if (error) throw error;
+      
+      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+        body: {
+          action: 'update_ticket',
+          ticket_id: duplicateTicket.id,
+          patches: {
+            issue_text: mergedText,
+            ai_summary: mergedSummary
+          }
+        }
+      });
+      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not append details.');
+      const updatedTicket = data.data;
 
       setSubmittedTicketInfo(updatedTicket);
 
