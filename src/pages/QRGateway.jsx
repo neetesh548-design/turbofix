@@ -170,20 +170,15 @@ export default function QRGateway() {
       setTranscript(text);
       
       const condition = suggestCondition(text);
-      const urgency = suggestUrgency(text);
-      const info = {
-        issue: text,
-        condition,
-        urgency
-      };
+      setManualCondition(condition);
+      setShowTextFallback(true);
       
-      setExtractedInfo(info);
+      const reviewMsg = lang === 'hi-IN'
+        ? 'नीचे दिए गए समस्या विवरण की जांच करें और समीक्षा करें बटन दबाएं।'
+        : 'Please review the transcribed text below and tap Review Report.';
       
-      const confirmMessage = lang === 'hi-IN'
-        ? `दर्ज करें या नीचे विवरण ठीक करें।`
-        : `Confirm and submit your report below.`;
-      setAssistantPrompt(confirmMessage);
-      speak(confirmMessage);
+      setAssistantPrompt(reviewMsg);
+      speak(reviewMsg);
     } catch (err) {
       console.error(err);
       const errMsg = lang === 'hi-IN' 
@@ -728,7 +723,9 @@ export default function QRGateway() {
               <button 
                 type="button" 
                 onClick={() => {
+                  console.log("DEBUG: Review Report button clicked. Current transcript:", transcript);
                   if (!transcript.trim()) {
+                    console.log("DEBUG: Transcript is empty, showing alert");
                     alert(lang === 'hi-IN' ? 'कृपया समस्या का विवरण लिखें।' : 'Please describe the issue.');
                     return;
                   }
@@ -737,6 +734,7 @@ export default function QRGateway() {
                     condition: manualCondition,
                     urgency: manualCondition === 'unsafe' ? 'critical' : manualCondition === 'stopped' ? 'high' : 'medium'
                   };
+                  console.log("DEBUG: Setting extractedInfo:", info);
                   setExtractedInfo(info);
                   const confirmMsg = lang === 'hi-IN' ? 'क्या मैं यह रिपोर्ट दर्ज करूँ?' : 'Should I submit this ticket?';
                   setAssistantPrompt(confirmMsg);
@@ -844,96 +842,98 @@ export default function QRGateway() {
               </div>
             )}
           </div>
-
-          {/* Confirmation Sliding Overlay Card */}
-          {extractedInfo && (
-            <div style={{ background: 'rgba(21, 30, 40, 0.95)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {duplicateTicket ? (
-                <>
-                  <div style={{ textAlign: 'center' }}>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                      ⚠️ {lang === 'hi-IN' ? 'समान टिकट पहले से खुला है' : 'Similar Ticket Open'}
-                    </h4>
-                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0' }}>
-                      {lang === 'hi-IN' 
-                        ? 'क्या आप इस टिकट में जानकारी जोड़ना चाहते हैं या नया टिकट बनाना चाहते हैं?' 
-                        : 'Do you want to append comments to it or log a separate new breakdown?'}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <button 
-                      type="button" 
-                      onClick={appendTicket}
-                      disabled={checkingDuplicate}
-                      style={{ width: '100%', padding: '12px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+        </>
+      )}
+  
+      {/* Confirmation Sliding Overlay Card */}
+      {extractedInfo && (
+        <div style={{ background: 'rgba(21, 30, 40, 0.95)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', borderRadius: '16px 16px 0 0', padding: '24px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, boxShadow: '0 -10px 30px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {duplicateTicket ? (
+            <>
+              <div style={{ textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  ⚠️ {lang === 'hi-IN' ? 'समान टिकट पहले से खुला है' : 'Similar Ticket Open'}
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '4px 0 0' }}>
+                  {lang === 'hi-IN' 
+                    ? 'क्या आप इस टिकट में जानकारी जोड़ना चाहते हैं या नया टिकट बनाना चाहते हैं?' 
+                    : 'Do you want to append comments to it or log a separate new breakdown?'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={appendTicket}
+                  disabled={checkingDuplicate}
+                  style={{ width: '100%', padding: '12px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {lang === 'hi-IN' ? 'विवरण जोड़ें (अनुशंसित)' : 'Append Details (Recommended)'}
+                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setDuplicateTicket(null)}
+                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => submitTicket(true)}
+                    disabled={checkingDuplicate}
+                    style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    {lang === 'hi-IN' ? 'नया टिकट बनाएं' : 'Create Separate'}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+                  {lang === 'hi-IN' ? 'रिपोर्ट समीक्षा और पुष्टि' : 'Review & Confirm Report'}
+                </h4>
+              </div>
+  
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                  {lang === 'hi-IN' ? 'समस्या का विवरण (बदलाव कर सकते हैं):' : 'Issue Description (Edit if needed):'}
+                </label>
+                <textarea 
+                  rows={3}
+                  value={extractedInfo.issue}
+                  onChange={(e) => setExtractedInfo(prev => ({ ...prev, issue: e.target.value }))}
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'vertical', fontSize: '0.9rem' }}
+                />
+              </div>
+  
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                  {lang === 'hi-IN' ? 'मशीन की स्थिति:' : 'Machine Condition:'}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {[
+                    { id: 'running', label: lang === 'hi-IN' ? 'चालू है' : 'Running', color: '#eab308' },
+                    { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : 'Stopped', color: '#ef4444' },
+                    { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : 'Unsafe', color: '#dc2626' },
+                    { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : 'Not Sure', color: '#64748b' }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setExtractedInfo(prev => ({ ...prev, condition: item.id, urgency: item.id === 'unsafe' ? 'critical' : item.id === 'stopped' ? 'high' : prev.urgency }))}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '6px',
+                        background: extractedInfo.condition === item.id ? `${item.color}22` : '#0b1118',
+                        border: `2px solid ${extractedInfo.condition === item.id ? item.color : 'rgba(255,255,255,0.06)'}`,
+                        color: extractedInfo.condition === item.id ? '#ffffff' : '#94a3b8',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
                     >
-                      {lang === 'hi-IN' ? 'विवरण जोड़ें (अनुशंसित)' : 'Append Details (Recommended)'}
-                    </button>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button 
-                        type="button" 
-                        onClick={() => setDuplicateTicket(null)}
-                        style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
-                      >
-                        {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => submitTicket(true)}
-                        disabled={checkingDuplicate}
-                        style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
-                      >
-                        {lang === 'hi-IN' ? 'नया टिकट बनाएं' : 'Create Separate'}
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ textAlign: 'center' }}>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
-                      {lang === 'hi-IN' ? 'रिपोर्ट समीक्षा और पुष्टि' : 'Review & Confirm Report'}
-                    </h4>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
-                      {lang === 'hi-IN' ? 'समस्या का विवरण (बदलाव कर सकते हैं):' : 'Issue Description (Edit if needed):'}
-                    </label>
-                    <textarea 
-                      rows={3}
-                      value={extractedInfo.issue}
-                      onChange={(e) => setExtractedInfo(prev => ({ ...prev, issue: e.target.value }))}
-                      style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'vertical', fontSize: '0.9rem' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
-                      {lang === 'hi-IN' ? 'मशीन की स्थिति:' : 'Machine Condition:'}
-                    </label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      {[
-                        { id: 'running', label: lang === 'hi-IN' ? 'चालू है' : 'Running', color: '#eab308' },
-                        { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : 'Stopped', color: '#ef4444' },
-                        { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : 'Unsafe', color: '#dc2626' },
-                        { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : 'Not Sure', color: '#64748b' }
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setExtractedInfo(prev => ({ ...prev, condition: item.id, urgency: item.id === 'unsafe' ? 'critical' : item.id === 'stopped' ? 'high' : prev.urgency }))}
-                          style={{
-                            padding: '10px',
-                            borderRadius: '6px',
-                            background: extractedInfo.condition === item.id ? `${item.color}22` : '#0b1118',
-                            border: `2px solid ${extractedInfo.condition === item.id ? item.color : 'rgba(255,255,255,0.06)'}`,
-                            color: extractedInfo.condition === item.id ? '#ffffff' : '#94a3b8',
-                            fontSize: '0.8rem',
-                            fontWeight: 'bold',
-                            cursor: 'pointer'
-                          }}
-                        >
                           {item.label}
                         </button>
                       ))}
@@ -964,9 +964,7 @@ export default function QRGateway() {
                   </div>
                 </>
               )}
-            </div>
-          )}
-        </>
+        </div>
       )}
 
       {/* Secondary control actions */}

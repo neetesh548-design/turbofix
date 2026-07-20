@@ -113,17 +113,22 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     // Click to stop recording
     await page.locator('#voice-mic-button').click({ force: true });
 
-    // Verify confirmation overlay appears with transcribed text
-    const textReview = page.locator('textarea');
-    await expect(textReview).toBeVisible();
-    await expect(textReview).toHaveValue('The spindle motor is overheating and leaking hydraulic fluid');
+    // Verify manual description box is filled with transcribed text
+    const textInput = page.locator('textarea');
+    await expect(textInput).toBeVisible();
+    await expect(textInput).toHaveValue('The spindle motor is overheating and leaking hydraulic fluid');
 
-    // Edit the text description in the review overlay
-    await textReview.fill('Spindle motor overheating and leaking hydraulic oil near bottom gasket');
+    // Edit the text description in the manual box
+    await textInput.fill('Spindle motor overheating and leaking hydraulic oil near bottom gasket');
 
-    // Verify condition was auto-selected (overheating/leaking usually falls back to 'running' or 'stopped')
-    // Let's manually select 'stopped' to change condition
+    // Manually select 'stopped' to change condition
     await page.locator('button', { hasText: /बंद है|Stopped/ }).click();
+
+    // Click 'Review Report' to open confirmation overlay
+    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+
+    // Verify confirmation overlay appears (we can assert that the submit button is visible)
+    await expect(page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ })).toBeVisible();
   });
 
   test('Scenario 4: Photo capture and attachment preview', async ({ page }) => {
@@ -193,6 +198,12 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
     await page.locator('#voice-mic-button').click({ force: true });
 
+    // Wait for voice transcription to complete and populate the description box
+    await expect(page.locator('textarea')).toHaveValue('Leak is getting worse');
+
+    // Click Review Report
+    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+
     // Trigger ticket insertion
     await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
 
@@ -232,6 +243,13 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await page.locator('#voice-mic-button').click({ force: true });
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
     await page.locator('#voice-mic-button').click({ force: true });
+
+    // Wait for voice transcription to complete and populate the description box
+    await expect(page.locator('textarea')).toHaveValue('Air pipe leak');
+
+    // Click Review Report
+    await page.locator('button', { hasText: /समीक्षा करें|Review Report/ }).click();
+
     await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
 
     // Verify receipt visual is shown
