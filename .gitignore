@@ -40,3 +40,7 @@ gcp-*.json
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright test outputs
+playwright-report/
+test-results/
