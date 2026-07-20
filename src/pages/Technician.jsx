@@ -72,6 +72,7 @@ export default function Technician() {
           machine_name: machineMap[t.machine_id]?.name || 'Unknown',
           machine_location: machineMap[t.machine_id]?.location || '',
           machine_image_url: machineMap[t.machine_id]?.image_url || '',
+          machine_criticality: machineMap[t.machine_id]?.criticality || 'medium',
           description: t.issue_text || (typeof t.ai_summary === 'object' ? t.ai_summary?.summary : t.ai_summary) || '',
         }));
         setTickets(items);
@@ -107,6 +108,13 @@ export default function Technician() {
   const allResponded = checklist.every((item) => ['done', 'not_needed'].includes(checklistStatus[item.id]));
   const readyToSubmit = checklist.length > 0 && mandatoryComplete && allResponded;
   const isLocked = ['submitted', 'closed'].includes(selectedWork.status);
+  // Verification hardening (roadmap §4.5): a critical job (high/critical urgency
+  // OR high/critical machine criticality) must carry photo evidence before it can
+  // be submitted for closure, and it can only close after supervisor verification.
+  const ticketUrgency = String(selectedTicket?.urgency || (typeof selectedTicket?.ai_summary === 'object' ? selectedTicket?.ai_summary?.urgency : '') || '').toLowerCase();
+  const isCriticalJob = ['high', 'critical'].includes(ticketUrgency) || ['high', 'critical'].includes(String(selectedTicket?.machine_criticality || '').toLowerCase());
+  const hasPhotoEvidence = (selectedWork.evidence || []).some((e) => e.kind === 'photo');
+  const criticalBlocksSubmit = isCriticalJob && !hasPhotoEvidence;
 
   const updateDraft = (updates) => {
     if (!selectedId) return;
@@ -272,6 +280,10 @@ export default function Technician() {
 
   const submitForApproval = async () => {
     if (!selectedTicket || !readyToSubmit || isLocked) return;
+    if (criticalBlocksSubmit) {
+      setError('This is a critical job — add a photo of the completed repair before submitting. Critical repairs cannot close without photo evidence and supervisor verification.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -415,7 +427,13 @@ export default function Technician() {
                 })()}
                 <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
                 <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div><div className="technician-field"><span><Wrench className="size-4" />Root cause</span><textarea value={selectedWork.root_cause} disabled={isLocked} onChange={(event) => updateDraft({ root_cause: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Why did it fail? Optional" />{captureActions('Root cause')}</div><div className="technician-field"><span><CheckCircle2 className="size-4" />Labour time (minutes)</span><input type="number" min="0" step="5" value={selectedWork.labour_minutes} disabled={isLocked} onChange={(event) => updateDraft({ labour_minutes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="e.g. 45" /></div></div></details>
-                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : 'Submit for closure'}</button>}</div>
+                {isCriticalJob && selectedWork.status !== 'closed' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: criticalBlocksSubmit ? 'rgba(239,68,68,0.12)' : 'rgba(37,211,102,0.1)', border: `1px solid ${criticalBlocksSubmit ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '10px 12px', marginBottom: '10px', fontSize: '0.82rem', color: criticalBlocksSubmit ? '#fca5a5' : '#25D366' }}>
+                    <ShieldCheck className="size-4" />
+                    <span>{criticalBlocksSubmit ? 'Critical job — a photo of the completed repair is required before it can be submitted and verified.' : 'Photo evidence attached. This critical repair will close only after supervisor verification.'}</span>
+                  </div>
+                )}
+                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : isCriticalJob ? 'Critical job: complete the checklist and attach a photo. Closure requires supervisor verification.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked || criticalBlocksSubmit}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : criticalBlocksSubmit ? 'Add photo to submit' : 'Submit for closure'}</button>}</div>
               </>}
             </section>
           </div>
