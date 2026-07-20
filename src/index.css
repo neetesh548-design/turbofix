@@ -2886,14 +2886,15 @@ details.faq-item p {
 /* --- Horizontal Navigation Tabs --- */
 .app-h-nav {
   flex: none; display: flex; align-items: center; gap: 0;
-  padding: 0; background: #12171c; border-bottom: 1px solid var(--border);
+  padding: 8px 0; background: #12171c; border-bottom: 1px solid var(--border);
   overflow-x: auto; overflow-y: hidden;
-  max-height: 50px;
+  position: fixed; top: 60px; left: 0; right: 0; z-index: 41;
+  height: 60px; box-sizing: border-box;
 }
 
 .app-h-nav-item {
-  display: flex; align-items: center; gap: 8px; flex: none;
-  padding: 0 16px; height: 50px; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex: none;
+  padding: 12px 16px; height: 44px; white-space: nowrap;
   color: var(--slate); text-decoration: none;
   font-size: 14px; font-weight: 600; line-height: 1;
   transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease);
@@ -2911,8 +2912,8 @@ details.faq-item p {
 .app-h-nav-item.active .nav-ic { opacity: 1; }
 
 .app-h-nav-logout {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 16px; height: 50px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 16px; height: 44px;
   margin-left: auto; flex: none;
   cursor: pointer; background: none; border: none;
   color: var(--slate); font-size: 14px; font-weight: 600;
@@ -2934,7 +2935,7 @@ details.faq-item p {
 }
 .app-user-name { font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 
-.app-content { flex: 1; min-width: 0; }
+.app-content { flex: 1; min-width: 0; margin-top: 60px; }
 
 /* Hide the duplicated internal userbars — the shell owns identity + logout now. */
 .app-shell .vault-userbar { display: none !important; }
