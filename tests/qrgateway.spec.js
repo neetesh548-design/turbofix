@@ -341,4 +341,28 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ })).not.toBeVisible();
   });
 
+  test('Scenario 10: Microphone Access Denied Fallback', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+      // Mock getUserMedia to reject
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: {
+          getUserMedia: () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError'))
+        },
+        configurable: true
+      });
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Click mic button
+    await page.locator('#voice-mic-button').click({ force: true });
+
+    // Verify error alert/dialog is displayed
+    await expect(page.locator('span', { hasText: /माइक एक्सेस समस्या|Microphone Access Blocked/ })).toBeVisible();
+
+    // Verify fallback form textarea is displayed
+    await expect(page.locator('textarea')).toBeVisible();
+  });
+
 });

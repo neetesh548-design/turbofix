@@ -306,6 +306,7 @@ export default function QRGateway() {
           ? 'टर्बोफिक्स को बोलने के लिए माइक अनुमति की आवश्यकता है। कृपया ब्राउज़र सेटिंग में अनुमति दें।'
           : 'TurboFix needs microphone permissions to listen. Please enable it in your browser settings.'
       });
+      setShowTextFallback(true);
     }
   };
 
@@ -579,6 +580,14 @@ export default function QRGateway() {
         </div>
       </div>
 
+      {errorAlert && (
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '12px', padding: '14px 18px', width: '100%', maxWidth: '380px', margin: '0 auto 16px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 10 }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#ef4444' }}>{errorAlert.title}</span>
+          <span style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: '1.4' }}>{errorAlert.desc}</span>
+          <button type="button" onClick={() => setErrorAlert(null)} style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '4px 12px', fontSize: '0.75rem', color: 'white', cursor: 'pointer', marginTop: '4px' }}>Dismiss</button>
+        </div>
+      )}
+
       {phoneGate ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '380px', width: '100%', margin: '0 auto', gap: '20px', zIndex: 10 }}>
           <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -825,13 +834,7 @@ export default function QRGateway() {
               {renderPromptText(assistantPrompt)}
             </p>
 
-            {errorAlert && (
-              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '12px', padding: '14px 18px', maxWidth: '340px', marginTop: '8px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 10 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#ef4444' }}>{errorAlert.title}</span>
-                <span style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: '1.4' }}>{errorAlert.desc}</span>
-                <button type="button" onClick={() => setErrorAlert(null)} style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '4px 12px', fontSize: '0.75rem', color: 'white', cursor: 'pointer', marginTop: '4px' }}>Dismiss</button>
-              </div>
-            )}
+
 
             {/* Subtitles text (transcribed from user) */}
             {transcript && (
