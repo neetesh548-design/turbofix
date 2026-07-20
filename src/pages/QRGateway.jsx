@@ -619,21 +619,26 @@ export default function QRGateway() {
       // Upload Photo if present
       let uploadedUrl = null;
       if (photoFile) {
-        const fileExt = photoFile.name.split('.').pop();
-        const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `${machine.id}/${fileName}`;
-        
-        const { error: uploadErr } = await supabase.storage
-          .from('repair-proofs')
-          .upload(filePath, photoFile);
+        try {
+          const fileExt = photoFile.name.split('.').pop();
+          const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+          const filePath = `${machine.id}/${fileName}`;
           
-        if (uploadErr) throw uploadErr;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('repair-proofs')
-          .getPublicUrl(filePath);
-          
-        uploadedUrl = publicUrl;
+          const { error: uploadErr } = await supabase.storage
+            .from('repair-proofs')
+            .upload(filePath, photoFile);
+            
+          if (!uploadErr) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('repair-proofs')
+              .getPublicUrl(filePath);
+            uploadedUrl = publicUrl;
+          } else {
+            console.warn('Storage upload notice (handled):', uploadErr.message);
+          }
+        } catch (photoErr) {
+          console.warn('Photo upload exception handled:', photoErr);
+        }
       }
 
       const payload = {

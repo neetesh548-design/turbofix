@@ -458,6 +458,33 @@ serve(async (req) => {
         if (fRow) payload.factory_id = fRow.id;
       }
 
+      // Handle offline base64 photo sync if present
+      if (payload.ai_summary?.photo_base64) {
+        try {
+          const rawBase64 = String(payload.ai_summary.photo_base64);
+          const base64Data = rawBase64.includes(';base64,') ? rawBase64.split(';base64,')[1] : rawBase64;
+          const fileName = `issue-${payload.machine_id}-${Date.now()}.jpg`;
+          const filePath = `${payload.machine_id}/${fileName}`;
+          
+          const binaryStr = atob(base64Data);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          
+          const { error: upErr } = await admin.storage.from('repair-proofs').upload(filePath, bytes, { contentType: 'image/jpeg' });
+          if (!upErr) {
+            const { data: pUrl } = admin.storage.from('repair-proofs').getPublicUrl(filePath);
+            if (pUrl?.publicUrl) {
+              payload.ai_summary.photo_url = pUrl.publicUrl;
+            }
+          }
+          delete payload.ai_summary.photo_base64;
+        } catch (photoErr) {
+          console.warn('Warning syncing offline photo:', photoErr);
+        }
+      }
+
       const { data, error } = await admin
         .from('tickets')
         .insert(payload)
@@ -487,8 +514,20 @@ serve(async (req) => {
     }
 
     if (text(body.action) === 'check_duplicate') {
-      const { machine_id } = body
+      let { machine_id } = body
       if (!machine_id) return reply(req, { error: 'Invalid machine ID.' }, 400)
+      
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(machine_id));
+      if (!isUuid) {
+        const { data: mRow } = await admin
+          .from('machines')
+          .select('id')
+          .or(`id.eq.${machine_id},asset_code.eq.${machine_id},name.eq.${machine_id}`)
+          .limit(1)
+          .maybeSingle();
+        if (mRow) machine_id = mRow.id;
+      }
+
       const { data, error } = await admin
         .from('tickets')
         .select('id, issue_text, created_at')

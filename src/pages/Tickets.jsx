@@ -27,12 +27,22 @@ export default function Tickets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [expandedId, setExpandedId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     document.title = 'Tickets | TurboFix';
     fetchTicketsAndEscalation();
+
+    const channel = supabase
+      .channel('public:tickets_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
+        fetchTicketsAndEscalation();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchTicketsAndEscalation = async () => {
@@ -125,10 +135,25 @@ export default function Tickets() {
   const openCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open').length;
   const urgentCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket)).length;
   const closedCount = tickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
-  const visibleTickets = tickets.filter((ticket) => activeFilter === 'all'
-    || (activeFilter === 'open' && String(ticket.status).toLowerCase() === 'open')
-    || (activeFilter === 'urgent' && String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket))
-    || (activeFilter === 'closed' && ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())));
+  
+  const visibleTickets = tickets.filter((ticket) => {
+    const matchesFilter = activeFilter === 'all'
+      || (activeFilter === 'open' && String(ticket.status).toLowerCase() === 'open')
+      || (activeFilter === 'urgent' && String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket))
+      || (activeFilter === 'closed' && ['closed', 'resolved'].includes(String(ticket.status).toLowerCase()));
+
+    if (!matchesFilter) return false;
+    if (!searchTerm.trim()) return true;
+
+    const query = searchTerm.toLowerCase();
+    const wo = String(ticket.wo_number || '').toLowerCase();
+    const machine = String(ticket.machine_name || '').toLowerCase();
+    const issue = String(ticket.issue_text || '').toLowerCase();
+    const phone = String(ticket.reporter_phone || '').toLowerCase();
+    const id = String(ticket.ticket_id || '').toLowerCase();
+
+    return wo.includes(query) || machine.includes(query) || issue.includes(query) || phone.includes(query) || id.includes(query);
+  });
 
   return (
     <AppShell active="tickets">
@@ -177,9 +202,30 @@ export default function Tickets() {
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
 
-        {!loading && tickets.length > 0 && <section className="postlogin-summary" aria-label="Ticket summary filters">
-          {[['all', tickets.length, 'All tickets'], ['open', openCount, 'Open work'], ['urgent', urgentCount, 'Urgent issues'], ['closed', closedCount, 'Closed tickets']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View details →</small></button>)}
-        </section>}
+        {!loading && tickets.length > 0 && (
+          <>
+            <section className="postlogin-summary" aria-label="Ticket summary filters">
+              {[['all', tickets.length, 'All tickets'], ['open', openCount, 'Open work'], ['urgent', urgentCount, 'Urgent issues'], ['closed', closedCount, 'Closed tickets']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View details →</small></button>)}
+            </section>
+            <div style={{ margin: '16px 0 20px', display: 'flex', gap: '12px' }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search tickets by WO number, machine name, issue, phone..."
+                style={{
+                  width: '100%',
+                  background: '#0b1118',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  color: 'white',
+                  fontSize: '0.85rem'
+                }}
+              />
+            </div>
+          </>
+        )}
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading tickets...</div>
