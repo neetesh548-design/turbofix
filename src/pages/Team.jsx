@@ -73,7 +73,8 @@ export default function Team() {
       }));
       const namesById = Object.fromEntries(tData.map((member) => [member.user_id, member.name]));
       setTeam(tData.map((member) => ({ ...member, manager_name: namesById[member.manager_user_id] || '' })));
-      setCustomRoles([]);
+      const localRoles = window.localStorage.getItem('tf_settings_custom_roles');
+      setCustomRoles(localRoles ? JSON.parse(localRoles) : []);
     } catch (err) {
       setError(err.message || 'An error occurred while loading team list.');
     } finally {
