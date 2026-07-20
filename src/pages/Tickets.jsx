@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
-import { supabase } from '@/supabaseClient';
+import { supabase } from '../supabaseClient';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
 const LIFECYCLE = {
@@ -27,6 +27,7 @@ export default function Tickets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
