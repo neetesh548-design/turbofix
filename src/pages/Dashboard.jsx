@@ -9,7 +9,7 @@ const fallback = {
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
   shift_handover: { machines_down: 0, critical: [], waiting_spare: [], waiting_approval: [], waiting_vendor: [], repeat: [], pm_due: [] },
   repair_replace: [],
-  data_quality: [], audit_log: [],
+  data_quality: [], audit_log: [], vendor_amc: { alerts: [], outsourced_open: 0 },
   needs_attention: [], recent_activity: [], weekly_trend: [],
 };
 
@@ -235,6 +235,27 @@ function computeDataQuality(machines, tickets) {
   return flags.slice(0, 20);
 }
 
+// Vendor & AMC management (roadmap §6/§10.5, Tier 3 tail): a lapsed AMC or
+// expiring warranty is a hidden reliability/cost risk. Surface it before it bites.
+function computeVendorAmc(machines, tickets, now = new Date()) {
+  const HORIZON = 60; // days
+  const dayDiff = (d) => Math.ceil((new Date(d).getTime() - now.getTime()) / 86_400_000);
+  const alerts = [];
+  machines.forEach((m) => {
+    if (m.amc_expiry) {
+      const days = dayDiff(m.amc_expiry);
+      if (days <= HORIZON) alerts.push({ machine_id: m.id, machine: m.name || m.id, type: 'AMC', party: m.amc_provider || '—', expiry: m.amc_expiry, days });
+    }
+    if (m.warranty_expiry) {
+      const days = dayDiff(m.warranty_expiry);
+      if (days <= HORIZON) alerts.push({ machine_id: m.id, machine: m.name || m.id, type: 'Warranty', party: m.vendor_name || '—', expiry: m.warranty_expiry, days });
+    }
+  });
+  alerts.sort((a, b) => a.days - b.days);
+  const outsourced_open = tickets.filter((t) => t.outsource_vendor && String(t.status || '').toLowerCase() === 'open').length;
+  return { alerts, outsourced_open };
+}
+
 async function fetchDashboardData() {
   const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes, auditRes] = await Promise.all([
     supabase.from('machines').select('*'),
@@ -283,6 +304,7 @@ async function fetchDashboardData() {
   const shiftHandover = computeShiftHandover(machines, tickets, pmSchedules);
   const repairReplace = computeRepairReplace(machines, tickets, workOrderParts);
   const dataQuality = computeDataQuality(machines, tickets);
+  const vendorAmc = computeVendorAmc(machines, tickets);
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -323,6 +345,7 @@ async function fetchDashboardData() {
     repair_replace: repairReplace,
     data_quality: dataQuality,
     audit_log: auditLog,
+    vendor_amc: vendorAmc,
     recent_activity: [],
     weekly_trend: [],
   };
@@ -455,6 +478,29 @@ export default function Dashboard() {
                 </a>
               ))}
             </div>
+          </section>
+        )}
+
+        {(data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) && (
+          <section className="decision-panel" style={{ marginTop: '12px' }}>
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Contracts &amp; vendors</div><h2>AMC &amp; warranty</h2></div><span className="trend-caption">{data.vendor_amc.outsourced_open > 0 ? `${data.vendor_amc.outsourced_open} open at vendor` : 'Next 60 days'}</span></div>
+            {data.vendor_amc.alerts?.length ? (
+              <div className="dashboard-detail-list">
+                {data.vendor_amc.alerts.map((a, index) => {
+                  const expired = a.days < 0;
+                  const tone = expired ? '#F87171' : a.days <= 30 ? '#FBBF24' : 'var(--slate)';
+                  return (
+                    <a href={`machines.html?machine=${encodeURIComponent(a.machine_id)}`} key={`${a.machine_id}-${a.type}-${index}`}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <b style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: tone, border: `1px solid ${tone}`, borderRadius: '999px', padding: '2px 8px' }}>{a.type}</b>
+                        <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{a.machine}</strong><small>{a.party} · expires {new Date(a.expiry).toLocaleDateString('en-IN')}</small></span>
+                      </span>
+                      <b style={{ color: tone, whiteSpace: 'nowrap' }}>{expired ? `Expired ${Math.abs(a.days)}d ago` : a.days === 0 ? 'Expires today' : `${a.days}d left`}</b>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : <Empty text="No AMC or warranty expiring in the next 60 days." />}
           </section>
         )}
 
