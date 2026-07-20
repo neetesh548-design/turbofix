@@ -390,7 +390,7 @@ export default function Dashboard() {
         <div className="decision-heading">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
-            <h1>Decision Center</h1>
+            <h1>Decision Center <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
             <p>See what needs attention, why it matters, and what to do next.</p>
           </div>
           <div className="decision-actions">
@@ -416,7 +416,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <div className="decision-section-label">Needs action now</div>
+        <div className="decision-section-label">Needs action now <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
         <section className="decision-kpi-grid">
           <Metric label="Machines down" value={kpis.machines_down} tone="danger" onClick={() => revealDetail('machines')} />
           <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" onClick={() => revealDetail('urgent')} />
@@ -429,7 +429,7 @@ export default function Dashboard() {
           {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : 'tickets.html'} key={`${item.ticket_id || item.machine_id || index}-${index}`}><span><strong>{item.machine_name || 'Unknown machine'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || 'Open'}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
         </section>}
 
-        <div className="decision-section-label">Maintenance intelligence</div>
+        <div className="decision-section-label">Maintenance intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
         <section className="decision-insight-grid">
           <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" />
           <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
@@ -506,7 +506,7 @@ export default function Dashboard() {
 
         <section className="decision-columns">
           <div className="decision-panel">
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality</h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
+            <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
             {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
               <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
                 <span className="status-dot warning" />
@@ -609,4 +609,15 @@ export default function Dashboard() {
 
 function Metric({ label, value, tone = '', onClick }) { return <button type="button" className="decision-metric clickable" onClick={onClick}><span className={`metric-value ${tone}`}>{value ?? '—'}</span><span className="metric-label">{label}</span><small className="decision-click-hint">View details →</small></button>; }
 function Insight({ label, value, detail }) { return <div className="decision-insight"><span className="decision-card-kicker">{label}</span><strong>{value}</strong><span>{detail}</span></div>; }
+
+// Lean/TPS principle tag. English stays primary everywhere; the Japanese term
+// rides along as a kicker so nobody has to learn a word to use the page.
+function LeanTag({ term, kanji, meaning, tone = '' }) {
+  return (
+    <span className={`lean-tag ${tone}`} title={meaning}>
+      <span className="lean-tag-term">{term}</span>
+      <span className="lean-tag-kanji">{kanji}</span>
+    </span>
+  );
+}
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
