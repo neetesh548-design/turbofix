@@ -1,0 +1,127 @@
+.notification-center {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(26, 31, 38, 0.9), rgba(26, 31, 38, 0.8));
+  border: 1px solid rgba(160, 174, 192, 0.2);
+  border-radius: var(--radius);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 0.3s ease-out;
+  font-size: 0.9rem;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f8fafc;
+  flex: 1;
+}
+
+.notification-content svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.notification-success {
+  border-left: 4px solid var(--brand);
+}
+
+.notification-success .notification-content svg {
+  color: var(--brand);
+}
+
+.notification-error {
+  border-left: 4px solid #ef4444;
+}
+
+.notification-error .notification-content svg {
+  color: #ef4444;
+}
+
+.notification-warning {
+  border-left: 4px solid var(--amber);
+}
+
+.notification-warning .notification-content svg {
+  color: var(--amber);
+}
+
+.notification-info {
+  border-left: 4px solid #3b82f6;
+}
+
+.notification-info .notification-content svg {
+  color: #3b82f6;
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: var(--slate);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s var(--ease);
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  background: rgba(160, 174, 192, 0.1);
+  color: #f8fafc;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .notification-center {
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  .notification {
+    padding: 12px;
+  }
+}
+
+[data-theme="light"] .notification {
+  background: linear-gradient(135deg, rgba(241, 245, 249, 0.9), rgba(226, 232, 240, 0.8));
+  border-color: rgba(30, 41, 59, 0.1);
+  color: #1e293b;
+}
+
+[data-theme="light"] .notification-content {
+  color: #1e293b;
+}
+
+[data-theme="light"] .notification-close {
+  color: var(--slate);
+}

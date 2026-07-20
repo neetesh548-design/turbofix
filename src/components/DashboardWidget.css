@@ -1,0 +1,113 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.dashboard-widget {
+  background: linear-gradient(135deg, var(--card), rgba(26, 31, 38, 0.5));
+  border: 1px solid rgba(160, 174, 192, 0.1);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s var(--ease);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-widget:hover {
+  border-color: rgba(160, 174, 192, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-widget.dragging {
+  opacity: 0.7;
+  transform: scale(0.95);
+  cursor: grabbing;
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  cursor: grab;
+}
+
+.widget-header:active {
+  cursor: grabbing;
+}
+
+.grip-handle {
+  color: var(--slate);
+  flex-shrink: 0;
+}
+
+.widget-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f8fafc;
+  font-weight: 600;
+  flex: 1;
+}
+
+.widget-settings {
+  background: transparent;
+  border: none;
+  color: var(--slate);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s var(--ease);
+}
+
+.widget-settings:hover {
+  background: rgba(160, 174, 192, 0.1);
+  color: #f8fafc;
+}
+
+.widget-content {
+  flex: 1;
+  overflow-y: auto;
+  color: var(--slate);
+}
+
+.widget-settings-panel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(160, 174, 192, 0.1);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .dashboard-widget {
+    padding: 16px;
+  }
+}
+
+[data-theme="light"] .dashboard-widget {
+  background: linear-gradient(135deg, #f1f5f9, rgba(226, 232, 240, 0.5));
+  border-color: rgba(30, 41, 59, 0.08);
+}
+
+[data-theme="light"] .dashboard-widget:hover {
+  border-color: rgba(30, 41, 59, 0.15);
+}
+
+[data-theme="light"] .widget-title {
+  color: #1e293b;
+}
+
+[data-theme="light"] .widget-content {
+  color: #64748b;
+}

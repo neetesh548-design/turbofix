@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Component Styles */
+@import "./components/Tooltip.css";
+@import "./components/NotificationCenter.css";
+@import "./components/OnboardingFlow.css";
+@import "./components/DashboardWidget.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -3503,6 +3509,155 @@ details.faq-item p {
   0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .5); }
   70% { box-shadow: 0 0 0 7px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* ===========================================================
+   PHASE 2: USER EXPERIENCE ENHANCEMENTS
+   =========================================================== */
+
+/* Popover & Tooltip Defaults */
+.popover {
+  position: absolute;
+  z-index: 1000;
+  background: var(--card);
+  border: 1px solid rgba(160, 174, 192, 0.2);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Getting Started Checklist */
+.getting-started {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(37, 211, 102, 0.05));
+  border: 1px solid rgba(37, 211, 102, 0.2);
+  border-radius: var(--radius);
+  margin: 20px 0;
+}
+
+.getting-started-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: var(--slate);
+}
+
+.getting-started-item.completed {
+  opacity: 0.6;
+}
+
+.getting-started-item input[type="checkbox"] {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--brand);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: #f8fafc;
+}
+
+.empty-state p {
+  color: var(--slate);
+  margin-bottom: 20px;
+}
+
+.empty-state-action {
+  display: inline-block;
+}
+
+/* Help Widget */
+.help-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), #128C7E);
+  border: none;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.3);
+  transition: all 0.3s var(--ease);
+  z-index: 100;
+}
+
+.help-widget:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+}
+
+.help-widget:active {
+  transform: scale(0.95);
+}
+
+/* Feature Flag Display */
+.feature-flag-banner {
+  background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-flag-banner::before {
+  content: '✨';
+  font-size: 1.2rem;
+}
+
+/* Guided Tour Overlay */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.tour-spotlight {
+  position: fixed;
+  border: 3px solid var(--brand);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  animation: tourPulse 2s ease-in-out infinite;
+}
+
+@keyframes tourPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 211, 102, 0); }
+}
+
+/* Dashboard Customization Hint */
+.customize-hint {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px dashed #3b82f6;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  color: #3b82f6;
+  font-size: 0.9rem;
+  margin: 12px 0;
 }
 
 /* --- Horizontal Navigation Tabs --- */
