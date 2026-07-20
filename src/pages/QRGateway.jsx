@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { Cpu, ArrowRight, Sparkles, Mic, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
+import { Cpu, ArrowRight, Sparkles, Mic, CheckCircle2, Volume2, VolumeX, Camera, Image, Trash2 } from 'lucide-react';
 
 const ORB_ANIMATIONS = `
 @keyframes voice-ripple-1 {
@@ -45,6 +45,12 @@ export default function QRGateway() {
   const [errorAlert, setErrorAlert] = useState(null); // { title, desc }
   const [showTextFallback, setShowTextFallback] = useState(false);
   const [manualCondition, setManualCondition] = useState('running'); // running, stopped, unsafe, not_sure
+  
+  // Photo capture and upload state
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [submittedTicketInfo, setSubmittedTicketInfo] = useState(null);
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
@@ -215,6 +221,69 @@ export default function QRGateway() {
     }, 600);
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoFile(null);
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+      setPhotoPreview(null);
+    }
+  };
+
+  const resetForm = () => {
+    setSuccess(false);
+    setSubmittedTicketInfo(null);
+    removePhoto();
+    setTranscript('');
+    setExtractedInfo(null);
+    setDuplicateTicket(null);
+    setShowTextFallback(false);
+    setManualCondition('running');
+    setCheckingDuplicate(false);
+    setUploadingPhoto(false);
+    greetUser();
+  };
+
+  const renderPhotoAttachment = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 5, width: '100%', maxWidth: '340px', margin: '12px auto' }}>
+        <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+          {lang === 'hi-IN' ? 'फोटो अटैच करें (वैकल्पिक)' : 'Attach Photo (Optional)'}
+        </label>
+        {photoPreview ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#0b1118', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <img src={photoPreview} alt="Preview" style={{ width: '60px', height: '60px', borderRadius: '6px', objectFit: 'cover' }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '0.75rem', color: '#cbd5e1', wordBreak: 'break-all' }}>{photoFile?.name}</span>
+              <button 
+                type="button" 
+                onClick={removePhoto} 
+                style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
+              >
+                <Trash2 size={14} /> {lang === 'hi-IN' ? 'हटाएं' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#0b1118', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '8px', padding: '12px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+            <Camera size={18} color="#863bff" />
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+              {lang === 'hi-IN' ? 'फोटो लें या अपलोड करें' : 'Take Photo or Upload'}
+            </span>
+            <input type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} style={{ display: 'none' }} />
+          </label>
+        )}
+      </div>
+    );
+  };
+
   const startVoiceInput = () => {
     setErrorAlert(null);
     if (recognitionRef.current) {
@@ -247,6 +316,7 @@ export default function QRGateway() {
   const submitTicket = async (bypassDuplicateCheck = false) => {
     if (!extractedInfo) return;
     setCheckingDuplicate(true);
+    setUploadingPhoto(true);
 
     try {
       // 1. Check for duplicate open tickets on this machine
@@ -267,6 +337,7 @@ export default function QRGateway() {
           setAssistantPrompt(alertMsg);
           speak(alertMsg);
           setCheckingDuplicate(false);
+          setUploadingPhoto(false);
           return;
         }
       }
@@ -286,6 +357,26 @@ export default function QRGateway() {
       const { data: factories } = await supabase.from('factories').select('id').limit(1);
       const factoryId = factories?.[0]?.id || null;
 
+      // Upload Photo if present
+      let uploadedUrl = null;
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const filePath = `${machine.id}/${fileName}`;
+        
+        const { error: uploadErr } = await supabase.storage
+          .from('repair-proofs')
+          .upload(filePath, photoFile);
+          
+        if (uploadErr) throw uploadErr;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('repair-proofs')
+          .getPublicUrl(filePath);
+          
+        uploadedUrl = publicUrl;
+      }
+
       const payload = {
         machine_id: machine.id,
         status: 'open',
@@ -296,16 +387,24 @@ export default function QRGateway() {
         factory_id: factoryId,
         lifecycle_stage: verified ? 'open' : 'unverified',
         ai_summary: {
-          voice_reported: true,
+          voice_reported: !showTextFallback,
           extracted_condition: extractedInfo.condition,
           reporter_id: reporterPhone,
           verified_reporter: verified,
-          flag: verified ? null : 'unverified_reporter'
+          flag: verified ? null : 'unverified_reporter',
+          photo_url: uploadedUrl
         }
       };
 
-      const { error } = await supabase.from('tickets').insert(payload);
+      const { data: insertedTicket, error } = await supabase
+        .from('tickets')
+        .insert(payload)
+        .select('id, wo_number, created_at, lifecycle_stage, urgency')
+        .single();
+        
       if (error) throw error;
+
+      setSubmittedTicketInfo(insertedTicket);
 
       const successText = lang === 'hi-IN'
         ? `**धन्यवाद**! टिकट दर्ज हो गया है और टेक्नीशियन **${technicianName || 'सहायक'}** को सूचित कर दिया गया है।`
@@ -320,20 +419,59 @@ export default function QRGateway() {
       alert('Error logging ticket: ' + err.message);
     } finally {
       setCheckingDuplicate(false);
+      setUploadingPhoto(false);
     }
   };
 
   const appendTicket = async () => {
     if (!duplicateTicket || !extractedInfo) return;
     setCheckingDuplicate(true);
+    setUploadingPhoto(true);
     try {
-      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
-      const { error } = await supabase
+      let uploadedUrl = null;
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const filePath = `${machine.id}/${fileName}`;
+        
+        const { error: uploadErr } = await supabase.storage
+          .from('repair-proofs')
+          .upload(filePath, photoFile);
+          
+        if (uploadErr) throw uploadErr;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('repair-proofs')
+          .getPublicUrl(filePath);
+          
+        uploadedUrl = publicUrl;
+      }
+
+      const { data: currentTicket } = await supabase
         .from('tickets')
-        .update({ issue_text: mergedText })
-        .eq('id', duplicateTicket.id);
+        .select('ai_summary')
+        .eq('id', duplicateTicket.id)
+        .single();
+      
+      const mergedSummary = {
+        ...(currentTicket?.ai_summary || {}),
+        photo_url: uploadedUrl || currentTicket?.ai_summary?.photo_url || null
+      };
+
+      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
+      const { data: updatedTicket, error } = await supabase
+        .from('tickets')
+        .update({ 
+          issue_text: mergedText,
+          ai_summary: mergedSummary
+        })
+        .eq('id', duplicateTicket.id)
+        .select('id, wo_number, created_at, lifecycle_stage, urgency')
+        .single();
 
       if (error) throw error;
+
+      setSubmittedTicketInfo(updatedTicket);
 
       const successText = lang === 'hi-IN'
         ? `**धन्यवाद**! विवरण टेक्नीशियन **${technicianName || 'सहायक'}** के खुले टिकट में जोड़ दिया गया है।`
@@ -348,6 +486,7 @@ export default function QRGateway() {
       alert('Error appending to ticket: ' + err.message);
     } finally {
       setCheckingDuplicate(false);
+      setUploadingPhoto(false);
     }
   };
 
@@ -470,6 +609,62 @@ export default function QRGateway() {
             </button>
           </div>
         </div>
+      ) : success ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '400px', width: '100%', margin: '0 auto', gap: '20px', zIndex: 10 }}>
+          <div style={{ 
+            background: '#151e28', 
+            border: '1px solid rgba(22, 163, 74, 0.3)', 
+            borderRadius: '16px', 
+            padding: '24px', 
+            textAlign: 'center', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', color: '#4ade80' }}>
+              <CheckCircle2 size={48} />
+            </div>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+              {lang === 'hi-IN' ? 'टिकट सफलतापूर्वक दर्ज हुआ!' : 'Ticket Registered Successfully!'}
+            </h3>
+            {submittedTicketInfo && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left', background: '#0b1118', padding: '16px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'वर्क ऑर्डर संख्या:' : 'Work Order No:'}</span>
+                  <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>{submittedTicketInfo.wo_number}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'मशीन:' : 'Machine:'}</span>
+                  <span style={{ color: '#ffffff', fontWeight: 'bold' }}>{machine.name}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'प्राथमिक टेक्नीशियन:' : 'Primary Tech:'}</span>
+                  <span style={{ color: '#863bff', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'आवंटित नहीं' : 'Not Assigned')}</span>
+                </div>
+                {photoPreview && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                    <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'अटैच किया गया फोटो:' : 'Attached Photo:'}</span>
+                    <img src={photoPreview} alt="Attached issue" style={{ width: '100%', maxHeight: '150px', borderRadius: '6px', objectFit: 'cover' }} />
+                  </div>
+                )}
+              </div>
+            )}
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.4' }}>
+              {lang === 'hi-IN' 
+                ? `वर्क ऑर्डर दर्ज कर दिया गया है। टेक्नीशियन ${technicianName || 'सहायक'} को व्हाट्सएप संदेश भेज दिया गया है।` 
+                : `Work order registered. Dispatch notification has been routed to technician ${technicianName || 'staff'}.`}
+            </p>
+            <button 
+              type="button" 
+              onClick={resetForm}
+              style={{ width: '100%', padding: '12px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+            >
+              {lang === 'hi-IN' ? 'दूसरी समस्या रिपोर्ट करें' : 'Report Another Issue'}
+            </button>
+          </div>
+        </div>
       ) : showTextFallback ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0', zIndex: 10 }}>
           <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -518,6 +713,8 @@ export default function QRGateway() {
                 ))}
               </div>
             </div>
+
+            {renderPhotoAttachment()}
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
               <button 
@@ -602,6 +799,8 @@ export default function QRGateway() {
             >
               {lang === 'hi-IN' ? 'बोलने में समस्या? लिखकर दर्ज करें' : 'Trouble speaking? Click here to write'}
             </button>
+
+            {renderPhotoAttachment()}
           </div>
 
           {/* Speech prompt & Live subtitles display */}
