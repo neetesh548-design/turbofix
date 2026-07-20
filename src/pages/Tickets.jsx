@@ -22,6 +22,49 @@ const stageInfo = (ticket) => {
   return ['closed', 'resolved'].includes(String(ticket.status || '').toLowerCase()) ? LIFECYCLE.closed : LIFECYCLE.reported;
 };
 
+const getDirectCause = (t) => {
+  if (t.root_cause && t.root_cause.trim()) return t.root_cause;
+  if (t.ai_summary?.predicted_issue && t.ai_summary.predicted_issue.trim()) return t.ai_summary.predicted_issue;
+
+  const mName = t.machine_name && t.machine_name !== 'Unknown' ? t.machine_name : 'Machine';
+  const text = ((t.issue_text || '') + ' ' + mName).toLowerCase();
+  
+  if (/leak|oil|fluid|seal|drop|तेल|गळती/.test(text)) {
+    return `${mName}: Hydraulic/Lubrication Seal Degradation or Fitting Pressure Drop`;
+  }
+  if (/smoke|burn|heat|fire|hot|धुआं|गरम/.test(text)) {
+    return `${mName}: Thermal Overload Relay Trip or Motor Coil Resistance Failure`;
+  }
+  if (/noise|vibration|sound|vibrat|आवाज/.test(text)) {
+    return `${mName}: Spindle Shaft Bearing Misalignment or Drive Belt Friction`;
+  }
+  if (/sensor|limit|tripped|electric|switch/.test(text)) {
+    return `${mName}: Proximity Sensor Misalignment or Interlock Circuit Trip`;
+  }
+
+  return `${mName}: Mechanical Drive Resistance & Actuator Operational Failure`;
+};
+
+const getRootCauseFix = (t) => {
+  if (t.repair_action && t.repair_action.trim()) return t.repair_action;
+  if (t.ai_summary?.recommended_action && t.ai_summary.recommended_action.trim()) return t.ai_summary.recommended_action;
+
+  const mName = t.machine_name && t.machine_name !== 'Unknown' ? t.machine_name : 'Machine';
+  const text = ((t.issue_text || '') + ' ' + mName).toLowerCase();
+
+  if (/leak|oil|fluid|seal|drop|तेल|गळती/.test(text)) {
+    return `Replace hydraulic cylinder seal rings, torque pipe fittings to specification, and top up ISO VG 68 oil.`;
+  }
+  if (/smoke|burn|heat|fire|hot|धुआं|गरम/.test(text)) {
+    return `Isolate main power, inspect motor windings resistance, clean cooling fins, and test thermal overload relay.`;
+  }
+  if (/noise|vibration|sound|vibrat|आवाज/.test(text)) {
+    return `Re-align drive pulleys, replace high-speed spindle bearings, and apply synthetic lithium grease.`;
+  }
+  
+  return `Perform full diagnostic check on safety interlocks, recalibrate proximity sensors, and test full stroke operation under load.`;
+};
+
 export default function Tickets() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -412,9 +455,9 @@ export default function Tickets() {
                               <span style={{ fontSize: '0.68rem', color: '#863bff', background: 'rgba(134,59,255,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Standard Work</span>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 1 (Problem):</strong> {t.issue_text || '—'}</div>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 2 (Direct Cause):</strong> {t.root_cause || t.ai_summary?.predicted_issue || 'Component wear or breakdown'}</div>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {t.repair_action || t.ai_summary?.recommended_action || 'Routine replacement and calibration completed.'}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 1 (Reported Symptom):</strong> {t.issue_text || '—'}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 2 (Direct Cause):</strong> {getDirectCause(t)}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {getRootCauseFix(t)}</div>
                             </div>
                           </div>
 
