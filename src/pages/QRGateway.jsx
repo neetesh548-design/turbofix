@@ -128,15 +128,25 @@ export default function QRGateway() {
     const fetchMachineDetails = async () => {
       if (!id) return;
       try {
-        const { data: mData } = await supabase
+        let query = supabase
           .from('machines')
-          .select('id, machine_name, location, technician_user_id, factory_id')
-          .eq('machine_id', id)
-          .single();
+          .select('id, name, location, technician_user_id, factory_id');
+        
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        if (isUuid) {
+          query = query.eq('id', id);
+        } else {
+          query = query.or(`id.eq.${id},asset_code.eq.${id},name.eq.${id}`);
+        }
+
+        const { data: mDataArr, error: mErr } = await query.limit(1);
+        if (mErr) console.error('Error fetching machine:', mErr);
+        const mData = mDataArr?.[0];
+
         if (mData) {
           setMachine({
             id: mData.id,
-            name: mData.machine_name || name,
+            name: mData.name || name,
             loc: mData.location || loc,
             tag: id,
             factory_id: mData.factory_id
