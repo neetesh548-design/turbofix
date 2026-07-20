@@ -28,6 +28,7 @@ export default function Tickets() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
