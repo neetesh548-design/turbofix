@@ -930,78 +930,83 @@ export default function QRGateway() {
     }}>
       <style>{ORB_ANIMATIONS}</style>
 
-      {/* Brand Header & Toggle */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '36px', zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Rajdhani, sans-serif' }}>TURBOFIX</span>
+      {/* Top Identity Block - 4 Individual Lines */}
+      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10 }}>
+        {/* Line 1: Company Name */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px', marginBottom: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
+            <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Rajdhani, sans-serif', color: '#ffffff' }}>TURBOFIX</span>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <button 
+              type="button" 
+              onClick={() => setSpeakFeedback(!speakFeedback)} 
+              style={{ background: 'transparent', border: 'none', color: speakFeedback ? '#863bff' : '#64748b', cursor: 'pointer', padding: '2px' }}
+              title="Toggle Voice Feedback"
+            >
+              {speakFeedback ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </button>
+            <button
+              type="button"
+              onClick={greetUser}
+              style={{
+                background: '#863bff',
+                border: 'none',
+                borderRadius: '4px',
+                color: 'white',
+                fontSize: '0.65rem',
+                padding: '2px 6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                fontWeight: 'bold'
+              }}
+            >
+              <Volume2 size={10} />
+              {t('listenGuide')}
+            </button>
+            <select 
+              value={lang} 
+              onChange={(e) => { 
+                const newLang = e.target.value;
+                setLang(newLang); 
+                localStorage.setItem('tf_lang', newLang);
+              }} 
+              style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', color: 'white', fontSize: '0.65rem', padding: '2px 4px', fontWeight: 'bold' }}
+            >
+              <option value="hi-IN">हिंदी</option>
+              <option value="mr-IN">मराठी</option>
+              <option value="en-US">English</option>
+            </select>
+          </div>
         </div>
-        
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <button 
-            type="button" 
-            onClick={() => setSpeakFeedback(!speakFeedback)} 
-            style={{ background: 'transparent', border: 'none', color: speakFeedback ? '#863bff' : '#64748b', cursor: 'pointer', padding: '4px' }}
-            title="Toggle Voice Feedback"
-          >
-            {speakFeedback ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-          
-          <button
-            type="button"
-            onClick={greetUser}
-            style={{
-              background: '#863bff',
-              border: 'none',
-              borderRadius: '6px',
-              color: 'white',
-              fontSize: '0.7rem',
-              padding: '4px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontWeight: 'bold'
-            }}
-          >
-            <Volume2 size={12} />
-            {t('listenGuide')}
-          </button>
 
-          <select 
-            value={lang} 
-            onChange={(e) => { 
-              const newLang = e.target.value;
-              setLang(newLang); 
-              localStorage.setItem('tf_lang', newLang);
-            }} 
-            style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', fontSize: '0.72rem', padding: '4px 6px', fontWeight: 'bold' }}
-          >
-            <option value="hi-IN">हिंदी</option>
-            <option value="mr-IN">मराठी</option>
-            <option value="en-US">English</option>
-          </select>
+        {/* Line 2: Machine Name */}
+        <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Machine:</span>
+          {machine.name}
         </div>
-      </header>
 
-      {/* Machine Identity glass banner */}
-      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, minHeight: '38px' }}>
-        <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', paddingRight: '8px' }}>
-          <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#fff', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis' }}>{machine.name}</h3>
-          <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-            {machine.loc}
-            {!phoneGate && reporterPhone && (
-              <button 
-                type="button" 
-                onClick={() => { setPhoneGate(true); setPhoneInput(reporterPhone); }}
-                style={{ background: 'transparent', border: 'none', color: '#863bff', cursor: 'pointer', marginLeft: '6px', textDecoration: 'underline', fontSize: '0.7rem', padding: 0 }}
-              >
-                ({reporterPhone})
-              </button>
-            )}
-          </span>
+        {/* Line 3: Location */}
+        <div style={{ fontSize: '0.75rem', color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Location:</span>
+          {machine.loc}
+          {!phoneGate && reporterPhone && (
+            <button 
+              type="button" 
+              onClick={() => { setPhoneGate(true); setPhoneInput(reporterPhone); }}
+              style={{ background: 'transparent', border: 'none', color: '#863bff', cursor: 'pointer', marginLeft: '6px', textDecoration: 'underline', fontSize: '0.7rem', padding: 0 }}
+            >
+              ({reporterPhone})
+            </button>
+          )}
         </div>
-        <div style={{ fontSize: '0.7rem', color: '#863bff', background: 'rgba(134,59,255,0.12)', padding: '2px 6px', borderRadius: '6px', fontFamily: 'monospace', fontWeight: 'bold', flexShrink: 0 }}>
+
+        {/* Line 4: Machine ID */}
+        <div style={{ fontSize: '0.75rem', color: '#a78bfa', fontFamily: 'monospace', fontWeight: 'bold' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px', fontFamily: 'Outfit, sans-serif' }}>Machine ID:</span>
           {machine.tag || (machine.id ? machine.id.slice(0, 8) : '')}
         </div>
       </div>
