@@ -25,7 +25,7 @@ const ORB_ANIMATIONS = `
 
 export default function QRGateway() {
   const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
-  const [lang, setLang] = useState('hi-IN'); // hi-IN, en-US
+  const [lang, setLang] = useState(() => localStorage.getItem('tf_lang') || 'hi-IN'); // hi-IN, en-US, mr-IN
   const [isListening, setIsListening] = useState(false);
   const [speakFeedback, setSpeakFeedback] = useState(true);
   const [assistantPrompt, setAssistantPrompt] = useState('');
@@ -102,7 +102,7 @@ export default function QRGateway() {
     };
     fetchMachineDetails();
 
-    // Greet user on load
+    // Greet user on load or when language preference changes
     setTimeout(() => {
       greetUser();
     }, 800);
@@ -122,9 +122,24 @@ export default function QRGateway() {
   };
 
   const greetUser = () => {
-    const greetingText = lang === 'hi-IN'
-      ? `नमस्ते! मैं आपका टर्बोफिक्स सहायक हूँ। माइक दबाकर समस्या बताएं।`
-      : `Hello! I am your TurboFix assistant. Tap the mic to describe the problem.`;
+    let greetingText = '';
+    if (phoneGate) {
+      if (lang === 'hi-IN') {
+        greetingText = 'नमस्ते! शिकायत दर्ज करने के लिए अपना मोबाइल नंबर दर्ज करें और भाषा चुनें।';
+      } else if (lang === 'mr-IN') {
+        greetingText = 'नमस्कार! तक्रार नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका आणि भाषा निवडा.';
+      } else {
+        greetingText = 'Hello! Please enter your mobile number and select your preferred language to register.';
+      }
+    } else {
+      if (lang === 'hi-IN') {
+        greetingText = 'नमस्ते! मैं आपका टर्बोफिक्स सहायक हूँ। माइक दबाकर समस्या बताएं।';
+      } else if (lang === 'mr-IN') {
+        greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
+      } else {
+        greetingText = 'Hello! I am your TurboFix assistant. Tap the mic to describe the problem.';
+      }
+    }
     
     setAssistantPrompt(greetingText);
     speak(greetingText);
@@ -161,9 +176,14 @@ export default function QRGateway() {
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
       const text = String(data.transcript || '').trim();
       if (!text) {
-        const noSpeechMsg = lang === 'hi-IN' 
-          ? 'कोई आवाज नहीं सुनी गई। कृपया फिर से प्रयास करें या लिखें।' 
-          : 'No speech was detected. Please try again or type the problem.';
+        let noSpeechMsg = '';
+        if (lang === 'hi-IN') {
+          noSpeechMsg = 'कोई आवाज नहीं सुनी गई। कृपया फिर से प्रयास करें या लिखें।';
+        } else if (lang === 'mr-IN') {
+          noSpeechMsg = 'काहीही ऐकू आले नाही. कृपया पुन्हा प्रयत्न करा किंवा लिहून कळवा.';
+        } else {
+          noSpeechMsg = 'No speech was detected. Please try again or type the problem.';
+        }
         setAssistantPrompt(noSpeechMsg);
         speak(noSpeechMsg);
         return;
@@ -175,17 +195,27 @@ export default function QRGateway() {
       setManualCondition(condition);
       setShowTextFallback(true);
       
-      const reviewMsg = lang === 'hi-IN'
-        ? 'नीचे दिए गए समस्या विवरण की जांच करें और समीक्षा करें बटन दबाएं।'
-        : 'Please review the transcribed text below and tap Review Report.';
+      let reviewMsg = '';
+      if (lang === 'hi-IN') {
+        reviewMsg = 'नीचे दिए गए समस्या विवरण की जांच करें और समीक्षा करें बटन दबाएं।';
+      } else if (lang === 'mr-IN') {
+        reviewMsg = 'खालील समस्येचे पुनरावलोकन करा आणि अहवाल पुनरावलोकन दाबा.';
+      } else {
+        reviewMsg = 'Please review the transcribed text below and tap Review Report.';
+      }
       
       setAssistantPrompt(reviewMsg);
       speak(reviewMsg);
     } catch (err) {
       console.error(err);
-      const errMsg = lang === 'hi-IN' 
-        ? 'ट्रांसक्रिप्शन नहीं हो सका। कृपया लिखकर दर्ज करें।' 
-        : 'Could not transcribe speech. Please type your problem.';
+      let errMsg = '';
+      if (lang === 'hi-IN') {
+        errMsg = 'ट्रांसक्रिप्शन नहीं हो सका। कृपया लिखकर दर्ज करें।';
+      } else if (lang === 'mr-IN') {
+        errMsg = 'आवाज ओळखता आली नाही. कृपया टाईप करून कळवा.';
+      } else {
+        errMsg = 'Could not transcribe speech. Please type your problem.';
+      }
       setAssistantPrompt(errMsg);
       speak(errMsg);
       setShowTextFallback(true);
@@ -406,9 +436,14 @@ export default function QRGateway() {
 
       setSubmittedTicketInfo(insertedTicket);
 
-      const successText = lang === 'hi-IN'
-        ? `**धन्यवाद**! टिकट दर्ज हो गया है और टेक्नीशियन **${technicianName || 'सहायक'}** को सूचित कर दिया गया है।`
-        : `**Thank you**! Ticket registered and assigned to technician **${technicianName || 'staff'}**.`;
+      let successText = '';
+      if (lang === 'hi-IN') {
+        successText = `**धन्यवाद**! टिकट दर्ज हो गया है और टेक्नीशियन **${technicianName || 'सहायक'}** को सूचित कर दिया गया है।`;
+      } else if (lang === 'mr-IN') {
+        successText = `**धन्यवाद**! तिकीट नोंदवले गेले आहे आणि तंत्रज्ञ **${technicianName || 'कर्मचारी'}** यांना सूचित केले गेले आहे.`;
+      } else {
+        successText = `**Thank you**! Ticket registered and assigned to technician **${technicianName || 'staff'}**.`;
+      }
       
       setAssistantPrompt(successText);
       speak(successText.replace(/\*\*/g, ''));
@@ -477,9 +512,14 @@ export default function QRGateway() {
 
       setSubmittedTicketInfo(updatedTicket);
 
-      const successText = lang === 'hi-IN'
-        ? `**धन्यवाद**! विवरण टेक्नीशियन **${technicianName || 'सहायक'}** के खुले टिकट में जोड़ दिया गया है।`
-        : `**Thank you**! Details appended to the open ticket for technician **${technicianName || 'staff'}**.`;
+      let successText = '';
+      if (lang === 'hi-IN') {
+        successText = `**धन्यवाद**! विवरण टेक्नीशियन **${technicianName || 'सहायक'}** के खुले टिकट में जोड़ दिया गया है।`;
+      } else if (lang === 'mr-IN') {
+        successText = `**धन्यवाद**! तपशील तंत्रज्ञ **${technicianName || 'कर्मचारी'}** यांच्या खुल्या तिकीट मध्ये जोडले गेले आहेत.`;
+      } else {
+        successText = `**Thank you**! Details appended to the open ticket for technician **${technicianName || 'staff'}**.`;
+      }
       
       setAssistantPrompt(successText);
       speak(successText.replace(/\*\*/g, ''));
@@ -556,11 +596,16 @@ export default function QRGateway() {
           {/* Language Toggle */}
           <select 
             value={lang} 
-            onChange={(e) => { setLang(e.target.value); }} 
+            onChange={(e) => { 
+              const newLang = e.target.value;
+              setLang(newLang); 
+              localStorage.setItem('tf_lang', newLang);
+            }} 
             style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', color: 'white', fontSize: '0.75rem', padding: '4px 8px' }}
           >
             <option value="hi-IN">Hindi (हिंदी)</option>
             <option value="en-US">English</option>
+            <option value="mr-IN">Marathi (मराठी)</option>
           </select>
         </div>
       </header>
@@ -599,10 +644,52 @@ export default function QRGateway() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '380px', width: '100%', margin: '0 auto', gap: '20px', zIndex: 10 }}>
           <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center' }}>
-              {lang === 'hi-IN' ? 'मोबाइल नंबर सत्यापन' : 'Mobile Identification'}
+              {lang === 'hi-IN' ? 'मोबाइल नंबर सत्यापन' : lang === 'mr-IN' ? 'मोबाईल नंबर पडताळणी' : 'Mobile Identification'}
             </h3>
+            
+            {/* Preferred Language selector in Phone Gate card */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                {lang === 'hi-IN' ? 'अपनी भाषा चुनें:' : lang === 'mr-IN' ? 'आपली भाषा निवडा:' : 'Select preferred language:'}
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['hi-IN', 'en-US', 'mr-IN'].map((langCode) => {
+                  const label = langCode === 'hi-IN' ? 'हिंदी' : langCode === 'mr-IN' ? 'मराठी' : 'English';
+                  const active = lang === langCode;
+                  return (
+                    <button
+                      key={langCode}
+                      type="button"
+                      onClick={() => { 
+                        setLang(langCode);
+                        localStorage.setItem('tf_lang', langCode);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px 8px',
+                        background: active ? '#863bff' : '#0b1118',
+                        border: active ? '1px solid #863bff' : '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.4' }}>
-              {lang === 'hi-IN' ? 'शिकायत/अनुरोध दर्ज करने के लिए कृपया अपना मोबाइल नंबर दर्ज करें' : 'Please enter your Mobile Number to register complaints or requests.'}
+              {lang === 'hi-IN' 
+                ? 'शिकायत/अनुरोध दर्ज करने के लिए कृपया अपना मोबाइल नंबर दर्ज करें' 
+                : lang === 'mr-IN'
+                ? 'तक्रार किंवा विनंती नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका.'
+                : 'Please enter your Mobile Number to register complaints or requests.'}
             </p>
             <input 
               type="tel" 
@@ -617,7 +704,7 @@ export default function QRGateway() {
               onClick={handlePhoneProceed} 
               style={{ width: '100%', padding: '14px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}
             >
-              {lang === 'hi-IN' ? 'आगे बढ़ें' : 'Proceed'}
+              {lang === 'hi-IN' ? 'आगे बढ़ें' : lang === 'mr-IN' ? 'पुढे जा' : 'Proceed'}
             </button>
           </div>
         </div>
@@ -639,25 +726,25 @@ export default function QRGateway() {
               <CheckCircle2 size={48} />
             </div>
             <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
-              {lang === 'hi-IN' ? 'टिकट सफलतापूर्वक दर्ज हुआ!' : 'Ticket Registered Successfully!'}
+              {lang === 'hi-IN' ? 'टिकट सफलतापूर्वक दर्ज हुआ!' : lang === 'mr-IN' ? 'तिकीट यशस्वीरित्या नोंदवले गेले!' : 'Ticket Registered Successfully!'}
             </h3>
             {submittedTicketInfo && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left', background: '#0b1118', padding: '16px', borderRadius: '8px', fontSize: '0.85rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
-                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'वर्क ऑर्डर संख्या:' : 'Work Order No:'}</span>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'वर्क ऑर्डर संख्या:' : lang === 'mr-IN' ? 'वर्क ऑर्डर क्रमांक:' : 'Work Order No:'}</span>
                   <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>{submittedTicketInfo.wo_number}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
-                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'मशीन:' : 'Machine:'}</span>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'मशीन:' : lang === 'mr-IN' ? 'मशीन:' : 'Machine:'}</span>
                   <span style={{ color: '#ffffff', fontWeight: 'bold' }}>{machine.name}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
-                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'प्राथमिक टेक्नीशियन:' : 'Primary Tech:'}</span>
-                  <span style={{ color: '#863bff', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'आवंटित नहीं' : 'Not Assigned')}</span>
+                  <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'प्राथमिक टेक्नीशियन:' : lang === 'mr-IN' ? 'प्राथमिक तंत्रज्ञ:' : 'Primary Tech:'}</span>
+                  <span style={{ color: '#863bff', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'आवंटित नहीं' : lang === 'mr-IN' ? 'नियुक्त नाही' : 'Not Assigned')}</span>
                 </div>
                 {photoPreview && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                    <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'अटैच किया गया फोटो:' : 'Attached Photo:'}</span>
+                    <span style={{ color: '#94a3b8' }}>{lang === 'hi-IN' ? 'अटैच किया गया फोटो:' : lang === 'mr-IN' ? 'जोडलेला फोटो:' : 'Attached Photo:'}</span>
                     <img src={photoPreview} alt="Attached issue" style={{ width: '100%', maxHeight: '150px', borderRadius: '6px', objectFit: 'cover' }} />
                   </div>
                 )}
@@ -666,6 +753,8 @@ export default function QRGateway() {
             <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.4' }}>
               {lang === 'hi-IN' 
                 ? `वर्क ऑर्डर दर्ज कर दिया गया है। टेक्नीशियन ${technicianName || 'सहायक'} को व्हाट्सएप संदेश भेज दिया गया है।` 
+                : lang === 'mr-IN'
+                ? `वर्क ऑर्डर नोंदवला गेला आहे. तंत्रज्ञ ${technicianName || 'कर्मचारी'} यांना व्हॉट्सॲप संदेश पाठवला गेला आहे.`
                 : `Work order registered. Dispatch notification has been routed to technician ${technicianName || 'staff'}.`}
             </p>
             <button 
@@ -673,7 +762,7 @@ export default function QRGateway() {
               onClick={resetForm}
               style={{ width: '100%', padding: '12px', background: 'var(--brand, #863bff)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
             >
-              {lang === 'hi-IN' ? 'दूसरी समस्या रिपोर्ट करें' : 'Report Another Issue'}
+              {lang === 'hi-IN' ? 'दूसरी समस्या रिपोर्ट करें' : lang === 'mr-IN' ? 'दुसरी समस्या नोंदवा' : 'Report Another Issue'}
             </button>
           </div>
         </div>
