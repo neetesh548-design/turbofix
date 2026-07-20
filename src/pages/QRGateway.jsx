@@ -102,6 +102,11 @@ export default function QRGateway() {
     };
     fetchMachineDetails();
 
+    const handleWindowFocus = () => {
+      greetUser();
+    };
+    window.addEventListener('focus', handleWindowFocus);
+
     // Greet user on load or when language preference changes
     setTimeout(() => {
       greetUser();
@@ -109,6 +114,7 @@ export default function QRGateway() {
 
     return () => {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, [lang, phoneGate]);
 
@@ -1011,13 +1017,13 @@ export default function QRGateway() {
             <>
               <div style={{ textAlign: 'center' }}>
                 <h4 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
-                  {lang === 'hi-IN' ? 'रिपोर्ट समीक्षा और पुष्टि' : 'Review & Confirm Report'}
+                  {lang === 'hi-IN' ? 'रिपोर्ट समीक्षा और पुष्टि' : lang === 'mr-IN' ? 'अहवाल पुनरावलोकन आणि पुष्टी' : 'Review & Confirm Report'}
                 </h4>
               </div>
   
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
-                  {lang === 'hi-IN' ? 'समस्या का विवरण (बदलाव कर सकते हैं):' : 'Issue Description (Edit if needed):'}
+                  {lang === 'hi-IN' ? 'समस्या का विवरण (बदलाव कर सकते हैं):' : lang === 'mr-IN' ? 'समस्येचे वर्णन (बदल करू शकता):' : 'Issue Description (Edit if needed):'}
                 </label>
                 <textarea 
                   rows={3}
@@ -1029,14 +1035,14 @@ export default function QRGateway() {
   
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>
-                  {lang === 'hi-IN' ? 'मशीन की स्थिति:' : 'Machine Condition:'}
+                  {lang === 'hi-IN' ? 'मशीन की स्थिति:' : lang === 'mr-IN' ? 'मशीनची स्थिती:' : 'Machine Condition:'}
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {[
-                    { id: 'running', label: lang === 'hi-IN' ? 'चालू है' : 'Running', color: '#eab308' },
-                    { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : 'Stopped', color: '#ef4444' },
-                    { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : 'Unsafe', color: '#dc2626' },
-                    { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : 'Not Sure', color: '#64748b' }
+                    { id: 'running', label: lang === 'hi-IN' ? 'चालू है' : lang === 'mr-IN' ? 'सुरू आहे' : 'Running', color: '#eab308' },
+                    { id: 'stopped', label: lang === 'hi-IN' ? 'बंद है' : lang === 'mr-IN' ? 'बंद आहे' : 'Stopped', color: '#ef4444' },
+                    { id: 'unsafe', label: lang === 'hi-IN' ? 'असुरक्षित है' : lang === 'mr-IN' ? 'असुरक्षित आहे' : 'Unsafe', color: '#dc2626' },
+                    { id: 'not_sure', label: lang === 'hi-IN' ? 'पता नहीं' : lang === 'mr-IN' ? 'माहीत नाही' : 'Not Sure', color: '#64748b' }
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -1060,8 +1066,8 @@ export default function QRGateway() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(134,59,255,0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.82rem' }}>
-                    <span style={{ color: '#cbd5e1' }}>{lang === 'hi-IN' ? 'आवंटित टेक्नीशियन:' : 'Assigned Technician:'}</span>
-                    <strong style={{ color: '#a78bfa', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'सहायक कर्मचारी' : 'Staff')}</strong>
+                    <span style={{ color: '#cbd5e1' }}>{lang === 'hi-IN' ? 'आवंटित टेक्नीशियन:' : lang === 'mr-IN' ? 'नियुक्त तंत्रज्ञ:' : 'Assigned Technician:'}</span>
+                    <strong style={{ color: '#a78bfa', fontWeight: 'bold' }}>{technicianName || (lang === 'hi-IN' ? 'सहायक कर्मचारी' : lang === 'mr-IN' ? 'कर्मचारी' : 'Staff')}</strong>
                   </div>
                   
                   <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
@@ -1070,7 +1076,7 @@ export default function QRGateway() {
                       onClick={() => setExtractedInfo(null)}
                       style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                      {lang === 'hi-IN' ? 'रद्द करें' : 'Cancel'}
+                      {lang === 'hi-IN' ? 'रद्द करें' : lang === 'mr-IN' ? 'रद्द करा' : 'Cancel'}
                     </button>
                     <button 
                       type="button" 
@@ -1078,7 +1084,7 @@ export default function QRGateway() {
                       disabled={checkingDuplicate || !extractedInfo.issue.trim()}
                       style={{ flex: 1, padding: '14px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
-                      {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : 'Yes, Submit')}
+                      {checkingDuplicate ? '...' : (lang === 'hi-IN' ? 'हाँ, दर्ज करें' : lang === 'mr-IN' ? 'होय, नोंदवा' : 'Yes, Submit')}
                     </button>
                   </div>
                 </>
