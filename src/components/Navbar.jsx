@@ -13,33 +13,6 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 
-const labelsByLanguage = {
-  en: {
-    platform: 'Platform', platformDesc: 'AI, machine data, planning, and execution',
-    records: 'Use old records', recordsDesc: 'Turn paper and soft copies into AI knowledge',
-    how: 'How it works', howDesc: 'Follow the complete maintenance loop',
-    demo: 'Product demo', demoDesc: 'See the current workflow in action',
-    start: 'Book a guided demo', login: 'Staff sign in', dashboard: 'Open dashboard',
-    explore: 'Explore TurboFix', language: 'Choose language', signedIn: 'Signed in',
-  },
-  hi: {
-    platform: 'प्लेटफॉर्म', platformDesc: 'AI, मशीन डेटा, प्लानिंग और कार्य',
-    records: 'पुराने रिकॉर्ड', recordsDesc: 'कागज़ और सॉफ्ट कॉपी को AI ज्ञान में बदलें',
-    how: 'कैसे काम करता है', howDesc: 'पूरा मेंटेनेंस लूप देखें',
-    demo: 'प्रोडक्ट डेमो', demoDesc: 'वर्तमान वर्कफ़्लो देखें',
-    start: 'गाइडेड डेमो बुक करें', login: 'स्टाफ साइन इन', dashboard: 'डैशबोर्ड खोलें',
-    explore: 'TurboFix देखें', language: 'भाषा चुनें', signedIn: 'साइन इन',
-  },
-  mr: {
-    platform: 'प्लॅटफॉर्म', platformDesc: 'AI, मशीन डेटा, नियोजन आणि काम',
-    records: 'जुने रेकॉर्ड', recordsDesc: 'कागद आणि सॉफ्ट कॉपी AI ज्ञानात बदला',
-    how: 'कसे काम करते', howDesc: 'पूर्ण मेंटेनन्स लूप पाहा',
-    demo: 'प्रॉडक्ट डेमो', demoDesc: 'सध्याचा वर्कफ्लो पाहा',
-    start: 'मार्गदर्शित डेमो बुक करा', login: 'स्टाफ साइन इन', dashboard: 'डॅशबोर्ड उघडा',
-    explore: 'TurboFix पाहा', language: 'भाषा निवडा', signedIn: 'साइन इन',
-  },
-};
-
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -50,14 +23,13 @@ export default function Navbar() {
     catch { return null; }
   });
   const location = useLocation();
-  const { lang, setLang } = useLanguage();
-  const labels = labelsByLanguage[lang] || labelsByLanguage.en;
+  const { lang, setLang, t } = useLanguage();
 
   const navItems = [
-    { id: 'platform', label: labels.platform, description: labels.platformDesc, icon: Layers3 },
-    { id: 'records', label: labels.records, description: labels.recordsDesc, icon: ArchiveRestore },
-    { id: 'how', label: labels.how, description: labels.howDesc, icon: Route },
-    { id: 'demo', label: labels.demo, description: labels.demoDesc, icon: PlayCircle },
+    { id: 'platform', label: t('menu.platform'), description: t('menu.platformDesc'), icon: Layers3 },
+    { id: 'records', label: t('menu.records'), description: t('menu.recordsDesc'), icon: ArchiveRestore },
+    { id: 'how', label: t('menu.how'), description: t('menu.howDesc'), icon: Route },
+    { id: 'demo', label: t('menu.demo'), description: t('menu.demoDesc'), icon: PlayCircle },
   ];
 
   useEffect(() => {
@@ -131,8 +103,8 @@ export default function Navbar() {
     <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/vault.html'} onClick={() => setIsOpen(false)}>
       <span className="public-nav-avatar">{isAuth ? (user?.name?.charAt(0) || 'S').toUpperCase() : <LogIn />}</span>
       <span>
-        <small>{isAuth ? `${labels.signedIn} • ${user?.company_code || 'TurboFix'}` : 'TurboFix workspace'}</small>
-        <strong>{isAuth ? labels.dashboard : labels.login}</strong>
+        <small>{isAuth ? `${t('menu.signedIn')} • ${user?.company_code || 'TurboFix'}` : 'TurboFix workspace'}</small>
+        <strong>{isAuth ? t('menu.dashboard') : t('menu.login')}</strong>
       </span>
     </Link>
   );
@@ -154,26 +126,26 @@ export default function Navbar() {
         </Link>
 
         <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
-          <div className="public-nav-mobile-heading">{labels.explore}</div>
+          <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
           <div className="public-nav-primary">{navItems.map(sectionLink)}</div>
           <div className="public-nav-mobile-actions">
             {accountLink}
-            {!isAuth && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{labels.start}<ArrowRight /></a>}
+            {!isAuth && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
           </div>
         </nav>
 
         <div className="public-nav-actions">
           <label className="public-nav-language">
             <Globe2 aria-hidden="true" />
-            <span className="sr-only">{labels.language}</span>
-            <select aria-label={labels.language} value={lang} onChange={(event) => setLang(event.target.value)}>
+            <span className="sr-only">{t('menu.language')}</span>
+            <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
               <option value="en">EN</option>
               <option value="hi">हिंदी</option>
               <option value="mr">मराठी</option>
             </select>
           </label>
           <div className="public-nav-desktop-account">{accountLink}</div>
-          {!isAuth && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{labels.start}<ArrowRight /></a>}
+          {!isAuth && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
           <button
             type="button"
             className="public-nav-toggle"

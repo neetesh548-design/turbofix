@@ -959,7 +959,7 @@ export default function QRGateway() {
               disabled={isTranscribing}
               style={{ background: 'rgba(134,59,255,0.1)', border: '2px solid #863bff', borderRadius: '8px', color: '#a78bfa', fontSize: '1.2rem', cursor: 'pointer', padding: '12px 20px', marginTop: '24px', zIndex: 5, opacity: isTranscribing ? 0.5 : 1, fontWeight: 'bold' }}
             >
-              {lang === 'hi-IN' ? 'लिखकर दर्ज करें' : lang === 'mr-IN' ? 'लिहून कळवा' : 'Write Issue Description'}
+              {lang === 'hi-IN' ? 'बोलने में समस्या? लिखकर दर्ज करें' : lang === 'mr-IN' ? 'बोलण्यात अडचण? लिहून कळवा' : 'Trouble speaking? Click here to write'}
             </button>
 
             {renderPhotoAttachment()}
