@@ -1,0 +1,220 @@
+.saved-searches {
+  background: linear-gradient(135deg, var(--card), rgba(26, 31, 38, 0.5));
+  border: 1px solid rgba(160, 174, 192, 0.1);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 400px;
+}
+
+.saved-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.saved-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.saved-count {
+  background: rgba(37, 211, 102, 0.2);
+  color: var(--brand);
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.searches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-item {
+  background: rgba(160, 174, 192, 0.05);
+  border: 1px solid rgba(160, 174, 192, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.3s var(--ease);
+  position: relative;
+}
+
+.search-item:hover {
+  background: rgba(160, 174, 192, 0.1);
+  border-color: rgba(160, 174, 192, 0.25);
+}
+
+.search-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.search-star {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.search-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-item-info h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #f8fafc;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.search-query {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--slate);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-item-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.search-count {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.search-date {
+  color: var(--slate);
+}
+
+.search-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(160, 174, 192, 0.1);
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(160, 174, 192, 0.2);
+  color: var(--slate);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s var(--ease);
+}
+
+.action-btn:hover {
+  background: rgba(160, 174, 192, 0.1);
+  color: #f8fafc;
+  border-color: rgba(160, 174, 192, 0.3);
+}
+
+.action-btn.load {
+  background: rgba(37, 211, 102, 0.1);
+  border-color: rgba(37, 211, 102, 0.3);
+  color: var(--brand);
+}
+
+.action-btn.load:hover {
+  background: rgba(37, 211, 102, 0.2);
+  border-color: rgba(37, 211, 102, 0.5);
+}
+
+.action-btn.delete {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.action-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.searches-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--slate);
+}
+
+.searches-empty svg {
+  color: #64748b;
+  opacity: 0.5;
+  margin-bottom: 12px;
+}
+
+.searches-empty p {
+  margin: 8px 0 4px;
+  font-size: 1rem;
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+.searches-empty small {
+  display: block;
+  color: var(--slate);
+  font-size: 0.85rem;
+}
+
+[data-theme="light"] .saved-searches {
+  background: linear-gradient(135deg, #f1f5f9, rgba(226, 232, 240, 0.5));
+  border-color: rgba(30, 41, 59, 0.08);
+}
+
+[data-theme="light"] .saved-header h3 {
+  color: #1e293b;
+}
+
+[data-theme="light"] .search-item {
+  background: rgba(30, 41, 59, 0.05);
+  border-color: rgba(30, 41, 59, 0.1);
+}
+
+[data-theme="light"] .search-item:hover {
+  background: rgba(30, 41, 59, 0.1);
+  border-color: rgba(30, 41, 59, 0.2);
+}
+
+[data-theme="light"] .search-item-info h4 {
+  color: #1e293b;
+}
+
+[data-theme="light"] .action-btn {
+  border-color: rgba(30, 41, 59, 0.15);
+  color: #64748b;
+}
+
+[data-theme="light"] .action-btn:hover {
+  background: rgba(30, 41, 59, 0.08);
+  color: #1e293b;
+  border-color: rgba(30, 41, 59, 0.25);
+}
+
+[data-theme="light"] .searches-empty p {
+  color: #1e293b;
+}
