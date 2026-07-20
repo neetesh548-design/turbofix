@@ -288,7 +288,7 @@ export default function QRGateway() {
         reader.readAsDataURL(blob);
       });
       const { data, error } = await invokeWithRetry('ai_assistant', {
-        body: { action: 'transcribe', audio_data: dataUrl.split(',')[1] }
+        body: { action: 'transcribe', audio: dataUrl }
       });
       if (error || !data || data.error) throw new Error(data?.error || error?.message || 'Transcription failed.');
       const text = String(data.transcript || '').trim();
