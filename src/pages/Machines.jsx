@@ -35,6 +35,8 @@ export default function Machines() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
   const [directoryView, setDirectoryView] = useState(() => window.localStorage.getItem('tf_machines_directory_view') || 'list');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'running' | 'breakdown'
   const [editSections, setEditSections] = useState({ basic: true, identity: true, people: true });
   const toggleEditSec = (key) => setEditSections(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -1471,7 +1473,7 @@ export default function Machines() {
               border: '1px solid rgba(134, 59, 255, 0.2)',
               borderRadius: '10px',
               padding: '12px 16px',
-              margin: '16px 0 20px',
+              margin: '16px 0 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -1493,6 +1495,49 @@ export default function Machines() {
                   ANDON: FLEET MONITORED
                 </span>
               </div>
+            </div>
+
+            {/* Interactive KPI Stat Badges & Search Filter Controls */}
+            {(() => {
+              const runningCount = machines.filter(m => !m.has_open_tickets).length;
+              const breakdownCount = machines.filter(m => m.has_open_tickets).length;
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                  <button type="button" onClick={() => setStatusFilter('all')} style={{ background: statusFilter === 'all' ? 'rgba(255,255,255,0.1)' : '#101a25', border: statusFilter === 'all' ? '1px solid #25D366' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
+                    <small style={{ color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Total Fleet</small>
+                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif' }}>{machines.length} Units</strong>
+                  </button>
+                  <button type="button" onClick={() => setStatusFilter('running')} style={{ background: statusFilter === 'running' ? 'rgba(37,211,102,0.15)' : '#101a25', border: statusFilter === 'running' ? '1px solid #25D366' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
+                    <small style={{ color: '#25D366', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Operational</small>
+                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif', color: '#25D366' }}>🟢 {runningCount} Running</strong>
+                  </button>
+                  <button type="button" onClick={() => setStatusFilter('breakdown')} style={{ background: statusFilter === 'breakdown' ? 'rgba(239,68,68,0.15)' : '#101a25', border: statusFilter === 'breakdown' ? '1px solid #F87171' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
+                    <small style={{ color: '#F87171', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Line Stops</small>
+                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif', color: '#F87171' }}>🔴 {breakdownCount} Down</strong>
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* High Performance Search Bar */}
+            <div style={{ margin: '0 0 20px' }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Search machines by name, asset code, location, department, category..."
+                style={{
+                  width: '100%',
+                  background: '#0b1118',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  color: 'white',
+                  fontSize: '0.95rem',
+                  height: '48px',
+                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4)'
+                }}
+              />
             </div>
 
             {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
@@ -1684,70 +1729,103 @@ export default function Machines() {
               </div>
             )}
 
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading machines...</div>
-            ) : machines.length === 0 ? (
-              <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                <p style={{ color: 'var(--slate)', margin: 0 }}>No machines onboarded yet. Click "+ Onboard Machine" to get started.</p>
-              </div>
-            ) : directoryView === 'tiles' ? (
-              <div className="machine-tile-grid">
-                {machines.map((m) => {
-                  const photo = m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`);
-                  return (
-                    <article className="machine-tile" key={m.machine_id} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
-                      <div className="machine-tile-photo">
-                        {photo ? <img src={photo} alt={`${m.machine_name} machine`} /> : <div><LayoutGrid /><span>No machine photo</span></div>}
-                        <span className={`machine-tile-status ${m.has_open_tickets ? 'down' : 'healthy'}`}><i />{m.has_open_tickets ? 'Down' : 'Healthy'}</span>
-                      </div>
-                      <div className="machine-tile-content">
-                        <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
-                        <p><MapPin /> {m.location || 'Location not added'}</p>
-                        <div className="machine-track-record" aria-label={`${m.machine_name} track record`}>
-                          <span><strong>{m.track_record.open}</strong><small>Open issues</small></span>
-                          <span><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
-                          <span><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
+            {(() => {
+              const filteredMachines = machines.filter((m) => {
+                const matchSearch = !searchTerm.trim() || [
+                  m.machine_name,
+                  m.machine_id,
+                  m.asset_code,
+                  m.location,
+                  m.department,
+                  m.category
+                ].some(field => String(field || '').toLowerCase().includes(searchTerm.toLowerCase()));
+
+                const isDown = Boolean(m.has_open_tickets);
+                const matchStatus = statusFilter === 'all' 
+                  ? true 
+                  : statusFilter === 'running' ? !isDown : isDown;
+
+                return matchSearch && matchStatus;
+              });
+
+              if (loading) {
+                return <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading machines...</div>;
+              }
+
+              if (machines.length === 0) {
+                return (
+                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
+                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines onboarded yet. Click "+ Register New Machine" to get started.</p>
+                  </div>
+                );
+              }
+
+              if (filteredMachines.length === 0) {
+                return (
+                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
+                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines match your search/filter parameters. Try clearing the search query.</p>
+                  </div>
+                );
+              }
+
+              return directoryView === 'tiles' ? (
+                <div className="machine-tile-grid">
+                  {filteredMachines.map((m) => {
+                    const photo = m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`);
+                    return (
+                      <article className="machine-tile" key={m.machine_id} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
+                        <div className="machine-tile-photo">
+                          {photo ? <img src={photo} alt={`${m.machine_name} machine`} /> : <div><LayoutGrid /><span>No machine photo</span></div>}
+                          <span className={`machine-tile-status ${m.has_open_tickets ? 'down' : 'healthy'}`}><i />{m.has_open_tickets ? 'Down' : 'Healthy'}</span>
                         </div>
-                        <div className="machine-track-detail">
-                          <span><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
-                          <span><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
-                        </div>
-                        <div className="machine-tile-team"><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
-                        <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="vault-card" style={{ padding: 0, overflowX: 'auto', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <table className="vault-table">
-                  <thead>
-                    <tr>
-                      <th>Machine ID</th>
-                      <th>Name</th>
-                      <th>Location</th>
-                      <th>Escalation Assignees</th>
-                      <th>Status</th>
-                      <th style={{ textAlign: 'right' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {machines.map((m) => (
-                      <tr key={m.machine_id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--brand)' }}>{m.machine_id}</td>
-                        <td style={{ fontWeight: '600', color: 'white' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              {m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) ? (
-                                <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt={`${m.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
-                              )}
-                            </div>
-                            <span>{m.machine_name}</span>
+                        <div className="machine-tile-content">
+                          <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
+                          <p><MapPin /> {m.location || 'Location not added'}</p>
+                          <div className="machine-track-record" aria-label={`${m.machine_name} track record`}>
+                            <span><strong>{m.track_record.open}</strong><small>Open issues</small></span>
+                            <span><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
+                            <span><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
                           </div>
-                        </td>
+                          <div className="machine-track-detail">
+                            <span><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
+                            <span><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
+                          </div>
+                          <div className="machine-tile-team"><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
+                          <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="vault-card" style={{ padding: 0, overflowX: 'auto', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <table className="vault-table">
+                    <thead>
+                      <tr>
+                        <th>Machine ID</th>
+                        <th>Name</th>
+                        <th>Location</th>
+                        <th>Escalation Assignees</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredMachines.map((m) => (
+                        <tr key={m.machine_id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
+                          <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--brand)' }}>{m.machine_id}</td>
+                          <td style={{ fontWeight: '600', color: 'white' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) ? (
+                                  <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt={`${m.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
+                                )}
+                              </div>
+                              <span>{m.machine_name}</span>
+                            </div>
+                          </td>
                         <td style={{ color: '#cbd5e1' }}>{m.location || '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1776,9 +1854,10 @@ export default function Machines() {
                       </tr>
                     ))}
                   </tbody>
-                        </table>
+                </table>
               </div>
-            )}
+            );
+          })()}
           </>
         ) : (
           /* VIEW 2: DEDICATED FULL-PAGE MACHINE WORKSPACE VIEW */
