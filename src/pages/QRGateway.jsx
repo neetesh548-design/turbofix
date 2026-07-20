@@ -24,7 +24,7 @@ const ORB_ANIMATIONS = `
 `;
 
 export default function QRGateway() {
-  const [machine, setMachine] = useState({ id: '', name: '', loc: '' });
+  const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
   const [lang, setLang] = useState('hi-IN'); // hi-IN, en-US
   const [isListening, setIsListening] = useState(false);
   const [speakFeedback, setSpeakFeedback] = useState(true);
@@ -74,14 +74,15 @@ export default function QRGateway() {
       try {
         const { data: mData } = await supabase
           .from('machines')
-          .select('machine_name, location, technician_user_id')
+          .select('id, machine_name, location, technician_user_id')
           .eq('machine_id', id)
           .single();
         if (mData) {
           setMachine({
-            id,
+            id: mData.id,
             name: mData.machine_name || name,
-            loc: mData.location || loc
+            loc: mData.location || loc,
+            tag: id
           });
           if (mData.technician_user_id) {
             const { data: uData } = await supabase
@@ -576,7 +577,7 @@ export default function QRGateway() {
           </span>
         </div>
         <div style={{ fontSize: '0.75rem', color: '#863bff', background: 'rgba(134,59,255,0.1)', padding: '3px 8px', borderRadius: '6px', fontFamily: 'monospace' }}>
-          ID: {machine.id ? machine.id.slice(0, 8) : ''}
+          ID: {machine.tag || (machine.id ? machine.id.slice(0, 8) : '')}
         </div>
       </div>
 
