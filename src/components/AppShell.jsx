@@ -2,6 +2,12 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
 import { Sparkles, Mic, Square, X, Camera } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
+import { ThemeProvider } from '@/hooks/useTheme';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { PerformanceMetrics } from '@/hooks/usePerformanceMonitor';
+import { enableKeyboardNavigation } from '@/utils/accessibility';
 
 /**
  * AppShell — the unified authenticated layout (Redesign P1).
@@ -96,6 +102,7 @@ export default function AppShell({ children, active }) {
   useEffect(() => {
     window.addEventListener('authChanged', refresh);
     window.addEventListener('storage', refresh);
+    enableKeyboardNavigation();
 
     return () => {
       window.removeEventListener('authChanged', refresh);
@@ -335,7 +342,13 @@ export default function AppShell({ children, active }) {
       window.location.href = BASE + 'vault.html';
       return null;
     }
-    return <div className="app-bare">{children}</div>;
+    return (
+      <ThemeProvider>
+        <ErrorBoundary>
+          <div className="app-bare">{children}</div>
+        </ErrorBoundary>
+      </ThemeProvider>
+    );
   }
 
   const roleLabel = user?.role
@@ -346,7 +359,11 @@ export default function AppShell({ children, active }) {
   const workspaceAllowed = !active || active === 'vault' || canViewWorkspace(user?.role, active);
 
   return (
-    <div className={`app-shell${railOpen ? ' rail-open' : ''}`}>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <OfflineIndicator />
+        <PerformanceMetrics show={false} />
+        <div className={`app-shell${railOpen ? ' rail-open' : ''}`}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
@@ -364,6 +381,7 @@ export default function AppShell({ children, active }) {
             <span className="app-live"><span className="app-live-dot" />Live</span>
           </div>
           <div className="app-topbar-right">
+            <ThemeToggle />
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
             <div className="app-user" title={user?.name || ''}>
               <span className="app-avatar">{initial}</span>
@@ -507,5 +525,7 @@ export default function AppShell({ children, active }) {
         </div>
       </aside>
     </div>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
