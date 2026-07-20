@@ -373,8 +373,38 @@ export default function Tickets() {
                             </div>
                           )}
 
+                          {/* AI Machine Predictive Diagnosis & Historical Machine Intelligence Card */}
+                          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(59, 130, 246, 0.06)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                              <strong style={{ fontSize: '0.82rem', color: '#60A5FA', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Rajdhani, sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                🤖 AI MACHINE DIAGNOSIS — {t.machine_name || 'Unit'}
+                              </strong>
+                              <span style={{ fontSize: '0.68rem', color: '#60A5FA', background: 'rgba(59, 130, 246, 0.15)', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Predictive Diagnostics</span>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.8rem', color: '#e2e8f0', marginBottom: '10px' }}>
+                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>AI Predicted Root Cause</small>
+                                <span>{t.ai_summary?.predicted_issue || `${t.machine_name}: Inspection required for reported issue.`}</span>
+                              </div>
+                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>Recommended Repair Step</small>
+                                <span>{t.ai_summary?.recommended_action || 'Perform standard troubleshooting protocol and verify component interlocks.'}</span>
+                              </div>
+                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>Suggested Spare Parts</small>
+                                <span>{t.ai_summary?.recommended_parts || 'Standard maintenance spares & seal kits.'}</span>
+                              </div>
+                            </div>
+
+                            {/* Machine History Insight */}
+                            <div style={{ fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.08)', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.2)', fontStyle: 'italic' }}>
+                              {t.ai_summary?.historical_insights || `⚠️ ${t.machine_name} breakdown pattern tracked by TurboFix Machine Intelligence.`}
+                            </div>
+                          </div>
+
                           {/* Japanese TPS Kaizen 5-Why RCA Standard Card */}
-                          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(134,59,255,0.05)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)' }}>
+                          <div style={{ marginTop: '12px', background: 'rgba(134,59,255,0.05)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                               <strong style={{ fontSize: '0.78rem', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Rajdhani, sans-serif' }}>
                                 🇯🇵 KAIZEN 5-WHY ROOT CAUSE DIAGNOSIS (改善)
@@ -384,11 +414,11 @@ export default function Tickets() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
                               <div><strong style={{ color: '#94a3b8' }}>Why 1 (Problem):</strong> {t.issue_text || '—'}</div>
                               <div><strong style={{ color: '#94a3b8' }}>Why 2 (Direct Cause):</strong> {t.root_cause || t.ai_summary?.predicted_issue || 'Component wear or breakdown'}</div>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {t.repair_action || 'Routine replacement and calibration completed.'}</div>
+                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {t.repair_action || t.ai_summary?.recommended_action || 'Routine replacement and calibration completed.'}</div>
                             </div>
                           </div>
 
-                          {!hasRecord && !isClosed && <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '10px' }}>The technician has not recorded repair details yet. They appear here once work is submitted.</div>}
+                          {!hasRecord && !isClosed && <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '10px' }}>The technician has not recorded manual repair logs yet. AI Predictive Diagnosis is active above.</div>}
                         </td>
                       </tr>
                     )}

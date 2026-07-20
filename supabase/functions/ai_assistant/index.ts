@@ -542,6 +542,78 @@ serve(async (req) => {
         }
       }
 
+      // Fetch Machine Name and Details for AI Machine Diagnosis
+      let machineName = 'Machine';
+      if (payload.machine_id) {
+        const { data: fullM } = await admin
+          .from('machines')
+          .select('name, category, model, asset_code, location')
+          .eq('id', payload.machine_id)
+          .maybeSingle();
+        if (fullM) {
+          machineName = fullM.name || fullM.asset_code || 'Machine';
+        }
+      }
+
+      // Fetch Machine Historical Breakdown Logs
+      let historicalTickets: any[] = [];
+      let totalPastCount = 0;
+      if (payload.machine_id) {
+        const { data: pastData, count } = await admin
+          .from('tickets')
+          .select('issue_text, root_cause, repair_action, created_at', { count: 'exact' })
+          .eq('machine_id', payload.machine_id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        if (pastData) historicalTickets = pastData;
+        totalPastCount = count || pastData?.length || 0;
+      }
+
+      // Build AI Summary object if not present
+      if (!payload.ai_summary || typeof payload.ai_summary !== 'object') {
+        payload.ai_summary = {};
+      }
+
+      // Generate Machine-Specific AI Predictive Diagnosis & Historical Insights
+      const issueLower = (payload.issue_text || '').toLowerCase();
+      let predictedIssue = '';
+      let recommendedAction = '';
+      let recommendedParts = '';
+
+      if (issueLower.includes('leak') || issueLower.includes('oil') || issueLower.includes('तेल') || issueLower.includes('गळती')) {
+        predictedIssue = `${machineName}: Hydraulic/Lubrication Seal Wear or Hose Fitting Leak`;
+        recommendedAction = 'Inspect main hydraulic seal rings, check hose fittings, verify oil level and pump pressure.';
+        recommendedParts = 'Hydraulic Seal Kit, Oil Filter Element, Fitting O-Rings';
+      } else if (issueLower.includes('smoke') || issueLower.includes('burn') || issueLower.includes('heat') || issueLower.includes('धुआं')) {
+        predictedIssue = `${machineName}: Motor Overheating or Electrical Contactor Short`;
+        recommendedAction = 'Isolate main power, inspect motor windings, check cooling fan, test thermal overload relay.';
+        recommendedParts = 'Thermal Overload Relay, Motor Bearing Set, Contactor';
+      } else if (issueLower.includes('noise') || issueLower.includes('vibrat') || issueLower.includes('sound') || issueLower.includes('आवाज')) {
+        predictedIssue = `${machineName}: Spindle / Bearing Misalignment or Mechanical Friction`;
+        recommendedAction = 'Check drive belt tension, inspect spindle bearings, lubricate linear guide ways.';
+        recommendedParts = 'Drive Belt, High-Speed Bearing Set, Synthetic Lubricant';
+      } else {
+        predictedIssue = `${machineName}: Mechanical Operation Fault / Sensor Interlock Drop`;
+        recommendedAction = 'Inspect safety interlocks, verify limit switches, test hydraulic pressure and control solenoid.';
+        recommendedParts = 'Proximity Switch, Fuse Set, Multi-Purpose Seal Kit';
+      }
+
+      // Generate Historical Insight Summary from Machine's past breakdown data
+      let historicalInsight = '';
+      if (totalPastCount > 0) {
+        const prevIssues = historicalTickets.map(t => t.root_cause || t.issue_text).filter(Boolean).slice(0, 3).join('; ');
+        historicalInsight = `⚠️ ${machineName} History: ${totalPastCount} previous breakdown logs recorded. Past causes: ${prevIssues || 'General breakdown'}.`;
+      } else {
+        historicalInsight = `ℹ️ ${machineName}: 1st recorded breakdown ticket for this machine unit.`;
+      }
+
+      payload.ai_summary.predicted_issue = payload.ai_summary.predicted_issue || predictedIssue;
+      payload.ai_summary.recommended_action = payload.ai_summary.recommended_action || recommendedAction;
+      payload.ai_summary.recommended_parts = payload.ai_summary.recommended_parts || recommendedParts;
+      payload.ai_summary.historical_insights = historicalInsight;
+      payload.ai_summary.machine_name = machineName;
+      payload.ai_summary.total_past_breakdowns = totalPastCount;
+
       const { data, error } = await admin
         .from('tickets')
         .insert(payload)
