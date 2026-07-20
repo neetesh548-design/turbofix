@@ -397,6 +397,14 @@ export default function Technician() {
                   </div>
                   <span className={`technician-state ${selectedWork.status}`}>{selectedWork.status.replace('_', ' ')}</span>
                 </div>
+                {selectedTicket.ai_summary?.photo_url && (
+                  <div style={{ margin: '16px 0', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                    <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Issue Photo</small>
+                    <a href={selectedTicket.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
+                      <img src={selectedTicket.ai_summary.photo_url} alt="Reported issue" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} />
+                    </a>
+                  </div>
+                )}
                 <button type="button" className="technician-progress postlogin-progress-button" onClick={() => document.querySelector('.technician-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div><small>View checklist →</small></button>
                 <div className="technician-actions">
                   <button className="btn btn-primary" onClick={startWork} disabled={saving || isLocked}><Play className="size-4" />{selectedWork.status === 'in_progress' ? 'Work in progress' : 'Start work'}</button>
