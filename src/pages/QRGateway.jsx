@@ -1009,6 +1009,20 @@ export default function QRGateway() {
           <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px', fontFamily: 'Outfit, sans-serif' }}>Machine ID:</span>
           {machine.tag || (machine.id ? machine.id.slice(0, 8) : '')}
         </div>
+
+        {/* Line 5: Andon Visual Machine Health Indicator (Japanese TPS Standard) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '3px', marginTop: '1px' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Andon Health:</span>
+          {activeTickets.length > 0 ? (
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '999px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+              <span className="glow-dot down" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> 🔴 ATTENTION REQUIRED ({activeTickets.length})
+            </span>
+          ) : (
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.25)', borderRadius: '999px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#25D366' }} /> 🟢 OPERATIONAL
+            </span>
+          )}
+        </div>
       </div>
 
       {errorAlert && (
