@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
+  Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
   ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2,
 } from 'lucide-react';
@@ -35,6 +35,8 @@ export default function Machines() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
   const [directoryView, setDirectoryView] = useState(() => window.localStorage.getItem('tf_machines_directory_view') || 'list');
+  const [editSections, setEditSections] = useState({ basic: true, identity: true, people: true });
+  const toggleEditSec = (key) => setEditSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   // Report-issue (manual breakdown ticket) modal
   const [reportIssueOpen, setReportIssueOpen] = useState(false);
@@ -1824,58 +1826,110 @@ export default function Machines() {
                 </div>
               </header>
 
-              {machineEdit && <form className="machine-owner-edit" onSubmit={saveMachineEdit} style={{ background: '#0b131c', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '24px' }}>
-                <div className="machine-owner-edit-heading" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px', marginBottom: '20px' }}>
+              {machineEdit && <form className="machine-owner-edit" onSubmit={saveMachineEdit} style={{ background: '#0b131c', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '14px', padding: '24px', marginBottom: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                <div className="machine-owner-edit-heading" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <span style={{ color: '#25D366', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.08em' }}>🇯🇵 MONOZUKURI ASSET MASTER PROFILE (OWNER EDIT)</span>
-                    <h3 style={{ fontSize: '1.4rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', margin: '4px 0' }}>Machine details</h3>
+                    <h3 style={{ fontSize: '1.4rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', margin: '4px 0', color: 'white' }}>Machine details</h3>
                     <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>These changes appear across the shared company workspace.</p>
                   </div>
-                  <button type="button" onClick={() => setMachineEdit(null)} style={{ color: '#F87171', fontSize: '0.9rem', fontWeight: 'bold', padding: '6px 12px', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '6px', background: 'rgba(248,113,113,0.1)' }}>Cancel</button>
+                  <button type="button" onClick={() => setMachineEdit(null)} style={{ color: '#F87171', fontSize: '0.85rem', fontWeight: 'bold', padding: '6px 14px', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', background: 'rgba(248,113,113,0.1)', cursor: 'pointer' }}>Cancel</button>
                 </div>
-                <div className="machine-owner-edit-grid">
-                  <label><span>Machine name</span><input value={machineEdit.name} onChange={(e) => setMachineEdit({ ...machineEdit, name: e.target.value })} required style={{ height: '48px', fontSize: '1rem' }} /></label>
-                  <label><span>Location</span><input value={machineEdit.location} onChange={(e) => setMachineEdit({ ...machineEdit, location: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                  <label><span>Condition</span><select value={machineEdit.status} onChange={(e) => setMachineEdit({ ...machineEdit, status: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="healthy">🟢 Running</option><option value="under_maintenance">🟡 Under maintenance</option><option value="breakdown">🔴 Breakdown</option><option value="waiting_spare">🟠 Waiting for spare</option><option value="waiting_vendor">🟠 Waiting for vendor</option><option value="shutdown">⚫ Shutdown</option><option value="decommissioned">⚪ Decommissioned</option></select></label>
-                  <label><span>Downtime cost per hour (₹)</span><input type="number" min="0" step="0.01" value={machineEdit.hourly_downtime_cost} onChange={(e) => setMachineEdit({ ...machineEdit, hourly_downtime_cost: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} />{Number(machineEdit.hourly_downtime_cost) > 0 && <small style={{ color: '#FBBF24', fontSize: '0.72rem' }}>₹{(Number(machineEdit.hourly_downtime_cost) * 24).toLocaleString('en-IN')}/day downtime exposure risk</small>}</label>
-                  <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                  <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
+
+                {/* ACCORDION SECTION 1: BASIC OPERATIONAL PARAMETERS */}
+                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => toggleEditSec('basic')}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#25D366', fontWeight: 800, fontSize: '1rem' }}>⚙️</span>
+                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Operational Parameters</strong>
+                    </div>
+                    {editSections.basic ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                  </button>
+                  {editSections.basic && (
+                    <div style={{ padding: '18px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="machine-owner-edit-grid">
+                        <label><span>Machine name</span><input value={machineEdit.name} onChange={(e) => setMachineEdit({ ...machineEdit, name: e.target.value })} required style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Location</span><input value={machineEdit.location} onChange={(e) => setMachineEdit({ ...machineEdit, location: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Condition</span><select value={machineEdit.status} onChange={(e) => setMachineEdit({ ...machineEdit, status: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="healthy">🟢 Running</option><option value="under_maintenance">🟡 Under maintenance</option><option value="breakdown">🔴 Breakdown</option><option value="waiting_spare">🟠 Waiting for spare</option><option value="waiting_vendor">🟠 Waiting for vendor</option><option value="shutdown">⚫ Shutdown</option><option value="decommissioned">⚪ Decommissioned</option></select></label>
+                        <label><span>Downtime cost per hour (₹)</span><input type="number" min="0" step="0.01" value={machineEdit.hourly_downtime_cost} onChange={(e) => setMachineEdit({ ...machineEdit, hourly_downtime_cost: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} />{Number(machineEdit.hourly_downtime_cost) > 0 && <small style={{ color: '#FBBF24', fontSize: '0.72rem' }}>₹{(Number(machineEdit.hourly_downtime_cost) * 24).toLocaleString('en-IN')}/day downtime exposure risk</small>}</label>
+                        <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <fieldset className="machine-stakeholder-edit" style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '16px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)' }}>
-                  <legend style={{ color: '#60A5FA', fontFamily: 'Rajdhani, sans-serif', fontWeight: 'bold', fontSize: '1.05rem', padding: '0 8px' }}>Machine identity &amp; asset details</legend>
-                  <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>The digital profile — carried into every ticket, report and KPI for this machine.</p>
-                  <div className="machine-owner-edit-grid">
-                    <label><span>Asset tag / code</span><input value={machineEdit.asset_code} onChange={(e) => setMachineEdit({ ...machineEdit, asset_code: e.target.value })} placeholder="CNC-04" style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Category</span><input value={machineEdit.category} onChange={(e) => setMachineEdit({ ...machineEdit, category: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Criticality</span><select value={machineEdit.criticality} onChange={(e) => setMachineEdit({ ...machineEdit, criticality: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select></label>
-                    <label><span>Manufacturer</span><input value={machineEdit.manufacturer} onChange={(e) => setMachineEdit({ ...machineEdit, manufacturer: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Model</span><input value={machineEdit.model} onChange={(e) => setMachineEdit({ ...machineEdit, model: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Serial number</span><input value={machineEdit.serial_number} onChange={(e) => setMachineEdit({ ...machineEdit, serial_number: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Department</span><input value={machineEdit.department} onChange={(e) => setMachineEdit({ ...machineEdit, department: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Production line</span><input value={machineEdit.production_line} onChange={(e) => setMachineEdit({ ...machineEdit, production_line: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Installation date</span><input type="date" value={machineEdit.installation_date} onChange={(e) => setMachineEdit({ ...machineEdit, installation_date: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Operating hours</span><input type="number" min="0" step="1" value={machineEdit.operating_hours} onChange={(e) => setMachineEdit({ ...machineEdit, operating_hours: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Warranty expiry</span><input type="date" value={machineEdit.warranty_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_expiry: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Warranty notes</span><input value={machineEdit.warranty_notes} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_notes: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Vendor</span><input value={machineEdit.vendor_name} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_name: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Vendor contact</span><input value={machineEdit.vendor_contact} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_contact: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>AMC provider</span><input value={machineEdit.amc_provider} onChange={(e) => setMachineEdit({ ...machineEdit, amc_provider: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>AMC expiry</span><input type="date" value={machineEdit.amc_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, amc_expiry: e.target.value })} style={{ height: '48px', fontSize: '1rem' }} /></label>
-                    <label><span>Replacement cost (₹)</span><input type="number" min="0" step="1000" value={machineEdit.replacement_cost} onChange={(e) => setMachineEdit({ ...machineEdit, replacement_cost: e.target.value })} placeholder="For repair-vs-replace" style={{ height: '48px', fontSize: '1rem' }} /></label>
-                  </div>
-                </fieldset>
-                <fieldset className="machine-stakeholder-edit" style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '16px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)' }}>
-                  <legend style={{ color: '#a78bfa', fontFamily: 'Rajdhani, sans-serif', fontWeight: 'bold', fontSize: '1.05rem', padding: '0 8px' }}>People connected to this machine</legend>
-                  <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix uses the same connection in the machine workspace and response path.</p>
-                  <div className="machine-owner-edit-grid">
-                    <label><span>Primary technician</span><select value={machineEdit.technician_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, technician_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="">{technicians.length ? 'Not assigned' : 'No technician found — add in Team'}</option>{technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
-                    <label><span>Supervisor</span><select value={machineEdit.supervisor_id} onChange={(e) => setMachineEdit({ ...machineEdit, supervisor_id: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="">{supervisors.length ? 'Not assigned' : 'No supervisor found — add in Team'}</option>{supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
-                    <label><span>Maintenance engineer</span><select value={machineEdit.engineer_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, engineer_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="">{engineers.length ? 'Not assigned' : 'No engineer found — add in Team'}</option>{engineers.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
-                    <label><span>Maintenance head</span><select value={machineEdit.maintenance_head_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_head_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem' }}><option value="">{maintenanceHeads.length ? 'Not assigned' : 'No maintenance head found — add in Team'}</option>{maintenanceHeads.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
-                  </div>
-                  {[technicians, supervisors, engineers, maintenanceHeads].some((people) => people.length === 0) && <a href="team.html" style={{ color: '#25D366', fontWeight: 'bold', fontSize: '0.85rem', marginTop: '8px', display: 'inline-block' }}>Add missing roles in Team →</a>}
-                </fieldset>
-                <button className="vault-btn vault-btn-primary" disabled={machineEditSaving} style={{ width: '100%', height: '52px', fontSize: '1.1rem', fontWeight: 800, background: '#25D366', color: '#000', borderRadius: '10px', cursor: 'pointer', border: 'none' }}>{machineEditSaving ? 'Saving changes…' : 'Save changes'}</button>
+
+                {/* ACCORDION SECTION 2: MACHINE IDENTITY & ASSET DETAILS */}
+                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => toggleEditSec('identity')}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#60A5FA', fontWeight: 800, fontSize: '1rem' }}>🪪</span>
+                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#60A5FA' }}>Machine Identity & Asset Details</strong>
+                    </div>
+                    {editSections.identity ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                  </button>
+                  {editSections.identity && (
+                    <div style={{ padding: '18px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>The digital profile — carried into every ticket, report and KPI for this machine.</p>
+                      <div className="machine-owner-edit-grid">
+                        <label><span>Asset tag / code</span><input value={machineEdit.asset_code} onChange={(e) => setMachineEdit({ ...machineEdit, asset_code: e.target.value })} placeholder="CNC-04" style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Category</span><input value={machineEdit.category} onChange={(e) => setMachineEdit({ ...machineEdit, category: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Criticality</span><select value={machineEdit.criticality} onChange={(e) => setMachineEdit({ ...machineEdit, criticality: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select></label>
+                        <label><span>Manufacturer</span><input value={machineEdit.manufacturer} onChange={(e) => setMachineEdit({ ...machineEdit, manufacturer: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Model</span><input value={machineEdit.model} onChange={(e) => setMachineEdit({ ...machineEdit, model: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Serial number</span><input value={machineEdit.serial_number} onChange={(e) => setMachineEdit({ ...machineEdit, serial_number: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Department</span><input value={machineEdit.department} onChange={(e) => setMachineEdit({ ...machineEdit, department: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Production line</span><input value={machineEdit.production_line} onChange={(e) => setMachineEdit({ ...machineEdit, production_line: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Installation date</span><input type="date" value={machineEdit.installation_date} onChange={(e) => setMachineEdit({ ...machineEdit, installation_date: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Operating hours</span><input type="number" min="0" step="1" value={machineEdit.operating_hours} onChange={(e) => setMachineEdit({ ...machineEdit, operating_hours: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Warranty expiry</span><input type="date" value={machineEdit.warranty_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_expiry: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Warranty notes</span><input value={machineEdit.warranty_notes} onChange={(e) => setMachineEdit({ ...machineEdit, warranty_notes: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Vendor</span><input value={machineEdit.vendor_name} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_name: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Vendor contact</span><input value={machineEdit.vendor_contact} onChange={(e) => setMachineEdit({ ...machineEdit, vendor_contact: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>AMC provider</span><input value={machineEdit.amc_provider} onChange={(e) => setMachineEdit({ ...machineEdit, amc_provider: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>AMC expiry</span><input type="date" value={machineEdit.amc_expiry} onChange={(e) => setMachineEdit({ ...machineEdit, amc_expiry: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Replacement cost (₹)</span><input type="number" min="0" step="1000" value={machineEdit.replacement_cost} onChange={(e) => setMachineEdit({ ...machineEdit, replacement_cost: e.target.value })} placeholder="For repair-vs-replace" style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ACCORDION SECTION 3: PEOPLE CONNECTED TO THIS MACHINE */}
+                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '20px', overflow: 'hidden' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => toggleEditSec('people')}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#a78bfa', fontWeight: 800, fontSize: '1rem' }}>👥</span>
+                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#a78bfa' }}>People Connected to this Machine</strong>
+                    </div>
+                    {editSections.people ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                  </button>
+                  {editSections.people && (
+                    <div style={{ padding: '18px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix uses the same connection in the machine workspace and response path.</p>
+                      <div className="machine-owner-edit-grid">
+                        <label><span>Primary technician</span><select value={machineEdit.technician_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, technician_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{technicians.length ? 'Not assigned' : 'No technician found — add in Team'}</option>{technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                        <label><span>Supervisor</span><select value={machineEdit.supervisor_id} onChange={(e) => setMachineEdit({ ...machineEdit, supervisor_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{supervisors.length ? 'Not assigned' : 'No supervisor found — add in Team'}</option>{supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                        <label><span>Maintenance engineer</span><select value={machineEdit.engineer_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, engineer_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{engineers.length ? 'Not assigned' : 'No engineer found — add in Team'}</option>{engineers.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                        <label><span>Maintenance head</span><select value={machineEdit.maintenance_head_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_head_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{maintenanceHeads.length ? 'Not assigned' : 'No maintenance head found — add in Team'}</option>{maintenanceHeads.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
+                      </div>
+                      {[technicians, supervisors, engineers, maintenanceHeads].some((people) => people.length === 0) && <a href="team.html" style={{ color: '#25D366', fontWeight: 'bold', fontSize: '0.85rem', marginTop: '8px', display: 'inline-block' }}>Add missing roles in Team →</a>}
+                    </div>
+                  )}
+                </div>
+
+                <button className="vault-btn vault-btn-primary" disabled={machineEditSaving} style={{ width: '100%', height: '52px', fontSize: '1.1rem', fontWeight: 800, background: '#25D366', color: '#000', borderRadius: '10px', cursor: 'pointer', border: 'none', boxShadow: '0 4px 16px rgba(37, 211, 102, 0.3)' }}>{machineEditSaving ? 'Saving changes…' : 'Save changes'}</button>
               </form>}
 
               <section className="machine-workspace-pulse" aria-label="Machine at a glance">
