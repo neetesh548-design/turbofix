@@ -401,10 +401,10 @@ serve(async (req) => {
     // Voice transcription - public access allowed (no auth required)
     if (text(body.action) === 'transcribe') {
       const audio = text(body.audio)
-      const audioMatch = audio.match(/^data:(audio\/[a-zA-Z0-9.+;=-]+);base64,(.+)$/)
-      if (!audioMatch) return reply(req, { error: 'The recording could not be read.' }, 400)
-      const audioMime = audioMatch[1].split(';')[0]
-      const audioBase64 = audioMatch[2]
+      const parts = audio.split(';base64,')
+      if (parts.length !== 2 || !parts[0].startsWith('data:audio/')) return reply(req, { error: 'The recording could not be read.' }, 400)
+      const audioMime = parts[0].replace(/^data:/, '').split(';')[0]
+      const audioBase64 = parts[1]
       if (audioBase64.length > 14_000_000) return reply(req, { error: 'Recording is too long. Keep it under a minute.' }, 413)
       const transcribeKey = Deno.env.get('GEMINI_API_KEY')
       if (!transcribeKey) return reply(req, { error: 'Voice input is not configured.' }, 503)
