@@ -95,6 +95,42 @@
   --sidebar-ring: #25D366;
 }
 
+/* Light Theme Design Tokens */
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card-bg: #f8fafc;
+  --card-foreground: #0f172a;
+  --popover: #f8fafc;
+  --popover-foreground: #0f172a;
+  --primary: #25D366;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted: #cbd5e1;
+  --muted-foreground: #475569;
+  --accent: #cbd5e1;
+  --accent-foreground: #0f172a;
+  --destructive: #EF4444;
+  --destructive-foreground: #ffffff;
+  --ui-border: rgba(15, 23, 42, 0.12);
+  --input: rgba(15, 23, 42, 0.08);
+  --ring: #25D366;
+  --chart-1: #25D366;
+  --chart-2: #3B82F6;
+  --chart-3: #F59E0B;
+  --chart-4: #EF4444;
+  --chart-5: #8B5CF6;
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #25D366;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e2e8f0;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --sidebar-ring: #25D366;
+}
+
 /* ===========================================================
    TurboFix demo site — design tokens
    =========================================================== */
@@ -818,39 +854,40 @@ textarea:focus-visible {
 
 /* Light Theme Override */
 [data-theme="light"] {
-  --bg: #f8fafc;
-  --card: #f1f5f9;
-  --ink: #1e293b;
-  --slate: #64748b;
-  --border: rgba(30, 41, 59, 0.1);
-  --navy: #f8fafc;
-  --navy-2: #f1f5f9;
+  --bg: #ffffff;
+  --card: #f8fafc;
+  --ink: #0f172a;
+  --slate: #475569;
+  --border: rgba(15, 23, 42, 0.12);
+  --navy: #ffffff;
+  --navy-2: #f8fafc;
   --navy-3: #e2e8f0;
 }
 
 [data-theme="light"] body {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #0f172a;
 }
 
 [data-theme="light"] h1,
 [data-theme="light"] h2,
 [data-theme="light"] h3,
 [data-theme="light"] h4 {
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 [data-theme="light"] .modal-overlay {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.4);
 }
 
 [data-theme="light"] .modal,
 [data-theme="light"] .app-h-nav,
 [data-theme="light"] .app-topbar {
-  background: linear-gradient(135deg, rgba(241, 245, 249, 0.9), rgba(226, 232, 240, 0.8));
-  border-color: rgba(30, 41, 59, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 /* Dark Theme (Default) */
