@@ -468,6 +468,38 @@ serve(async (req) => {
       return reply(req, { data })
     }
 
+    if (text(body.action) === 'check_duplicate') {
+      const { machine_id } = body
+      if (!machine_id) return reply(req, { error: 'Invalid machine ID.' }, 400)
+      const { data, error } = await admin
+        .from('tickets')
+        .select('id, issue_text, created_at')
+        .eq('machine_id', machine_id)
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (error) {
+        console.error('Error checking duplicates:', error)
+        return reply(req, { error: error.message }, 500)
+      }
+      return reply(req, { duplicate: data && data.length > 0 ? data[0] : null })
+    }
+
+    if (text(body.action) === 'get_ticket') {
+      const { ticket_id } = body
+      if (!ticket_id) return reply(req, { error: 'Invalid ticket ID.' }, 400)
+      const { data, error } = await admin
+        .from('tickets')
+        .select('ai_summary')
+        .eq('id', ticket_id)
+        .single()
+      if (error) {
+        console.error('Error fetching ticket details:', error)
+        return reply(req, { error: error.message }, 500)
+      }
+      return reply(req, { data })
+    }
+
     // Chat queries and diagnostic actions require full authenticated sessions
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
     const authorization = req.headers.get('Authorization') || ''

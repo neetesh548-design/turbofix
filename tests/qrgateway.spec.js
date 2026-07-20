@@ -166,26 +166,29 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
     // Mock duplicate tickets check - return an existing open ticket
     await page.route('**/rest/v1/tickets?*', async (route) => {
-      const url = new URL(route.request().url());
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([{ id: 'DUPLICATE-ID-111', issue_text: 'Oil leak on main line', created_at: new Date().toISOString() }])
-        });
-      } else {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(MOCK_TICKET)
-        });
-      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_TICKET)
+      });
     });
 
     // Mock Gemini transcription and public ticket update responses
     await page.route('**/functions/v1/ai_assistant', async (route) => {
       const requestBody = route.request().postDataJSON();
-      if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
+      if (requestBody && requestBody.action === 'check_duplicate') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ duplicate: { id: 'DUPLICATE-ID-111', issue_text: 'Oil leak on main line', created_at: new Date().toISOString() } })
+        });
+      } else if (requestBody && requestBody.action === 'get_ticket') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { ai_summary: { photo_url: null } } })
+        });
+      } else if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -241,7 +244,13 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
     await page.route('**/functions/v1/ai_assistant', async (route) => {
       const requestBody = route.request().postDataJSON();
-      if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
+      if (requestBody && requestBody.action === 'check_duplicate') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ duplicate: null })
+        });
+      } else if (requestBody && (requestBody.action === 'log_ticket' || requestBody.action === 'update_ticket')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',

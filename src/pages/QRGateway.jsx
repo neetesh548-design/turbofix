@@ -319,16 +319,13 @@ export default function QRGateway() {
     try {
       // 1. Check for duplicate open tickets on this machine
       if (!bypassDuplicateCheck) {
-        const { data: existingOpen } = await supabase
-          .from('tickets')
-          .select('id, issue_text, created_at')
-          .eq('machine_id', machine.id)
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (existingOpen && existingOpen.length > 0) {
-          setDuplicateTicket(existingOpen[0]);
+        const { data: dupData, error: dupErr } = await supabase.functions.invoke('ai_assistant', {
+          body: { action: 'check_duplicate', machine_id: machine.id }
+        });
+        if (dupErr || !dupData || dupData.error) {
+          console.error('Error checking duplicates:', dupErr || dupData?.error);
+        } else if (dupData.duplicate) {
+          setDuplicateTicket(dupData.duplicate);
           const alertMsg = lang === 'hi-IN'
             ? 'इस मशीन के लिए पहले से ही एक खुला टिकट मौजूद है।'
             : 'An open ticket is already active for this machine.';
@@ -443,11 +440,13 @@ export default function QRGateway() {
         uploadedUrl = publicUrl;
       }
 
-      const { data: currentTicket } = await supabase
-        .from('tickets')
-        .select('ai_summary')
-        .eq('id', duplicateTicket.id)
-        .single();
+      const { data: fetchResult, error: fetchErr } = await supabase.functions.invoke('ai_assistant', {
+        body: { action: 'get_ticket', ticket_id: duplicateTicket.id }
+      });
+      if (fetchErr || !fetchResult || fetchResult.error) {
+        throw new Error(fetchResult?.error || fetchErr?.message || 'Could not fetch existing ticket details.');
+      }
+      const currentTicket = fetchResult.data;
       
       const mergedSummary = {
         ...(currentTicket?.ai_summary || {}),
