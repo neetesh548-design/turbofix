@@ -1,0 +1,249 @@
+import { test, expect } from '@playwright/test';
+
+// Mock data
+const MOCK_MACHINE = {
+  id: 'MOCK-MACHINE-123',
+  machine_name: 'CNC Milling Machine #4',
+  location: 'Assembly Area A',
+  technician_user_id: 'TECH-789'
+};
+
+const MOCK_USER = {
+  name: 'Neetesh Soni'
+};
+
+const MOCK_TICKET = {
+  id: 'TICKET-999',
+  wo_number: 'WO-020582',
+  created_at: new Date().toISOString(),
+  lifecycle_stage: 'open',
+  urgency: 'high'
+};
+
+test.describe('QR Gateway Issue Reporting Flow', () => {
+  
+  test.beforeEach(async ({ page }) => {
+    // Log browser console logs
+    page.on('console', msg => console.log(`BROWSER LOG: [${msg.type()}] ${msg.text()}`));
+    page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
+
+    // 1. Mock Supabase Fetch Machine Details
+    await page.route('**/rest/v1/machines?*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_MACHINE)
+      });
+    });
+
+    // 2. Mock Supabase Fetch Technician Name
+    await page.route('**/rest/v1/users?*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_USER)
+      });
+    });
+
+    // 3. Mock Storage Upload for Photos
+    await page.route('**/storage/v1/object/repair-proofs/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ Key: 'repair-proofs/test-img.png' })
+      });
+    });
+
+    // 4. Mock Storage Get Public URL
+    await page.route('**/storage/v1/object/public/repair-proofs/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ publicUrl: 'https://supabase.co/storage/v1/object/public/repair-proofs/MOCK-MACHINE-123/test-img.png' })
+      });
+    });
+  });
+
+  test('Scenario 1: Reporter Mobile Identification (Phone Gate)', async ({ page }) => {
+    // Clear localStorage to trigger phone gate
+    await page.addInitScript(() => {
+      window.localStorage.clear();
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Verify phone gate is visible (in either Hindi or English)
+    const phoneHeader = page.locator('h3', { hasText: /Mobile Identification|मोबाइल नंबर सत्यापन/ });
+    await expect(phoneHeader).toBeVisible();
+
+    // Fill valid phone number and proceed
+    await page.fill('input[type="tel"]', '9876543210');
+    await page.locator('button', { hasText: /Proceed|आगे बढ़ें/ }).click();
+
+    // Gate should close
+    await expect(phoneHeader).not.toBeVisible();
+    await expect(page.locator('span', { hasText: /बोलने के लिए दबाएं|Tap to speak/ })).toBeVisible();
+    
+    // Verify phone is saved in localStorage
+    const savedPhone = await page.evaluate(() => window.localStorage.getItem('tf_reporter_phone'));
+    expect(savedPhone).toBe('9876543210');
+  });
+
+  test('Scenario 2 & 3: Voice recording, Gemini transcription, and Editing', async ({ page }) => {
+    // Set phone number in localStorage to bypass phone gate
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    // Mock Gemini transcription Edge function response
+    await page.route('**/functions/v1/ai_assistant', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ transcript: 'The spindle motor is overheating and leaking hydraulic fluid' })
+      });
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Click to start recording (using the mic button which is the first button containing SVG)
+    await page.locator('#voice-mic-button').click({ force: true });
+    await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
+
+    // Click to stop recording
+    await page.locator('#voice-mic-button').click({ force: true });
+
+    // Verify confirmation overlay appears with transcribed text
+    const textReview = page.locator('textarea');
+    await expect(textReview).toBeVisible();
+    await expect(textReview).toHaveValue('The spindle motor is overheating and leaking hydraulic fluid');
+
+    // Edit the text description in the review overlay
+    await textReview.fill('Spindle motor overheating and leaking hydraulic oil near bottom gasket');
+
+    // Verify condition was auto-selected (overheating/leaking usually falls back to 'running' or 'stopped')
+    // Let's manually select 'stopped' to change condition
+    await page.locator('button', { hasText: /बंद है|Stopped/ }).click();
+  });
+
+  test('Scenario 4: Photo capture and attachment preview', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Attach mock photo file
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.locator('span', { hasText: /Take Photo or Upload|फोटो लें या अपलोड करें/ }).click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles({
+      name: 'issue-breakdown.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('fake-image-data')
+    });
+
+    // Verify thumbnail preview and remove button are visible
+    await expect(page.locator('img[alt="Preview"]')).toBeVisible();
+    
+    const removeBtn = page.locator('button', { hasText: /हटाएं|Remove/ });
+    await expect(removeBtn).toBeVisible();
+
+    // Remove photo and verify cleared
+    await removeBtn.click();
+    await expect(page.locator('img[alt="Preview"]')).not.toBeVisible();
+  });
+
+  test('Scenario 5: Duplicate ticket detection and merging', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    // Mock duplicate tickets check - return an existing open ticket
+    await page.route('**/rest/v1/tickets?*', async (route) => {
+      const url = new URL(route.request().url());
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([{ id: 'DUPLICATE-ID-111', issue_text: 'Oil leak on main line', created_at: new Date().toISOString() }])
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(MOCK_TICKET)
+        });
+      }
+    });
+
+    // Mock Gemini transcription response
+    await page.route('**/functions/v1/ai_assistant', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ transcript: 'Leak is getting worse' })
+      });
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    // Record voice (click to start and click to stop)
+    await page.locator('#voice-mic-button').click({ force: true });
+    await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
+    await page.locator('#voice-mic-button').click({ force: true });
+
+    // Trigger ticket insertion
+    await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
+
+    // Verify duplicate warning screen
+    await expect(page.locator('h4', { hasText: /समान टिकट पहले से खुला है|Similar Ticket Open/ })).toBeVisible();
+    await expect(page.locator('button', { hasText: /विवरण जोड़ें \(अनुशंसित\)|Append Details/ })).toBeVisible();
+  });
+
+  test('Scenario 6: Successful Ticket Submission and receipt visual', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+
+    // Mock tickets check (no duplicates) and ticket insertion
+    await page.route('**/rest/v1/tickets?*', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(MOCK_TICKET)
+        });
+      }
+    });
+
+    await page.route('**/functions/v1/ai_assistant', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ transcript: 'Air pipe leak' })
+      });
+    });
+
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+
+    await page.locator('#voice-mic-button').click({ force: true });
+    await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
+    await page.locator('#voice-mic-button').click({ force: true });
+    await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
+
+    // Verify receipt visual is shown
+    await expect(page.locator('h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).toBeVisible();
+    await expect(page.locator('strong:has-text("WO-020582")')).toBeVisible();
+    await expect(page.locator('span:has-text("CNC Milling Machine #4")')).toBeVisible();
+    await expect(page.locator('span:has-text("Neetesh Soni")')).toBeVisible();
+
+    // Verify clicking "Report Another Issue" resets form state
+    await page.locator('button', { hasText: /दूसरी समस्या रिपोर्ट करें|Report Another Issue/ }).click();
+    await expect(page.locator('h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).not.toBeVisible();
+    await expect(page.locator('span', { hasText: /बोलने के लिए दबाएं|Tap to speak/ })).toBeVisible();
+  });
+
+});

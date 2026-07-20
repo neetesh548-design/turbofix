@@ -764,6 +764,7 @@ export default function QRGateway() {
 
             {/* Central Assistant Orb */}
             <button
+              id="voice-mic-button"
               type="button"
               onClick={startVoiceInput}
               disabled={isTranscribing}
