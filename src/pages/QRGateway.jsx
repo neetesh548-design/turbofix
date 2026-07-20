@@ -921,15 +921,15 @@ export default function QRGateway() {
               disabled={isTranscribing}
               style={{
                 position: 'relative',
-                width: '120px',
-                height: '120px',
+                width: '180px',
+                height: '180px',
                 borderRadius: '50%',
                 background: isTranscribing
                   ? 'radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(109,40,217,1) 100%)'
                   : isListening 
                   ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
                   : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
-                border: '4px solid rgba(255,255,255,0.1)',
+                border: '6px solid rgba(255,255,255,0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -937,18 +937,19 @@ export default function QRGateway() {
                 zIndex: 5,
                 outline: 'none',
                 animation: isTranscribing ? 'voice-listening-orb 1s infinite ease-in-out' : isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
               }}
             >
               {isTranscribing ? (
-                <span className="spin" style={{ color: 'white', display: 'inline-block', fontSize: '1.8rem', animation: 'spin 1.2s linear infinite' }}>⏳</span>
+                <span className="spin" style={{ color: 'white', display: 'inline-block', fontSize: '2.5rem', animation: 'spin 1.2s linear infinite' }}>⏳</span>
               ) : (
-                <Mic size={40} color="white" />
+                <Mic size={64} color="white" />
               )}
             </button>
 
             {/* Orb instruction hint */}
-            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '20px', zIndex: 5 }}>
+            <span style={{ fontSize: '1.4rem', color: '#ffffff', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '24px', zIndex: 5, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
               {isTranscribing ? (lang === 'hi-IN' ? 'अनुवाद हो रहा है...' : 'Transcribing...') : isListening ? (lang === 'hi-IN' ? 'रोकने के लिए दबाएं' : 'Tap to stop') : (lang === 'hi-IN' ? 'बोलने के लिए दबाएं' : 'Tap to speak')}
             </span>
 
@@ -956,9 +957,9 @@ export default function QRGateway() {
               type="button" 
               onClick={() => { setShowTextFallback(true); setTranscript(''); }}
               disabled={isTranscribing}
-              style={{ background: 'transparent', border: 'none', color: '#863bff', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '12px', zIndex: 5, opacity: isTranscribing ? 0.5 : 1 }}
+              style={{ background: 'rgba(134,59,255,0.1)', border: '2px solid #863bff', borderRadius: '8px', color: '#a78bfa', fontSize: '1.2rem', cursor: 'pointer', padding: '12px 20px', marginTop: '24px', zIndex: 5, opacity: isTranscribing ? 0.5 : 1, fontWeight: 'bold' }}
             >
-              {lang === 'hi-IN' ? 'बोलने में समस्या? लिखकर दर्ज करें' : 'Trouble speaking? Click here to write'}
+              {lang === 'hi-IN' ? 'लिखकर दर्ज करें' : lang === 'mr-IN' ? 'लिहून कळवा' : 'Write Issue Description'}
             </button>
 
             {renderPhotoAttachment()}
