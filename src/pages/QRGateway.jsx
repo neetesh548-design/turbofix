@@ -251,6 +251,32 @@ export default function QRGateway() {
     }
   };
 
+  // Strict Zero-Scroll viewport lock on mobile browsers
+  useEffect(() => {
+    const origHtmlOverflow = document.documentElement.style.overflow;
+    const origHtmlHeight = document.documentElement.style.height;
+    const origBodyOverflow = document.body.style.overflow;
+    const origBodyHeight = document.body.style.height;
+    const origBodyPosition = document.body.style.position;
+    const origBodyWidth = document.body.style.width;
+
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.height = '100dvh';
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100dvh';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100vw';
+
+    return () => {
+      document.documentElement.style.overflow = origHtmlOverflow;
+      document.documentElement.style.height = origHtmlHeight;
+      document.body.style.overflow = origBodyOverflow;
+      document.body.style.height = origBodyHeight;
+      document.body.style.position = origBodyPosition;
+      document.body.style.width = origBodyWidth;
+    };
+  }, []);
+
   useEffect(() => {
     const handleOnline = async () => {
       console.log('Back online! Syncing offline tickets...');
@@ -1219,8 +1245,8 @@ export default function QRGateway() {
             disabled={isTranscribing}
             style={{
               position: 'relative',
-              width: 'clamp(120px, 26vh, 150px)',
-              height: 'clamp(120px, 26vh, 150px)',
+              width: 'clamp(100px, 20vh, 130px)',
+              height: 'clamp(100px, 20vh, 130px)',
               borderRadius: '50%',
               background: isTranscribing
                 ? 'radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(109,40,217,1) 100%)'
@@ -1239,9 +1265,9 @@ export default function QRGateway() {
             }}
           >
             {isTranscribing ? (
-              <span style={{ color: 'white', display: 'inline-block', fontSize: '2rem' }}>⏳</span>
+              <span style={{ color: 'white', display: 'inline-block', fontSize: '1.8rem' }}>⏳</span>
             ) : (
-              <Mic size={48} color="white" />
+              <Mic size={40} color="white" />
             )}
           </button>
 
