@@ -110,7 +110,7 @@ export default function QRGateway() {
     return () => {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     };
-  }, [lang]);
+  }, [lang, phoneGate]);
 
   // Speak function for TTS
   const speak = (text) => {
@@ -542,6 +542,20 @@ export default function QRGateway() {
     localStorage.setItem('tf_reporter_phone', phoneInput.trim());
     setReporterPhone(phoneInput.trim());
     setPhoneGate(false);
+    
+    // Announce instructions immediately on transition to step 2 (recording state)
+    setTimeout(() => {
+      let greetingText = '';
+      if (lang === 'hi-IN') {
+        greetingText = 'नमस्ते! मैं आपका टर्बोफिक्स सहायक हूँ। माइक दबाकर समस्या बताएं।';
+      } else if (lang === 'mr-IN') {
+        greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
+      } else {
+        greetingText = 'Hello! I am your TurboFix assistant. Tap the mic to describe the problem.';
+      }
+      setAssistantPrompt(greetingText);
+      speak(greetingText);
+    }, 400);
   };
 
   const handleFetchStatus = async () => {
