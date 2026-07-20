@@ -190,7 +190,28 @@ input:focus, select:focus, textarea:focus {
 .decision-progress span { display: block; height: 100%; background: var(--brand); border-radius: inherit; }
 .decision-next-card h2 { margin: 16px 0 10px; font-size: 1.55rem; }
 .text-link { color: var(--brand); font-weight: 700; font-size: .86rem; display: inline-block; margin-top: 18px; }
-.decision-section-label { color: var(--slate); text-transform: uppercase; letter-spacing: .12em; font-size: .74rem; font-weight: 700; margin: 30px 0 12px; }
+.decision-section-label { color: var(--slate); text-transform: uppercase; letter-spacing: .12em; font-size: .74rem; font-weight: 700; margin: 30px 0 12px; display: flex; align-items: center; gap: 10px; }
+/* Zen polish: a hairline that lets the section label breathe without a heavy rule. */
+.decision-section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+
+/* Lean/TPS principle tag — English stays primary, the Japanese term rides along. */
+.lean-tag { display: inline-flex; align-items: baseline; gap: 6px; padding: 2px 9px; border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .28); background: rgba(28, 45, 66, .55);
+  vertical-align: middle; white-space: nowrap; cursor: help; text-transform: none; letter-spacing: 0; }
+.lean-tag-term { font-size: .68rem; font-weight: 700; letter-spacing: .06em; color: #b8c6d9; text-transform: uppercase; }
+.lean-tag-kanji { font-size: .72rem; font-weight: 600; color: var(--slate-light); }
+/* Andon: the stop-the-line signal is the only tag allowed to shout. */
+.lean-tag.andon { border-color: rgba(239, 68, 68, .45); background: rgba(239, 68, 68, .1); }
+.lean-tag.andon .lean-tag-term { color: #ef4444; }
+.lean-tag.andon .lean-tag-kanji { color: rgba(239, 68, 68, .8); }
+.decision-heading h1 .lean-tag { transform: translateY(-.35em); }
+.decision-panel-heading h2 .lean-tag { margin-left: 6px; }
+@media (max-width: 640px) {
+  .lean-tag { padding: 1px 7px; }
+  .lean-tag-term { font-size: .62rem; }
+  .lean-tag-kanji { font-size: .66rem; }
+  .decision-heading h1 .lean-tag { display: inline-flex; transform: none; margin-top: 6px; }
+}
 .decision-kpi-grid, .decision-insight-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .decision-metric, .decision-insight { padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
 .metric-value { display: block; font: 800 2.1rem/1 'Rajdhani', sans-serif; margin-bottom: 8px; }
