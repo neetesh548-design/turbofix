@@ -115,7 +115,13 @@ export default function QRGateway() {
 
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const speechRecognitionRef = useRef(null);
+  const transcriptRef = useRef('');
   const [isTranscribing, setIsTranscribing] = useState(false);
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
@@ -404,10 +410,20 @@ export default function QRGateway() {
     );
   };
 
+  const stopVoiceInput = () => {
+    if (speechRecognitionRef.current) {
+      try { speechRecognitionRef.current.stop(); } catch (e) {}
+      speechRecognitionRef.current = null;
+    }
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      try { recorderRef.current.stop(); } catch (e) {}
+    }
+  };
+
   const startVoiceInput = async () => {
     setErrorAlert(null);
     if (isListening) {
-      recorderRef.current?.stop();
+      stopVoiceInput();
       return;
     }
     
@@ -424,7 +440,36 @@ export default function QRGateway() {
 
     setExtractedInfo(null);
     setSuccess(false);
-    setTranscript('');
+
+    // Try Web Speech API for instant real-time live transcription
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = lang === 'hi-IN' ? 'hi-IN' : lang === 'mr-IN' ? 'mr-IN' : 'en-US';
+        
+        recognition.onresult = (event) => {
+          let liveText = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            liveText += event.results[i][0].transcript;
+          }
+          if (liveText.trim()) {
+            setTranscript(liveText.trim());
+          }
+        };
+
+        recognition.onerror = (err) => {
+          console.warn('SpeechRecognition live error:', err);
+        };
+
+        recognition.start();
+        speechRecognitionRef.current = recognition;
+      } catch (err) {
+        console.warn('Could not start live SpeechRecognition:', err);
+      }
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -436,10 +481,31 @@ export default function QRGateway() {
       };
       
       recorder.onstop = async () => {
-        stream.getTracks().forEach((track) => track.stop());
         setIsListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        await transcribeAudio(blob);
+        stream.getTracks().forEach((track) => track.stop());
+        
+        if (speechRecognitionRef.current) {
+          try { speechRecognitionRef.current.stop(); } catch (e) {}
+          speechRecognitionRef.current = null;
+        }
+
+        // If Web Speech API already captured the text live, use it immediately
+        const liveCaptured = transcriptRef.current ? transcriptRef.current.trim() : '';
+        if (liveCaptured) {
+          setManualCondition(suggestCondition(liveCaptured));
+          setShowTextFallback(true);
+          const reviewMsg = lang === 'hi-IN'
+            ? 'नीचे दिए गए समस्या विवरण की जांच करें और समीक्षा करें बटन दबाएं।'
+            : lang === 'mr-IN'
+            ? 'खालील समस्येचे पुनरावलोकन करा आणि अहवाल पुनरावलोकन दाबा.'
+            : 'Please review the transcribed text below and tap Review Report.';
+          setAssistantPrompt(reviewMsg);
+          speak(reviewMsg);
+        } else {
+          // Fallback to Gemini Edge Function transcription
+          await transcribeAudio(blob);
+        }
       };
 
       recorderRef.current = recorder;
@@ -983,14 +1049,39 @@ export default function QRGateway() {
               </p>
             )}
             
-            <div>
+            <div style={{ position: 'relative' }}>
               <textarea 
                 rows={3}
                 value={transcript} 
                 onChange={(e) => setTranscript(e.target.value)}
                 placeholder={lang === 'hi-IN' ? 'मशीन की समस्या लिखें (उदा. ऑइल लीक हो रहा है)' : 'e.g. Oil leak near gearbox'}
-                style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'vertical' }}
+                style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '12px 48px 12px 12px', color: 'white', fontFamily: 'inherit', resize: 'vertical' }}
               />
+              <button
+                type="button"
+                onClick={startVoiceInput}
+                disabled={isTranscribing}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '10px',
+                  background: isListening ? '#ef4444' : '#863bff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  cursor: 'pointer',
+                  boxShadow: isListening ? '0 0 10px rgba(239, 68, 68, 0.6)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                title={isListening ? 'Stop listening' : 'Dictate issue by voice'}
+              >
+                <Mic size={18} />
+              </button>
             </div>
 
             <div>
