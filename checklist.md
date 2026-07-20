@@ -438,7 +438,45 @@ The AI Records workspace converts paper and digital records into approved machin
 
 ---
 
-## 9. Pre-Release Gate
+## 9. System Design & Architecture (evelyne24 Checklist Alignment)
+
+A systematic review derived from [The System Design Checklist](https://github.com/evelyne24/system-design-checklist) for evaluating system properties, trade-offs, and failure modes across all architectural layers.
+
+### Requirements & System Boundaries
+- [ ] **Functional & Non-Functional Requirements**: Core user flows, latency limits (<200ms p99), availability targets (99.9%), and throughput expectations are explicitly quantified.
+- [ ] **SLA / SLO / SLI Alignment**: Service Level Indicators (SLIs) for key endpoints (voice transcription, ticket submission, AI reasoning) are defined and mapped to operational alerts.
+- [ ] **Capacity & Scale Planning**: Storage, memory, and database connection pools are sized for peak factory floor load (5x normal operating volume).
+
+### Data & Storage Strategy
+- [ ] **Database & Schema Selection**: Relational constraints (Postgres/Supabase) enforce data integrity, while unstructured payloads (AI summaries, logs) use JSONB.
+- [ ] **Caching & Invalidation Strategy**: In-memory / browser caching (PWA, Service Worker, localStorage) has explicit expiration and invalidation policies to prevent stale data.
+- [ ] **Sharding & Partitioning**: High-volume tables (tickets, logs, events) are indexed by `factory_id` and `created_at` for efficient time-series range queries and future horizontal partitioning.
+- [ ] **Backup & Disaster Recovery (RPO/RTO)**: Recovery Point Objective (RPO < 15 mins) and Recovery Time Objective (RTO < 1 hour) are tested with automated database backups and restoration drills.
+
+### API & Communication Design
+- [ ] **API Paradigms & Protocols**: REST endpoints and Supabase Realtime subscriptions are used appropriately based on sync vs real-time requirements.
+- [ ] **Idempotency**: All mutation requests (ticket creation, inventory deductions, status updates) support idempotency keys to prevent duplicate actions on network retries.
+- [ ] **Rate Limiting & Throttling**: Edge functions and API gateways enforce per-IP / per-user rate limits to prevent denial-of-service or runaway AI API billing.
+- [ ] **Asynchronous Processing & Queuing**: Heavy tasks (AI knowledge extraction, voice transcription, batch notifications) are offloaded to background workers with Dead Letter Queues (DLQ) for failed jobs.
+
+### Resilience & Fault Tolerance
+- [ ] **Exponential Backoff with Jitter**: All network retry logic incorporates randomized jitter to avoid thundering herd problems during backend recovery.
+- [ ] **Circuit Breakers & Fallbacks**: Third-party dependencies (Gemini AI, Meta WhatsApp API) fail gracefully with local fallback modes (manual text entry, offline queueing).
+- [ ] **Redundancy & Failover**: Deployment configurations ensure zero downtime if a single cloud instance or database node fails.
+
+### Observability & Operational Excellence
+- [ ] **Structured Logging**: All backend services log in JSON format with correlation IDs passed across async boundaries for end-to-end request tracing.
+- [ ] **Distributed Tracing & Metrics**: APM instrumentation tracks request latency, database query times, and external API calls.
+- [ ] **Health Probes**: Liveness and readiness probes (`/healthz`) actively check DB connectivity, memory usage, and background worker status.
+
+### Security & Compliance Architecture
+- [ ] **Zero-Trust Access Control**: Fine-grained Row Level Security (RLS) policies enforce multi-tenant isolation at the database layer.
+- [ ] **Data Encryption**: Data in transit (TLS 1.3) and data at rest (AES-256) are encrypted across storage buckets and database volumes.
+- [ ] **Threat Modeling & OWASP Top 10**: Vulnerability scans verify defense against SQL injection, XSS, SSRF, and broken access controls.
+
+---
+
+## 10. Pre-Release Gate
 
 Before every production release, verify:
 
@@ -454,5 +492,6 @@ Before every production release, verify:
 
 ---
 
-*Last updated: 2026-07-19*
+*Last updated: 2026-07-20*
 *Maintainer: Neetesh Kumar Soni*
+
