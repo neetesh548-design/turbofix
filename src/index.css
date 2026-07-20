@@ -15,6 +15,7 @@
 @import "./components/DevPortal.css";
 @import "./components/RealtimeCollaboration.css";
 @import "./components/PerformanceOptimization.css";
+@import "./components/Localization.css";
 
 @custom-variant dark (&:is(.dark *));
 
