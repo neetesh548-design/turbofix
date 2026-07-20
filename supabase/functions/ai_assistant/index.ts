@@ -500,6 +500,13 @@ serve(async (req) => {
             .then(() => {})
             .catch(() => {});
         }
+      } else {
+        // Fallback to first available machine in DB if tag/name is unrecognized
+        const { data: defaultM } = await admin.from('machines').select('id, factory_id').order('created_at', { ascending: true }).limit(1).maybeSingle();
+        if (defaultM) {
+          payload.machine_id = defaultM.id;
+          if (defaultM.factory_id) payload.factory_id = defaultM.factory_id;
+        }
       }
 
       // If payload still lacks factory_id, look up primary factory
