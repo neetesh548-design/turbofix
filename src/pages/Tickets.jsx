@@ -73,6 +73,13 @@ export default function Tickets() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterMachine, setFilterMachine] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterTechnician, setFilterTechnician] = useState('all');
+  const [machinesList, setMachinesList] = useState([]);
+  const [techniciansList, setTechniciansList] = useState([]);
 
   useEffect(() => {
     document.title = 'Tickets | TurboFix';
@@ -94,16 +101,37 @@ export default function Tickets() {
     setLoading(true);
     setError('');
     try {
-      const [ticketsRes, machinesRes] = await Promise.all([
+      const [ticketsRes, machinesRes, directoryRes] = await Promise.all([
         supabase.from('tickets').select('*'),
-        supabase.from('machines').select('id,name'),
+        supabase.from('machines').select('id,name,technician_user_id,supervisor_id'),
+        supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
       ]);
 
       if (ticketsRes.error) throw new Error(ticketsRes.error.message);
       if (machinesRes.error) throw new Error(machinesRes.error.message);
 
+      const directoryMembers = directoryRes.data?.members || [];
+      const teamMap = {};
+      const techsOnly = [];
+      directoryMembers.forEach(m => {
+        teamMap[m.user_id] = m.name;
+        if (['maintenance_technician', 'technician', 'owner', 'supervisor', 'engineer'].includes(m.role)) {
+          techsOnly.push(m);
+        }
+      });
+      setTechniciansList(techsOnly);
+
       const machineMap = {};
-      (machinesRes.data || []).forEach(m => { machineMap[m.id] = m.name; });
+      const machineTechMap = {};
+      const machineTechNameMap = {};
+      const mList = (machinesRes.data || []).map(m => {
+        machineMap[m.id] = m.name;
+        const techId = m.technician_user_id;
+        machineTechMap[m.id] = techId || null;
+        machineTechNameMap[m.id] = techId ? (teamMap[techId] || 'Unassigned') : 'Unassigned';
+        return { id: m.id, name: m.name };
+      });
+      setMachinesList(mList);
 
       // Urgency can live on the ticket column (in-app / WhatsApp) or inside the
       // AI summary. Normalise both to a single Title-case value.
@@ -136,6 +164,8 @@ export default function Tickets() {
         closure_approved_by: t.closure_approved_by,
         repeat_failure_flag: t.repeat_failure_flag,
         repeat_failure_count: t.repeat_failure_count,
+        technician_id: machineTechMap[t.machine_id] || null,
+        technician_name: machineTechNameMap[t.machine_id] || 'Unassigned'
       }));
       // Open work first, then most-recent — the queue an owner actually scans.
       data.sort((a, b) => {
@@ -181,23 +211,61 @@ export default function Tickets() {
   const urgentCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket)).length;
   const closedCount = tickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
   
-  const visibleTickets = tickets.filter((ticket) => {
-    const matchesFilter = activeFilter === 'all'
-      || (activeFilter === 'open' && String(ticket.status).toLowerCase() === 'open')
-      || (activeFilter === 'urgent' && String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket))
-      || (activeFilter === 'closed' && ['closed', 'resolved'].includes(String(ticket.status).toLowerCase()));
+  const visibleTickets = tickets.filter((t) => {
+    // 1. Text Search Filter (WO, machine name, issue text, phone, etc.)
+    const matchesSearch = !searchTerm.trim() || [
+      t.wo_number,
+      t.machine_name,
+      t.issue_text,
+      t.reporter_phone,
+      t.status,
+      t.urgency,
+      t.ticket_id
+    ].some(field => String(field || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
-    if (!matchesFilter) return false;
-    if (!searchTerm.trim()) return true;
+    // 2. Machine Filter
+    const matchesMachine = filterMachine === 'all' || String(t.machine_id) === String(filterMachine);
 
-    const query = searchTerm.toLowerCase();
-    const wo = String(ticket.wo_number || '').toLowerCase();
-    const machine = String(ticket.machine_name || '').toLowerCase();
-    const issue = String(ticket.issue_text || '').toLowerCase();
-    const phone = String(ticket.reporter_phone || '').toLowerCase();
-    const id = String(ticket.ticket_id || '').toLowerCase();
+    // 3. Status Filter (Tab status filter key: 'all', 'open', 'urgent', 'closed')
+    let matchesTabStatus = true;
+    if (activeFilter === 'open') {
+      matchesTabStatus = String(t.status).toLowerCase() === 'open';
+    } else if (activeFilter === 'urgent') {
+      matchesTabStatus = ['high', 'critical'].includes(String(t.urgency).toLowerCase()) && String(t.status).toLowerCase() === 'open';
+    } else if (activeFilter === 'closed') {
+      matchesTabStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
+    }
 
-    return wo.includes(query) || machine.includes(query) || issue.includes(query) || phone.includes(query) || id.includes(query);
+    // 4. Advanced Status Filter Dropdown
+    let matchesStatus = true;
+    if (filterStatus !== 'all') {
+      if (filterStatus === 'open') {
+        matchesStatus = String(t.status).toLowerCase() === 'open';
+      } else if (filterStatus === 'closed') {
+        matchesStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
+      } else {
+        matchesStatus = String(t.lifecycle_stage || '').toLowerCase() === filterStatus.toLowerCase();
+      }
+    }
+
+    // 5. Date Range Filter
+    let matchesDate = true;
+    if (t.created_at) {
+      const ticketTime = new Date(t.created_at).getTime();
+      if (filterStartDate) {
+        const startMs = new Date(filterStartDate + 'T00:00:00').getTime();
+        if (ticketTime < startMs) matchesDate = false;
+      }
+      if (filterEndDate) {
+        const endMs = new Date(filterEndDate + 'T23:59:59').getTime();
+        if (ticketTime > endMs) matchesDate = false;
+      }
+    }
+
+    // 6. Technician Filter
+    const matchesTechnician = filterTechnician === 'all' || String(t.technician_id) === String(filterTechnician);
+
+    return matchesSearch && matchesMachine && matchesTabStatus && matchesStatus && matchesDate && matchesTechnician;
   });
 
   return (
@@ -286,12 +354,12 @@ export default function Tickets() {
             <section className="postlogin-summary" aria-label="Ticket summary filters">
               {[['all', tickets.length, 'All tickets'], ['open', openCount, 'Open work'], ['urgent', urgentCount, 'Urgent issues'], ['closed', closedCount, 'Closed tickets']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View details →</small></button>)}
             </section>
-            <div style={{ margin: '16px 0 20px', display: 'flex', gap: '12px' }}>
+            <div style={{ margin: '16px 0 16px', display: 'flex', gap: '12px' }}>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search tickets by WO number, machine name, issue, phone..."
+                placeholder="🔍 Search tickets by WO number, machine name, issue, phone..."
                 style={{
                   width: '100%',
                   background: '#0b1118',
@@ -302,6 +370,99 @@ export default function Tickets() {
                   fontSize: '0.85rem'
                 }}
               />
+            </div>
+
+            {/* Advanced Multi-Faceted Filters */}
+            <div style={{
+              background: '#0e1722',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '10px',
+              padding: '16px',
+              marginBottom: '20px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Machine</label>
+                <select 
+                  value={filterMachine} 
+                  onChange={(e) => setFilterMachine(e.target.value)} 
+                  style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Machines</option>
+                  {machinesList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Status</label>
+                <select 
+                  value={filterStatus} 
+                  onChange={(e) => setFilterStatus(e.target.value)} 
+                  style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="open">🟢 Open</option>
+                  <option value="closed">🔴 Closed</option>
+                  <option value="reported">Reported</option>
+                  <option value="acknowledged">Acknowledged</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="work_started">Work Started</option>
+                  <option value="waiting_spare">Waiting for Spare</option>
+                  <option value="repair_completed">Repair Completed</option>
+                  <option value="verification_pending">Verification Pending</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Technician</label>
+                <select 
+                  value={filterTechnician} 
+                  onChange={(e) => setFilterTechnician(e.target.value)} 
+                  style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Technicians</option>
+                  {techniciansList.map(t => <option key={t.user_id} value={t.user_id}>{t.name} ({t.role.replace('maintenance_', '')})</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Start Date</label>
+                <input 
+                  type="date" 
+                  value={filterStartDate} 
+                  onChange={(e) => setFilterStartDate(e.target.value)} 
+                  style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem', colorScheme: 'dark' }} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>End Date</label>
+                <input 
+                  type="date" 
+                  value={filterEndDate} 
+                  onChange={(e) => setFilterEndDate(e.target.value)} 
+                  style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem', colorScheme: 'dark' }} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setFilterMachine('all');
+                    setFilterStatus('all');
+                    setFilterStartDate('');
+                    setFilterEndDate('');
+                    setFilterTechnician('all');
+                    setSearchTerm('');
+                  }}
+                  style={{ height: '42px', width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#F87171', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Reset Filters
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -343,7 +504,14 @@ export default function Tickets() {
                       <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white' }}>
                         <span style={{ display: 'inline-block', width: '12px', color: 'var(--slate)', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>›</span> {t.wo_number || (ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId)}
                       </td>
-                      <td style={{ fontWeight: '600', color: 'white' }}>{t.machine_name || t.machine_id}{t.repeat_failure_flag && <span title="Recurring failure — RCA recommended" style={{ marginLeft: '8px', fontSize: '0.66rem', fontWeight: 700, textTransform: 'uppercase', color: '#F87171', border: '1px solid #F87171', borderRadius: '999px', padding: '1px 7px', whiteSpace: 'nowrap' }}>Repeat ×{(t.repeat_failure_count || 0) + 1}</span>}</td>
+                      <td style={{ fontWeight: '600', color: 'white' }}>
+                        <div>{t.machine_name || t.machine_id}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>🔧 Assigned:</span>
+                          <span style={{ color: '#8deead', fontWeight: 'bold' }}>{t.technician_name}</span>
+                        </div>
+                        {t.repeat_failure_flag && <span title="Recurring failure — RCA recommended" style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.66rem', fontWeight: 700, textTransform: 'uppercase', color: '#F87171', border: '1px solid #F87171', borderRadius: '999px', padding: '1px 7px', whiteSpace: 'nowrap' }}>Repeat ×{(t.repeat_failure_count || 0) + 1}</span>}
+                      </td>
                       <td style={{ whiteSpace: 'nowrap', color: '#cbd5e1' }}>{formatDateTime(t.reported_at)}</td>
                       <td>
                         {(() => {
