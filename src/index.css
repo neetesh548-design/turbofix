@@ -17,6 +17,7 @@
 @import "./components/PerformanceOptimization.css";
 @import "./components/Localization.css";
 @import "./components/CompanyCalendar.css";
+@import "./components/MachineCalendar.css";
 
 @custom-variant dark (&:is(.dark *));
 
