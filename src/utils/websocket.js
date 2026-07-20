@@ -10,6 +10,7 @@ class WebSocketManager {
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
     this.heartbeatInterval = null;
+    this.maxQueueSize = 1000; // Prevent unbounded memory growth
     this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
@@ -56,7 +57,8 @@ class WebSocketManager {
   attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+      const exponentialDelay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+      const delay = Math.min(exponentialDelay, 30000); // Cap at 30 seconds
       setTimeout(() => this.connect(), delay);
     }
   }
@@ -85,9 +87,21 @@ class WebSocketManager {
     };
 
     if (this.isConnected && this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
+      try {
+        this.ws.send(JSON.stringify(message));
+      } catch (err) {
+        console.error('WebSocket send error:', err);
+        this.messageQueue.push(message);
+        if (this.messageQueue.length > this.maxQueueSize) {
+          this.messageQueue.shift(); // Drop oldest if queue full
+        }
+      }
     } else {
       this.messageQueue.push(message);
+      // Drop oldest messages if queue exceeds max size
+      if (this.messageQueue.length > this.maxQueueSize) {
+        this.messageQueue.shift();
+      }
     }
   }
 

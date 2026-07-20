@@ -1,5 +1,41 @@
 import crypto from 'crypto';
 
+// Validate webhook URL to prevent SSRF attacks
+function isValidWebhookUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+
+    // Reject private/internal IP ranges
+    const hostname = url.hostname.toLowerCase();
+    const privatePatterns = [
+      /^localhost$/,
+      /^127\./,
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[01])\./,
+      /^192\.168\./,
+      /^::1$/,
+      /^fc00:/i,
+      /^fe80:/i,
+    ];
+
+    if (privatePatterns.some(pattern => pattern.test(hostname))) {
+      console.warn(`Rejecting webhook URL with private IP: ${hostname}`);
+      return false;
+    }
+
+    // Require HTTPS in production
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+      console.warn('Rejecting non-HTTPS webhook URL in production');
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Invalid webhook URL:', err);
+    return false;
+  }
+}
+
 export class WebhookManager {
   constructor() {
     this.webhooks = this.loadWebhooks();
@@ -16,6 +52,10 @@ export class WebhookManager {
   }
 
   registerWebhook(config) {
+    // Validate webhook URL before registration
+    if (!isValidWebhookUrl(config.url)) {
+      throw new Error('Invalid webhook URL: must be publicly accessible HTTPS endpoint');
+    }
     const webhook = {
       id: this.generateId(),
       url: config.url,

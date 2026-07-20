@@ -1,4 +1,5 @@
 // Internationalization (i18n) utilities for TurboFix
+import React from 'react';
 
 // Supported languages and locales
 export const SUPPORTED_LANGUAGES = {
@@ -211,9 +212,20 @@ class I18nManager {
     const translations = this.translations[this.currentLanguage] || {};
     let message = translations[key] || key;
 
-    // Replace parameters
-    Object.keys(params).forEach((param) => {
-      message = message.replace(`{${param}}`, params[param]);
+    // Replace parameters with HTML escaping (prevent XSS)
+    message = message.replace(/\{(\w+)\}/g, (match, param) => {
+      const value = params[param];
+      if (value === undefined || value === null) return match;
+
+      // HTML escape the parameter value
+      const escaped = String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+      return escaped;
     });
 
     return message;
