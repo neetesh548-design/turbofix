@@ -437,24 +437,74 @@ serve(async (req) => {
       return reply(req, { transcript })
     }
 
+    // Public Machine Details Lookup (bypasses RLS for anonymous QR Gateway operators)
+    if (text(body.action) === 'get_machine_details') {
+      const { machine_id } = body;
+      if (!machine_id) return reply(req, { error: 'Invalid machine ID.' }, 400);
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(machine_id));
+      let mQuery = admin.from('machines').select('id, name, location, technician_user_id, factory_id');
+      if (isUuid) {
+        mQuery = mQuery.eq('id', machine_id);
+      } else {
+        mQuery = mQuery.or(`id.eq.${machine_id},asset_code.eq.${machine_id},name.eq.${machine_id}`);
+      }
+
+      const { data: mDataArr, error: mErr } = await mQuery.limit(1);
+      if (mErr || !mDataArr || mDataArr.length === 0) {
+        return reply(req, { machine: null });
+      }
+
+      const mData = mDataArr[0];
+      let technician_name = '';
+      if (mData.technician_user_id) {
+        const { data: uData } = await admin
+          .from('users')
+          .select('name')
+          .eq('id', mData.technician_user_id)
+          .maybeSingle();
+        if (uData && uData.name) {
+          technician_name = uData.name;
+        }
+      }
+
+      return reply(req, { machine: { ...mData, technician_name } });
+    }
+
     // Public Ticket Logging and Appending (allows anonymous QR Gateway operators to report breakdowns without signing in)
     if (text(body.action) === 'log_ticket') {
       const { payload } = body
       if (!payload || !payload.machine_id) return reply(req, { error: 'Invalid payload.' }, 400)
 
-      // Ensure factory_id is linked to the machine's factory if missing
-      if (!payload.factory_id && payload.machine_id) {
-        const { data: mRow } = await admin
-          .from('machines')
-          .select('factory_id')
-          .eq('id', payload.machine_id)
-          .maybeSingle();
-        if (mRow && mRow.factory_id) {
+      // Resolve machine_id to real UUID and attach machine's factory_id
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(payload.machine_id));
+      let mQuery = admin.from('machines').select('id, factory_id');
+      if (isUuid) {
+        mQuery = mQuery.eq('id', payload.machine_id);
+      } else {
+        mQuery = mQuery.or(`id.eq.${payload.machine_id},asset_code.eq.${payload.machine_id},name.eq.${payload.machine_id}`);
+      }
+      
+      const { data: mDataArr } = await mQuery.limit(1);
+      const mRow = mDataArr?.[0];
+      if (mRow) {
+        payload.machine_id = mRow.id; // Replace tag/name with actual machine UUID
+        if (mRow.factory_id) {
           payload.factory_id = mRow.factory_id;
+          
+          // Auto-heal any existing orphaned/mismatched tickets for this machine
+          admin
+            .from('tickets')
+            .update({ factory_id: mRow.factory_id })
+            .eq('machine_id', mRow.id)
+            .then(() => {})
+            .catch(() => {});
         }
       }
+
+      // If payload still lacks factory_id, look up primary factory
       if (!payload.factory_id) {
-        const { data: fRow } = await admin.from('factories').select('id').limit(1).maybeSingle();
+        const { data: fRow } = await admin.from('factories').select('id').order('created_at', { ascending: true }).limit(1).maybeSingle();
         if (fRow) payload.factory_id = fRow.id;
       }
 

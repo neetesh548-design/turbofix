@@ -134,39 +134,25 @@ export default function QRGateway() {
     const fetchMachineDetails = async () => {
       if (!id) return;
       try {
-        let query = supabase
-          .from('machines')
-          .select('id, name, location, technician_user_id, factory_id');
-        
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-        if (isUuid) {
-          query = query.eq('id', id);
-        } else {
-          query = query.or(`id.eq.${id},asset_code.eq.${id},name.eq.${id}`);
+        const { data, error } = await invokeWithRetry('ai_assistant', {
+          body: { action: 'get_machine_details', machine_id: id }
+        });
+
+        if (error || !data?.machine) {
+          console.warn('Machine details notice:', error?.message || 'Not found via edge function, using fallback');
+          return;
         }
 
-        const { data: mDataArr, error: mErr } = await query.limit(1);
-        if (mErr) console.error('Error fetching machine:', mErr);
-        const mData = mDataArr?.[0];
-
-        if (mData) {
-          setMachine({
-            id: mData.id,
-            name: mData.name || name,
-            loc: mData.location || loc,
-            tag: id,
-            factory_id: mData.factory_id
-          });
-          if (mData.technician_user_id) {
-            const { data: uData } = await supabase
-              .from('users')
-              .select('name')
-              .eq('id', mData.technician_user_id)
-              .single();
-            if (uData && uData.name) {
-              setTechnicianName(uData.name);
-            }
-          }
+        const mData = data.machine;
+        setMachine({
+          id: mData.id,
+          name: mData.name || name,
+          loc: mData.location || loc,
+          tag: id,
+          factory_id: mData.factory_id
+        });
+        if (mData.technician_name) {
+          setTechnicianName(mData.technician_name);
         }
       } catch (err) {
         console.error('Error fetching machine details:', err);
