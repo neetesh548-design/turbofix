@@ -388,12 +388,60 @@ serve(async (req) => {
 
   try {
     const url = Deno.env.get('SUPABASE_URL') || ''
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+
+    let body: any = {}
+    try {
+      body = await req.json()
+    } catch {
+      return reply(req, { error: 'Invalid JSON request body.' }, 400)
+    }
+
+    // Voice transcription - public access allowed (no auth required)
+    if (text(body.action) === 'transcribe') {
+      const audio = text(body.audio)
+      const audioMatch = audio.match(/^data:(audio\/[a-zA-Z0-9.+;=-]+);base64,(.+)$/)
+      if (!audioMatch) return reply(req, { error: 'The recording could not be read.' }, 400)
+      const audioMime = audioMatch[1].split(';')[0]
+      const audioBase64 = audioMatch[2]
+      if (audioBase64.length > 14_000_000) return reply(req, { error: 'Recording is too long. Keep it under a minute.' }, 413)
+      const transcribeKey = Deno.env.get('GEMINI_API_KEY')
+      if (!transcribeKey) return reply(req, { error: 'Voice input is not configured.' }, 503)
+      
+      const transcribeResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${transcribeKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [
+          { text: 'Transcribe this maintenance question verbatim. The speaker may use English, Hindi, or Marathi (or a mix). Return only the transcribed text in its spoken language — no translation, quotes, or commentary.' },
+          { inline_data: { mime_type: audioMime, data: audioBase64 } },
+        ] }] }),
+      })
+      
+      if (!transcribeResp.ok) {
+        await logUsage(admin, {
+          userId: 'anonymous', companyId: 'anonymous',
+          action: 'transcribe', status: 'error',
+          errorMsg: `Gemini returned ${transcribeResp.status}`,
+          latencyMs: Date.now() - startTime, ipAddress: clientIp,
+        })
+        return reply(req, { error: 'Voice transcription is temporarily unavailable.' }, 502)
+      }
+      
+      const transcribeData = await transcribeResp.json()
+      const transcript = String(transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+      await logUsage(admin, {
+        userId: 'anonymous', companyId: 'anonymous',
+        action: 'transcribe', status: 'ok',
+        latencyMs: Date.now() - startTime, ipAddress: clientIp,
+      })
+      return reply(req, { transcript })
+    }
+
+    // Chat queries and diagnostic actions require full authenticated sessions
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
     const authorization = req.headers.get('Authorization') || ''
     if (!authorization) return reply(req, { error: 'Please sign in again.' }, 401)
     const caller = createClient(url, anonKey, { global: { headers: { Authorization: authorization } } })
-    const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const { data: { user }, error: authError } = await caller.auth.getUser()
     if (authError || !user) return reply(req, { error: 'Your session has expired. Please sign in again.' }, 401)
     const directoryUser = await resolveDirectoryUser(admin, user)
@@ -413,57 +461,6 @@ serve(async (req) => {
       return reply(req, {
         error: 'AI Assistant is available to Supervisors, Engineers, Maintenance Heads, and Owners. Contact your supervisor for access.',
       }, 403)
-    }
-
-    const body = await req.json()
-
-    // Voice transcription
-    if (text(body.action) === 'transcribe') {
-      // -----------------------------------------------------------------------
-      // AI FIREWALL — Rate limit for transcription
-      // -----------------------------------------------------------------------
-      const rateCheck = await checkRateLimit(admin, directoryUser.id, directoryUser.company_id)
-      if (!rateCheck.allowed) {
-        await logUsage(admin, {
-          userId: directoryUser.id, companyId: directoryUser.company_id,
-          action: 'transcribe', status: 'rate_limited',
-          errorMsg: rateCheck.reason, ipAddress: clientIp,
-        })
-        return reply(req, { error: rateCheck.reason }, 429)
-      }
-
-      const audio = text(body.audio)
-      const audioMatch = audio.match(/^data:(audio\/[a-zA-Z0-9.+;=-]+);base64,(.+)$/)
-      if (!audioMatch) return reply(req, { error: 'The recording could not be read.' }, 400)
-      const audioMime = audioMatch[1].split(';')[0]
-      const audioBase64 = audioMatch[2]
-      if (audioBase64.length > 14_000_000) return reply(req, { error: 'Recording is too long. Keep it under a minute.' }, 413)
-      const transcribeKey = Deno.env.get('GEMINI_API_KEY')
-      if (!transcribeKey) return reply(req, { error: 'Voice input is not configured.' }, 503)
-      const transcribeResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${transcribeKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [
-          { text: 'Transcribe this maintenance question verbatim. The speaker may use English, Hindi, or Marathi (or a mix). Return only the transcribed text in its spoken language — no translation, quotes, or commentary.' },
-          { inline_data: { mime_type: audioMime, data: audioBase64 } },
-        ] }] }),
-      })
-      if (!transcribeResp.ok) {
-        await logUsage(admin, {
-          userId: directoryUser.id, companyId: directoryUser.company_id,
-          action: 'transcribe', status: 'error',
-          errorMsg: `Gemini returned ${transcribeResp.status}`,
-          latencyMs: Date.now() - startTime, ipAddress: clientIp,
-        })
-        return reply(req, { error: 'Voice transcription is temporarily unavailable.' }, 502)
-      }
-      const transcribeData = await transcribeResp.json()
-      const transcript = String(transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-      await logUsage(admin, {
-        userId: directoryUser.id, companyId: directoryUser.company_id,
-        action: 'transcribe', status: 'ok',
-        latencyMs: Date.now() - startTime, ipAddress: clientIp,
-      })
-      return reply(req, { transcript })
     }
 
     const rawQuestion = text(body.question)
