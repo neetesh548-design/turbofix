@@ -614,6 +614,28 @@ export default function QRGateway() {
           </button>
           
           {/* Language Toggle */}
+          <button
+            type="button"
+            onClick={greetUser}
+            style={{
+              background: '#863bff',
+              border: 'none',
+              borderRadius: '6px',
+              color: 'white',
+              fontSize: '0.72rem',
+              padding: '5px 9px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(134,59,255,0.2)'
+            }}
+          >
+            <Volume2 size={12} />
+            {lang === 'hi-IN' ? 'आवाज सुनें' : lang === 'mr-IN' ? 'सूचना ऐका' : 'Listen Guide'}
+          </button>
+
           <select 
             value={lang} 
             onChange={(e) => { 
@@ -621,7 +643,7 @@ export default function QRGateway() {
               setLang(newLang); 
               localStorage.setItem('tf_lang', newLang);
             }} 
-            style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', color: 'white', fontSize: '0.75rem', padding: '4px 8px' }}
+            style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', color: 'white', fontSize: '0.75rem', padding: '5px 8px' }}
           >
             <option value="hi-IN">Hindi (हिंदी)</option>
             <option value="en-US">English</option>
