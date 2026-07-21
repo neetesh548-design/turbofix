@@ -1,22 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GripVertical, Settings } from 'lucide-react';
-import { DASHBOARD_LAYOUT_STORAGE_KEY } from '@/lib/dashboardLayout';
-
-function readStoredLayout(defaultLayout) {
-  try {
-    const saved = localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY);
-    if (!saved) return defaultLayout;
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) return defaultLayout;
-    const expectedIds = new Set(defaultLayout.map((item) => item.id));
-    if (parsed.length !== defaultLayout.length || parsed.some((item) => !item || !expectedIds.has(item.id))) {
-      return defaultLayout;
-    }
-    return parsed;
-  } catch {
-    return defaultLayout;
-  }
-}
+import { DASHBOARD_LAYOUT_STORAGE_KEY, readStoredLayout } from '@/lib/dashboardLayout';
 
 export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
   const [layout, setLayout] = useState(() => {

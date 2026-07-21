@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 export const DASHBOARD_LAYOUT_STORAGE_KEY = 'dashboard-layout-v2';
 
-function readStoredLayout(defaultLayout) {
+export function readStoredLayout(defaultLayout) {
   try {
     const saved = localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY);
     if (!saved) return defaultLayout;

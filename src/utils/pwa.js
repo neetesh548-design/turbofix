@@ -23,22 +23,6 @@ export async function registerServiceWorker() {
   }
 }
 
-export function detectNetworkQuality() {
-  if (!('connection' in navigator)) {
-    return { effective: '4g', rtt: null, downlink: null };
-  }
-
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  if (!connection) return { effective: '4g', rtt: null, downlink: null };
-
-  return {
-    effective: connection.effectiveType,
-    rtt: connection.rtt,
-    downlink: connection.downlink,
-    saveData: connection.saveData,
-  };
-}
-
 export function setupTouchGestures() {
   let touchStartX = 0;
   let touchEndX = 0;

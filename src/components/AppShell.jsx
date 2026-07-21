@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { PerformanceMetrics } from '@/hooks/usePerformanceMonitor';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 
@@ -364,7 +363,6 @@ export default function AppShell({ children, active }) {
     <ThemeProvider>
       <ErrorBoundary>
         <OfflineIndicator />
-        <PerformanceMetrics show={false} />
         <div className={`app-shell${railOpen ? ' rail-open' : ''}`}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
