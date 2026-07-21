@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/machine-card.spec.js",
+      "tests/screenshot.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,96 +148,55 @@
   },
   "suites": [
     {
-      "title": "machine-card.spec.js",
-      "file": "machine-card.spec.js",
+      "title": "screenshot.spec.js",
+      "file": "screenshot.spec.js",
       "column": 0,
       "line": 0,
-      "specs": [],
-      "suites": [
+      "specs": [
         {
-          "title": "Machine Card Routing",
-          "file": "machine-card.spec.js",
-          "line": 3,
-          "column": 6,
-          "specs": [
+          "title": "capture dashboard screenshots",
+          "ok": true,
+          "tags": [],
+          "tests": [
             {
-              "title": "clicking Open issues on a machine card routes to tickets with open filter",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
                 {
-                  "timeout": 30000,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-21T10:43:10.790Z",
                   "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 30992,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/nkumarsoni/TurboFix/tests/machine-card.spec.js",
-                            "column": 16,
-                            "line": 9
-                          },
-                          "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.machine-tile') to be visible\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:5173/vault.html\" navigation to finish...\u001b[22m\n\u001b[2m    - navigated to \"http://localhost:5173/vault.html\"\u001b[22m\n\n\n   7 |\n   8 |     // Wait for the machines to load\n>  9 |     await page.waitForSelector('.machine-tile', { state: 'visible' });\n     |                ^\n  10 |\n  11 |     // Find the first machine tile and get its ID\n  12 |     const firstMachine = page.locator('.machine-tile').first();\n    at /Users/nkumarsoni/TurboFix/tests/machine-card.spec.js:9:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-21T08:06:05.477Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/nkumarsoni/TurboFix/test-results/machine-card-Machine-Card--52523-to-tickets-with-open-filter-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/nkumarsoni/TurboFix/test-results/machine-card-Machine-Card--52523-to-tickets-with-open-filter-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/nkumarsoni/TurboFix/test-results/machine-card-Machine-Card--52523-to-tickets-with-open-filter-chromium/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
+                  "attachments": []
                 }
               ],
-              "id": "35ead203eb5d8280e2ac-66e15711f46e8a6dc9f3",
-              "file": "machine-card.spec.js",
-              "line": 4,
-              "column": 3
+              "status": "expected"
             }
-          ]
+          ],
+          "id": "b6aa675bc40ab83f8367-9760d2171d1592e1b3cd",
+          "file": "screenshot.spec.js",
+          "line": 3,
+          "column": 1
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-21T08:05:57.624Z",
-    "duration": 43730.12,
-    "expected": 0,
+    "startTime": "2026-07-21T10:43:10.238Z",
+    "duration": 11908.208,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }

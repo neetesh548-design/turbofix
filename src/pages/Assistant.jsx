@@ -175,7 +175,7 @@ export default function Assistant() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+      const { data, error: fnError } = await supabase.functions.invoke('ai_translation', {
         body: { action: 'transcribe', audio: dataUrl },
       });
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');

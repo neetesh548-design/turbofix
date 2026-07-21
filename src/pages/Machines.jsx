@@ -345,7 +345,7 @@ export default function Machines() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', { body: { action: 'transcribe', audio: dataUrl } });
+      const { data, error: fnError } = await supabase.functions.invoke('ai_translation', { body: { action: 'transcribe', audio: dataUrl } });
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
       const transcript = String(data.transcript || '').trim();
       if (!transcript) { setReportIssueError('No speech was detected. Please try again or type the problem.'); return; }

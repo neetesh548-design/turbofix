@@ -6,6 +6,7 @@ import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 const Home = lazy(() => import('./pages/Home'));
 const QRGenerator = lazy(() => import('./pages/QRGenerator'));
 const Vault = lazy(() => import('./pages/Vault'));
+const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Machines = lazy(() => import('./pages/Machines'));
@@ -18,6 +19,7 @@ const Technician = lazy(() => import('./pages/Technician'));
 const Records = lazy(() => import('./pages/Records'));
 const Support = lazy(() => import('./pages/Support'));
 const QRGateway = lazy(() => import('./pages/QRGateway'));
+const Inventory = lazy(() => import('./pages/Inventory'));
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
@@ -36,6 +38,7 @@ function App() {
           <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
           <Route path="/qr-generator.html" element={<QRGenerator />} />
           <Route path="/vault.html" element={<Vault />} />
+          <Route path="/login.html" element={<Login />} />
           <Route path="/dashboard.html" element={<Dashboard />} />
           <Route path="/reset-password.html" element={<ResetPassword />} />
           <Route path="/machines.html" element={<Machines />} />
@@ -48,6 +51,7 @@ function App() {
           <Route path="/records.html" element={<Records />} />
           <Route path="/support.html" element={<Support />} />
           <Route path="/qr-gateway.html" element={<QRGateway />} />
+          <Route path="/inventory.html" element={<Inventory />} />
           <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>

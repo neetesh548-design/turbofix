@@ -799,7 +799,153 @@ textarea:focus-visible {
   }
   :focus-visible {
     outline-width: 4px;
+    outline-offset: 4px;
   }
+}
+
+/* Dashboard Premium Enhancements */
+.decision-metric, .decision-insight, .decision-health-card, .decision-panel {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.decision-metric:hover, .decision-insight:hover, .decision-health-card.clickable:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(37, 211, 102, 0.4);
+  background: linear-gradient(135deg, rgba(30, 36, 44, 0.8), rgba(15, 20, 25, 0.95));
+}
+
+.decision-health-card {
+  background: linear-gradient(135deg, rgba(26, 31, 38, 0.8), rgba(15, 20, 25, 0.95)), 
+              radial-gradient(circle at top right, rgba(37, 211, 102, 0.15), transparent 60%);
+}
+
+.metric-value {
+  background: linear-gradient(135deg, #f8fafc, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.metric-value.danger {
+  background: linear-gradient(135deg, #F87171, #991b1b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.metric-value.warning {
+  background: linear-gradient(135deg, #FBBF24, #b45309);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.decision-progress span {
+  box-shadow: 0 0 10px rgba(37, 211, 102, 0.5);
+  animation: shimmerProgress 2s infinite linear;
+  background: linear-gradient(90deg, #25D366, #2edb72, #25D366);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmerProgress {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Visual Audit Fixes & Aesthetic Refinements */
+
+/* Fix #5: Decision Center heading has low contrast */
+.decision-heading h1 {
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+
+/* Fix #3: Panel overflow — prevent text from bleeding across columns */
+.decision-columns > .decision-panel {
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Fix #6: Reduce excessive whitespace between widget sections */
+.dashboard-widget-bare {
+  margin-bottom: 0;
+}
+.dashboard-widget-bare + .dashboard-widget-bare {
+  margin-top: 4px;
+}
+
+/* Fix #7: Hide grip handles unless hovering the widget */
+.grip-handle {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.dashboard-widget-bare:hover .grip-handle,
+.dashboard-widget:hover .grip-handle {
+  opacity: 1;
+}
+
+/* Fix #4: Lean tag overflow clipping */
+.decision-section-label {
+  overflow: hidden;
+}
+.lean-tag {
+  flex-shrink: 0;
+}
+
+/* --- Aesthetic Refinements & Micro-Interactions --- */
+
+/* Glowing Glassmorphism on Hover */
+.decision-metric:hover, .decision-insight:hover, .decision-health-card.clickable:hover {
+  box-shadow: 0 8px 30px rgba(37, 211, 102, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  border-color: rgba(37, 211, 102, 0.45);
+}
+
+/* Pulsing Status Badge Dot for High Priority Metrics */
+.pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background-color: #25d366;
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  animation: pulseDot 1.8s infinite;
+}
+.pulse-dot.danger {
+  background-color: #F87171;
+  box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+}
+.pulse-dot.warning {
+  background-color: #FBBF24;
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+}
+
+@keyframes pulseDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(37, 211, 102, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+/* Skeleton Loader Animation */
+.skeleton-pulse {
+  display: inline-block;
+  height: 1.8rem;
+  width: 60%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite ease-in-out;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Color Blindness Support - Deuteranopia */

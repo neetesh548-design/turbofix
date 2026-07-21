@@ -1,3 +1,5 @@
+import { registerSW } from 'virtual:pwa-register';
+
 export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) {
     console.log('Service Workers not supported');
@@ -5,11 +7,16 @@ export async function registerServiceWorker() {
   }
 
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/',
+    const updateSW = registerSW({
+      onNeedRefresh() {
+        console.log('New content available, click on reload button to update.');
+      },
+      onOfflineReady() {
+        console.log('App ready to work offline');
+      },
     });
-    console.log('Service Worker registered:', registration);
-    return registration;
+    console.log('Service Worker registered via vite-plugin-pwa');
+    return updateSW;
   } catch (error) {
     console.error('Service Worker registration failed:', error);
     return null;

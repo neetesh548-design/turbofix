@@ -408,7 +408,7 @@ export default function Dashboard() {
         </section>}
 
         <DashboardGrid
-          editable={true}
+          editable={false}
           widgets={[
             {
               id: 'hero',
@@ -438,10 +438,10 @@ export default function Dashboard() {
                 <>
                   <div className="decision-section-label">Needs action now <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
                   <section className="decision-kpi-grid">
-                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" onClick={() => revealDetail('machines')} />
-                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" onClick={() => revealDetail('urgent')} />
-                    <Metric label="Open work" value={kpis.open_tickets} onClick={() => revealDetail('open')} />
-                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} onClick={() => revealDetail('repair')} />
+                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} onClick={() => revealDetail('machines')} />
+                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} onClick={() => revealDetail('urgent')} />
+                    <Metric label="Open work" value={kpis.open_tickets} loading={loading} onClick={() => revealDetail('open')} />
+                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} onClick={() => revealDetail('repair')} />
                   </section>
                 </>
               )
@@ -670,7 +670,18 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, tone = '', onClick }) { return <button type="button" className="decision-metric clickable" onClick={onClick}><span className={`metric-value ${tone}`}>{value ?? '—'}</span><span className="metric-label">{label}</span><small className="decision-click-hint">View details →</small></button>; }
+function Metric({ label, value, tone = '', loading = false, onClick }) { 
+  return (
+    <button type="button" className="decision-metric clickable" onClick={onClick}>
+      <span className={`metric-value ${tone}`}>
+        {tone && value > 0 && <span className={`pulse-dot ${tone}`} />}
+        {loading ? <span className="skeleton-pulse" /> : (value ?? '—')}
+      </span>
+      <span className="metric-label">{label}</span>
+      <small className="decision-click-hint">View details →</small>
+    </button>
+  ); 
+}
 function Insight({ label, value, detail }) { return <div className="decision-insight"><span className="decision-card-kicker">{label}</span><strong>{value}</strong><span>{detail}</span></div>; }
 
 // Lean/TPS principle tag. English stays primary everywhere; the Japanese term

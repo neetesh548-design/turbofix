@@ -96,7 +96,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     // Mock Gemini transcription Edge function response
-    await page.route('**/functions/v1/ai_assistant', async (route) => {
+    await page.route('**/functions/v1/*', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -174,7 +174,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     // Mock Gemini transcription and public ticket update responses
-    await page.route('**/functions/v1/ai_assistant', async (route) => {
+    await page.route('**/functions/v1/*', async (route) => {
       const requestBody = route.request().postDataJSON();
       if (requestBody && requestBody.action === 'check_duplicate') {
         await route.fulfill({
@@ -242,7 +242,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    await page.route('**/functions/v1/ai_assistant', async (route) => {
+    await page.route('**/functions/v1/*', async (route) => {
       const requestBody = route.request().postDataJSON();
       if (requestBody && requestBody.action === 'check_duplicate') {
         await route.fulfill({
@@ -297,7 +297,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     // Mock Gemini transcription failure (status 500)
-    await page.route('**/functions/v1/ai_assistant', async (route) => {
+    await page.route('**/functions/v1/*', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',

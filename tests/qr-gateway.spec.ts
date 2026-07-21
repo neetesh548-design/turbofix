@@ -52,7 +52,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
   test('Should retry on transient network failures', async () => {
     // Simulate network timeout
-    await page.context().route('**/ai_assistant', route => {
+    await page.context().route('**/functions/v1/*', route => {
       // First request fails, second succeeds
       if (Math.random() > 0.5) {
         route.abort('failed');
@@ -79,7 +79,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
   test('Should handle API timeout gracefully', async () => {
     // Simulate slow API responses
-    await page.context().route('**/ai_assistant', route => {
+    await page.context().route('**/functions/v1/*', route => {
       setTimeout(() => route.continue(), 15000); // Simulate 15s timeout
     });
 
@@ -186,7 +186,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
   test('Should handle transcription API failure', async () => {
     // Mock transcription endpoint to fail
-    await page.context().route('**/ai_assistant', route => {
+    await page.context().route('**/functions/v1/*', route => {
       if (route.request().postDataJSON()?.action === 'transcribe') {
         route.abort('failed');
       } else {
@@ -565,7 +565,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
   test('Should handle machine details fetch failure', async () => {
     // Mock machine details endpoint to fail
-    await page.context().route('**/ai_assistant', route => {
+    await page.context().route('**/functions/v1/*', route => {
       if (route.request().postDataJSON()?.action === 'get_machine_details') {
         route.abort('failed');
       } else {
@@ -579,7 +579,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
   test('Should handle duplicate check failure gracefully', async () => {
     // Mock duplicate check to fail
-    await page.context().route('**/ai_assistant', route => {
+    await page.context().route('**/functions/v1/*', route => {
       if (route.request().postDataJSON()?.action === 'check_duplicate') {
         route.abort('failed');
       } else {

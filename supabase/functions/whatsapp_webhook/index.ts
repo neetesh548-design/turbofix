@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { verifyHmacSha256 } from '../_shared/security.ts'
 import { downloadMedia, sendTextMessage, sendTemplateMessage, isConfigured as waConfigured } from '../_shared/whatsapp.ts'
-import { isEnabled as aiEnabled, transcribeAudio, analyzeImage, summarizeIssue, detectLanguage } from '../_shared/gemini.ts'
+import { isEnabled as aiEnabled, transcribeAudio, analyzeImage, summarizeIssue, detectLanguage, extractConsumableUsage } from '../_shared/gemini.ts'
 
 // ─── Environment ────────────────────────────────────────────────────────────────
 const WHATSAPP_APP_SECRET       = Deno.env.get('WHATSAPP_APP_SECRET');
@@ -382,6 +382,28 @@ async function handleTextMessage(
     // Re-run AI triage with updated text
     const summaries = await triageAndStore(supabase, session.ticketId, merged, session.machineId);
     await detectAndStoreLanguage(supabase, session.ticketId, text);
+
+    // Consumable Deduction Check
+    if (aiEnabled()) {
+      const consumableData = await extractConsumableUsage(text);
+      if (consumableData.used_consumable && consumableData.consumable_name && consumableData.quantity_used) {
+        // Try to find the consumable
+        const { data: consumable } = await supabase
+          .from('consumables')
+          .select('id, name')
+          .ilike('name', `%${consumableData.consumable_name}%`)
+          .eq('machine_id', session.machineId)
+          .limit(1)
+          .single();
+
+        if (consumable) {
+          await supabase.rpc('decrement_consumable', { p_id: consumable.id, qty: consumableData.quantity_used });
+          if (waConfigured()) {
+            await sendTextMessage(from, `✅ Logged usage: ${consumableData.quantity_used} of ${consumable.name}. Inventory updated.`);
+          }
+        }
+      }
+    }
 
     // Fan out if not already notified
     if (!session.notified) {

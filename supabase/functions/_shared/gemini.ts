@@ -217,3 +217,36 @@ export async function detectLanguage(text: string): Promise<string> {
 
   return code || "en";
 }
+
+/**
+ * Extracts consumable usage from a technician's message.
+ */
+export async function extractConsumableUsage(text: string): Promise<{ used_consumable: boolean, consumable_name: string | null, quantity_used: number | null }> {
+  const prompt = `Analyze this message from a technician. Did they mention using any consumables (like oil, grease, rags, filters)? 
+Respond strictly in JSON format: {"used_consumable": true/false, "consumable_name": "name of consumable or null", "quantity_used": number or null}.
+Text: "${text}"`;
+
+  const contents = [
+    {
+      parts: [{ text: prompt }],
+    },
+  ];
+
+  try {
+    const rawText = await _callGemini(contents);
+    let cleanText = rawText.trim();
+    if (cleanText.startsWith('\`\`\`json')) {
+      cleanText = cleanText.substring(7, cleanText.length - 3).trim();
+    }
+    const parsed = JSON.parse(cleanText);
+    return {
+      used_consumable: !!parsed.used_consumable,
+      consumable_name: parsed.consumable_name || null,
+      quantity_used: parsed.quantity_used || null
+    };
+  } catch (err) {
+    console.error("Failed to parse consumable usage:", err);
+    return { used_consumable: false, consumable_name: null, quantity_used: null };
+  }
+}
+

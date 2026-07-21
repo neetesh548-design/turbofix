@@ -124,7 +124,7 @@ await page.context().grantPermissions([]);
 Tests that transient network failures trigger retry attempts.
 
 ```typescript
-await page.context().route('**/ai_assistant', route => {
+await page.context().route('**/functions/v1/*', route => {
   if (Math.random() > 0.5) route.abort('failed');
   else route.continue();
 });

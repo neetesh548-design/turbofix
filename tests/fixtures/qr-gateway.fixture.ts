@@ -28,7 +28,7 @@ export const test = base.extend<QRGatewayFixtures>({
 
   simulateNetworkFailure: async ({ page }, use) => {
     await use(async (failureRate: number) => {
-      await page.context().route('**/ai_assistant', route => {
+      await page.context().route('**/functions/v1/*', route => {
         if (Math.random() < failureRate) {
           route.abort('failed');
         } else {

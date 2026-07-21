@@ -286,7 +286,7 @@ export default function QRGateway() {
       const newQueue = [];
       for (const item of queue) {
         try {
-          const { error } = await supabase.functions.invoke('ai_assistant', {
+          const { error } = await supabase.functions.invoke('ticket_gateway', {
             body: { action: 'log_ticket', payload: item }
           });
           if (error) {
@@ -328,7 +328,7 @@ export default function QRGateway() {
     const fetchMachineDetails = async () => {
       if (!id) return;
       try {
-        const { data, error } = await invokeWithRetry('ai_assistant', {
+        const { data, error } = await invokeWithRetry('ticket_gateway', {
           body: { action: 'get_machine_details', machine_id: id }
         });
 
@@ -456,7 +456,7 @@ export default function QRGateway() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const { data, error } = await invokeWithRetry('ai_assistant', {
+      const { data, error } = await invokeWithRetry('ai_translation', {
         body: { action: 'transcribe', audio: dataUrl }
       });
       if (error || !data || data.error) throw new Error(data?.error || error?.message || 'Transcription failed.');
@@ -697,7 +697,7 @@ export default function QRGateway() {
       }
 
       if (!bypassDuplicateCheck) {
-        const { data: dupData, error: dupErr } = await invokeWithRetry('ai_assistant', {
+        const { data: dupData, error: dupErr } = await invokeWithRetry('ticket_gateway', {
           body: { action: 'check_duplicate', machine_id: machine.id }
         });
         if (dupErr || !dupData || dupData.error) {
@@ -728,7 +728,7 @@ export default function QRGateway() {
 
       let factoryId = machine.factory_id;
       if (!factoryId) {
-        const { data: factData } = await invokeWithRetry('ai_assistant', {
+        const { data: factData } = await invokeWithRetry('ticket_gateway', {
           body: { action: 'get_factory_id' }
         });
         factoryId = factData?.factory_id || null;
@@ -777,7 +777,7 @@ export default function QRGateway() {
         }
       };
 
-      const { data, error: fnError } = await invokeWithRetry('ai_assistant', {
+      const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
         body: { action: 'log_ticket', payload }
       });
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
@@ -829,7 +829,7 @@ export default function QRGateway() {
         } catch (e) {}
       }
 
-      const { data: fetchResult, error: fetchErr } = await invokeWithRetry('ai_assistant', {
+      const { data: fetchResult, error: fetchErr } = await invokeWithRetry('ticket_gateway', {
         body: { action: 'get_ticket', ticket_id: duplicateTicket.id }
       });
       if (fetchErr || !fetchResult || fetchResult.error) {
@@ -844,7 +844,7 @@ export default function QRGateway() {
 
       const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
       
-      const { data, error: fnError } = await invokeWithRetry('ai_assistant', {
+      const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
         body: {
           action: 'update_ticket',
           ticket_id: duplicateTicket.id,

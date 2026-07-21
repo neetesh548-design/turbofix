@@ -88,6 +88,7 @@ const NAV_LIVE = [
   { id: 'assistant', label: 'AI Assistant', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
   { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: 'M12 3v9l6 3M12 21a9 9 0 100-18 9 9 0 000 18z' },
   { id: 'technician', label: 'Technician', href: BASE + 'technician.html', icon: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 002.4-8.4z' },
+  { id: 'inventory', label: 'Inventory', href: BASE + 'inventory.html', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96L12 12.01l8.73-5.05M12 22.08V12' },
   { id: 'support', label: 'Support & Decisions', href: BASE + 'support.html', icon: 'M12 22a10 10 0 110-20 10 10 0 010 20zm-1-6h2v2h-2v-2zm1-10a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 2-3 5h2c0-2 3-2 3-5a4 4 0 00-4-4z' },
   { id: 'team', label: 'Team', href: BASE + 'team.html', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
   { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
@@ -124,7 +125,7 @@ export default function AppShell({ children, active }) {
   const [railOpen, setRailOpen] = useState(false);
   
   const { isCompleted } = useOnboarding();
-  const showOnboarding = authed && !isCompleted('ai-assistant');
+  const showOnboarding = false; // Temporarily disabled — onboarding was blocking dashboard view
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -276,7 +277,7 @@ export default function AppShell({ children, active }) {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const { data, error: fnError } = await supabase.functions.invoke('ai_assistant', {
+      const { data, error: fnError } = await supabase.functions.invoke('ai_translation', {
         body: { action: 'transcribe', audio: dataUrl },
       });
       if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Transcription failed.');
