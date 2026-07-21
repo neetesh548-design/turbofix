@@ -113,6 +113,10 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     // Click to stop recording
     await page.locator('#voice-mic-button').click({ force: true });
 
+    // Wait for listen-back step, then send for transcription
+    await expect(page.getByRole('button', { name: /Hear your recording|अपनी रिकॉर्डिंग सुनें/ })).toBeVisible();
+    await page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i }).click();
+
     // Verify manual description box is filled with transcribed text
     const textInput = page.locator('textarea');
     await expect(textInput).toBeVisible();
@@ -210,6 +214,10 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
     await page.locator('#voice-mic-button').click({ force: true });
 
+    // Wait for listen-back and send for transcription
+    await expect(page.getByRole('button', { name: /Hear your recording|अपनी रिकॉर्डिंग सुनें/ })).toBeVisible();
+    await page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i }).click();
+
     // Wait for voice transcription to complete and populate the description box
     await expect(page.locator('textarea')).toHaveValue('Leak is getting worse');
 
@@ -271,6 +279,9 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
     await page.locator('#voice-mic-button').click({ force: true });
 
+    await expect(page.getByRole('button', { name: /Hear your recording|अपनी रिकॉर्डिंग सुनें/ })).toBeVisible();
+    await page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i }).click();
+
     // Wait for voice transcription to complete and populate the description box
     await expect(page.locator('textarea')).toHaveValue('Air pipe leak');
 
@@ -312,8 +323,11 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
     await page.locator('#voice-mic-button').click({ force: true });
 
-    // Verify error instruction is shown and fallback form opens
-    await expect(page.locator('textarea')).toBeVisible();
+    // Listen-back should remain available on transcription failure
+    await expect(page.getByRole('button', { name: /Hear your recording|अपनी रिकॉर्डिंग सुनें/ })).toBeVisible();
+    await page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i }).click();
+
+    // Verify error instruction is shown and fallback path is available
     await expect(page.locator('textarea')).toHaveValue('');
     await expect(page.locator('p', { hasText: /ट्रांसक्रिप्शन नहीं हो सका|Could not transcribe/ })).toBeVisible();
   });
@@ -332,7 +346,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
     // Verify UI labels changed to English
     await expect(page.locator('span', { hasText: 'Tap to speak' })).toBeVisible();
-    await expect(page.locator('button', { hasText: 'Trouble speaking? Click here to write' })).toBeVisible();
+    await expect(page.locator('button', { hasText: /Trouble speaking\? Write here|बोलने में समस्या\? लिखकर दर्ज करें/ })).toBeVisible();
 
     // Toggle language back to Hindi using the select dropdown
     await page.locator('select').selectOption('hi-IN');
@@ -347,7 +361,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
 
     // Open manual entry form
-    await page.locator('button', { hasText: /लिखकर दर्ज करें|Click here to write/ }).click();
+    await page.locator('button', { hasText: /लिखकर दर्ज करें|Trouble speaking\? Write here/ }).click();
     await expect(page.locator('textarea')).toBeVisible();
 
     // Ensure description is empty

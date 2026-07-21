@@ -610,7 +610,7 @@ export default function QRGateway() {
         const noSpeechMsg = t('noSpeechDetected');
         setAssistantPrompt(noSpeechMsg);
         speak(noSpeechMsg);
-        setWorkflowStage('capture');
+        setWorkflowStage('listenback');
         return;
       }
       
@@ -653,8 +653,7 @@ export default function QRGateway() {
       const errMsg = t('transcribeError');
       setAssistantPrompt(errMsg);
       speak(errMsg);
-      setShowTextFallback(true);
-      setWorkflowStage('capture');
+      setWorkflowStage('listenback');
     } finally {
       setIsTranscribing(false);
     }
@@ -1422,6 +1421,18 @@ export default function QRGateway() {
                 Send for transcription
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                clearPendingAudio();
+                setShowTextFallback(true);
+                setWorkflowStage('capture');
+                setAssistantPrompt(t('troubleSpeaking'));
+              }}
+              style={{ minHeight: '42px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', color: '#aab8c8', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              {t('troubleSpeaking')}
+            </button>
           </div>
         </div>
       ) : showTextFallback ? (

@@ -47,11 +47,17 @@ export class QRGatewayTestHelper {
     await expect(voiceBtn).toBeVisible();
     await voiceBtn.click();
 
-    // Wait for listening
+    // Wait for listening and listen-back confirmation
     await this.page.waitForTimeout(800);
 
-    // Simulate transcript via manual entry fallback
-    await this.page.click('button:has-text("Trouble speaking")');
+    const sendBtn = this.page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i });
+    if (await sendBtn.isVisible().catch(() => false)) {
+      await sendBtn.click();
+      await this.page.waitForTimeout(500);
+    }
+
+    // If transcription is unavailable in the test context, use the typed fallback.
+    await this.page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या|लिखकर दर्ज करें/i }).click();
     await this.page.fill('textarea', transcript);
 
     // Select condition
