@@ -222,6 +222,8 @@ export default function QRGateway() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submittedTicketInfo, setSubmittedTicketInfo] = useState(null);
+  const [pendingAudioBlob, setPendingAudioBlob] = useState(null);
+  const [pendingAudioUrl, setPendingAudioUrl] = useState('');
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
@@ -638,6 +640,7 @@ export default function QRGateway() {
         final_submission_snapshot: null
       });
       setShowTextFallback(true);
+      clearPendingAudio();
       setWorkflowStage('review');
       
       const reviewMsg = machine.name
@@ -655,6 +658,19 @@ export default function QRGateway() {
     } finally {
       setIsTranscribing(false);
     }
+  };
+
+  const clearPendingAudio = () => {
+    setPendingAudioBlob(null);
+    if (pendingAudioUrl) {
+      URL.revokeObjectURL(pendingAudioUrl);
+      setPendingAudioUrl('');
+    }
+  };
+
+  const transcribePendingAudio = async () => {
+    if (!pendingAudioBlob) return;
+    await transcribeAudio(pendingAudioBlob);
   };
 
   const handlePhotoChange = (e) => {
@@ -680,6 +696,7 @@ export default function QRGateway() {
     setTranscript('');
     setExtractedInfo(null);
     setVoiceArtifacts(null);
+    clearPendingAudio();
     setDuplicateTicket(null);
     setShowTextFallback(false);
     setManualCondition('running');
@@ -790,7 +807,12 @@ export default function QRGateway() {
       recorder.onstop = async () => {
         setIsListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        await transcribeAudio(blob);
+        clearPendingAudio();
+        const url = URL.createObjectURL(blob);
+        setPendingAudioBlob(blob);
+        setPendingAudioUrl(url);
+        setWorkflowStage('listenback');
+        setAssistantPrompt('Listen to your recording, then send it for transcription.');
         recorderRef.current = null;
       };
 
@@ -1168,9 +1190,8 @@ export default function QRGateway() {
       <style>{ORB_ANIMATIONS}</style>
 
       {/* Top Identity Block - 4 Individual Lines */}
-      <div className="qr-gateway-shell" style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10 }}>
-        {/* Line 1: Company Name */}
-        <div className="qr-gateway-identity-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px', marginBottom: '2px' }}>
+      <div className="qr-gateway-shell" style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: 10 }}>
+        <div className="qr-gateway-identity-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '6px', marginBottom: '2px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
             <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Rajdhani, sans-serif', color: '#ffffff' }}>TURBOFIX</span>
@@ -1219,46 +1240,27 @@ export default function QRGateway() {
             </select>
           </div>
         </div>
-
-        {/* Line 2: Machine Name */}
-        <div className="qr-gateway-identity-row" style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Machine:</span>
-          {machine.name}
-        </div>
-
-        {/* Line 3: Location */}
-        <div className="qr-gateway-identity-row" style={{ fontSize: '0.75rem', color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Location:</span>
-          {machine.loc}
-          {!phoneGate && reporterPhone && (
-            <button 
-              type="button" 
-              onClick={() => { setPhoneGate(true); setPhoneInput(reporterPhone); }}
-              style={{ background: 'transparent', border: 'none', color: '#863bff', cursor: 'pointer', marginLeft: '6px', textDecoration: 'underline', fontSize: '0.7rem', padding: 0 }}
-            >
-              ({reporterPhone})
-            </button>
-          )}
-        </div>
-
-        {/* Line 4: Machine ID */}
-        <div className="qr-gateway-identity-row" style={{ fontSize: '0.75rem', color: '#a78bfa', fontFamily: 'monospace', fontWeight: 'bold' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px', fontFamily: 'Outfit, sans-serif' }}>Machine ID:</span>
-          {machine.tag || (machine.id ? machine.id.slice(0, 8) : '')}
-        </div>
-
-        {/* Line 5: Andon Visual Machine Health Indicator (Japanese TPS Standard) */}
-        <div className="qr-gateway-identity-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '3px', marginTop: '1px' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Andon Health:</span>
-          {activeTickets.length > 0 ? (
-            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '999px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-              <span className="glow-dot down" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> 🔴 ATTENTION REQUIRED ({activeTickets.length})
-            </span>
-          ) : (
-            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.25)', borderRadius: '999px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#25D366' }} /> 🟢 OPERATIONAL
-            </span>
-          )}
+        <div className="qr-gateway-identity-stack" style={{ display: 'grid', gap: '5px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#f8fafc', fontWeight: 700, lineHeight: 1.25 }}>
+            <span style={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: '.04em' }}>Machine</span>
+            <span>{machine.name}</span>
+            <span style={{ color: '#334155' }}>•</span>
+            <span style={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: '.04em' }}>Location</span>
+            <span>{machine.loc}</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <div>
+              {activeTickets.length > 0 ? (
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '999px', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="glow-dot down" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> Attention ({activeTickets.length})
+                </span>
+              ) : (
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.25)', borderRadius: '999px', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#25D366' }} /> Operational
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1272,49 +1274,9 @@ export default function QRGateway() {
 
       {!phoneGate && (
         <div style={{ width: '100%', maxWidth: '340px', margin: '0 auto', display: 'grid', gap: '8px', zIndex: 10 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {['Capture', 'Context', 'Review', 'Submit'].map((step) => {
-              const active =
-                (step === 'Capture' && ['capture', 'listening', 'transcribing'].includes(workflowStage)) ||
-                (step === 'Context' && workflowStage === 'capture') ||
-                (step === 'Review' && workflowStage === 'review') ||
-                (step === 'Submit' && (workflowStage === 'submitting' || workflowStage === 'done'));
-              return (
-                <span
-                  key={step}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    color: active ? '#ffffff' : '#94a3b8',
-                    background: active ? 'rgba(134,59,255,0.22)' : 'rgba(255,255,255,0.04)',
-                    border: active ? '1px solid rgba(134,59,255,0.45)' : '1px solid rgba(255,255,255,0.08)'
-                  }}
-                >
-                  {step}
-                </span>
-              );
-            })}
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-              <strong style={{ color: '#ffffff', fontSize: '0.82rem' }}>Machine context</strong>
-              <span style={{ color: '#a78bfa', fontSize: '0.72rem', fontWeight: 800 }}>{workflowStage === 'listening' ? t('listening') : workflowStage === 'transcribing' ? t('transcribing') : workflowStage === 'submitting' ? t('submitting') : workflowLabel}</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
-              {[
-                ['Machine', machine.name || 'Selected machine'],
-                ['Location', machine.loc || 'Not set'],
-                ['Technician', technicianName || 'Not assigned'],
-                ['Open tickets', String(activeTickets.length || 0)]
-              ].map(([label, value]) => (
-                <div key={label} style={{ background: 'rgba(11,17,24,0.9)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '8px 10px' }}>
-                  <div style={{ color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
-                  <div style={{ color: '#e5edf6', fontSize: '0.8rem', fontWeight: 700, marginTop: '2px', lineHeight: 1.2 }}>{value}</div>
-                </div>
-              ))}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '0 4px' }}>
+            <span style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '.08em' }}>Current step</span>
+            <span style={{ color: '#a78bfa', fontSize: '0.72rem', fontWeight: 800 }}>{workflowStage === 'listening' ? t('listening') : workflowStage === 'transcribing' ? t('transcribing') : workflowStage === 'submitting' ? t('submitting') : workflowLabel}</span>
           </div>
         </div>
       )}
@@ -1322,13 +1284,13 @@ export default function QRGateway() {
       {/* Main Single-Screen Content Container */}
       {phoneGate ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
-          <div className="qr-gateway-card qr-gateway-gate" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center' }}>
+          <div className="qr-gateway-card qr-gateway-gate" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '.04em' }}>
               {t('phoneGateTitle')}
             </h3>
             
             <div className="qr-gateway-segment-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold' }}>
+              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>
                 {t('selectLang')}
               </label>
               <div className="qr-gateway-segmented" style={{ display: 'flex', gap: '6px' }}>
@@ -1346,11 +1308,11 @@ export default function QRGateway() {
                       className={`qr-gateway-segment ${active ? 'active' : ''}`}
                       style={{
                         flex: 1,
-                        padding: '10px 4px',
-                        minHeight: '44px',
+                        padding: '9px 4px',
+                        minHeight: '42px',
                         background: active ? '#863bff' : '#0b1118',
                         border: active ? '1px solid #863bff' : '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '8px',
+                        borderRadius: '12px',
                         color: 'white',
                         fontSize: '0.8rem',
                         fontWeight: 'bold',
@@ -1364,7 +1326,7 @@ export default function QRGateway() {
               </div>
             </div>
 
-            <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.3' }}>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.35' }}>
               {t('phoneGateDesc')}
             </p>
             <input 
@@ -1373,12 +1335,12 @@ export default function QRGateway() {
               value={phoneInput} 
               onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))} 
               placeholder={t('phoneGatePlaceholder')} 
-              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
             />
             <button 
               type="button" 
               onClick={handlePhoneProceed} 
-              style={{ width: '100%', padding: '12px', minHeight: '48px', background: '#863bff', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}
+              style={{ width: '100%', padding: '12px', minHeight: '48px', background: '#863bff', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 8px 20px rgba(134,59,255,0.28)' }}
             >
               {t('proceed')}
             </button>
@@ -1425,6 +1387,40 @@ export default function QRGateway() {
             >
               {t('reportAnother')}
             </button>
+          </div>
+        </div>
+      ) : workflowStage === 'listenback' && pendingAudioUrl ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '10px', zIndex: 10 }}>
+          <div className="qr-gateway-card qr-gateway-listenback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', display: 'grid', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Hear your recording
+            </h3>
+            <div style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.45 }}>
+              Play once, re-record if needed, then send it for transcription.
+            </div>
+            <audio controls src={pendingAudioUrl} style={{ width: '100%' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  clearPendingAudio();
+                  setTranscript('');
+                  setExtractedInfo(null);
+                  setWorkflowStage('capture');
+                  setAssistantPrompt('Tap the mic and record again.');
+                }}
+                style={{ minHeight: '46px', background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '12px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 750, cursor: 'pointer' }}
+              >
+                Re-record
+              </button>
+              <button
+                type="button"
+                onClick={transcribePendingAudio}
+                style={{ minHeight: '46px', background: 'linear-gradient(135deg, #863bff, #6d28d9)', border: 'none', borderRadius: '12px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 850, cursor: 'pointer', boxShadow: '0 8px 20px rgba(134,59,255,0.25)' }}
+              >
+                Send for transcription
+              </button>
+            </div>
           </div>
         </div>
       ) : showTextFallback ? (
@@ -1776,27 +1772,29 @@ export default function QRGateway() {
       )}
 
       {/* Secondary Footer Actions (100vh bottom) */}
-      <footer className="qr-gateway-footer" style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', minHeight: '38px', zIndex: 10 }}>
-        <button 
-          type="button" 
-          onClick={handleFetchStatus}
-          className="qr-gateway-footer-btn"
-          style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
-        >
-          {t('viewOpenTickets')}
-        </button>
-        <button 
-          type="button" 
-          onClick={() => {
-            const base = import.meta.env.BASE_URL || '/';
-            window.location.href = `${base}machines.html?machine=${machine.id}`;
-          }}
-          className="qr-gateway-footer-btn"
-          style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
-        >
-          {t('loginDashboard')}
-        </button>
-      </footer>
+      {!phoneGate && (
+        <footer className="qr-gateway-footer" style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', minHeight: '38px', zIndex: 10, opacity: 0.92 }}>
+          <button 
+            type="button" 
+            onClick={handleFetchStatus}
+            className="qr-gateway-footer-btn"
+            style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            {t('viewOpenTickets')}
+          </button>
+          <button 
+            type="button" 
+            onClick={() => {
+              const base = import.meta.env.BASE_URL || '/';
+              window.location.href = `${base}machines.html?machine=${machine.id}`;
+            }}
+            className="qr-gateway-footer-btn"
+            style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            {t('loginDashboard')}
+          </button>
+        </footer>
+      )}
 
       {/* Ticket Status Timeline overlay */}
       {showStatus && (
