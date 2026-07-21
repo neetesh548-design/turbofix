@@ -1,6 +1,10 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="11.908208">
-<testsuite name="screenshot.spec.js" timestamp="2026-07-21T10:43:10.302Z" hostname="chromium" tests="1" failures="0" skipped="0" time="10.564" errors="0">
-<testcase name="capture dashboard screenshots" classname="screenshot.spec.js" time="10.564">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="3.098103">
+<testsuite name="dashboard.spec.js" timestamp="2026-07-21T10:59:59.844Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.282" errors="0">
+<testcase name="Dashboard Premium UI Tests › should verify new glassmorphic styles and animations on dashboard" classname="dashboard.spec.js" time="2.282">
+<system-out>
+<![CDATA[Animation name: shimmerProgress
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

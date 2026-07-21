@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { DashboardGrid } from '@/components/DashboardWidget';
+import { DASHBOARD_LAYOUT_STORAGE_KEY } from '@/lib/dashboardLayout';
 
 const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0, pm_compliance_pct: null },
@@ -371,8 +373,24 @@ export default function Dashboard() {
   }, []);
 
   const { kpis, auto_insights: insights, owner_impact: impact } = data;
+  const companyName = data.company_name || 'TurboFix';
   const topMachine = insights.top_problem_machines?.[0];
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
+  const pmComplianceValue = kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`;
+  const topMachineName = topMachine ? (topMachine.machine_name || topMachine.machine_id) : 'No data yet';
+  const topMachineContext = topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to surface the highest-risk machine';
+  const executiveSummary = kpis.total_machines
+    ? `There are ${kpis.open_tickets || 0} open tickets across ${kpis.machines_down || 0} affected machines. ${kpis.urgent_open || 0} of those need urgent attention, and the current top risk is ${topMachineName}.`
+    : 'No machine history has been built yet. Add machines first so TurboFix can turn live issues into a clear operating brief.';
+  const executiveAction = topMachine
+    ? `Recommended focus: inspect ${topMachine.machine_name || topMachine.machine_id} next.`
+    : 'Recommended focus: start by onboarding the first machine.';
+  const executiveSupport = [
+    { label: 'Open work', value: `${kpis.open_tickets || 0}`, detail: 'Live jobs in progress' },
+    { label: 'Urgent', value: `${kpis.urgent_open || 0}`, detail: 'High or critical severity' },
+    { label: 'Risk cost', value: money.format(impact.downtime_cost || 0), detail: '30-day production loss' },
+    { label: 'PM compliance', value: pmComplianceValue, detail: 'Preventive tasks on time' },
+  ];
   const detailConfig = {
     health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
     machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
@@ -390,11 +408,11 @@ export default function Dashboard() {
   return (
     <AppShell active="overview">
       <div className="decision-page">
-        <div className="decision-heading">
+        <div className="decision-heading overview-heading">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
-            <h1>Decision Center <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>See what needs attention, why it matters, and what to do next.</p>
+            <h1>Operations Overview <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
+            <p>{companyName} · Live plant signals, cost exposure, and the next best action.</p>
           </div>
           <div className="decision-actions">
             <button 
@@ -417,7 +435,7 @@ export default function Dashboard() {
               className="btn btn-ghost btn-sm" 
               style={{ color: '#f8fafc', padding: '4px 10px', fontSize: '0.78rem' }}
               onClick={() => {
-                localStorage.removeItem('dashboard-layout');
+                localStorage.removeItem(DASHBOARD_LAYOUT_STORAGE_KEY);
                 window.location.reload();
               }}
             >
@@ -440,19 +458,75 @@ export default function Dashboard() {
               id: 'hero',
               bare: true,
               render: () => (
-                <section className="decision-hero-grid">
-                  <button type="button" className={`decision-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
-                    <div className="decision-card-kicker">Plant health</div>
+                <section className="overview-hero-grid">
+                  <button type="button" className={`decision-health-card overview-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
+                    <div className="overview-hero-kicker">Plant health</div>
                     <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
-                    <p>{kpis.machines_down || 0} machines currently need attention out of {kpis.total_machines || 0}.</p>
+                    <p>{kpis.machines_down || 0} machine{(kpis.machines_down || 0) === 1 ? '' : 's'} currently need attention out of {kpis.total_machines || 0}.</p>
                     <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
-                    <small className="decision-click-hint">View affected machines →</small>
+                    <div className="overview-hero-meta">
+                      <span><Activity size={14} /> {kpis.open_tickets || 0} open</span>
+                      <span><AlertTriangle size={14} /> {kpis.urgent_open || 0} urgent</span>
+                      <span><ShieldCheck size={14} /> {pmComplianceValue} PM</span>
+                    </div>
                   </button>
-                  <div className="decision-next-card">
-                    <div className="decision-card-kicker">Recommended next action</div>
-                    <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
-                    <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
-                    <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace →</a>
+                  <div className="overview-side-stack">
+                    <div className="decision-next-card overview-next-card">
+                      <div className="decision-card-kicker">Recommended next action</div>
+                      <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
+                      <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
+                      <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace <ArrowUpRight size={16} /></a>
+                    </div>
+                    <div className="overview-mini-grid">
+                      <div className="overview-mini-card">
+                        <span className="overview-mini-label">Production loss</span>
+                        <strong>{money.format(impact.downtime_cost || 0)}</strong>
+                        <small>30-day cost exposure</small>
+                      </div>
+                      <div className="overview-mini-card">
+                        <span className="overview-mini-label">Availability</span>
+                        <strong>{`${impact.availability_pct ?? 100}%`}</strong>
+                        <small>Uptime over the last 30 days</small>
+                      </div>
+                      <div className="overview-mini-card">
+                        <span className="overview-mini-label">Top risk</span>
+                        <strong>{topMachineName}</strong>
+                        <small>{topMachineContext}</small>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )
+            },
+            {
+              id: 'brief',
+              bare: true,
+              render: () => (
+                <section className="overview-brief-grid">
+                  <div className="decision-panel overview-brief-panel">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Executive brief</div>
+                        <h2>What matters right now</h2>
+                      </div>
+                      <span className="trend-caption">Owner view</span>
+                    </div>
+                    <p className="overview-brief-copy">{executiveSummary}</p>
+                    <p className="overview-brief-action">{executiveAction}</p>
+                    <div className="overview-brief-pills">
+                      <span>Focus on the highest-risk machine first</span>
+                      <span>Resolve urgent jobs before they cascade</span>
+                      <span>Use PM compliance to protect uptime</span>
+                    </div>
+                  </div>
+                  <div className="overview-brief-support">
+                    {executiveSupport.map((item) => (
+                      <div className="overview-brief-stat" key={item.label}>
+                        <span className="overview-mini-label">{item.label}</span>
+                        <strong>{item.value}</strong>
+                        <small>{item.detail}</small>
+                      </div>
+                    ))}
                   </div>
                 </section>
               )
@@ -462,14 +536,32 @@ export default function Dashboard() {
               bare: true,
               render: () => (
                 <>
-                  <div className="decision-section-label">Needs action now <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
+                  <div className="decision-section-label">Priority today <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
                   <section className="decision-kpi-grid">
-                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} onClick={() => revealDetail('machines')} />
-                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} onClick={() => revealDetail('urgent')} />
-                    <Metric label="Open work" value={kpis.open_tickets} loading={loading} onClick={() => revealDetail('open')} />
-                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} onClick={() => revealDetail('repair')} />
+                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} detail="Need immediate attention" icon={AlertTriangle} onClick={() => revealDetail('machines')} />
+                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} detail="High or critical severity" icon={Clock3} onClick={() => revealDetail('urgent')} />
+                    <Metric label="Open work" value={kpis.open_tickets} loading={loading} detail="Live tickets in progress" icon={Activity} onClick={() => revealDetail('open')} />
+                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} detail="Average closed repair duration" icon={BarChart3} onClick={() => revealDetail('repair')} />
                   </section>
                 </>
+              )
+            },
+            {
+              id: 'attention_trend',
+              bare: true,
+              render: () => (
+                <section className="decision-columns">
+                  <div className="decision-panel">
+                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
+                    {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
+                      <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
+                    )) : <Empty text="No open issues. Your plant is clear." />}
+                  </div>
+                  <div className="decision-panel">
+                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
+                    {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
+                  </div>
+                </section>
               )
             },
             {
@@ -477,14 +569,14 @@ export default function Dashboard() {
               bare: true,
               render: () => (
                 <>
-                  <div className="decision-section-label">Maintenance intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
-                  <section className="decision-insight-grid">
-                    <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" />
-                    <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
-                    <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
-                    <Insight label="PM compliance" value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`} detail="Preventive tasks completed on time" />
-                    <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
-                    <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
+                  <div className="decision-section-label">Operational intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
+                  <section className="overview-insight-grid">
+                    <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" icon={ShieldCheck} />
+                    <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" icon={Clock3} />
+                    <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" icon={Activity} />
+                    <Insight label="PM compliance" value={pmComplianceValue} detail="Preventive tasks completed on time" icon={ShieldCheck} />
+                    <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" icon={AlertTriangle} />
+                    <Insight label="#1 risk" value={topMachineName} detail={topMachineContext} icon={BarChart3} />
                   </section>
                 </>
               )
@@ -670,24 +762,6 @@ export default function Dashboard() {
                   </section>
                 );
               }
-            },
-            {
-              id: 'attention_trend',
-              bare: true,
-              render: () => (
-                <section className="decision-columns">
-                  <div className="decision-panel">
-                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
-                    {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                      <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
-                    )) : <Empty text="No open issues. Your plant is clear." />}
-                  </div>
-                  <div className="decision-panel">
-                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
-                    {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
-                  </div>
-                </section>
-              )
             }
           ]}
         />
@@ -696,19 +770,36 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, tone = '', loading = false, onClick }) { 
+function Metric({ label, value, tone = '', loading = false, onClick, detail = '', icon: Icon = null }) { 
   return (
     <button type="button" className="decision-metric clickable" onClick={onClick}>
+      <div className="metric-topline">
+        <span className={`metric-label metric-label-strong ${tone}`}>
+          {Icon && <Icon size={15} strokeWidth={2.1} />}
+          {label}
+        </span>
+        <small className="decision-click-hint">View details →</small>
+      </div>
       <span className={`metric-value ${tone}`}>
         {tone && value > 0 && <span className={`pulse-dot ${tone}`} />}
         {loading ? <span className="skeleton-pulse" /> : (value ?? '—')}
       </span>
-      <span className="metric-label">{label}</span>
-      <small className="decision-click-hint">View details →</small>
+      {detail && <small className="metric-detail">{detail}</small>}
     </button>
   ); 
 }
-function Insight({ label, value, detail }) { return <div className="decision-insight"><span className="decision-card-kicker">{label}</span><strong>{value}</strong><span>{detail}</span></div>; }
+function Insight({ label, value, detail, icon: Icon = null }) {
+  return (
+    <div className="decision-insight">
+      <span className="decision-card-kicker">
+        {Icon && <Icon size={14} strokeWidth={2.2} />}
+        {label}
+      </span>
+      <strong>{value}</strong>
+      <span>{detail}</span>
+    </div>
+  );
+}
 
 // Lean/TPS principle tag. English stays primary everywhere; the Japanese term
 // rides along as a kicker so nobody has to learn a word to use the page.

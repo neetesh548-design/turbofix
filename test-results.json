@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/screenshot.spec.js",
+      "tests/dashboard.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,52 +148,65 @@
   },
   "suites": [
     {
-      "title": "screenshot.spec.js",
-      "file": "screenshot.spec.js",
+      "title": "dashboard.spec.js",
+      "file": "dashboard.spec.js",
       "column": 0,
       "line": 0,
-      "specs": [
+      "specs": [],
+      "suites": [
         {
-          "title": "capture dashboard screenshots",
-          "ok": true,
-          "tags": [],
-          "tests": [
+          "title": "Dashboard Premium UI Tests",
+          "file": "dashboard.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
             {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
+              "title": "should verify new glassmorphic styles and animations on dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 10564,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-21T10:43:10.790Z",
+                  "timeout": 30000,
                   "annotations": [],
-                  "attachments": []
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2282,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Animation name: shimmerProgress\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T11:00:00.246Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
-              "status": "expected"
+              "id": "a1bb41a2bd6df77ed2f7-9f51043f0a1c6b99033f",
+              "file": "dashboard.spec.js",
+              "line": 4,
+              "column": 3
             }
-          ],
-          "id": "b6aa675bc40ab83f8367-9760d2171d1592e1b3cd",
-          "file": "screenshot.spec.js",
-          "line": 3,
-          "column": 1
+          ]
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-21T10:43:10.238Z",
-    "duration": 11908.208,
+    "startTime": "2026-07-21T10:59:59.785Z",
+    "duration": 3098.103,
     "expected": 1,
     "skipped": 0,
     "unexpected": 0,

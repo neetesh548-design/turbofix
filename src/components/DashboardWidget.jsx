@@ -1,16 +1,33 @@
-import { useState, useCallback, useEffect } from 'react';
-import { GripVertical, X, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { GripVertical, Settings } from 'lucide-react';
+import { DASHBOARD_LAYOUT_STORAGE_KEY } from '@/lib/dashboardLayout';
+
+function readStoredLayout(defaultLayout) {
+  try {
+    const saved = localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY);
+    if (!saved) return defaultLayout;
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return defaultLayout;
+    const expectedIds = new Set(defaultLayout.map((item) => item.id));
+    if (parsed.length !== defaultLayout.length || parsed.some((item) => !item || !expectedIds.has(item.id))) {
+      return defaultLayout;
+    }
+    return parsed;
+  } catch {
+    return defaultLayout;
+  }
+}
 
 export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
   const [layout, setLayout] = useState(() => {
-    const saved = localStorage.getItem('dashboard-layout');
-    return saved ? JSON.parse(saved) : widgets.map((w, i) => ({ id: w.id, order: i }));
+    const defaultLayout = widgets.map((w, i) => ({ id: w.id, order: i }));
+    return readStoredLayout(defaultLayout);
   });
 
   const [draggingId, setDraggingId] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem('dashboard-layout', JSON.stringify(layout));
+    localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
     onLayoutChange?.(layout);
   }, [layout, onLayoutChange]);
 
@@ -115,23 +132,4 @@ function WidgetContainer({ widget, editable, onDragStart, onDragOver, onDrop, is
       )}
     </div>
   );
-}
-
-export function useWidgetLayout(defaultLayout = []) {
-  const [layout, setLayout] = useState(() => {
-    const saved = localStorage.getItem('dashboard-layout');
-    return saved ? JSON.parse(saved) : defaultLayout;
-  });
-
-  const saveLayout = useCallback((newLayout) => {
-    setLayout(newLayout);
-    localStorage.setItem('dashboard-layout', JSON.stringify(newLayout));
-  }, []);
-
-  const resetLayout = useCallback(() => {
-    setLayout(defaultLayout);
-    localStorage.setItem('dashboard-layout', JSON.stringify(defaultLayout));
-  }, [defaultLayout]);
-
-  return { layout, saveLayout, resetLayout };
 }
