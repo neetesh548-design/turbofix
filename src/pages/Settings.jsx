@@ -32,6 +32,7 @@ const settingTabs = [
   { value: 'ai-data', label: 'AI & machine data', description: 'Knowledge and approvals', icon: BrainCircuit },
   { value: 'escalation', label: 'Breakdown alerts', description: 'Who gets called and when', icon: Shield },
   { value: 'roles', label: 'Roles & access', description: 'Factory responsibilities', icon: Users },
+  { value: 'smart-modules', label: 'Smart Modules', description: 'Poka-Yoke & IoT Overlays', icon: Settings2 },
 ];
 
 function readCurrentUser() {
@@ -310,6 +311,37 @@ export default function Settings() {
               {!customRoles.length && <div className="settings-empty"><Users /><strong>No custom roles yet</strong><span>Create one only when the standard roles do not match your factory.</span></div>}
             </div>
             <a className="settings-card-link" href="team.html">Manage team members and access <ArrowUpRight /></a>
+          </CardContent></Card>
+        </section>}
+
+        {activeTab === 'smart-modules' && <section className="settings-section" aria-labelledby="smart-modules-title">
+          <SectionHeading icon={<Settings2 />} eyebrow="Smart Modules" title="Configurable Smart Modules" id="smart-modules-title" description="Enable Poka-Yoke overlays on top of the robust core system." />
+          <Card className="settings-role-card"><CardContent>
+            <div className="settings-role-list" style={{ marginTop: '1rem', gap: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+              {[
+                { id: 'iot', name: 'IoT Predictive Power-Signature', desc: 'Use machine amperage data to predict failures before they happen.' },
+                { id: 'cv', name: 'Visual Spare Part Deduction', desc: 'Scan replaced parts via camera and auto-deduct from inventory.' },
+                { id: 'erp', name: 'Dynamic Supply-Chain Sync', desc: 'Sync inventory counts and alerts with external ERP databases.' },
+                { id: 'mesh', name: 'Opportunistic Mesh Syncing', desc: 'Allow devices to sync logs with each other when fully offline.' },
+                { id: 'loc', name: 'Location Handshake Verification', desc: 'Require NFC or Bluetooth proximity to physically start a ticket.' }
+              ].map((mod) => (
+                <div key={mod.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <strong>{mod.name}</strong>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>{mod.desc}</p>
+                  </div>
+                  <Select defaultValue="disabled">
+                    <SelectTrigger style={{ width: '150px' }}>
+                      <SelectValue placeholder="Disabled" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="disabled">Disabled</SelectItem>
+                      <SelectItem value="enabled">Enabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
           </CardContent></Card>
         </section>}
       </main>

@@ -544,7 +544,8 @@ def _phone_authorized_for_ticket(phone: str, ticket: dict, machine: dict | None)
         return True
     if machine is None:
         return False
-    if machine.get("assigned_technician_phone") == phone:
+    assigned = machine.get("assigned_technician_phone", "")
+    if assigned and phone in [p.strip() for p in assigned.split(",") if p.strip()]:
         return True
     for key in ("informed_phone_1", "informed_phone_2", "informed_phone_3"):
         if machine.get(key) == phone:

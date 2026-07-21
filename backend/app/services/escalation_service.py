@@ -248,11 +248,13 @@ async def reject_ticket_closure(ticket_id: str, reason: str,
             ticket.get("machine_name", "") if ticket else "",
             reason,
         ]
-        try:
-            await _send_rejection_notification(technician_phone, params)
-        except Exception as exc:
-            log.error("escalation.rejection_notify_failed",
-                      ticket_id=ticket_id, error=str(exc))
+        phones = [p.strip() for p in technician_phone.split(",") if p.strip()]
+        for phone in phones:
+            try:
+                await _send_rejection_notification(phone, params)
+            except Exception as exc:
+                log.error("escalation.rejection_notify_failed",
+                          ticket_id=ticket_id, phone=phone, error=str(exc))
 
     log.info("escalation.closure_rejected", ticket_id=ticket_id, reason=reason)
     return True

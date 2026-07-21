@@ -199,6 +199,7 @@ class SupabaseUserRepository(UserRepository):
             "plant_location": "",
             "shift": "",
             "portal_access": "yes",
+            "opt_out_whatsapp": row.get("opt_out_whatsapp", False),
         }
 
     def get_by_identifier(self, identifier: str) -> Optional[dict]:

@@ -15,7 +15,8 @@ log = get_logger("turbofix.fanout")
 def _recipients(machine: dict) -> list:
     recipients = []
     if machine.get("assigned_technician_phone"):
-        recipients.append(machine["assigned_technician_phone"])
+        phones = [p.strip() for p in machine["assigned_technician_phone"].split(",") if p.strip()]
+        recipients.extend(phones)
     recipients.extend(machine.get("informed_phones", []))
     return recipients
 

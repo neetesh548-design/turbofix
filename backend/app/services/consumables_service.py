@@ -445,19 +445,9 @@ def _record_auto_reorder(factory_id: str, item_type: str,
 # ---- WhatsApp Notifications -----------------------------------------------
 
 async def _send_po_notification(phone: str, params: list) -> None:
-    """Send PO-related WhatsApp notification."""
-    from app.infrastructure import whatsapp
-
-    if not phone or not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
-        return
-
-    # Legacy PO callers provide [reference, part, quantity/reason, status].
-    # Expand that data to the six placeholders used by turbofix_part_request.
-    if len(params) == 4:
-        reference, part, quantity, status = params
-        params = [reference, "Not specified", part, quantity, phone, status]
-    await whatsapp.send_part_request_template(phone, params)
-    log.info("consumables.whatsapp_sent", to=phone)
+    """Send PO-related notification."""
+    from app.services.notification_service import send_po_notification
+    await send_po_notification(phone, params)
 
 
 # ---- Issue Part (Store Incharge action) ------------------------------------
