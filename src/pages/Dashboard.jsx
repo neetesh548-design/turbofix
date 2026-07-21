@@ -456,6 +456,7 @@ export default function Dashboard() {
           widgets={[
             {
               id: 'hero',
+              span: 12,
               bare: true,
               render: () => (
                 <section className="overview-hero-grid">
@@ -500,6 +501,7 @@ export default function Dashboard() {
             },
             {
               id: 'brief',
+              span: 12,
               bare: true,
               render: () => (
                 <section className="overview-brief-grid">
@@ -533,6 +535,7 @@ export default function Dashboard() {
             },
             {
               id: 'kpis',
+              span: 12,
               bare: true,
               render: () => (
                 <>
@@ -548,6 +551,7 @@ export default function Dashboard() {
             },
             {
               id: 'attention_trend',
+              span: 7,
               bare: true,
               render: () => (
                 <section className="decision-columns">
@@ -566,6 +570,7 @@ export default function Dashboard() {
             },
             {
               id: 'insights',
+              span: 5,
               bare: true,
               render: () => (
                 <>
@@ -583,6 +588,7 @@ export default function Dashboard() {
             },
             {
               id: 'impact',
+              span: 12,
               bare: true,
               render: () => (
                 <>
@@ -598,6 +604,7 @@ export default function Dashboard() {
             },
             {
               id: 'loss_making',
+              span: 6,
               bare: true,
               render: () => impact.top_loss_machines?.length > 0 ? (
                 <section className="decision-panel" style={{ marginTop: '12px' }}>
@@ -618,6 +625,7 @@ export default function Dashboard() {
             },
             {
               id: 'repair_replace',
+              span: 6,
               bare: true,
               render: () => data.repair_replace?.length > 0 ? (
                 <section className="decision-panel" style={{ marginTop: '12px' }}>
@@ -638,6 +646,7 @@ export default function Dashboard() {
             },
             {
               id: 'vendor_amc',
+              span: 6,
               bare: true,
               render: () => (data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) ? (
                 <section className="decision-panel" style={{ marginTop: '12px' }}>
@@ -663,7 +672,23 @@ export default function Dashboard() {
               ) : null
             },
             {
+              id: 'owner_brief',
+              span: 6,
+              bare: true,
+              render: () => (
+                <section className="decision-panel decision-owner-brief">
+                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
+                  {impact.cost_coverage_pct > 0 ? <>
+                    <p><strong>{kpis.open_tickets || 0}</strong> open tickets across <strong>{kpis.machines_down || 0}</strong> affected machines. Estimated 30-day production loss is <strong>{money.format(impact.downtime_cost || 0)}</strong>.</p>
+                    <p>{impact.top_cost_machine ? <><strong>{impact.top_cost_machine.machine_name}</strong> has the highest measured impact at <strong>{money.format(impact.top_cost_machine.cost)}</strong>. Review this machine first.</> : 'No cost-bearing breakdowns were recorded in this period.'}</p>
+                    <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
+                  </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
+                </section>
+              )
+            },
+            {
               id: 'quality_audit',
+              span: 12,
               bare: true,
               render: () => (
                 <>
@@ -699,21 +724,8 @@ export default function Dashboard() {
               )
             },
             {
-              id: 'owner_brief',
-              bare: true,
-              render: () => (
-                <section className="decision-panel decision-owner-brief">
-                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
-                  {impact.cost_coverage_pct > 0 ? <>
-                    <p><strong>{kpis.open_tickets || 0}</strong> open tickets across <strong>{kpis.machines_down || 0}</strong> affected machines. Estimated 30-day production loss is <strong>{money.format(impact.downtime_cost || 0)}</strong>.</p>
-                    <p>{impact.top_cost_machine ? <><strong>{impact.top_cost_machine.machine_name}</strong> has the highest measured impact at <strong>{money.format(impact.top_cost_machine.cost)}</strong>. Review this machine first.</> : 'No cost-bearing breakdowns were recorded in this period.'}</p>
-                    <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
-                  </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
-                </section>
-              )
-            },
-            {
               id: 'shift_handover',
+              span: 12,
               bare: true,
               render: () => {
                 const h = data.shift_handover || {};

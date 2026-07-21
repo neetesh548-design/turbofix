@@ -78,16 +78,17 @@ export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
 
 function WidgetContainer({ widget, editable, onDragStart, onDragOver, onDrop, isDragging }) {
   const [showSettings, setShowSettings] = useState(false);
+  const span = Math.max(1, Math.min(12, widget.span || 12));
 
   if (widget.bare) {
     return (
       <div
         className={`dashboard-widget-bare ${isDragging ? 'dragging' : ''}`}
+        style={{ position: 'relative', gridColumn: `span ${span}` }}
         draggable={editable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDrop={onDrop}
-        style={{ position: 'relative' }}
       >
         {editable && (
           <div style={{ position: 'absolute', top: '-10px', right: '10px', zIndex: 10 }}>
@@ -102,6 +103,7 @@ function WidgetContainer({ widget, editable, onDragStart, onDragOver, onDrop, is
   return (
     <div
       className={`dashboard-widget ${isDragging ? 'dragging' : ''}`}
+      style={{ gridColumn: `span ${span}` }}
       draggable={editable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
