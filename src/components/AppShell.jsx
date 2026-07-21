@@ -8,6 +8,8 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PerformanceMetrics } from '@/hooks/usePerformanceMonitor';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
+import { Tooltip } from '@/components/Tooltip';
+import { OnboardingFlow, useOnboarding } from '@/components/OnboardingFlow';
 
 /**
  * AppShell — the unified authenticated layout (Redesign P1).
@@ -93,9 +95,36 @@ const NAV_LIVE = [
 
 const NAV_SOON = [];
 
+const onboardingSteps = [
+  {
+    id: 'welcome',
+    title: 'Welcome to TurboFix',
+    description: 'Let\'s take a quick tour of your new AI-powered maintenance platform.',
+    target: null,
+    panelPosition: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
+  },
+  {
+    id: 'sidebar-nav',
+    title: 'Main Navigation',
+    description: 'Access your Dashboard, Machines, Tickets, and AI Assistant from here.',
+    target: { top: '60px', left: '16px', width: '200px', height: '60px', borderRadius: '8px' },
+    panelPosition: { top: '130px', left: '16px' }
+  },
+  {
+    id: 'ai-assistant',
+    title: 'AI Assistant',
+    description: 'Ask questions, get insights, or troubleshoot machines using natural language.',
+    target: { bottom: '20px', right: '20px', width: '120px', height: '50px', borderRadius: '25px' },
+    panelPosition: { bottom: '80px', right: '30px' }
+  }
+];
+
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
+  
+  const { isCompleted } = useOnboarding();
+  const showOnboarding = authed && !isCompleted('ai-assistant');
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -392,14 +421,15 @@ export default function AppShell({ children, active }) {
 
         <nav className="app-h-nav" aria-label="Main navigation">
           {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).map((item) => (
-            <a
-              key={item.id}
-              href={item.href}
-              className={`app-h-nav-item${active === item.id ? ' active' : ''}`}
-            >
-              <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
-              <span>{item.label}</span>
-            </a>
+            <Tooltip key={item.id} content={item.label} position="bottom" delay={300}>
+              <a
+                href={item.href}
+                className={`app-h-nav-item${active === item.id ? ' active' : ''}`}
+              >
+                <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
+                <span>{item.label}</span>
+              </a>
+            </Tooltip>
           ))}
           <button type="button" className="app-h-nav-logout" onClick={logout} title="Log out">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /></svg>
@@ -524,6 +554,23 @@ export default function AppShell({ children, active }) {
           )}
         </div>
       </aside>
+      
+      {showOnboarding && <OnboardingFlow steps={onboardingSteps} />}
+      
+      {/* Help Widget */}
+      <Tooltip content="Need help? Click to restart tour." position="top" delay={0}>
+        <button
+          className="app-help-trigger"
+          style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100, width: '36px', height: '36px', borderRadius: '50%', background: '#334155', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontFamily: 'monospace', fontWeight: 'bold' }}
+          onClick={() => {
+            localStorage.setItem('onboarding-completed', '[]');
+            window.location.reload();
+          }}
+          aria-label="Help & Context"
+        >
+          ?
+        </button>
+      </Tooltip>
     </div>
       </ErrorBoundary>
     </ThemeProvider>

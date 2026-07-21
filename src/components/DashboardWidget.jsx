@@ -62,6 +62,26 @@ export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
 function WidgetContainer({ widget, editable, onDragStart, onDragOver, onDrop, isDragging }) {
   const [showSettings, setShowSettings] = useState(false);
 
+  if (widget.bare) {
+    return (
+      <div
+        className={`dashboard-widget-bare ${isDragging ? 'dragging' : ''}`}
+        draggable={editable}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        style={{ position: 'relative' }}
+      >
+        {editable && (
+          <div style={{ position: 'absolute', top: '-10px', right: '10px', zIndex: 10 }}>
+            <GripVertical size={20} className="grip-handle" style={{ cursor: 'grab', background: 'var(--slate)', color: '#fff', borderRadius: '4px', padding: '2px' }} />
+          </div>
+        )}
+        {widget.render ? widget.render() : widget.children}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`dashboard-widget ${isDragging ? 'dragging' : ''}`}

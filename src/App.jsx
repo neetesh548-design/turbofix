@@ -1,5 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { NotificationProvider } from './components/NotificationCenter';
+import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 
 const Home = lazy(() => import('./pages/Home'));
 const QRGenerator = lazy(() => import('./pages/QRGenerator'));
@@ -19,10 +21,17 @@ const QRGateway = lazy(() => import('./pages/QRGateway'));
 
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
+  
+  useEffect(() => {
+    registerServiceWorker();
+    setupTouchGestures();
+  }, []);
+
   return (
-    <BrowserRouter basename={basename}>
-      <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
-        <Routes>
+    <NotificationProvider>
+      <BrowserRouter basename={basename}>
+        <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
           <Route path="/qr-generator.html" element={<QRGenerator />} />
@@ -40,9 +49,10 @@ function App() {
           <Route path="/support.html" element={<Support />} />
           <Route path="/qr-gateway.html" element={<QRGateway />} />
           <Route path="*" element={<Home />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </NotificationProvider>
   );
 }
 

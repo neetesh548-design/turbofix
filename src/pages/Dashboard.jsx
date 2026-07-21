@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
+import { DashboardGrid } from '@/components/DashboardWidget';
 
 const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0, pm_compliance_pct: null },
@@ -400,208 +401,270 @@ export default function Dashboard() {
         </div>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
-        <section className="decision-hero-grid">
-          <button type="button" className={`decision-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
-            <div className="decision-card-kicker">Plant health</div>
-            <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
-            <p>{kpis.machines_down || 0} machines currently need attention out of {kpis.total_machines || 0}.</p>
-            <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
-            <small className="decision-click-hint">View affected machines →</small>
-          </button>
-          <div className="decision-next-card">
-            <div className="decision-card-kicker">Recommended next action</div>
-            <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
-            <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
-            <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace →</a>
-          </div>
-        </section>
-
-        <div className="decision-section-label">Needs action now <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
-        <section className="decision-kpi-grid">
-          <Metric label="Machines down" value={kpis.machines_down} tone="danger" onClick={() => revealDetail('machines')} />
-          <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" onClick={() => revealDetail('urgent')} />
-          <Metric label="Open work" value={kpis.open_tickets} onClick={() => revealDetail('open')} />
-          <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} onClick={() => revealDetail('repair')} />
-        </section>
-
-        {activeDetail && <section className="decision-panel dashboard-drilldown" id="dashboard-drilldown" tabIndex="-1">
+        
+        {activeDetail && <section className="decision-panel dashboard-drilldown" id="dashboard-drilldown" tabIndex="-1" style={{ marginBottom: '20px' }}>
           <div className="decision-panel-heading"><div><div className="decision-card-kicker">Number explained</div><h2>{detailConfig[activeDetail].title}</h2></div><button type="button" className="dashboard-drilldown-close" onClick={() => setActiveDetail('')}>Close</button></div>
           {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : 'tickets.html'} key={`${item.ticket_id || item.machine_id || index}-${index}`}><span><strong>{item.machine_name || 'Unknown machine'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || 'Open'}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
         </section>}
 
-        <div className="decision-section-label">Maintenance intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
-        <section className="decision-insight-grid">
-          <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" />
-          <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
-          <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
-          <Insight label="PM compliance" value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`} detail="Preventive tasks completed on time" />
-          <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
-          <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
-        </section>
-
-        <div className="decision-section-label">Owner impact · last 30 days</div>
-        <section className="decision-insight-grid">
-          <Insight label="Downtime" value={`${impact.downtime_hours || 0} hrs`} detail="Automatically calculated from tickets" />
-          <Insight label="Estimated production loss" value={money.format(impact.downtime_cost || 0)} detail="Based on each machine's hourly value" />
-          <Insight label="Maintenance spend" value={money.format(impact.maintenance_cost || 0)} detail="Parts, labour and repair costs recorded" />
-          <Insight label="Repeat-loss exposure" value={money.format(impact.repeat_loss_exposure || 0)} detail="Cost linked to machines with 3+ issues" />
-        </section>
-
-        {impact.top_loss_machines?.length > 0 && (
-          <section className="decision-panel" style={{ marginTop: '12px' }}>
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Where the money goes</div><h2>Top loss-making machines · 30 days</h2></div><span className="trend-caption">By production-loss cost</span></div>
-            <div className="dashboard-detail-list">
-              {impact.top_loss_machines.map((machine, index) => (
-                <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
-                    <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
-                  </span>
-                  <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {data.repair_replace?.length > 0 && (
-          <section className="decision-panel" style={{ marginTop: '12px' }}>
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
-            <div className="dashboard-detail-list">
-              {data.repair_replace.map((m) => (
-                <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
-                  <span style={{ display: 'flex', flexDirection: 'column' }}>
-                    <strong>{m.machine_name}</strong>
-                    <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
-                  </span>
-                  <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {(data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) && (
-          <section className="decision-panel" style={{ marginTop: '12px' }}>
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Contracts &amp; vendors</div><h2>AMC &amp; warranty</h2></div><span className="trend-caption">{data.vendor_amc.outsourced_open > 0 ? `${data.vendor_amc.outsourced_open} open at vendor` : 'Next 60 days'}</span></div>
-            {data.vendor_amc.alerts?.length ? (
-              <div className="dashboard-detail-list">
-                {data.vendor_amc.alerts.map((a, index) => {
-                  const expired = a.days < 0;
-                  const tone = expired ? '#F87171' : a.days <= 30 ? '#FBBF24' : 'var(--slate)';
-                  return (
-                    <a href={`machines.html?machine=${encodeURIComponent(a.machine_id)}`} key={`${a.machine_id}-${a.type}-${index}`}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <b style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: tone, border: `1px solid ${tone}`, borderRadius: '999px', padding: '2px 8px' }}>{a.type}</b>
-                        <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{a.machine}</strong><small>{a.party} · expires {new Date(a.expiry).toLocaleDateString('en-IN')}</small></span>
-                      </span>
-                      <b style={{ color: tone, whiteSpace: 'nowrap' }}>{expired ? `Expired ${Math.abs(a.days)}d ago` : a.days === 0 ? 'Expires today' : `${a.days}d left`}</b>
-                    </a>
-                  );
-                })}
-              </div>
-            ) : <Empty text="No AMC or warranty expiring in the next 60 days." />}
-          </section>
-        )}
-
-        <section className="decision-columns">
-          <div className="decision-panel">
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
-            {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
-              <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
-                <span className="status-dot warning" />
-                <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
-              </a>
-            )) : <Empty text="Records look clean. KPIs are trustworthy." />}
-          </div>
-          <div className="decision-panel">
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
-            {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
-              const d = entry.details || {};
-              const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
-                : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
-                : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
-                : `Status: ${d.from || '—'} → ${d.to || '—'}`;
-              return (
-                <div className="attention-row" key={entry.id}>
-                  <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
-                  <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
-                </div>
-              );
-            }) : <Empty text="No recorded changes yet." />}
-          </div>
-        </section>
-        {(data.data_quality?.length > 8) && <p style={{ color: 'var(--slate)', fontSize: '0.8rem', margin: '4px 0 0' }}>Showing 8 of {data.data_quality.length} data-quality items.</p>}
-
-        <section className="decision-panel decision-owner-brief">
-          <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
-          {impact.cost_coverage_pct > 0 ? <>
-            <p><strong>{kpis.open_tickets || 0}</strong> open tickets across <strong>{kpis.machines_down || 0}</strong> affected machines. Estimated 30-day production loss is <strong>{money.format(impact.downtime_cost || 0)}</strong>.</p>
-            <p>{impact.top_cost_machine ? <><strong>{impact.top_cost_machine.machine_name}</strong> has the highest measured impact at <strong>{money.format(impact.top_cost_machine.cost)}</strong>. Review this machine first.</> : 'No cost-bearing breakdowns were recorded in this period.'}</p>
-            <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
-          </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
-        </section>
-
-        {(() => {
-          const h = data.shift_handover || {};
-          const groups = [
-            ['Critical open jobs', h.critical, '#F87171'],
-            ['Waiting for spare', h.waiting_spare, '#F59E0B'],
-            ['Waiting for approval / verification', h.waiting_approval, '#A78BFA'],
-            ['Waiting for vendor', h.waiting_vendor, '#F59E0B'],
-            ['Recurring failures', h.repeat, '#F87171'],
-          ];
-          const pmDue = h.pm_due || [];
-          const totalItems = groups.reduce((n, [, items]) => n + (items?.length || 0), 0) + pmDue.length;
-          const buildText = () => {
-            const lines = [`TurboFix shift handover — ${new Date().toLocaleString('en-IN')}`, `Machines down: ${h.machines_down || 0}`];
-            groups.forEach(([label, items]) => { if (items?.length) { lines.push(`\n${label} (${items.length}):`); items.forEach((i) => lines.push(`- ${i.machine}${i.wo ? ` [${i.wo}]` : ''}: ${i.text}`)); } });
-            if (pmDue.length) { lines.push(`\nPM due (${pmDue.length}):`); pmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
-            return lines.join('\n');
-          };
-          return (
-            <section className="decision-panel" style={{ marginTop: '12px' }}>
-              <div className="decision-panel-heading">
-                <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
-              </div>
-              {totalItems === 0 ? <Empty text="Nothing pending — clean handover." /> : (
-                <div style={{ display: 'grid', gap: '14px' }}>
-                  <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{h.machines_down || 0} machine{h.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
-                  {groups.map(([label, items, color]) => items?.length ? (
-                    <div key={label}>
-                      <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color, fontWeight: 700, marginBottom: '6px' }}>{label} · {items.length}</div>
-                      <div className="dashboard-detail-list">
-                        {items.map((i) => <a href={`machines.html?machine=${encodeURIComponent(i.machine_id)}`} key={i.id}><span><strong>{i.machine}</strong><small>{i.text}</small></span>{i.wo && <b style={{ color: 'var(--slate)', fontFamily: 'monospace' }}>{i.wo}</b>}</a>)}
-                      </div>
+        <DashboardGrid
+          editable={true}
+          widgets={[
+            {
+              id: 'hero',
+              bare: true,
+              render: () => (
+                <section className="decision-hero-grid">
+                  <button type="button" className={`decision-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
+                    <div className="decision-card-kicker">Plant health</div>
+                    <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
+                    <p>{kpis.machines_down || 0} machines currently need attention out of {kpis.total_machines || 0}.</p>
+                    <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
+                    <small className="decision-click-hint">View affected machines →</small>
+                  </button>
+                  <div className="decision-next-card">
+                    <div className="decision-card-kicker">Recommended next action</div>
+                    <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
+                    <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
+                    <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace →</a>
+                  </div>
+                </section>
+              )
+            },
+            {
+              id: 'kpis',
+              bare: true,
+              render: () => (
+                <>
+                  <div className="decision-section-label">Needs action now <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
+                  <section className="decision-kpi-grid">
+                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" onClick={() => revealDetail('machines')} />
+                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" onClick={() => revealDetail('urgent')} />
+                    <Metric label="Open work" value={kpis.open_tickets} onClick={() => revealDetail('open')} />
+                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} onClick={() => revealDetail('repair')} />
+                  </section>
+                </>
+              )
+            },
+            {
+              id: 'insights',
+              bare: true,
+              render: () => (
+                <>
+                  <div className="decision-section-label">Maintenance intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
+                  <section className="decision-insight-grid">
+                    <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" />
+                    <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" />
+                    <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" />
+                    <Insight label="PM compliance" value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`} detail="Preventive tasks completed on time" />
+                    <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" />
+                    <Insight label="#1 risk" value={topMachine?.machine_name || 'No data yet'} detail={topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to see risk'} />
+                  </section>
+                </>
+              )
+            },
+            {
+              id: 'impact',
+              bare: true,
+              render: () => (
+                <>
+                  <div className="decision-section-label">Owner impact · last 30 days</div>
+                  <section className="decision-insight-grid">
+                    <Insight label="Downtime" value={`${impact.downtime_hours || 0} hrs`} detail="Automatically calculated from tickets" />
+                    <Insight label="Estimated production loss" value={money.format(impact.downtime_cost || 0)} detail="Based on each machine's hourly value" />
+                    <Insight label="Maintenance spend" value={money.format(impact.maintenance_cost || 0)} detail="Parts, labour and repair costs recorded" />
+                    <Insight label="Repeat-loss exposure" value={money.format(impact.repeat_loss_exposure || 0)} detail="Cost linked to machines with 3+ issues" />
+                  </section>
+                </>
+              )
+            },
+            {
+              id: 'loss_making',
+              bare: true,
+              render: () => impact.top_loss_machines?.length > 0 ? (
+                <section className="decision-panel" style={{ marginTop: '12px' }}>
+                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Where the money goes</div><h2>Top loss-making machines · 30 days</h2></div><span className="trend-caption">By production-loss cost</span></div>
+                  <div className="dashboard-detail-list">
+                    {impact.top_loss_machines.map((machine, index) => (
+                      <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
+                          <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
+                        </span>
+                        <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            },
+            {
+              id: 'repair_replace',
+              bare: true,
+              render: () => data.repair_replace?.length > 0 ? (
+                <section className="decision-panel" style={{ marginTop: '12px' }}>
+                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
+                  <div className="dashboard-detail-list">
+                    {data.repair_replace.map((m) => (
+                      <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
+                        <span style={{ display: 'flex', flexDirection: 'column' }}>
+                          <strong>{m.machine_name}</strong>
+                          <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
+                        </span>
+                        <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            },
+            {
+              id: 'vendor_amc',
+              bare: true,
+              render: () => (data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) ? (
+                <section className="decision-panel" style={{ marginTop: '12px' }}>
+                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Contracts &amp; vendors</div><h2>AMC &amp; warranty</h2></div><span className="trend-caption">{data.vendor_amc.outsourced_open > 0 ? `${data.vendor_amc.outsourced_open} open at vendor` : 'Next 60 days'}</span></div>
+                  {data.vendor_amc.alerts?.length ? (
+                    <div className="dashboard-detail-list">
+                      {data.vendor_amc.alerts.map((a, index) => {
+                        const expired = a.days < 0;
+                        const tone = expired ? '#F87171' : a.days <= 30 ? '#FBBF24' : 'var(--slate)';
+                        return (
+                          <a href={`machines.html?machine=${encodeURIComponent(a.machine_id)}`} key={`${a.machine_id}-${a.type}-${index}`}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <b style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: tone, border: `1px solid ${tone}`, borderRadius: '999px', padding: '2px 8px' }}>{a.type}</b>
+                              <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{a.machine}</strong><small>{a.party} · expires {new Date(a.expiry).toLocaleDateString('en-IN')}</small></span>
+                            </span>
+                            <b style={{ color: tone, whiteSpace: 'nowrap' }}>{expired ? `Expired ${Math.abs(a.days)}d ago` : a.days === 0 ? 'Expires today' : `${a.days}d left`}</b>
+                          </a>
+                        );
+                      })}
                     </div>
-                  ) : null)}
-                  {pmDue.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#FBBF24', fontWeight: 700, marginBottom: '6px' }}>PM due · {pmDue.length}</div>
-                      <div className="dashboard-detail-list">
-                        {pmDue.map((p) => <a href={`machines.html?machine=${encodeURIComponent(p.machine_id)}`} key={p.id}><span><strong>{p.machine}</strong><small>{p.text}</small></span><b style={{ color: p.overdue ? '#F87171' : '#FBBF24' }}>{p.overdue ? 'Overdue' : 'Due'}</b></a>)}
-                      </div>
+                  ) : <Empty text="No AMC or warranty expiring in the next 60 days." />}
+                </section>
+              ) : null
+            },
+            {
+              id: 'quality_audit',
+              bare: true,
+              render: () => (
+                <>
+                  <section className="decision-columns">
+                    <div className="decision-panel">
+                      <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
+                      {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
+                        <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
+                          <span className="status-dot warning" />
+                          <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
+                        </a>
+                      )) : <Empty text="Records look clean. KPIs are trustworthy." />}
                     </div>
-                  )}
-                </div>
-              )}
-            </section>
-          );
-        })()}
-
-        <section className="decision-columns">
-          <div className="decision-panel">
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
-            {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-              <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
-            )) : <Empty text="No open issues. Your plant is clear." />}
-          </div>
-          <div className="decision-panel">
-            <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
-            {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
-          </div>
-        </section>
+                    <div className="decision-panel">
+                      <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
+                      {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
+                        const d = entry.details || {};
+                        const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
+                          : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
+                          : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
+                          : `Status: ${d.from || '—'} → ${d.to || '—'}`;
+                        return (
+                          <div className="attention-row" key={entry.id}>
+                            <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
+                            <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
+                          </div>
+                        );
+                      }) : <Empty text="No recorded changes yet." />}
+                    </div>
+                  </section>
+                  {(data.data_quality?.length > 8) && <p style={{ color: 'var(--slate)', fontSize: '0.8rem', margin: '4px 0 0' }}>Showing 8 of {data.data_quality.length} data-quality items.</p>}
+                </>
+              )
+            },
+            {
+              id: 'owner_brief',
+              bare: true,
+              render: () => (
+                <section className="decision-panel decision-owner-brief">
+                  <div className="decision-panel-heading"><div><div className="decision-card-kicker">Simple daily brief</div><h2>What the owner should know</h2></div><span className="trend-caption">Auto-generated</span></div>
+                  {impact.cost_coverage_pct > 0 ? <>
+                    <p><strong>{kpis.open_tickets || 0}</strong> open tickets across <strong>{kpis.machines_down || 0}</strong> affected machines. Estimated 30-day production loss is <strong>{money.format(impact.downtime_cost || 0)}</strong>.</p>
+                    <p>{impact.top_cost_machine ? <><strong>{impact.top_cost_machine.machine_name}</strong> has the highest measured impact at <strong>{money.format(impact.top_cost_machine.cost)}</strong>. Review this machine first.</> : 'No cost-bearing breakdowns were recorded in this period.'}</p>
+                    <small>Financial coverage: {impact.cost_coverage_pct}% of machines. Estimates support decisions; they do not replace approved financial records.</small>
+                  </> : <p>Add an optional hourly downtime value while onboarding machines to activate production-loss and ROI insights. Technicians will not see or enter this information.</p>}
+                </section>
+              )
+            },
+            {
+              id: 'shift_handover',
+              bare: true,
+              render: () => {
+                const h = data.shift_handover || {};
+                const groups = [
+                  ['Critical open jobs', h.critical, '#F87171'],
+                  ['Waiting for spare', h.waiting_spare, '#F59E0B'],
+                  ['Waiting for approval / verification', h.waiting_approval, '#A78BFA'],
+                  ['Waiting for vendor', h.waiting_vendor, '#F59E0B'],
+                  ['Recurring failures', h.repeat, '#F87171'],
+                ];
+                const pmDue = h.pm_due || [];
+                const totalItems = groups.reduce((n, [, items]) => n + (items?.length || 0), 0) + pmDue.length;
+                const buildText = () => {
+                  const lines = [`TurboFix shift handover — ${new Date().toLocaleString('en-IN')}`, `Machines down: ${h.machines_down || 0}`];
+                  groups.forEach(([label, items]) => { if (items?.length) { lines.push(`\n${label} (${items.length}):`); items.forEach((i) => lines.push(`- ${i.machine}${i.wo ? ` [${i.wo}]` : ''}: ${i.text}`)); } });
+                  if (pmDue.length) { lines.push(`\nPM due (${pmDue.length}):`); pmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
+                  return lines.join('\n');
+                };
+                return (
+                  <section className="decision-panel" style={{ marginTop: '12px' }}>
+                    <div className="decision-panel-heading">
+                      <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
+                    </div>
+                    {totalItems === 0 ? <Empty text="Nothing pending — clean handover." /> : (
+                      <div style={{ display: 'grid', gap: '14px' }}>
+                        <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{h.machines_down || 0} machine{h.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
+                        {groups.map(([label, items, color]) => items?.length ? (
+                          <div key={label}>
+                            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color, fontWeight: 700, marginBottom: '6px' }}>{label} · {items.length}</div>
+                            <div className="dashboard-detail-list">
+                              {items.map((i) => <a href={`machines.html?machine=${encodeURIComponent(i.machine_id)}`} key={i.id}><span><strong>{i.machine}</strong><small>{i.text}</small></span>{i.wo && <b style={{ color: 'var(--slate)', fontFamily: 'monospace' }}>{i.wo}</b>}</a>)}
+                            </div>
+                          </div>
+                        ) : null)}
+                        {pmDue.length > 0 && (
+                          <div>
+                            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#FBBF24', fontWeight: 700, marginBottom: '6px' }}>PM due · {pmDue.length}</div>
+                            <div className="dashboard-detail-list">
+                              {pmDue.map((p) => <a href={`machines.html?machine=${encodeURIComponent(p.machine_id)}`} key={p.id}><span><strong>{p.machine}</strong><small>{p.text}</small></span><b style={{ color: p.overdue ? '#F87171' : '#FBBF24' }}>{p.overdue ? 'Overdue' : 'Due'}</b></a>)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                );
+              }
+            },
+            {
+              id: 'attention_trend',
+              bare: true,
+              render: () => (
+                <section className="decision-columns">
+                  <div className="decision-panel">
+                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
+                    {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
+                      <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
+                    )) : <Empty text="No open issues. Your plant is clear." />}
+                  </div>
+                  <div className="decision-panel">
+                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
+                    {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
+                  </div>
+                </section>
+              )
+            }
+          ]}
+        />
       </div>
     </AppShell>
   );
