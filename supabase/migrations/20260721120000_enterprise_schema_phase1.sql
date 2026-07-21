@@ -44,13 +44,12 @@ INSERT INTO public.role_permissions (role_id, permission_id) VALUES
 -- 2. ORGANIZATIONS (Renaming/Expanding factories)
 -- We will keep factories for backwards compatibility but expand it as organizations.
 ALTER TABLE public.factories RENAME TO organizations;
-ALTER TABLE public.machines RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.tickets RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.parts RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.consumables RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.suppliers RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.machine_qr_codes RENAME COLUMN factory_id TO organization_id;
-ALTER TABLE public.profiles RENAME COLUMN factory_id TO organization_id;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS domain text;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS status text DEFAULT 'active';
+ALTER TABLE public.machines ALTER COLUMN factory_id DROP NOT NULL;
+ALTER TABLE public.tickets ALTER COLUMN factory_id DROP NOT NULL;
+ALTER TABLE public.parts ALTER COLUMN factory_id DROP NOT NULL;
+ALTER TABLE public.consumables ALTER COLUMN factory_id DROP NOT NULL;
 
 -- 3. TEAMS
 CREATE TABLE public.teams (
@@ -146,23 +145,23 @@ CREATE TABLE public.webhook_logs (
 
 -- 9. RLS POLICIES FOR NEW TABLES
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can see teams in org" ON public.teams FOR SELECT USING (organization_id = (SELECT organization_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
+CREATE POLICY "Users can see teams in org" ON public.teams FOR SELECT USING (organization_id = (SELECT factory_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
 
 ALTER TABLE public.maintenance_plans ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can see plans in org" ON public.maintenance_plans FOR SELECT USING (organization_id = (SELECT organization_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
+CREATE POLICY "Users can see plans in org" ON public.maintenance_plans FOR SELECT USING (organization_id = (SELECT factory_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
 
 ALTER TABLE public.checklists ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can see checklists" ON public.checklists FOR SELECT USING (true); -- simplified for now
 
 ALTER TABLE public.knowledge_base ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can see knowledge base in org" ON public.knowledge_base FOR SELECT USING (organization_id = (SELECT organization_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
+CREATE POLICY "Users can see knowledge base in org" ON public.knowledge_base FOR SELECT USING (organization_id = (SELECT factory_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1));
 
 ALTER TABLE public.ticket_comments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can see comments" ON public.ticket_comments FOR SELECT USING (
-  ticket_id IN (SELECT id FROM public.tickets WHERE organization_id = (SELECT organization_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1))
+  ticket_id IN (SELECT id FROM public.tickets WHERE factory_id = (SELECT factory_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1))
 );
 
 ALTER TABLE public.status_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can see status history" ON public.status_history FOR SELECT USING (
-  ticket_id IN (SELECT id FROM public.tickets WHERE organization_id = (SELECT organization_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1))
+  ticket_id IN (SELECT id FROM public.tickets WHERE factory_id = (SELECT factory_id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1))
 );

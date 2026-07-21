@@ -1339,12 +1339,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .machine-tile-team span { display: grid; gap: 2px; }
 .machine-tile-team small { color: #718096; font-size: .66rem; text-transform: uppercase; }
 .machine-track-record { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; border: 1px solid #334252; border-radius: 10px; background: rgba(9,16,24,.34); }
-.machine-track-record > span { display: grid; gap: 3px; min-width: 0; padding: 10px 8px; border-left: 1px solid #334252; text-align: center; }
+.machine-track-record > span { display: grid; gap: 3px; min-width: 0; padding: 10px 8px; border-left: 1px solid #334252; text-align: center; cursor: pointer; transition: background 0.2s; }
+.machine-track-record > span:hover { background: rgba(255,255,255,0.06); }
 .machine-track-record > span:first-child { border-left: 0; }
 .machine-track-record strong { color: #f8fafc; font: 850 1.15rem/1 Rajdhani, sans-serif; }
 .machine-track-record small { color: #8091a4; font-size: .56rem; line-height: 1.2; text-transform: uppercase; }
 .machine-track-detail { display: grid; gap: 9px; padding: 11px 12px; border-left: 2px solid #3a4a5c; background: rgba(255,255,255,.018); }
-.machine-track-detail > span { display: grid; gap: 2px; min-width: 0; }
+.machine-track-detail > span { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; margin: -8px; }
+.machine-track-detail > span:hover { background: rgba(255,255,255,0.04); }
 .machine-track-detail small { color: #718096; font-size: .6rem; text-transform: uppercase; }
 .machine-track-detail strong { overflow: hidden; color: #dce6ef; font-size: .74rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .machine-track-detail em { color: #7f91a4; font-size: .62rem; font-style: normal; }
@@ -4063,6 +4065,8 @@ details.faq-item p {
 .settings-subnav-note { display: flex; gap: 7px; align-items: flex-start; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: .7rem; line-height: 1.4; }
 .settings-subnav-note svg { color: var(--primary); flex: none; margin-top: 1px; }
 .settings-subnav-note { margin-top: 24px; }
+.machine-tile-team { display: flex; gap: 11px; align-items: center; margin-top: auto; color: #8e9eaf; font-size: .75rem; cursor: pointer; padding: 8px; margin: -8px 0 10px -8px; border-radius: 6px; transition: background 0.2s; }
+.machine-tile-team:hover { background: rgba(255,255,255,0.04); }
 .settings-profile-card { display: flex; gap: 10px; align-items: center; margin-top: 18px; padding: 12px; border: 1px solid rgba(181, 148, 91, .55); border-radius: 13px; background: linear-gradient(145deg, rgba(87, 69, 43, .28), rgba(27, 35, 36, .7)); }
 .settings-profile-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border: 3px solid #35d981; border-radius: 50%; color: #f6f8f4; background: #35434b; font-weight: 800; }
 .settings-profile-copy { display: grid; min-width: 0; gap: 2px; }

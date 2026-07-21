@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import { supabase } from '../supabaseClient';
 
@@ -66,15 +67,19 @@ const getRootCauseFix = (t) => {
 };
 
 export default function Tickets() {
+  const location = useLocation();
+  const getParam = (k, d) => new URLSearchParams(location.search).get(k) || d;
+  
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  
+  const [activeFilter, setActiveFilter] = useState(() => getParam('activeFilter', 'all'));
   const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterMachine, setFilterMachine] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterMachine, setFilterMachine] = useState(() => getParam('machine', 'all'));
+  const [filterStatus, setFilterStatus] = useState(() => getParam('status', 'all'));
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filterTechnician, setFilterTechnician] = useState('all');

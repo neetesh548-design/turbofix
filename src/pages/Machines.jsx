@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
@@ -21,6 +22,7 @@ const WORKSPACE_TABS = [
 ];
 
 export default function Machines() {
+  const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const [team, setTeam] = useState([]);
   const [escalationPath, setEscalationPath] = useState([]);
@@ -1782,15 +1784,15 @@ export default function Machines() {
                           <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
                           <p><MapPin /> {m.location || 'Location not added'}</p>
                           <div className="machine-track-record" aria-label={`${m.machine_name} track record`}>
-                            <span><strong>{m.track_record.open}</strong><small>Open issues</small></span>
-                            <span><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
-                            <span><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
+                            <span onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&status=open&activeFilter=open`); }}><strong>{m.track_record.open}</strong><small>Open issues</small></span>
+                            <span onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&status=closed&activeFilter=closed`); }}><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
+                            <span onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&activeFilter=all`); }}><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
                           </div>
                           <div className="machine-track-detail">
-                            <span><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
-                            <span><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
+                            <span onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&activeFilter=all`); }}><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
+                            <span onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('pm'); }}><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
                           </div>
-                          <div className="machine-tile-team"><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
+                          <div className="machine-tile-team" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); setTimeout(() => { document.querySelector('.machine-response-team')?.scrollIntoView({behavior: 'smooth'}) }, 100); }}><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
                           <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
                         </div>
                       </article>
