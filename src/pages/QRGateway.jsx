@@ -773,7 +773,7 @@ export default function QRGateway() {
 
   const startVoiceInput = async () => {
     setErrorAlert(null);
-    if (isListening) {
+    if (recorderRef.current && recorderRef.current.state === 'recording') {
       stopVoiceInput();
       return;
     }
@@ -791,6 +791,7 @@ export default function QRGateway() {
     setSuccess(false);
     setTranscript('');
     setWorkflowStage('listening');
+    setIsListening(true);
 
     try {
       const stream = micStreamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -817,12 +818,12 @@ export default function QRGateway() {
       };
 
       recorderRef.current = recorder;
-      setIsListening(true);
       setAssistantPrompt(t('listening'));
       recorder.start();
     } catch (e) {
       console.error(e);
       micPermissionDeniedRef.current = true;
+      setIsListening(false);
       fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
       setWorkflowStage('capture');
     }
