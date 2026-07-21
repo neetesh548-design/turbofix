@@ -385,6 +385,8 @@ export default function Dashboard() {
     window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
 
+  const [editMode, setEditMode] = useState(false);
+
   return (
     <AppShell active="overview">
       <div className="decision-page">
@@ -395,10 +397,34 @@ export default function Dashboard() {
             <p>See what needs attention, why it matters, and what to do next.</p>
           </div>
           <div className="decision-actions">
+            <button 
+              type="button" 
+              className={`btn btn-sm ${editMode ? 'btn-primary' : 'btn-ghost'}`} 
+              onClick={() => setEditMode(!editMode)}
+            >
+              {editMode ? 'Done Customizing' : 'Customize Layout'}
+            </button>
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
             <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
           </div>
         </div>
+
+        {editMode && (
+          <div className="decision-alert" style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(52, 211, 153, 0.4)', color: '#6ee7b7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>🎨 <strong>NocoBase Block Editor Active</strong>: Drag any block by its handle to reorder dashboard widgets.</span>
+            <button 
+              type="button" 
+              className="btn btn-ghost btn-sm" 
+              style={{ color: '#f8fafc', padding: '4px 10px', fontSize: '0.78rem' }}
+              onClick={() => {
+                localStorage.removeItem('dashboard-layout');
+                window.location.reload();
+              }}
+            >
+              Reset Default Layout
+            </button>
+          </div>
+        )}
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
         
@@ -408,7 +434,7 @@ export default function Dashboard() {
         </section>}
 
         <DashboardGrid
-          editable={false}
+          editable={editMode}
           widgets={[
             {
               id: 'hero',
