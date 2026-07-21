@@ -231,6 +231,7 @@ export default function QRGateway() {
   const [offlineQueued, setOfflineQueued] = useState(false);
 
   const t = (key) => (GATEWAY_I18N[lang] || GATEWAY_I18N['hi-IN'])[key] || key;
+  const machineContextLabel = machine.name ? `${machine.name}${machine.loc ? ` · ${machine.loc}` : ''}` : 'Selected machine';
 
   // Auto-retry helper for transient edge function failures
   const invokeWithRetry = async (functionName, options, maxRetries = 2) => {
@@ -308,6 +309,9 @@ export default function QRGateway() {
   }, []);
 
   const recorderRef = useRef(null);
+  const micStreamRef = useRef(null);
+  const micPermissionAskedRef = useRef(false);
+  const micPermissionDeniedRef = useRef(false);
   const chunksRef = useRef([]);
   const speechRecognitionRef = useRef(null);
   const transcriptRef = useRef('');
@@ -434,10 +438,97 @@ export default function QRGateway() {
         greetingText = 'I am your TurboFix assistant. Tap the big button to speak your problem.';
       }
     }
+    if (!phoneGate) {
+      greetingText += ` ${machine.name ? `For ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.` : 'For the selected machine.'}`;
+    }
     
     setAssistantPrompt(greetingText);
     speak(greetingText);
   };
+
+  const normalizeTranscriptForApproval = ({ rawText = '', language = lang, machineName = '', machineLocation = '' }) => {
+    const original = String(rawText || '').trim();
+    const lower = original.toLowerCase();
+
+    const replacements = [
+      [/मशीन/gi, machineName || 'machine'],
+      [/मेसिन/gi, machineName || 'machine'],
+      [/मशिन/gi, machineName || 'machine'],
+      [/नंबर/gi, 'number'],
+      [/फोन/gi, 'phone'],
+      [/तेल|ऑइल|oil/gi, 'oil'],
+      [/लीक|गळती|leak/gi, 'leak'],
+      [/गर्म|heat|overheating/gi, 'overheating'],
+      [/कंपन|vibration/gi, 'vibration'],
+      [/बंद|off|down|stopped/gi, 'stopped'],
+      [/चालू|running/gi, 'running'],
+      [/असुरक्षित|unsafe|danger/gi, 'unsafe'],
+      [/टूट|broken|damage/gi, 'broken'],
+      [/जाम|stuck|jam/gi, 'stuck'],
+    ];
+
+    let normalized = original;
+    for (const [pattern, replacement] of replacements) {
+      normalized = normalized.replace(pattern, replacement);
+    }
+
+    const isMachineSpecific = Boolean(machineName || machineLocation);
+    const contextPrefix = isMachineSpecific
+      ? `${machineName || 'Selected machine'}${machineLocation ? ` at ${machineLocation}` : ''}`
+      : 'Selected machine';
+
+    const issueSeeds = [
+      /oil leak|leak/i.test(normalized) && 'oil leak',
+      /overheating|heat/i.test(normalized) && 'overheating',
+      /vibration/i.test(normalized) && 'vibration',
+      /stuck|jam/i.test(normalized) && 'stuck component',
+      /broken|damage/i.test(normalized) && 'broken part',
+      /unsafe|danger/i.test(normalized) && 'unsafe condition',
+    ].filter(Boolean);
+
+    const extractedIssue = issueSeeds[0]
+      || (normalized || original || 'Issue not clearly captured').slice(0, 120);
+
+    const condition = /unsafe|danger/i.test(lower)
+      ? 'unsafe'
+      : /stopped|down|not working|jam|stuck|बंद|खराब/i.test(lower)
+        ? 'stopped'
+        : 'running';
+
+    const urgency = condition === 'unsafe'
+      ? 'critical'
+      : condition === 'stopped'
+        ? 'high'
+        : /leak|overheating|vibration|broken|damage/i.test(lower)
+          ? 'high'
+          : 'medium';
+
+    const approvalNote = language === 'hi-IN'
+      ? 'AI ने आपकी आवाज़ से साफ़ रिपोर्ट बनाई है — कृपया approval से पहले जाँच लें।'
+      : language === 'mr-IN'
+        ? 'AI ने तुमच्या बोलण्यातून साफ draft तयार केला आहे — approval आधी तपासा.'
+        : 'AI prepared a clean draft from your voice. Please review before approval.';
+
+    return {
+      issue: extractedIssue,
+      condition,
+      urgency,
+      machineContext: contextPrefix,
+      originalText: original,
+      normalizedText: normalized.trim(),
+      aiDraft: true,
+      confidence: issueSeeds[0] ? 82 : 68,
+      approvalNote,
+    };
+  };
+
+  const buildApprovalSummary = (draft) => {
+    if (!draft) return '';
+    const machineText = draft.machineContext || (machine.name ? `${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}` : 'Selected machine');
+    return `${machineText} · ${draft.issue || 'issue needs approval'}`;
+  };
+
+  const approvalSummary = buildApprovalSummary(extractedInfo);
 
   const suggestCondition = (text) => {
     const t = (text || '').toLowerCase();
@@ -469,10 +560,19 @@ export default function QRGateway() {
       }
       
       setTranscript(text);
-      setManualCondition(suggestCondition(text));
+      const normalized = normalizeTranscriptForApproval({
+        rawText: text,
+        language: lang,
+        machineName: machine.name,
+        machineLocation: machine.loc
+      });
+      setManualCondition(normalized.condition || suggestCondition(text));
+      setExtractedInfo(normalized);
       setShowTextFallback(true);
       
-      const reviewMsg = t('reviewConfirm');
+      const reviewMsg = machine.name
+        ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
+        : t('reviewConfirm');
       setAssistantPrompt(reviewMsg);
       speak(reviewMsg);
     } catch (err) {
@@ -559,6 +659,23 @@ export default function QRGateway() {
     }
   };
 
+  const fallBackToText = (title, desc) => {
+    setIsListening(false);
+    setIsTranscribing(false);
+    setErrorAlert({ title, desc });
+    setShowTextFallback(true);
+    setAssistantPrompt(t('troubleSpeaking'));
+  };
+
+  useEffect(() => {
+    return () => {
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach((track) => track.stop());
+        micStreamRef.current = null;
+      }
+    };
+  }, []);
+
   const startVoiceInput = async () => {
     setErrorAlert(null);
     if (isListening) {
@@ -577,6 +694,13 @@ export default function QRGateway() {
 
     setExtractedInfo(null);
     setSuccess(false);
+
+    const streamAlreadyAvailable = Boolean(micStreamRef.current);
+    const permissionLockedOut = micPermissionAskedRef.current && !streamAlreadyAvailable;
+    if (permissionLockedOut || micPermissionDeniedRef.current) {
+      fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
+      return;
+    }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -608,7 +732,9 @@ export default function QRGateway() {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micPermissionAskedRef.current = true;
+      const stream = micStreamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
       
@@ -619,8 +745,7 @@ export default function QRGateway() {
       recorder.onstop = async () => {
         setIsListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        stream.getTracks().forEach((track) => track.stop());
-        
+
         if (speechRecognitionRef.current) {
           try { speechRecognitionRef.current.stop(); } catch (e) {}
           speechRecognitionRef.current = null;
@@ -628,9 +753,18 @@ export default function QRGateway() {
 
         const liveCaptured = transcriptRef.current ? transcriptRef.current.trim() : '';
         if (liveCaptured) {
-          setManualCondition(suggestCondition(liveCaptured));
+          const normalized = normalizeTranscriptForApproval({
+            rawText: liveCaptured,
+            language: lang,
+            machineName: machine.name,
+            machineLocation: machine.loc
+          });
+          setManualCondition(normalized.condition || suggestCondition(liveCaptured));
+          setExtractedInfo(normalized);
           setShowTextFallback(true);
-          const reviewMsg = t('reviewConfirm');
+          const reviewMsg = machine.name
+            ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
+            : t('reviewConfirm');
           setAssistantPrompt(reviewMsg);
           speak(reviewMsg);
         } else {
@@ -644,12 +778,12 @@ export default function QRGateway() {
       recorder.start();
     } catch (e) {
       console.error(e);
-      setIsListening(false);
-      setErrorAlert({
-        title: t('micBlockedTitle'),
-        desc: t('micBlockedDesc')
-      });
-      setShowTextFallback(true);
+      micPermissionDeniedRef.current = true;
+      if (micStreamRef.current) {
+        try { micStreamRef.current.getTracks().forEach((track) => track.stop()); } catch (err) {}
+        micStreamRef.current = null;
+      }
+      fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
     }
   };
 
@@ -914,7 +1048,7 @@ export default function QRGateway() {
   };
 
   return (
-    <main style={{
+    <main className="qr-gateway-page" style={{
       height: '100dvh',
       maxHeight: '100vh',
       display: 'flex',
@@ -931,14 +1065,14 @@ export default function QRGateway() {
       <style>{ORB_ANIMATIONS}</style>
 
       {/* Top Identity Block - 4 Individual Lines */}
-      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10 }}>
+      <div className="qr-gateway-shell" style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10 }}>
         {/* Line 1: Company Name */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px', marginBottom: '2px' }}>
+        <div className="qr-gateway-identity-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px', marginBottom: '2px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
             <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Rajdhani, sans-serif', color: '#ffffff' }}>TURBOFIX</span>
           </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <div className="qr-gateway-identity-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button 
               type="button" 
               onClick={() => setSpeakFeedback(!speakFeedback)} 
@@ -984,13 +1118,13 @@ export default function QRGateway() {
         </div>
 
         {/* Line 2: Machine Name */}
-        <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div className="qr-gateway-identity-row" style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Machine:</span>
           {machine.name}
         </div>
 
         {/* Line 3: Location */}
-        <div style={{ fontSize: '0.75rem', color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div className="qr-gateway-identity-row" style={{ fontSize: '0.75rem', color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px' }}>Location:</span>
           {machine.loc}
           {!phoneGate && reporterPhone && (
@@ -1005,13 +1139,13 @@ export default function QRGateway() {
         </div>
 
         {/* Line 4: Machine ID */}
-        <div style={{ fontSize: '0.75rem', color: '#a78bfa', fontFamily: 'monospace', fontWeight: 'bold' }}>
+        <div className="qr-gateway-identity-row" style={{ fontSize: '0.75rem', color: '#a78bfa', fontFamily: 'monospace', fontWeight: 'bold' }}>
           <span style={{ color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase', marginRight: '6px', fontFamily: 'Outfit, sans-serif' }}>Machine ID:</span>
           {machine.tag || (machine.id ? machine.id.slice(0, 8) : '')}
         </div>
 
         {/* Line 5: Andon Visual Machine Health Indicator (Japanese TPS Standard) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '3px', marginTop: '1px' }}>
+        <div className="qr-gateway-identity-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '3px', marginTop: '1px' }}>
           <span style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Andon Health:</span>
           {activeTickets.length > 0 ? (
             <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '999px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
@@ -1036,16 +1170,16 @@ export default function QRGateway() {
       {/* Main Single-Screen Content Container */}
       {phoneGate ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
-          <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="qr-gateway-card qr-gateway-gate" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center' }}>
               {t('phoneGateTitle')}
             </h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className="qr-gateway-segment-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold' }}>
                 {t('selectLang')}
               </label>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="qr-gateway-segmented" style={{ display: 'flex', gap: '6px' }}>
                 {['hi-IN', 'mr-IN', 'en-US'].map((langCode) => {
                   const label = langCode === 'hi-IN' ? 'हिंदी' : langCode === 'mr-IN' ? 'मराठी' : 'English';
                   const active = lang === langCode;
@@ -1057,6 +1191,7 @@ export default function QRGateway() {
                         setLang(langCode);
                         localStorage.setItem('tf_lang', langCode);
                       }}
+                      className={`qr-gateway-segment ${active ? 'active' : ''}`}
                       style={{
                         flex: 1,
                         padding: '10px 4px',
@@ -1099,7 +1234,7 @@ export default function QRGateway() {
         </div>
       ) : success ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
-          <div style={{ 
+          <div className="qr-gateway-card qr-gateway-success" style={{ 
             background: '#151e28', 
             border: '1px solid rgba(22, 163, 74, 0.4)', 
             borderRadius: '14px', 
@@ -1142,10 +1277,13 @@ export default function QRGateway() {
         </div>
       ) : showTextFallback ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '8px', zIndex: 10 }}>
-          <div style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="qr-gateway-card qr-gateway-text-fallback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center' }}>
               {t('writeIssueTitle')}
             </h3>
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.72rem', lineHeight: '1.35' }}>
+              {machineContextLabel}
+            </div>
             
             <div style={{ position: 'relative' }}>
               <textarea 
@@ -1159,6 +1297,7 @@ export default function QRGateway() {
                 type="button"
                 onClick={startVoiceInput}
                 disabled={isTranscribing}
+                className={`qr-gateway-mic ${isListening ? 'listening' : ''} ${isTranscribing ? 'transcribing' : ''}`}
                 style={{
                   position: 'absolute',
                   right: '8px',
@@ -1184,7 +1323,7 @@ export default function QRGateway() {
               <label style={{ display: 'block', fontSize: '0.72rem', color: '#94a3b8', marginBottom: '4px', fontWeight: 'bold' }}>
                 {t('machineCondition')}
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              <div className="qr-gateway-condition-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                 {[
                   { id: 'running', label: t('condRunning'), color: '#eab308' },
                   { id: 'stopped', label: t('condStopped'), color: '#ef4444' },
@@ -1195,10 +1334,11 @@ export default function QRGateway() {
                     key={item.id}
                     type="button"
                     onClick={() => setManualCondition(item.id)}
+                    className={`qr-gateway-condition ${manualCondition === item.id ? 'active' : ''}`}
                     style={{
                       padding: '8px 4px',
                       minHeight: '40px',
-                      borderRadius: '6px',
+                      borderRadius: '10px',
                       background: manualCondition === item.id ? `${item.color}22` : '#0b1118',
                       border: `1px solid ${manualCondition === item.id ? item.color : 'rgba(255,255,255,0.1)'}`,
                       color: manualCondition === item.id ? '#ffffff' : '#94a3b8',
@@ -1215,10 +1355,11 @@ export default function QRGateway() {
 
             {renderPhotoAttachment()}
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <div className="qr-gateway-action-row" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               <button 
                 type="button" 
                 onClick={() => setShowTextFallback(false)}
+                className="qr-gateway-secondary"
                 style={{ flex: 1, padding: '10px', minHeight: '44px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
               >
                 {t('cancel')}
@@ -1237,6 +1378,7 @@ export default function QRGateway() {
                   };
                   setExtractedInfo(info);
                 }}
+                className="qr-gateway-primary"
                 style={{ flex: 1.5, padding: '10px', minHeight: '44px', background: '#16a34a', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
               >
                 <span>{t('reviewConfirm')}</span>
@@ -1246,7 +1388,7 @@ export default function QRGateway() {
           </div>
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
+        <div className="qr-gateway-voice-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
           
           {/* Glowing Orb ripple rings */}
           {isListening && (
@@ -1262,6 +1404,7 @@ export default function QRGateway() {
             type="button"
             onClick={startVoiceInput}
             disabled={isTranscribing}
+            className={`qr-gateway-mic qr-gateway-orb ${isListening ? 'listening' : ''} ${isTranscribing ? 'transcribing' : ''}`}
             style={{
               position: 'relative',
               width: 'clamp(100px, 20vh, 130px)',
@@ -1299,6 +1442,7 @@ export default function QRGateway() {
             type="button" 
             onClick={() => { setShowTextFallback(true); setTranscript(''); }}
             disabled={isTranscribing}
+            className="qr-gateway-text-toggle"
             style={{ background: 'rgba(134,59,255,0.12)', border: '1px solid #863bff', borderRadius: '8px', color: '#a78bfa', fontSize: '0.8rem', cursor: 'pointer', padding: '8px 14px', marginTop: '12px', zIndex: 5, fontWeight: 'bold' }}
           >
             {t('troubleSpeaking')}
@@ -1322,31 +1466,31 @@ export default function QRGateway() {
   
       {/* Confirmation Sliding Overlay Card */}
       {extractedInfo && (
-        <div style={{ background: 'rgba(15, 23, 34, 0.98)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '14px 14px 0 0', padding: '14px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 30, boxShadow: '0 -8px 25px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="qr-gateway-card qr-gateway-review" style={{ background: 'rgba(15, 23, 34, 0.98)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '20px 20px 0 0', padding: '14px', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 30, boxShadow: '0 -18px 40px rgba(0,0,0,0.42)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {duplicateTicket ? (
             <>
-              <div style={{ textAlign: 'center' }}>
-                <h4 style={{ margin: '0 0 2px', fontSize: '0.9rem', fontWeight: 'bold', color: '#fbbf24' }}>
+              <div style={{ textAlign: 'center', display: 'grid', gap: '4px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 850, color: '#fbbf24', letterSpacing: '.04em', textTransform: 'uppercase' }}>
                   {t('similarTicketOpen')}
                 </h4>
-                <p style={{ fontSize: '0.72rem', color: '#94a3b8', margin: 0 }}>
+                <p style={{ fontSize: '0.76rem', color: '#94a3b8', margin: 0, lineHeight: 1.45 }}>
                   {t('similarTicketDesc')}
                 </p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'grid', gap: '8px' }}>
                 <button 
                   type="button" 
                   onClick={appendTicket}
                   disabled={checkingDuplicate}
-                  style={{ width: '100%', padding: '10px', minHeight: '44px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  style={{ width: '100%', minHeight: '46px', border: '0', borderRadius: '12px', color: '#081a2e', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', fontSize: '0.84rem', fontWeight: 850, cursor: 'pointer' }}
                 >
                   {t('appendRecommended')}
                 </button>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <button 
                     type="button" 
                     onClick={() => setDuplicateTicket(null)}
-                    style={{ flex: 1, padding: '10px', minHeight: '44px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+                    style={{ minHeight: '44px', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '12px', color: '#e5edf6', background: 'rgba(255,255,255,0.02)', fontSize: '0.84rem', fontWeight: 750, cursor: 'pointer' }}
                   >
                     {t('cancel')}
                   </button>
@@ -1354,7 +1498,7 @@ export default function QRGateway() {
                     type="button" 
                     onClick={() => submitTicket(true)}
                     disabled={checkingDuplicate}
-                    style={{ flex: 1, padding: '10px', minHeight: '44px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+                    style={{ minHeight: '44px', border: '0', borderRadius: '12px', color: '#fff', background: 'linear-gradient(135deg, #ef4444, #dc2626)', fontSize: '0.84rem', fontWeight: 850, cursor: 'pointer' }}
                   >
                     {t('createSeparate')}
                   </button>
@@ -1363,29 +1507,65 @@ export default function QRGateway() {
             </>
           ) : (
             <>
-              <div style={{ textAlign: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+              <div style={{ textAlign: 'center', display: 'grid', gap: '4px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '.06em' }}>
                   {t('reviewTitle')}
                 </h4>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.45 }}>
+                  {approvalSummary} · AI draft ready for approval
+                </p>
               </div>
-  
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold' }}>
+
+              <div style={{ display: 'grid', gap: '8px', padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {[
+                  ['Machine', machine.name || 'Selected machine'],
+                  ['Location', machine.loc || 'Not set'],
+                  ['Report type', extractedInfo?.aiDraft ? 'AI-reviewed voice' : showTextFallback ? 'Text / Voice' : 'Voice']
+                ].map(([label, value]) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem', alignItems: 'start' }}>
+                    <span style={{ color: '#94a3b8' }}>{label}</span>
+                    <strong style={{ color: label === 'Report type' ? '#a78bfa' : '#f8fafc', textAlign: 'right', lineHeight: 1.35 }}>{value}</strong>
+                  </div>
+                ))}
+                {extractedInfo?.confidence != null && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem' }}>
+                    <span style={{ color: '#94a3b8' }}>AI confidence</span>
+                    <strong style={{ color: extractedInfo.confidence >= 80 ? '#4ade80' : '#fbbf24', textAlign: 'right' }}>{extractedInfo.confidence}%</strong>
+                  </div>
+                )}
+                {photoPreview && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
+                    <img src={photoPreview} alt="Selected evidence" style={{ width: '46px', height: '46px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }} />
+                    <div style={{ minWidth: 0, display: 'grid', gap: '2px' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Image attached</div>
+                      <div style={{ fontSize: '0.76rem', color: '#e5edf6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {photoFile?.name || 'Selected image'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gap: '6px' }}>
+                <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
                   {t('issueDescEdit')}
                 </label>
                 <textarea 
-                  rows={2}
+                  rows={3}
                   value={extractedInfo.issue}
                   onChange={(e) => setExtractedInfo(prev => ({ ...prev, issue: e.target.value }))}
-                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px', color: 'white', fontFamily: 'inherit', resize: 'none', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '14px', padding: '12px', color: 'white', fontFamily: 'inherit', resize: 'none', fontSize: '0.88rem', boxSizing: 'border-box', lineHeight: 1.45 }}
                 />
+                <div style={{ color: '#94a3b8', fontSize: '0.74rem', lineHeight: '1.45' }}>
+                  {extractedInfo?.approvalNote || 'Review the AI draft before approval.'}
+                </div>
               </div>
-  
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold' }}>
+
+              <div style={{ display: 'grid', gap: '6px' }}>
+                <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
                   {t('machineCondition')}
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                   {[
                     { id: 'running', label: t('condRunning'), color: '#eab308' },
                     { id: 'stopped', label: t('condStopped'), color: '#ef4444' },
@@ -1397,15 +1577,17 @@ export default function QRGateway() {
                       type="button"
                       onClick={() => setExtractedInfo(prev => ({ ...prev, condition: item.id, urgency: item.id === 'unsafe' ? 'critical' : item.id === 'stopped' ? 'high' : prev.urgency }))}
                       style={{
-                        padding: '6px',
-                        minHeight: '36px',
-                        borderRadius: '6px',
+                        minHeight: '42px',
+                        borderRadius: '14px',
                         background: extractedInfo.condition === item.id ? `${item.color}22` : '#0b1118',
                         border: `1px solid ${extractedInfo.condition === item.id ? item.color : 'rgba(255,255,255,0.1)'}`,
                         color: extractedInfo.condition === item.id ? '#ffffff' : '#94a3b8',
-                        fontSize: '0.72rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer'
+                        fontSize: '0.76rem',
+                        fontWeight: 750,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        padding: '10px 8px',
+                        lineHeight: 1.25
                       }}
                     >
                       {item.label}
@@ -1414,16 +1596,16 @@ export default function QRGateway() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(134,59,255,0.08)', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', background: 'rgba(134,59,255,0.08)', padding: '10px 12px', borderRadius: '14px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.76rem' }}>
                 <span style={{ color: '#cbd5e1' }}>{t('assignedTech')}</span>
-                <strong style={{ color: '#a78bfa', fontWeight: 'bold' }}>{technicianName || t('notAssigned')}</strong>
+                <strong style={{ color: '#a78bfa', fontWeight: 800, textAlign: 'right' }}>{technicianName || t('notAssigned')}</strong>
               </div>
-              
-              <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '8px', marginTop: '2px' }}>
                 <button 
                   type="button" 
                   onClick={() => setExtractedInfo(null)}
-                  style={{ flex: 1, padding: '10px', minHeight: '48px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  style={{ minHeight: '48px', background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '14px', color: '#e5edf6', fontSize: '0.86rem', fontWeight: 750, cursor: 'pointer' }}
                 >
                   {t('cancel')}
                 </button>
@@ -1431,7 +1613,7 @@ export default function QRGateway() {
                   type="button" 
                   onClick={() => submitTicket(false)}
                   disabled={checkingDuplicate || !extractedInfo.issue.trim()}
-                  style={{ flex: 1, padding: '10px', minHeight: '48px', background: '#16a34a', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  style={{ minHeight: '48px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '14px', color: '#ffffff', fontSize: '0.86rem', fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 >
                   {checkingDuplicate ? t('submitting') : t('yesSubmit')}
                 </button>
@@ -1442,10 +1624,11 @@ export default function QRGateway() {
       )}
 
       {/* Secondary Footer Actions (100vh bottom) */}
-      <footer style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', minHeight: '38px', zIndex: 10 }}>
+      <footer className="qr-gateway-footer" style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', minHeight: '38px', zIndex: 10 }}>
         <button 
           type="button" 
           onClick={handleFetchStatus}
+          className="qr-gateway-footer-btn"
           style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
         >
           {t('viewOpenTickets')}
@@ -1456,6 +1639,7 @@ export default function QRGateway() {
             const base = import.meta.env.BASE_URL || '/';
             window.location.href = `${base}machines.html?machine=${machine.id}`;
           }}
+          className="qr-gateway-footer-btn"
           style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}
         >
           {t('loginDashboard')}
@@ -1464,7 +1648,7 @@ export default function QRGateway() {
 
       {/* Ticket Status Timeline overlay */}
       {showStatus && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,17,24,0.98)', display: 'flex', flexDirection: 'column', padding: '16px', zIndex: 1000 }}>
+        <div className="qr-gateway-card qr-gateway-status" style={{ position: 'fixed', inset: 0, background: 'rgba(11,17,24,0.98)', display: 'flex', flexDirection: 'column', padding: '16px', zIndex: 1000 }}>
           <h3 style={{ fontSize: '1.05rem', fontFamily: 'Rajdhani, sans-serif', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', color: 'white', margin: 0 }}>
             {t('activeOpenTickets')}
           </h3>

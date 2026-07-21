@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 
 export default function QRGenerator() {
@@ -13,17 +12,21 @@ export default function QRGenerator() {
     window.scrollTo(0, 0);
   }, []);
 
+  const machineCount = useMemo(() => machineList.split('\n').filter((line) => line.trim()).length, [machineList]);
+
   const handleGenerate = () => {
     setErrorMsg('');
     setTags([]);
+
     const number = waNumber.trim().replace(/\D/g, '');
     if (!number) {
       setErrorMsg('Please enter a valid WhatsApp number (digits only).');
       return;
     }
-    const lines = machineList.split('\n').filter(line => line.trim());
+
+    const lines = machineList.split('\n').filter((line) => line.trim());
     if (lines.length === 0) {
-      setErrorMsg('Please enter at least one machine.');
+      setErrorMsg('Please add at least one machine line.');
       return;
     }
 
@@ -36,77 +39,102 @@ export default function QRGenerator() {
       if (!id || !name) continue;
       const text = `Issue with ${id} (${name})`;
       const link = `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
       generated.push({ id, name, qrUrl });
     }
+
     setTags(generated);
+    if (!generated.length) {
+      setErrorMsg('No valid machine rows found. Use: machine_id, machine_name');
+    }
   };
 
   return (
     <MainLayout>
-      <section style={{ padding: '120px 0' }}>
-        <div className="container wrap" style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--card)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-          <h1 style={{ marginBottom: '12px' }}>TurboFix — QR Tag Generator</h1>
-          <p className="sub" style={{ color: 'var(--slate)', marginBottom: '32px' }}>
-            Generate one printable QR tag per machine. Scanning a tag opens WhatsApp with the machine ID and name pre-filled — the worker just adds what's wrong.
-          </p>
-
-          <div className="panel">
-            <div className="field" style={{ marginBottom: '24px' }}>
-              <label htmlFor="waNumber" style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>TurboFix WhatsApp number</label>
-              <div className="hint" style={{ color: 'var(--slate-light)', fontSize: '13px', marginBottom: '8px' }}>
-                Full international number, digits only, no + or spaces (e.g. 919876543210)
-              </div>
-              <input 
-                type="text" 
-                id="waNumber" 
-                placeholder="919876543210" 
-                value={waNumber}
-                onChange={(e) => setWaNumber(e.target.value)}
-                style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--ink)' }} 
-              />
+      <section className="qr-generator-page">
+        <div className="container qr-generator-shell">
+          <div className="qr-generator-hero">
+            <div>
+              <span className="qr-generator-kicker">Operations utility</span>
+              <h1>QR Tag Generator</h1>
+              <p>
+                Create one printable QR tag per machine. Scanning a tag opens WhatsApp with the machine details already
+                filled in, so the worker only adds what’s wrong.
+              </p>
             </div>
-            <div className="field" style={{ marginBottom: '24px' }}>
-              <label htmlFor="machineList" style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Machine list</label>
-              <div className="hint" style={{ color: 'var(--slate-light)', fontSize: '13px', marginBottom: '8px' }}>
-                One machine per line: <code>machine_id, machine_name</code> — e.g. <code>TF-ACME3-M001, CNC Lathe 1</code>
+            <div className="qr-generator-hero-meta">
+              <div>
+                <span>Machines queued</span>
+                <strong>{machineCount}</strong>
               </div>
-              <textarea 
-                id="machineList" 
-                placeholder="TF-ACME3-M001, CNC Lathe 1&#10;TF-ACME3-M002, Hydraulic Press 2" 
-                value={machineList}
-                onChange={(e) => setMachineList(e.target.value)}
-                style={{ width: '100%', height: '120px', padding: '12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--ink)' }}
-              />
+              <div>
+                <span>Output mode</span>
+                <strong>WhatsApp → QR</strong>
+              </div>
             </div>
-            <button 
-              id="generateBtn" 
-              onClick={handleGenerate}
-              className="btn btn-primary" 
-              style={{ background: 'var(--brand)', color: 'white', padding: '12px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-            >
-              Generate QR Tags
-            </button>
-            {errorMsg && <div id="error" style={{ color: 'var(--red)', marginTop: '12px' }}>{errorMsg}</div>}
           </div>
 
-          <div id="tags" style={{ marginTop: '32px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-            {tags.map((tag, idx) => (
-              <div key={idx} style={{ border: '1px solid var(--border)', padding: '16px', borderRadius: '8px', background: 'var(--bg)', textAlign: 'center', minWidth: '180px' }}>
-                <img src={tag.qrUrl} alt={`QR for ${tag.name}`} style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{tag.name}</div>
-                <div style={{ fontSize: '12px', color: 'var(--slate)' }}>{tag.id}</div>
+          <div className="qr-generator-card">
+            <div className="qr-generator-grid">
+              <label className="qr-generator-field">
+                <span>TurboFix WhatsApp number</span>
+                <small>Full international number, digits only — no plus sign or spaces.</small>
+                <input
+                  type="text"
+                  id="waNumber"
+                  placeholder="919876543210"
+                  value={waNumber}
+                  onChange={(e) => setWaNumber(e.target.value)}
+                />
+              </label>
+
+              <label className="qr-generator-field qr-generator-field-wide">
+                <span>Machine list</span>
+                <small>
+                  One machine per line in this format: <code>machine_id, machine_name</code>
+                </small>
+                <textarea
+                  id="machineList"
+                  placeholder="TF-ACME3-M001, CNC Lathe 1&#10;TF-ACME3-M002, Hydraulic Press 2"
+                  value={machineList}
+                  onChange={(e) => setMachineList(e.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="qr-generator-actions">
+              <button id="generateBtn" onClick={handleGenerate} className="btn btn-primary qr-generator-primary">
+                Generate QR Tags
+              </button>
+              <div className="qr-generator-note">
+                <span>{tags.length ? `${tags.length} tag${tags.length === 1 ? '' : 's'} ready` : 'Nothing generated yet'}</span>
+                <small>{errorMsg || 'Keep the machine list short and precise for cleaner tags.'}</small>
               </div>
+            </div>
+
+            {errorMsg && <div id="error" className="qr-generator-error">{errorMsg}</div>}
+          </div>
+
+          <div className="qr-generator-results" id="tags">
+            {tags.map((tag) => (
+              <article key={`${tag.id}-${tag.name}`} className="qr-generator-tag">
+                <div className="qr-generator-tag-qr">
+                  <img src={tag.qrUrl} alt={`QR for ${tag.name}`} />
+                </div>
+                <div className="qr-generator-tag-copy">
+                  <strong>{tag.name}</strong>
+                  <span>{tag.id}</span>
+                </div>
+              </article>
             ))}
           </div>
+
           {tags.length > 0 && (
-            <button 
-              onClick={() => window.print()} 
-              className="btn btn-secondary" 
-              style={{ marginTop: '24px', display: 'block', background: 'var(--border)', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-            >
-              Print All Tags
-            </button>
+            <div className="qr-generator-footer">
+              <button onClick={() => window.print()} className="btn btn-secondary qr-generator-print">
+                Print All Tags
+              </button>
+            </div>
           )}
         </div>
       </section>

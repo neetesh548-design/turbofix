@@ -19,6 +19,49 @@ const reply = (req: Request, body: Record<string, unknown>, status = 200) => new
 })
 const text = (value: unknown) => String(value ?? '').replace(/[\r\n]+/g, ' ').trim()
 
+const mimeToExtension = (mimeType: string) => {
+  if (mimeType.includes('webm')) return 'webm'
+  if (mimeType.includes('ogg')) return 'ogg'
+  if (mimeType.includes('mp4') || mimeType.includes('m4a')) return 'm4a'
+  if (mimeType.includes('wav')) return 'wav'
+  if (mimeType.includes('mpeg') || mimeType.includes('mp3')) return 'mp3'
+  if (mimeType.includes('aac')) return 'aac'
+  if (mimeType.includes('flac')) return 'flac'
+  return 'audio'
+}
+
+async function transcribeWithSarvam(audioBase64: string, audioMime: string) {
+  const sarvamKey = Deno.env.get('SARVAM_API_KEY')
+  if (!sarvamKey) return { error: 'Voice input is not configured.' as const }
+
+  const audioBytes = Uint8Array.from(atob(audioBase64), (char) => char.charCodeAt(0))
+  const form = new FormData()
+  form.append(
+    'file',
+    new Blob([audioBytes], { type: audioMime }),
+    `voice.${mimeToExtension(audioMime)}`
+  )
+
+  const response = await fetch('https://api.sarvam.ai/speech-to-text', {
+    method: 'POST',
+    headers: {
+      'api-subscription-key': sarvamKey,
+    },
+    body: form,
+  })
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '')
+    return { error: `Sarvam returned ${response.status}${detail ? `: ${detail}` : ''}` }
+  }
+
+  const data = await response.json().catch(() => ({}))
+  return {
+    transcript: String(data?.transcript || '').trim(),
+    languageCode: String(data?.language_code || '').trim() || null,
+  }
+}
+
 async function logUsage(
   admin: any,
   opts: {
@@ -70,29 +113,27 @@ serve(async (req) => {
     const audioBase64 = parts[1]
     
     if (audioBase64.length > 14_000_000) return reply(req, { error: 'Recording is too long. Keep it under a minute.' }, 413)
-    const transcribeKey = Deno.env.get('GEMINI_API_KEY')
-    if (!transcribeKey) return reply(req, { error: 'Voice input is not configured.' }, 503)
-    
-    const transcribeResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${transcribeKey}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [
-        { text: 'Transcribe this maintenance question verbatim. The speaker may use English, Hindi, or Marathi (or a mix). Return only the transcribed text in its spoken language — no translation, quotes, or commentary.' },
-        { inline_data: { mime_type: audioMime, data: audioBase64 } },
-      ] }] }),
-    })
-    
-    if (!transcribeResp.ok) {
+    const sarvam = await transcribeWithSarvam(audioBase64, audioMime)
+    if ('error' in sarvam && sarvam.error) {
       await logUsage(admin, {
         userId: 'anonymous', companyId: 'anonymous',
         action: 'transcribe', status: 'error',
-        errorMsg: `Gemini returned ${transcribeResp.status}`,
+        errorMsg: sarvam.error,
         latencyMs: Date.now() - startTime, ipAddress: clientIp,
       })
       return reply(req, { error: 'Voice transcription is temporarily unavailable.' }, 502)
     }
-    
-    const transcribeData = await transcribeResp.json()
-    const transcript = String(transcribeData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+
+    const transcript = sarvam.transcript
+    if (!transcript) {
+      await logUsage(admin, {
+        userId: 'anonymous', companyId: 'anonymous',
+        action: 'transcribe', status: 'error',
+        errorMsg: 'Sarvam returned an empty transcript',
+        latencyMs: Date.now() - startTime, ipAddress: clientIp,
+      })
+      return reply(req, { error: 'Voice transcription did not return any text.' }, 502)
+    }
     
     await logUsage(admin, {
       userId: 'anonymous', companyId: 'anonymous',
@@ -100,7 +141,7 @@ serve(async (req) => {
       latencyMs: Date.now() - startTime, ipAddress: clientIp,
     })
     
-    return reply(req, { transcript })
+    return reply(req, { transcript, language_code: sarvam.languageCode })
 
   } catch (err: any) {
     console.error('AI Translation Edge Function error:', err)

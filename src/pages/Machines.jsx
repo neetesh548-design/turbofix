@@ -1910,7 +1910,7 @@ export default function Machines() {
               {machineEdit && <form className="machine-owner-edit" onSubmit={saveMachineEdit} style={{ background: '#0b131c', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '14px', padding: '24px', marginBottom: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
                 <div className="machine-owner-edit-heading" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <span style={{ color: '#25D366', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.08em' }}>🇯🇵 MONOZUKURI ASSET MASTER PROFILE (OWNER EDIT)</span>
+                    <span style={{ color: '#25D366', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.08em' }}>OWNER EDIT · SHARED MACHINE PROFILE</span>
                     <h3 style={{ fontSize: '1.4rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', margin: '4px 0', color: 'white' }}>Machine details</h3>
                     <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>These changes appear across the shared company workspace.</p>
                   </div>
@@ -1918,10 +1918,11 @@ export default function Machines() {
                 </div>
 
                 {/* ACCORDION SECTION 1: BASIC OPERATIONAL PARAMETERS */}
-                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
+                <div className="machine-owner-edit-section" style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
                   <button 
                     type="button" 
                     onClick={() => toggleEditSec('basic')}
+                    className="machine-owner-edit-toggle"
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1945,10 +1946,11 @@ export default function Machines() {
                 </div>
 
                 {/* ACCORDION SECTION 2: MACHINE IDENTITY & ASSET DETAILS */}
-                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
+                <div className="machine-owner-edit-section" style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '16px', overflow: 'hidden' }}>
                   <button 
                     type="button" 
                     onClick={() => toggleEditSec('identity')}
+                    className="machine-owner-edit-toggle"
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1984,10 +1986,11 @@ export default function Machines() {
                 </div>
 
                 {/* ACCORDION SECTION 3: PEOPLE CONNECTED TO THIS MACHINE */}
-                <div style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '20px', overflow: 'hidden' }}>
+                <div className="machine-owner-edit-section" style={{ background: '#111923', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', marginBottom: '20px', overflow: 'hidden' }}>
                   <button 
                     type="button" 
                     onClick={() => toggleEditSec('people')}
+                    className="machine-owner-edit-toggle"
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2010,7 +2013,7 @@ export default function Machines() {
                   )}
                 </div>
 
-                <button className="vault-btn vault-btn-primary" disabled={machineEditSaving} style={{ width: '100%', height: '52px', fontSize: '1.1rem', fontWeight: 800, background: '#25D366', color: '#000', borderRadius: '10px', cursor: 'pointer', border: 'none', boxShadow: '0 4px 16px rgba(37, 211, 102, 0.3)' }}>{machineEditSaving ? 'Saving changes…' : 'Save changes'}</button>
+                <button className="vault-btn vault-btn-primary machine-owner-edit-save" disabled={machineEditSaving} style={{ width: '100%', height: '52px', fontSize: '1.1rem', fontWeight: 800, background: '#25D366', color: '#000', borderRadius: '10px', cursor: 'pointer', border: 'none', boxShadow: '0 4px 16px rgba(37, 211, 102, 0.3)' }}>{machineEditSaving ? 'Saving changes…' : 'Save changes'}</button>
               </form>}
 
               <section className="machine-workspace-pulse" aria-label="Machine at a glance">
