@@ -1645,12 +1645,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .machine-track-record > span:first-child { border-left: 0; }
 .machine-track-record strong { color: #f8fafc; font: 850 1.15rem/1 Rajdhani, sans-serif; }
 .machine-track-record small { color: #8091a4; font-size: .56rem; line-height: 1.2; text-transform: uppercase; }
+.machine-track-record .track-open { background: linear-gradient(180deg, rgba(248,113,113,.16), rgba(248,113,113,.06)); }
+.machine-track-record .track-open strong { color: #fda4af; }
+.machine-track-record .track-open small { color: #fca5a5; }
+.machine-track-record .track-resolved { background: linear-gradient(180deg, rgba(74,222,128,.16), rgba(74,222,128,.06)); }
+.machine-track-record .track-resolved strong { color: #86efac; }
+.machine-track-record .track-resolved small { color: #86efac; }
+.machine-track-record .track-recent { background: linear-gradient(180deg, rgba(56,189,248,.14), rgba(56,189,248,.05)); }
+.machine-track-record .track-recent strong { color: #7dd3fc; }
+.machine-track-record .track-recent small { color: #7dd3fc; }
 .machine-track-detail { display: grid; gap: 9px; padding: 11px 12px; border-left: 2px solid #3a4a5c; background: rgba(255,255,255,.018); }
 .machine-track-detail > span { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; margin: -8px; }
 .machine-track-detail > span:hover { background: rgba(255,255,255,0.04); }
 .machine-track-detail small { color: #718096; font-size: .6rem; text-transform: uppercase; }
 .machine-track-detail strong { overflow: hidden; color: #dce6ef; font-size: .74rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .machine-track-detail em { color: #7f91a4; font-size: .62rem; font-style: normal; }
+.machine-track-detail .track-issue { border-left: 3px solid #f59e0b; background: linear-gradient(90deg, rgba(245,158,11,.12), rgba(255,255,255,0)); }
+.machine-track-detail .track-issue strong { color: #fde68a; }
+.machine-track-detail .track-issue em { color: #fbbf24; }
+.machine-track-detail .track-maintenance.scheduled { border-left: 3px solid #60a5fa; background: linear-gradient(90deg, rgba(96,165,250,.12), rgba(255,255,255,0)); }
+.machine-track-detail .track-maintenance.scheduled strong { color: #bfdbfe; }
+.machine-track-detail .track-maintenance.idle { border-left: 3px solid #64748b; background: linear-gradient(90deg, rgba(100,116,139,.12), rgba(255,255,255,0)); }
+.machine-track-detail .track-maintenance.idle strong { color: #cbd5e1; }
 .machine-tile-content .vault-btn { display: flex; justify-content: center; align-items: center; gap: 7px; width: 100%; color: #052e16 !important; background: #4ade80 !important; }
 .machine-tile-content .vault-btn svg { width: 16px; }
 .machines-onboard-toggle { flex: 0 0 auto; border: 1px solid rgba(255,255,255,.16) !important; color: #f8fafc !important; }
@@ -4368,6 +4384,9 @@ details.faq-item p {
 .settings-subnav-note { margin-top: 24px; }
 .machine-tile-team { display: flex; gap: 11px; align-items: center; margin-top: auto; color: #8e9eaf; font-size: .75rem; cursor: pointer; padding: 8px; margin: -8px 0 10px -8px; border-radius: 6px; transition: background 0.2s; }
 .machine-tile-team:hover { background: rgba(255,255,255,0.04); }
+.machine-tile-team { border-left: 3px solid rgba(74,222,128,.45); background: linear-gradient(90deg, rgba(74,222,128,.08), rgba(255,255,255,0)); }
+.machine-tile-team span small { color: #86efac; }
+.machine-tile-team span { color: #e2e8f0; }
 .settings-profile-card { display: flex; gap: 10px; align-items: center; margin-top: 18px; padding: 12px; border: 1px solid rgba(181, 148, 91, .55); border-radius: 13px; background: linear-gradient(145deg, rgba(87, 69, 43, .28), rgba(27, 35, 36, .7)); }
 .settings-profile-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border: 3px solid #35d981; border-radius: 50%; color: #f6f8f4; background: #35434b; font-weight: 800; }
 .settings-profile-copy { display: grid; min-width: 0; gap: 2px; }
