@@ -38,8 +38,11 @@ function App() {
           <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
           <Route path="/qr-generator.html" element={<QRGenerator />} />
           <Route path="/vault.html" element={<Vault />} />
+          <Route path="/vault" element={<Navigate to="/vault.html" replace />} />
           <Route path="/login.html" element={<Login />} />
+          <Route path="/login" element={<Navigate to="/login.html" replace />} />
           <Route path="/dashboard.html" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
           <Route path="/reset-password.html" element={<ResetPassword />} />
           <Route path="/machines.html" element={<Machines />} />
           <Route path="/tickets.html" element={<Tickets />} />

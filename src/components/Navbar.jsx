@@ -100,7 +100,7 @@ export default function Navbar() {
   };
 
   const accountLink = (
-    <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/vault.html'} onClick={() => setIsOpen(false)}>
+    <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/login.html'} onClick={() => setIsOpen(false)}>
       <span className="public-nav-avatar">{isAuth ? (user?.name?.charAt(0) || 'S').toUpperCase() : <LogIn />}</span>
       <span>
         <small>{isAuth ? `${t('menu.signedIn')} • ${user?.company_code || 'TurboFix'}` : 'TurboFix workspace'}</small>
