@@ -186,8 +186,8 @@ export default function Team() {
 
   return (
     <AppShell active="team">
-      <div className="vault-wrap" style={{ maxWidth: '1000px', padding: '20px 24px 80px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div className="vault-wrap workspace-page team-page" style={{ maxWidth: '1000px', padding: '20px 24px 80px' }}>
+        <div className="workspace-page-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Manage technicians, supervisors, engineers, and plant directors access authorization permissions.</p>

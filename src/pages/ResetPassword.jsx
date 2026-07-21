@@ -58,7 +58,7 @@ export default function ResetPassword() {
       } else {
         setResetMsg('Password updated successfully! Redirecting...');
         setTimeout(() => {
-          window.location.href = `${import.meta.env.BASE_URL}vault.html`;
+          window.location.href = `${import.meta.env.BASE_URL}login.html`;
         }, 1500);
       }
     } catch (err) {
@@ -98,7 +98,7 @@ export default function ResetPassword() {
                   </button>
                   {requestMsg && <div id="requestMsg" className="error-msg vault-error" style={{ display: 'block', marginTop: '10px' }}>{requestMsg}</div>}
                   <div className="footer-link" style={{ textAlign: 'center', marginTop: '14px' }}>
-                    <a href="vault.html" style={{ color: 'var(--slate-light)' }}>← Back to sign in</a>
+                    <a href="login.html" style={{ color: 'var(--slate-light)' }}>← Back to sign in</a>
                   </div>
                 </div>
               ) : (
@@ -136,7 +136,7 @@ export default function ResetPassword() {
                   </button>
                   {resetMsg && <div id="resetMsg" className="error-msg vault-error" style={{ display: 'block', marginTop: '10px' }}>{resetMsg}</div>}
                   <div className="footer-link" style={{ textAlign: 'center', marginTop: '14px' }}>
-                    <a href="vault.html" style={{ color: 'var(--slate-light)' }}>← Back to sign in</a>
+                    <a href="login.html" style={{ color: 'var(--slate-light)' }}>← Back to sign in</a>
                   </div>
                 </div>
               )}

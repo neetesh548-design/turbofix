@@ -311,8 +311,8 @@ export default function Tickets() {
         }
       ` }} />
 
-      <div className="vault-wrap" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
-        <div style={{ marginBottom: '20px' }}>
+      <div className="vault-wrap workspace-page tickets-page" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
+        <div className="workspace-page-heading" style={{ marginBottom: '20px' }}>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Tickets Directory</h1>
           <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Monitor plant floor maintenance issues, view AI root-cause diagnostics, and close resolved tickets.</p>
         </div>
@@ -339,15 +339,15 @@ export default function Tickets() {
             }} />
             <div>
               <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
-                {openCount > 0 ? `ANDON ALERT: ${openCount} ACTIVE BREAKDOWN WORK ORDERS` : 'ANDON BOARD: ALL PLANT MACHINES OPERATIONAL'}
+                {openCount > 0 ? `${openCount} active maintenance item${openCount === 1 ? '' : 's'} need attention` : 'All machines are clear right now'}
               </strong>
               <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
-                {openCount > 0 ? 'Technicians dispatched. MTTR timer active.' : 'Zero active line stops. Kaizen continuous improvement active.'}
+                {openCount > 0 ? 'Use the queue below to see priority, ownership and the next safe action.' : 'There are no open tickets. New issues will appear here as soon as they are reported.'}
               </div>
             </div>
           </div>
           <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: openCount > 0 ? '#ef4444' : '#25D366', background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: '6px', fontFamily: 'monospace' }}>
-            {openCount > 0 ? 'STATUS: ATTENTION' : 'STATUS: NORMAL'}
+            {openCount > 0 ? 'Needs action' : 'Running clear'}
           </span>
         </div>
 

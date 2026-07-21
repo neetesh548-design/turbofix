@@ -72,7 +72,7 @@ export default function Footer() {
         <div className="footer-links marketing-footer-contact">
           <h4>{copy.contact}</h4>
           <a href="#contact" onClick={scrollTo('contact')}>{copy.book}</a>
-          <Link to="/vault.html">{copy.signIn}</Link>
+          <Link to="/login.html">{copy.signIn}</Link>
           <a className="marketing-footer-whatsapp" href={`https://wa.me/${SALES_WHATSAPP}`} target="_blank" rel="noopener noreferrer"><MessageCircle />{copy.chat}</a>
         </div>
       </div>

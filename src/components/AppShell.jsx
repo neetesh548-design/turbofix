@@ -9,7 +9,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { PerformanceMetrics } from '@/hooks/usePerformanceMonitor';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
-import { OnboardingFlow, useOnboarding } from '@/components/OnboardingFlow';
 
 /**
  * AppShell — the unified authenticated layout (Redesign P1).
@@ -96,36 +95,9 @@ const NAV_LIVE = [
 
 const NAV_SOON = [];
 
-const onboardingSteps = [
-  {
-    id: 'welcome',
-    title: 'Welcome to TurboFix',
-    description: 'Let\'s take a quick tour of your new AI-powered maintenance platform.',
-    target: null,
-    panelPosition: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
-  },
-  {
-    id: 'sidebar-nav',
-    title: 'Main Navigation',
-    description: 'Access your Dashboard, Machines, Tickets, and AI Assistant from here.',
-    target: { top: '60px', left: '16px', width: '200px', height: '60px', borderRadius: '8px' },
-    panelPosition: { top: '130px', left: '16px' }
-  },
-  {
-    id: 'ai-assistant',
-    title: 'AI Assistant',
-    description: 'Ask questions, get insights, or troubleshoot machines using natural language.',
-    target: { bottom: '20px', right: '20px', width: '120px', height: '50px', borderRadius: '25px' },
-    panelPosition: { bottom: '80px', right: '30px' }
-  }
-];
-
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
-  
-  const { isCompleted } = useOnboarding();
-  const showOnboarding = false; // Temporarily disabled — onboarding was blocking dashboard view
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -363,13 +335,13 @@ export default function AppShell({ children, active }) {
     localStorage.removeItem('tf_token');
     localStorage.removeItem('tf_user');
     window.dispatchEvent(new Event('authChanged'));
-    window.location.href = BASE + 'vault.html';
+    window.location.href = BASE + 'login.html';
   };
 
   // Pre-auth: protected pages redirect to login; vault/bare pages render children.
   if (!authed) {
     if (active && active !== 'vault') {
-      window.location.href = BASE + 'vault.html';
+      window.location.href = BASE + 'login.html';
       return null;
     }
     return (
@@ -555,8 +527,6 @@ export default function AppShell({ children, active }) {
           )}
         </div>
       </aside>
-      
-      {showOnboarding && <OnboardingFlow steps={onboardingSteps} />}
       
       {/* Help Widget */}
       <Tooltip content="Need help? Click to restart tour." position="top" delay={0}>

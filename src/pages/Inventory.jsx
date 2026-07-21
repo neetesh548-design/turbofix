@@ -79,8 +79,12 @@ const Inventory = () => {
   };
 
   return (
-    <AppShell title="Inventory & Supply Chain">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <AppShell active="inventory">
+      <div className="inventory-page max-w-7xl mx-auto space-y-6">
+        <header className="inventory-page-heading">
+          <div><span>Supply readiness</span><h1>Inventory &amp; Supply Chain</h1><p>Keep critical spares available and purchasing decisions clear before work stops.</p></div>
+          <div className="inventory-live-chip"><i />Live stock view</div>
+        </header>
         
         {/* Header & Controls */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm">

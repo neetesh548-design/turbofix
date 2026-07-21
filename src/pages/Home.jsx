@@ -320,7 +320,7 @@ export default function Home() {
               <p>{copy.heroBody}</p>
               <div className="marketing-actions">
                 <a className="marketing-btn marketing-btn-primary" href="#contact">{copy.bookDemo}<ArrowRight /></a>
-                <Link className="marketing-btn marketing-btn-secondary" to="/vault.html">{copy.explore}</Link>
+                <Link className="marketing-btn marketing-btn-secondary" to="/login.html">{copy.explore}</Link>
               </div>
               <div className="marketing-trust-row">
                 {copy.trust.map((item) => <span key={item}><CheckCircle2 />{item}</span>)}
@@ -427,7 +427,7 @@ export default function Home() {
                 const Icon = recordOutcomeIcons[index];
                 return <article key={title}><Icon /><div><h3>{title}</h3><p>{body}</p></div></article>;
               })}
-              <Link className="marketing-record-cta" to="/vault.html">{copy.recordsCta}<ArrowRight /></Link>
+              <Link className="marketing-record-cta" to="/login.html">{copy.recordsCta}<ArrowRight /></Link>
             </div>
           </div>
         </section>
@@ -472,7 +472,7 @@ export default function Home() {
               <h2>{copy.knowledgeTitle}</h2>
               <p>{copy.knowledgeBody}</p>
               <ul>{copy.knowledgeItems.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
-              <Link to="/vault.html" className="marketing-text-link">See machine workspace <ArrowRight /></Link>
+              <Link to="/login.html" className="marketing-text-link">See machine workspace <ArrowRight /></Link>
             </div>
           </div>
         </section>
@@ -493,7 +493,7 @@ export default function Home() {
                 <span>What you can explore</span>
                 <h3>See how TurboFix works in practice</h3>
                 <ul>{copy.demoList.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
-                <Link className="marketing-btn marketing-btn-primary" to="/vault.html">{copy.demoLogin}<ArrowRight /></Link>
+                <Link className="marketing-btn marketing-btn-primary" to="/login.html">{copy.demoLogin}<ArrowRight /></Link>
               </aside>
             </div>
           </div>

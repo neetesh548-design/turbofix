@@ -1448,7 +1448,7 @@ export default function Machines() {
         }
       ` }} />
 
-      <div className="vault-wrap" style={{ maxWidth: selectedMachine ? '1380px' : '1100px', padding: '20px 24px 80px' }}>
+      <div className="vault-wrap workspace-page machines-page" style={{ maxWidth: selectedMachine ? '1380px' : '1100px', padding: '20px 24px 80px' }}>
         
         {/* VIEW 1: MACHINES DIRECTORY TABLE (when selectedMachine is null) */}
         {!selectedMachine ? (
@@ -1485,16 +1485,16 @@ export default function Machines() {
                 <span style={{ fontSize: '1.2rem' }}>🇯🇵</span>
                 <div>
                   <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
-                    MONOZUKURI & KAIZEN FLEET GUARDIAN (物作り・改善)
+                    Fleet health at a glance
                   </strong>
                   <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
-                    Total Fleet: {machines.length} Machines | Zero-Defect Poka-Yoke QR Tags Active | Standardized Work Protocols
+                    {machines.length} machines connected. Select a machine to review its people, history, parts and next action.
                   </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#25D366', background: 'rgba(37, 211, 102, 0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(37, 211, 102, 0.25)', fontFamily: 'monospace' }}>
-                  ANDON: FLEET MONITORED
+                  Live workspace
                 </span>
               </div>
             </div>

@@ -18,7 +18,7 @@ export async function apiFetch(path, options = {}) {
     localStorage.removeItem('tf_token');
     localStorage.removeItem('tf_user');
     window.dispatchEvent(new Event('authChanged'));
-    window.location.href = BASE + 'vault.html';
+    window.location.href = BASE + 'login.html';
     throw new Error('Session expired');
   }
 
