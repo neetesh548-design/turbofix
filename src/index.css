@@ -1589,7 +1589,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .app-shell .vault-table td { padding: 14px 12px; }
 
 /* Machine onboarding: a short, readable sequence instead of a wide field wall. */
-.machines-directory-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+.machines-directory-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
 .postlogin-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
 .postlogin-summary button { display: grid; gap: 4px; min-height: 104px; padding: 17px 18px; border: 1px solid #344252; border-radius: 13px; color: #aab8c9; background: linear-gradient(145deg, #1d2732, #18212b); text-align: left; cursor: pointer; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
 .postlogin-summary button:hover, .postlogin-summary button.active { transform: translateY(-2px); border-color: rgba(74,222,128,.58); background: linear-gradient(145deg, #20332d, #182820); }
@@ -1603,11 +1610,63 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .postlogin-inline-count small { margin-left: 4px; color: #4ade80; font-size: .58rem; }
 .postlogin-progress-button { display: block; width: 100%; color: inherit; text-align: left; cursor: pointer; }
 .postlogin-progress-button > small { display: block; margin-top: 8px; color: #4ade80; font-size: .68rem; text-align: right; }
-.machines-directory-actions { display: flex; align-items: center; gap: 12px; }
-.machines-view-toggle { display: flex; padding: 4px; border: 1px solid #3a4655; border-radius: 10px; background: #151e27; }
-.machines-view-toggle button { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 11px; border: 0; border-radius: 7px; color: #91a2b5; background: transparent; font: inherit; font-size: .78rem; font-weight: 750; cursor: pointer; }
-.machines-view-toggle button:hover { color: #e2e8f0; }
-.machines-view-toggle button.active { color: #052e16; background: #4ade80; }
+.machines-directory-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-left: auto;
+  max-width: 100%;
+}
+.machines-directory-actions .machines-view-toggle {
+  flex: 0 0 auto;
+}
+.machines-directory-actions .machines-onboard-toggle {
+  flex: 0 1 290px;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.15;
+}
+.machines-view-toggle {
+  display: flex;
+  padding: 4px;
+  border: 1px solid rgba(126, 146, 166, .22);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(25, 34, 44, .92), rgba(18, 26, 35, .96)),
+    radial-gradient(circle at 50% 0%, rgba(74, 222, 128, .08), transparent 60%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 10px 24px rgba(0,0,0,.12);
+  backdrop-filter: blur(12px);
+}
+.machines-view-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 10px;
+  color: #91a2b5;
+  background: transparent;
+  font: inherit;
+  font-size: .79rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.machines-view-toggle button:hover {
+  color: #e2e8f0;
+  background: rgba(255,255,255,.035);
+  transform: translateY(-1px);
+}
+.machines-view-toggle button.active {
+  color: #052e16;
+  background: linear-gradient(180deg, #5eea90, #4ade80);
+  box-shadow: 0 8px 18px rgba(74, 222, 128, .24);
+}
+.machines-view-toggle button.active:hover { transform: translateY(0); }
 .machines-view-toggle svg { width: 16px; height: 16px; }
 .machine-tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; margin-bottom: 30px; }
 .machine-tile { overflow: hidden; border: 1px solid #364250; border-radius: 14px; background: linear-gradient(145deg, #1d2630, #18212a); cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
@@ -4763,6 +4822,16 @@ details.faq-item p {
   .inventory-page { padding: 28px 16px 70px; }
   .inventory-page-heading { align-items: flex-start; flex-direction: column; }
   .inventory-live-chip { align-self: flex-start; }
+  .machines-directory-actions {
+    width: 100%;
+    justify-content: stretch;
+    margin-left: 0;
+  }
+  .machines-directory-actions .machines-view-toggle,
+  .machines-directory-actions .machines-onboard-toggle {
+    width: 100%;
+    flex: 1 1 100%;
+  }
 }
 
 /* Settings: task-focused navigation and readable section forms. */
