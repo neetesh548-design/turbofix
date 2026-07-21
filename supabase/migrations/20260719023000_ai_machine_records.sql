@@ -5,6 +5,14 @@ ALTER TABLE public.documents
   ADD COLUMN IF NOT EXISTS storage_path text NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS uploaded_by uuid REFERENCES public.users(id) ON DELETE SET NULL;
 
+ALTER TABLE public.tickets
+  ADD COLUMN IF NOT EXISTS raw_audio_bucket text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS raw_audio_path text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS ai_output_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS review_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS final_submission_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS voice_language text NOT NULL DEFAULT '';
+
 CREATE TABLE IF NOT EXISTS public.machine_records (
   record_id text PRIMARY KEY,
   document_id uuid REFERENCES public.documents(id) ON DELETE SET NULL,
@@ -53,11 +61,25 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('machine-records', 'machine-records', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('voice-notes', 'voice-notes', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
+
 DROP POLICY IF EXISTS "Company members can read private machine records" ON storage.objects;
 CREATE POLICY "Company members can read private machine records"
   ON storage.objects FOR SELECT TO authenticated
   USING (
     bucket_id = 'machine-records'
+    AND (storage.foldername(name))[1] = (
+      SELECT domain FROM public.companies WHERE id = public.get_current_company_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "Company members can read private voice notes" ON storage.objects;
+CREATE POLICY "Company members can read private voice notes"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'voice-notes'
     AND (storage.foldername(name))[1] = (
       SELECT domain FROM public.companies WHERE id = public.get_current_company_id()
     )

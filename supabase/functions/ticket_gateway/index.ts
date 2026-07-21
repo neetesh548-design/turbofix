@@ -19,6 +19,40 @@ const reply = (req: Request, body: Record<string, unknown>, status = 200) => new
 })
 const text = (value: unknown) => String(value ?? '').replace(/[\r\n]+/g, ' ').trim()
 
+const mimeToExtension = (mimeType: string) => {
+  if (mimeType.includes('webm')) return 'webm'
+  if (mimeType.includes('ogg')) return 'ogg'
+  if (mimeType.includes('mp4') || mimeType.includes('m4a')) return 'm4a'
+  if (mimeType.includes('wav')) return 'wav'
+  if (mimeType.includes('mpeg') || mimeType.includes('mp3')) return 'mp3'
+  if (mimeType.includes('aac')) return 'aac'
+  if (mimeType.includes('flac')) return 'flac'
+  return 'audio'
+}
+
+const uploadDataUrl = async (
+  admin: any,
+  dataUrl: string,
+  bucket: string,
+  machineId: string,
+  prefix: string
+) => {
+  const raw = text(dataUrl)
+  const parts = raw.split(';base64,')
+  if (parts.length !== 2 || !parts[0].startsWith('data:')) return null
+  const mime = parts[0].replace(/^data:/, '').split(';')[0]
+  const base64 = parts[1]
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  const fileExt = mimeToExtension(mime)
+  const fileName = `${prefix}-${machineId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`
+  const filePath = `${machineId}/${fileName}`
+  const { error: upErr } = await admin.storage.from(bucket).upload(filePath, bytes, { contentType: mime })
+  if (upErr) throw new Error(upErr.message)
+  return { bucket, path: filePath, mime, size: bytes.length }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(req) })
   if (req.method !== 'POST') return reply(req, { error: 'Method not allowed.' }, 405)
@@ -154,6 +188,42 @@ serve(async (req) => {
 
       if (!payload.ai_summary || typeof payload.ai_summary !== 'object') {
         payload.ai_summary = {};
+      }
+
+      const voiceArtifacts = payload.voice_artifacts && typeof payload.voice_artifacts === 'object' ? payload.voice_artifacts : null
+      if (voiceArtifacts) {
+        try {
+          if (voiceArtifacts.raw_audio_data_url) {
+            const uploaded = await uploadDataUrl(
+              admin,
+              String(voiceArtifacts.raw_audio_data_url),
+              'voice-notes',
+              String(payload.machine_id),
+              'raw-audio'
+            )
+            if (uploaded) {
+              payload.raw_audio_bucket = uploaded.bucket
+              payload.raw_audio_path = uploaded.path
+            }
+          }
+        } catch (voiceErr) {
+          console.warn('Warning storing raw voice audio:', voiceErr)
+        }
+
+        payload.ai_output_snapshot = {
+          ...(payload.ai_output_snapshot || {}),
+          ...(voiceArtifacts.ai_output_snapshot || {}),
+        }
+        payload.review_snapshot = {
+          ...(payload.review_snapshot || {}),
+          ...(voiceArtifacts.review_snapshot || {}),
+        }
+        payload.final_submission_snapshot = {
+          ...(payload.final_submission_snapshot || {}),
+          ...(voiceArtifacts.final_submission_snapshot || {}),
+        }
+        payload.voice_language = payload.voice_language || String(voiceArtifacts.language_code || voiceArtifacts.language || '')
+        delete payload.voice_artifacts
       }
 
       const issueLower = (payload.issue_text || '').toLowerCase();

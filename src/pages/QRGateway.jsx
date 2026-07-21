@@ -198,6 +198,7 @@ export default function QRGateway() {
   const [isListening, setIsListening] = useState(false);
   const [speakFeedback, setSpeakFeedback] = useState(true);
   const [assistantPrompt, setAssistantPrompt] = useState('');
+  const [workflowStage, setWorkflowStage] = useState('capture');
   const [transcript, setTranscript] = useState('');
   const [extractedInfo, setExtractedInfo] = useState(null); // { issue, condition, urgency }
   const [success, setSuccess] = useState(false);
@@ -214,6 +215,7 @@ export default function QRGateway() {
   const [errorAlert, setErrorAlert] = useState(null); // { title, desc }
   const [showTextFallback, setShowTextFallback] = useState(false);
   const [manualCondition, setManualCondition] = useState('running'); // running, stopped, unsafe, not_sure
+  const [voiceArtifacts, setVoiceArtifacts] = useState(null);
   
   // Photo capture and upload state
   const [photoFile, setPhotoFile] = useState(null);
@@ -232,6 +234,16 @@ export default function QRGateway() {
 
   const t = (key) => (GATEWAY_I18N[lang] || GATEWAY_I18N['hi-IN'])[key] || key;
   const machineContextLabel = machine.name ? `${machine.name}${machine.loc ? ` · ${machine.loc}` : ''}` : 'Selected machine';
+  const draftKey = machine?.id ? `tf_qr_draft_${machine.id}` : 'tf_qr_draft_pending';
+  const workflowLabel = {
+    phone: 'Phone verification',
+    capture: 'Capture',
+    listening: 'Listening',
+    transcribing: 'Transcribing',
+    review: 'Review',
+    submitting: 'Submitting',
+    done: 'Done'
+  }[workflowStage] || 'Capture';
 
   // Auto-retry helper for transient edge function failures
   const invokeWithRetry = async (functionName, options, maxRetries = 2) => {
@@ -320,6 +332,44 @@ export default function QRGateway() {
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
+
+  useEffect(() => {
+    if (!machine.id) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(draftKey) || 'null');
+      if (!saved) return;
+      if (saved.transcript) setTranscript(saved.transcript);
+      if (saved.extractedInfo) setExtractedInfo(saved.extractedInfo);
+      if (saved.voiceArtifacts) setVoiceArtifacts(saved.voiceArtifacts);
+      if (saved.manualCondition) setManualCondition(saved.manualCondition);
+      if (typeof saved.showTextFallback === 'boolean') setShowTextFallback(saved.showTextFallback);
+      if (saved.workflowStage) setWorkflowStage(saved.workflowStage);
+      if (saved.phoneInput) setPhoneInput(saved.phoneInput);
+      if (saved.technicianName) setTechnicianName(saved.technicianName);
+    } catch (err) {
+      console.warn('Could not restore QR draft', err);
+    }
+  }, [machine.id, draftKey]);
+
+  useEffect(() => {
+    if (!machine.id) return;
+    const hasDraft = Boolean(transcript || extractedInfo || showTextFallback || phoneInput || technicianName || voiceArtifacts);
+    if (!hasDraft) return;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify({
+        transcript,
+        extractedInfo,
+        voiceArtifacts,
+        manualCondition,
+        showTextFallback,
+        workflowStage,
+        phoneInput,
+        technicianName
+      }));
+    } catch (err) {
+      console.warn('Could not save QR draft', err);
+    }
+  }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, showTextFallback, workflowStage, phoneInput, technicianName]);
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
@@ -444,6 +494,7 @@ export default function QRGateway() {
     
     setAssistantPrompt(greetingText);
     speak(greetingText);
+    setWorkflowStage(phoneGate ? 'phone' : 'capture');
   };
 
   const normalizeTranscriptForApproval = ({ rawText = '', language = lang, machineName = '', machineLocation = '' }) => {
@@ -539,6 +590,7 @@ export default function QRGateway() {
 
   const transcribeAudio = async (blob) => {
     setIsTranscribing(true);
+    setWorkflowStage('transcribing');
     setAssistantPrompt(t('transcribing'));
     try {
       const dataUrl = await new Promise((resolve, reject) => {
@@ -556,6 +608,7 @@ export default function QRGateway() {
         const noSpeechMsg = t('noSpeechDetected');
         setAssistantPrompt(noSpeechMsg);
         speak(noSpeechMsg);
+        setWorkflowStage('capture');
         return;
       }
       
@@ -568,7 +621,24 @@ export default function QRGateway() {
       });
       setManualCondition(normalized.condition || suggestCondition(text));
       setExtractedInfo(normalized);
+      setVoiceArtifacts({
+        raw_audio_data_url: dataUrl,
+        transcript: text,
+        language_code: data.language_code || lang,
+        ai_output_snapshot: {
+          transcript: text,
+          language_code: data.language_code || lang,
+          normalized_issue: normalized.issue,
+          normalized_condition: normalized.condition,
+          normalized_urgency: normalized.urgency,
+          approval_note: normalized.approvalNote || '',
+          ai_draft: true
+        },
+        review_snapshot: null,
+        final_submission_snapshot: null
+      });
       setShowTextFallback(true);
+      setWorkflowStage('review');
       
       const reviewMsg = machine.name
         ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
@@ -581,6 +651,7 @@ export default function QRGateway() {
       setAssistantPrompt(errMsg);
       speak(errMsg);
       setShowTextFallback(true);
+      setWorkflowStage('capture');
     } finally {
       setIsTranscribing(false);
     }
@@ -608,11 +679,18 @@ export default function QRGateway() {
     removePhoto();
     setTranscript('');
     setExtractedInfo(null);
+    setVoiceArtifacts(null);
     setDuplicateTicket(null);
     setShowTextFallback(false);
     setManualCondition('running');
     setCheckingDuplicate(false);
     setUploadingPhoto(false);
+    setWorkflowStage('capture');
+    try {
+      localStorage.removeItem(draftKey);
+    } catch (err) {
+      console.warn('Could not clear QR draft', err);
+    }
     greetUser();
   };
 
@@ -694,46 +772,13 @@ export default function QRGateway() {
 
     setExtractedInfo(null);
     setSuccess(false);
-
-    const streamAlreadyAvailable = Boolean(micStreamRef.current);
-    const permissionLockedOut = micPermissionAskedRef.current && !streamAlreadyAvailable;
-    if (permissionLockedOut || micPermissionDeniedRef.current) {
-      fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      try {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = lang;
-        
-        recognition.onresult = (event) => {
-          let liveText = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            liveText += event.results[i][0].transcript;
-          }
-          if (liveText.trim()) {
-            setTranscript(liveText.trim());
-          }
-        };
-
-        recognition.onerror = (err) => {
-          console.warn('SpeechRecognition live error:', err);
-        };
-
-        recognition.start();
-        speechRecognitionRef.current = recognition;
-      } catch (err) {
-        console.warn('Could not start live SpeechRecognition:', err);
-      }
-    }
+    setTranscript('');
+    setWorkflowStage('listening');
 
     try {
-      micPermissionAskedRef.current = true;
       const stream = micStreamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true });
+      micPermissionAskedRef.current = true;
+      micPermissionDeniedRef.current = false;
       micStreamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
@@ -745,31 +790,8 @@ export default function QRGateway() {
       recorder.onstop = async () => {
         setIsListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-
-        if (speechRecognitionRef.current) {
-          try { speechRecognitionRef.current.stop(); } catch (e) {}
-          speechRecognitionRef.current = null;
-        }
-
-        const liveCaptured = transcriptRef.current ? transcriptRef.current.trim() : '';
-        if (liveCaptured) {
-          const normalized = normalizeTranscriptForApproval({
-            rawText: liveCaptured,
-            language: lang,
-            machineName: machine.name,
-            machineLocation: machine.loc
-          });
-          setManualCondition(normalized.condition || suggestCondition(liveCaptured));
-          setExtractedInfo(normalized);
-          setShowTextFallback(true);
-          const reviewMsg = machine.name
-            ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
-            : t('reviewConfirm');
-          setAssistantPrompt(reviewMsg);
-          speak(reviewMsg);
-        } else {
-          await transcribeAudio(blob);
-        }
+        await transcribeAudio(blob);
+        recorderRef.current = null;
       };
 
       recorderRef.current = recorder;
@@ -779,11 +801,8 @@ export default function QRGateway() {
     } catch (e) {
       console.error(e);
       micPermissionDeniedRef.current = true;
-      if (micStreamRef.current) {
-        try { micStreamRef.current.getTracks().forEach((track) => track.stop()); } catch (err) {}
-        micStreamRef.current = null;
-      }
       fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
+      setWorkflowStage('capture');
     }
   };
 
@@ -792,6 +811,7 @@ export default function QRGateway() {
     setIsSubmittingTicket(true);
     setCheckingDuplicate(true);
     setUploadingPhoto(true);
+    setWorkflowStage('submitting');
 
     try {
       if (!navigator.onLine) {
@@ -807,6 +827,7 @@ export default function QRGateway() {
           reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
           factory_id: machine.factory_id,
           lifecycle_stage: 'unverified',
+          voice_language: voiceArtifacts?.language_code || lang,
           ai_summary: {
             voice_reported: !showTextFallback,
             extracted_condition: extractedInfo.condition,
@@ -814,7 +835,36 @@ export default function QRGateway() {
             verified_reporter: false,
             flag: 'offline_submission',
             photo_url: null
-          }
+          },
+          ai_output_snapshot: voiceArtifacts?.ai_output_snapshot || {
+            transcript,
+            normalized_issue: extractedInfo.issue,
+            normalized_condition: extractedInfo.condition,
+            normalized_urgency: extractedInfo.urgency
+          },
+          review_snapshot: {
+            machine_id: machine.id,
+            machine_name: machine.name,
+            location: machine.loc,
+            issue_text: extractedInfo.issue,
+            urgency: extractedInfo.urgency,
+            condition: extractedInfo.condition,
+            reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
+            voice_language: voiceArtifacts?.language_code || lang,
+            reviewed_at: new Date().toISOString()
+          },
+          final_submission_snapshot: {
+            machine_id: machine.id,
+            machine_name: machine.name,
+            location: machine.loc,
+            issue_text: extractedInfo.issue,
+            urgency: extractedInfo.urgency,
+            condition: extractedInfo.condition,
+            reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
+            submitted_at: new Date().toISOString(),
+            source: showTextFallback ? 'text' : 'voice'
+          },
+          voice_artifacts: voiceArtifacts
         };
         
         queue.push(payload);
@@ -827,6 +877,10 @@ export default function QRGateway() {
         setExtractedInfo(null);
         setDuplicateTicket(null);
         setSuccess(true);
+        setWorkflowStage('done');
+        try {
+          localStorage.removeItem(draftKey);
+        } catch (err) {}
         return;
       }
 
@@ -901,6 +955,7 @@ export default function QRGateway() {
         reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
         factory_id: factoryId,
         lifecycle_stage: verified ? 'open' : 'unverified',
+        voice_language: voiceArtifacts?.language_code || lang,
         ai_summary: {
           voice_reported: !showTextFallback,
           extracted_condition: extractedInfo.condition,
@@ -908,7 +963,41 @@ export default function QRGateway() {
           verified_reporter: verified,
           flag: verified ? null : 'unverified_reporter',
           photo_url: uploadedUrl
-        }
+        },
+        ai_output_snapshot: voiceArtifacts?.ai_output_snapshot || {
+          transcript,
+          normalized_issue: extractedInfo.issue,
+          normalized_condition: extractedInfo.condition,
+          normalized_urgency: extractedInfo.urgency
+        },
+        review_snapshot: {
+          machine_id: machine.id,
+          machine_name: machine.name,
+          location: machine.loc,
+          issue_text: extractedInfo.issue,
+          urgency: extractedInfo.urgency,
+          condition: extractedInfo.condition,
+          technician_name: technicianName || null,
+          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
+          photo_url: uploadedUrl,
+          draft_mode: false,
+          voice_language: voiceArtifacts?.language_code || lang,
+          reviewed_at: new Date().toISOString()
+        },
+        final_submission_snapshot: {
+          machine_id: machine.id,
+          machine_name: machine.name,
+          location: machine.loc,
+          issue_text: extractedInfo.issue,
+          urgency: extractedInfo.urgency,
+          condition: extractedInfo.condition,
+          technician_name: technicianName || null,
+          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
+          photo_url: uploadedUrl,
+          submitted_at: new Date().toISOString(),
+          source: showTextFallback ? 'text' : 'voice'
+        },
+        voice_artifacts: voiceArtifacts
       };
 
       const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
@@ -925,12 +1014,18 @@ export default function QRGateway() {
       setExtractedInfo(null);
       setDuplicateTicket(null);
       setSuccess(true);
+      setWorkflowStage('done');
+      setVoiceArtifacts(null);
+      try {
+        localStorage.removeItem(draftKey);
+      } catch (err) {}
     } catch (err) {
       console.error('Error logging ticket:', err);
       const errMsg = t('submissionProblemText');
       setAssistantPrompt(errMsg);
       speak(errMsg);
       setErrorAlert({ title: t('submittingErrorTitle'), desc: err.message });
+      setWorkflowStage('review');
     } finally {
       setIsSubmittingTicket(false);
       setCheckingDuplicate(false);
@@ -942,6 +1037,7 @@ export default function QRGateway() {
     if (!duplicateTicket || !extractedInfo) return;
     setCheckingDuplicate(true);
     setUploadingPhoto(true);
+    setWorkflowStage('submitting');
     try {
       let uploadedUrl = null;
       if (photoFile) {
@@ -998,8 +1094,14 @@ export default function QRGateway() {
       setExtractedInfo(null);
       setDuplicateTicket(null);
       setSuccess(true);
+      setWorkflowStage('done');
+      setVoiceArtifacts(null);
+      try {
+        localStorage.removeItem(draftKey);
+      } catch (err) {}
     } catch (err) {
       alert('Error appending: ' + err.message);
+      setWorkflowStage('review');
     } finally {
       setCheckingDuplicate(false);
       setUploadingPhoto(false);
@@ -1014,6 +1116,7 @@ export default function QRGateway() {
     localStorage.setItem('tf_reporter_phone', phoneInput.trim());
     setReporterPhone(phoneInput.trim());
     setPhoneGate(false);
+    setWorkflowStage('capture');
     
     setTimeout(() => {
       greetUser();
@@ -1164,6 +1267,55 @@ export default function QRGateway() {
           <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#ef4444' }}>{errorAlert.title}</span>
           <span style={{ fontSize: '0.72rem', color: '#cbd5e1', lineHeight: '1.3' }}>{errorAlert.desc}</span>
           <button type="button" onClick={() => setErrorAlert(null)} style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', color: 'white', cursor: 'pointer' }}>{t('cancel')}</button>
+        </div>
+      )}
+
+      {!phoneGate && (
+        <div style={{ width: '100%', maxWidth: '340px', margin: '0 auto', display: 'grid', gap: '8px', zIndex: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {['Capture', 'Context', 'Review', 'Submit'].map((step) => {
+              const active =
+                (step === 'Capture' && ['capture', 'listening', 'transcribing'].includes(workflowStage)) ||
+                (step === 'Context' && workflowStage === 'capture') ||
+                (step === 'Review' && workflowStage === 'review') ||
+                (step === 'Submit' && (workflowStage === 'submitting' || workflowStage === 'done'));
+              return (
+                <span
+                  key={step}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    color: active ? '#ffffff' : '#94a3b8',
+                    background: active ? 'rgba(134,59,255,0.22)' : 'rgba(255,255,255,0.04)',
+                    border: active ? '1px solid rgba(134,59,255,0.45)' : '1px solid rgba(255,255,255,0.08)'
+                  }}
+                >
+                  {step}
+                </span>
+              );
+            })}
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+              <strong style={{ color: '#ffffff', fontSize: '0.82rem' }}>Machine context</strong>
+              <span style={{ color: '#a78bfa', fontSize: '0.72rem', fontWeight: 800 }}>{workflowStage === 'listening' ? t('listening') : workflowStage === 'transcribing' ? t('transcribing') : workflowStage === 'submitting' ? t('submitting') : workflowLabel}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
+              {[
+                ['Machine', machine.name || 'Selected machine'],
+                ['Location', machine.loc || 'Not set'],
+                ['Technician', technicianName || 'Not assigned'],
+                ['Open tickets', String(activeTickets.length || 0)]
+              ].map(([label, value]) => (
+                <div key={label} style={{ background: 'rgba(11,17,24,0.9)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '8px 10px' }}>
+                  <div style={{ color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                  <div style={{ color: '#e5edf6', fontSize: '0.8rem', fontWeight: 700, marginTop: '2px', lineHeight: 1.2 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
