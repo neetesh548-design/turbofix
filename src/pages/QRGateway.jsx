@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { Cpu, ArrowRight, Sparkles, Mic, CheckCircle2, Volume2, VolumeX, Camera, Image, Trash2 } from 'lucide-react';
+import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 const ORB_ANIMATIONS = `

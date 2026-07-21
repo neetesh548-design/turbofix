@@ -97,7 +97,7 @@ export default function Technician() {
       } catch (err) { setError(err.message); }
       finally { setLoading(false); }
     })();
-  }, []);
+  }, [user?.role, user?.user_id]);
 
   const selectedTicket = tickets.find((ticket) => ticket.ticket_id === selectedId) || null;
   const selectedWork = selectedTicket ? { ...defaultWork, ...(work[selectedId] || {}) } : defaultWork;

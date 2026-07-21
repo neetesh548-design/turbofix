@@ -190,7 +190,7 @@ export default function AppShell({ children, active }) {
     } else {
       setSelected('all');
     }
-  }, [authed, window.location.search, sidebarOpen]);
+  }, [authed, sidebarOpen]);
 
   const _selectedMachine = useMemo(
     () => machines.find((machine) => machine.machine_id === selected),

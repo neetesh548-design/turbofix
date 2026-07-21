@@ -1,0 +1,1740 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
+      "test",
+      "tests/qr-gateway.spec.ts",
+      "--project=chromium"
+    ],
+    "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
+    "rootDir": "/Users/nkumarsoni/TurboFix/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "mobile-chrome",
+        "name": "mobile-chrome",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "mobile-safari",
+        "name": "mobile-safari",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results.xml"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "qr-gateway.spec.ts",
+      "file": "qr-gateway.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "QRGateway - Worst Case Scenarios",
+          "file": "qr-gateway.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Should handle offline submission and queue ticket locally",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30381,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 29
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  27 |     // Phone gate\n  28 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 29 |     await page.click('button:has-text(\"Proceed\")');\n     |                ^\n  30 |     await page.waitForTimeout(500);\n  31 |\n  32 |     // Go to text input mode\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:29:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:12.716Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-71c02-on-and-queue-ticket-locally-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-71c02-on-and-queue-ticket-locally-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-7e4c0e62388119afd63a",
+              "file": "qr-gateway.spec.ts",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "Should retry on transient network failures",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30369,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 65
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\" navigation to finish...\u001b[22m\n\u001b[2m    - navigated to \"http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\"\u001b[22m\n\n\n  63 |\n  64 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 65 |     await page.click('button:has-text(\"Proceed\")');\n     |                ^\n  66 |     await page.waitForTimeout(500);\n  67 |\n  68 |     // Should eventually succeed after retries\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:65:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:12.679Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-ec7f3--transient-network-failures-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-ec7f3--transient-network-failures-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-394499ac901f971ee47c",
+              "file": "qr-gateway.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "Should handle API timeout gracefully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30384,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 87
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\" navigation to finish...\u001b[22m\n\u001b[2m    - navigated to \"http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\"\u001b[22m\n\n\n  85 |\n  86 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 87 |     await page.click('button:has-text(\"Proceed\")');\n     |                ^\n  88 |     await page.waitForTimeout(500);\n  89 |\n  90 |     // Try to submit\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:87:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:12.694Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-a313f-ndle-API-timeout-gracefully-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-a313f-ndle-API-timeout-gracefully-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-7056a334d58c18496fcb",
+              "file": "qr-gateway.spec.ts",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "Should handle microphone permission denied",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30341,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 109
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  107 |\n  108 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 109 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  110 |     await page.waitForTimeout(500);\n  111 |\n  112 |     // Try to use voice input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:109:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:12.694Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-2b248-icrophone-permission-denied-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-2b248-icrophone-permission-denied-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-688ff72f1171556f95a2",
+              "file": "qr-gateway.spec.ts",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "Should handle camera permission denied for photo upload",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30225,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 129
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  127 |   test('Should handle camera permission denied for photo upload', async () => {\n  128 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 129 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  130 |     await page.waitForTimeout(500);\n  131 |\n  132 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:129:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:44.407Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-58240-ion-denied-for-photo-upload-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-58240-ion-denied-for-photo-upload-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-77b018ad13b84a84bd40",
+              "file": "qr-gateway.spec.ts",
+              "line": 127,
+              "column": 3
+            },
+            {
+              "title": "Should handle no speech detected error",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30265,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 174
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  172 |\n  173 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 174 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  175 |     await page.waitForTimeout(500);\n  176 |\n  177 |     // Start voice input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:174:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:44.483Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-37128-le-no-speech-detected-error-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-37128-le-no-speech-detected-error-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-82f6179fbfc13177b284",
+              "file": "qr-gateway.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "Should handle transcription API failure",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30272,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 198
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  196 |\n  197 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 198 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  199 |     await page.waitForTimeout(500);\n  200 |\n  201 |     // Try voice input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:198:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:44.519Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-4d707-e-transcription-API-failure-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-4d707-e-transcription-API-failure-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-437dcb24340c59166376",
+              "file": "qr-gateway.spec.ts",
+              "line": 187,
+              "column": 3
+            },
+            {
+              "title": "Should handle SpeechRecognition API unavailable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30253,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 218
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  216 |\n  217 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 218 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  219 |     await page.waitForTimeout(500);\n  220 |\n  221 |     // Should still allow text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:218:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:15:44.544Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-3831d-Recognition-API-unavailable-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-3831d-Recognition-API-unavailable-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-551396c72eae80b403bc",
+              "file": "qr-gateway.spec.ts",
+              "line": 210,
+              "column": 3
+            },
+            {
+              "title": "Should validate phone number format on phone gate",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30420,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 18,
+                            "line": 245
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  243 |     for (const testCase of testCases) {\n  244 |       await page.fill('input[type=\"tel\"]', testCase.input);\n> 245 |       await page.click('button:has-text(\"Proceed\")');\n      |                  ^\n  246 |\n  247 |       if (testCase.shouldPass) {\n  248 |         await page.waitForTimeout(500);\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:245:18"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:15.989Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-e6767-number-format-on-phone-gate-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-e6767-number-format-on-phone-gate-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-1135197f2b5c6e1cb99f",
+              "file": "qr-gateway.spec.ts",
+              "line": 234,
+              "column": 3
+            },
+            {
+              "title": "Should handle very long issue descriptions",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30375,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 266
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  264 |   test('Should handle very long issue descriptions', async () => {\n  265 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 266 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  267 |     await page.waitForTimeout(500);\n  268 |\n  269 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:266:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:16.074Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-afb96-ery-long-issue-descriptions-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-afb96-ery-long-issue-descriptions-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-f682d683e1cd31e671af",
+              "file": "qr-gateway.spec.ts",
+              "line": 264,
+              "column": 3
+            },
+            {
+              "title": "Should handle special characters in input",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30382,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 288
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  286 |   test('Should handle special characters in input', async () => {\n  287 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 288 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  289 |     await page.waitForTimeout(500);\n  290 |\n  291 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:288:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:16.079Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-054b6-special-characters-in-input-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-054b6-special-characters-in-input-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-60225af49e576ceb1071",
+              "file": "qr-gateway.spec.ts",
+              "line": 286,
+              "column": 3
+            },
+            {
+              "title": "Should handle empty/whitespace-only submission",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30387,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 307
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  305 |   test('Should handle empty/whitespace-only submission', async () => {\n  306 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 307 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  308 |     await page.waitForTimeout(500);\n  309 |\n  310 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:307:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:16.082Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-5397d--whitespace-only-submission-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-5397d--whitespace-only-submission-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-3206e84252a0bae29042",
+              "file": "qr-gateway.spec.ts",
+              "line": 305,
+              "column": 3
+            },
+            {
+              "title": "Should handle corrupted image file",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30411,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 336
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  334 |   test('Should handle corrupted image file', async () => {\n  335 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 336 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  337 |     await page.waitForTimeout(500);\n  338 |\n  339 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:336:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:47.915Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-0483d-handle-corrupted-image-file-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-0483d-handle-corrupted-image-file-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-386a40c93f83991624ba",
+              "file": "qr-gateway.spec.ts",
+              "line": 334,
+              "column": 3
+            },
+            {
+              "title": "Should handle very large image file (>50MB)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30437,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 363
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  361 |   test('Should handle very large image file (>50MB)', async () => {\n  362 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 363 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  364 |     await page.waitForTimeout(500);\n  365 |\n  366 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:363:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:47.918Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-bfc7c-very-large-image-file-50MB--chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-bfc7c-very-large-image-file-50MB--chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-3be15c8cc6604ab85036",
+              "file": "qr-gateway.spec.ts",
+              "line": 361,
+              "column": 3
+            },
+            {
+              "title": "Should handle storage upload failure",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30175,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 398
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\" navigation to finish...\u001b[22m\n\u001b[2m    - navigated to \"http://localhost:5173/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A\"\u001b[22m\n\n\n  396 |\n  397 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 398 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  399 |     await page.waitForTimeout(500);\n  400 |\n  401 |     // Go to text input with photo\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:398:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:47.963Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-b14a94ee0126046d7750",
+              "file": "qr-gateway.spec.ts",
+              "line": 391,
+              "column": 3
+            },
+            {
+              "title": "Should handle rapid form submissions",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30373,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 435
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  433 |   test('Should handle rapid form submissions', async () => {\n  434 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 435 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  436 |     await page.waitForTimeout(500);\n  437 |\n  438 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:435:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:16:48.031Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-7c836ff7b5d96220522e",
+              "file": "qr-gateway.spec.ts",
+              "line": 433,
+              "column": 3
+            },
+            {
+              "title": "Should handle language change during submission",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30193,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 461
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  459 |   test('Should handle language change during submission', async () => {\n  460 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 461 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  462 |     await page.waitForTimeout(500);\n  463 |\n  464 |     // Go to text input\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:461:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:19.800Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-1d06b4a552f5c9fe42af",
+              "file": "qr-gateway.spec.ts",
+              "line": 459,
+              "column": 3
+            },
+            {
+              "title": "Should handle localStorage quota exceeded",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30190,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 497
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  495 |     // Try to submit ticket (should queue offline)\n  496 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 497 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  498 |     await page.waitForTimeout(500);\n  499 |\n  500 |     // Go offline to force queue\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:497:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "(node:26912) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:19.852Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-b6ba2-localStorage-quota-exceeded-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-b6ba2-localStorage-quota-exceeded-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-658933c8f92d6500f3e3",
+              "file": "qr-gateway.spec.ts",
+              "line": 482,
+              "column": 3
+            },
+            {
+              "title": "Should handle speechSynthesis API failure",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30193,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 529
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  527 |     // Should still work without audio feedback\n  528 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 529 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  530 |     await page.waitForTimeout(500);\n  531 |\n  532 |     // Should proceed normally\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:529:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:19.876Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-42cc5-speechSynthesis-API-failure-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-42cc5-speechSynthesis-API-failure-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-128c7aa1cd52e08830fd",
+              "file": "qr-gateway.spec.ts",
+              "line": 521,
+              "column": 3
+            },
+            {
+              "title": "Should handle back button during phone gate",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30201,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 540
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  538 |   test('Should handle back button during phone gate', async () => {\n  539 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 540 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  541 |     await page.waitForTimeout(500);\n  542 |\n  543 |     // Go back in browser history\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:540:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:19.979Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-8fdd1-ck-button-during-phone-gate-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-8fdd1-ck-button-during-phone-gate-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-4c5d9231ddc5dd18c8c3",
+              "file": "qr-gateway.spec.ts",
+              "line": 538,
+              "column": 3
+            },
+            {
+              "title": "Should persist reporter phone across page reload",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30187,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 553
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  551 |   test('Should persist reporter phone across page reload', async () => {\n  552 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 553 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  554 |     await page.waitForTimeout(500);\n  555 |\n  556 |     // Reload page\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:553:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:51.147Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-0c409-er-phone-across-page-reload-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-0c409-er-phone-across-page-reload-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-823bcbbc518d168e6ad6",
+              "file": "qr-gateway.spec.ts",
+              "line": 551,
+              "column": 3
+            },
+            {
+              "title": "Should handle machine details fetch failure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3825,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:51.130Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-d602b98db304244f921b",
+              "file": "qr-gateway.spec.ts",
+              "line": 566,
+              "column": 3
+            },
+            {
+              "title": "Should handle duplicate check failure gracefully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30192,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 594
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  592 |\n  593 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 594 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  595 |     await page.waitForTimeout(500);\n  596 |\n  597 |     await page.click('button:has-text(\"Trouble speaking\")');\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:594:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:51.164Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-30bbd-te-check-failure-gracefully-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-30bbd-te-check-failure-gracefully-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-71795a794d64016f69e5",
+              "file": "qr-gateway.spec.ts",
+              "line": 580,
+              "column": 3
+            },
+            {
+              "title": "Should handle ticket log failure with fallback",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 23,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30198,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 615
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  613 |\n  614 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 615 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  616 |     await page.waitForTimeout(500);\n  617 |\n  618 |     await page.click('button:has-text(\"Trouble speaking\")');\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:615:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:51.252Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-a106d-t-log-failure-with-fallback-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-a106d-t-log-failure-with-fallback-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-cdf9afe0108a7b137ad5",
+              "file": "qr-gateway.spec.ts",
+              "line": 610,
+              "column": 3
+            },
+            {
+              "title": "Should handle rapid language switches without state corruption",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30181,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 634
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  632 |   test('Should handle rapid language switches without state corruption', async () => {\n  633 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 634 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  635 |     await page.waitForTimeout(500);\n  636 |\n  637 |     // Rapidly switch languages\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:634:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:17:55.231Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-8e77f-es-without-state-corruption-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-8e77f-es-without-state-corruption-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-d5948876d2aa31a60e59",
+              "file": "qr-gateway.spec.ts",
+              "line": 632,
+              "column": 3
+            },
+            {
+              "title": "Should handle zero-width screen edge case",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30048,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
+                            "column": 16,
+                            "line": 657
+                          },
+                          "message": "Error: page.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Proceed\")')\u001b[22m\n\n\n  655 |     // Should still be usable\n  656 |     await page.fill('input[type=\"tel\"]', '9876543210');\n> 657 |     await page.click('button:has-text(\"Proceed\")');\n      |                ^\n  658 |\n  659 |     // All buttons should be accessible\n  660 |     expect(await page.locator('button#voice-mic-button').isVisible()).toBeTruthy();\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:657:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-21T06:18:22.112Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-3af91-zero-width-screen-edge-case-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-3af91-zero-width-screen-edge-case-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a0af3cd8b94d02f7f04-44aa8ed74157ee3a8f29",
+              "file": "qr-gateway.spec.ts",
+              "line": 650,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-21T06:15:10.717Z",
+    "duration": 221643.25,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 25,
+    "flaky": 0
+  }
+}

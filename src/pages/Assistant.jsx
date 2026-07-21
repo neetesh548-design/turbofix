@@ -117,7 +117,7 @@ export default function Assistant() {
       setTickets([]);
       setEvents([]);
     });
-  }, []);
+  }, [signedInUser?.role, signedInUser?.user_id]);
 
   useEffect(() => {
     if (selected !== 'all' && machines.length > 0 && !machines.some((machine) => machine.machine_id === selected)) {
