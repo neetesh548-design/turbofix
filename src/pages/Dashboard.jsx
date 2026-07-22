@@ -433,6 +433,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeDetail, setActiveDetail] = useState('');
+  const [activeBoard, setActiveBoard] = useState('overview');
   const [trendWindow, setTrendWindow] = useState('12m');
   const [trendMetric, setTrendMetric] = useState('issues');
 
@@ -483,6 +484,7 @@ export default function Dashboard() {
     setActiveDetail(detail);
     window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
+  const showBoard = (view) => activeBoard === 'overview' || activeBoard === view;
 
   return (
     <AppShell active="overview">
@@ -499,11 +501,23 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="dashboard-filter-row" aria-label="Dashboard filters">
-          <button type="button" className="active">Overview</button>
-          <button type="button">Equipment-wise</button>
-          <button type="button">Maintenance-wise</button>
-          <button type="button">Frequency-wise</button>
-          <button type="button">Technician-wise</button>
+          {[
+            ['overview', 'Overview'],
+            ['equipment', 'Equipment-wise'],
+            ['maintenance', 'Maintenance-wise'],
+            ['frequency', 'Frequency-wise'],
+            ['technician', 'Technician-wise'],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={activeBoard === key ? 'active' : ''}
+              onClick={() => setActiveBoard(key)}
+              aria-pressed={activeBoard === key}
+            >
+              {label}
+            </button>
+          ))}
         </div>
         <section className="dashboard-scoreboard" aria-label="Maintenance snapshot">
           <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" />
@@ -567,7 +581,7 @@ export default function Dashboard() {
                 </>
               )
             },
-            {
+            (showBoard('equipment') || activeBoard === 'maintenance' || activeBoard === 'technician') && {
               id: 'maintenance_board',
               span: 12,
               bare: true,
@@ -647,7 +661,7 @@ export default function Dashboard() {
                 </section>
               )
             },
-            {
+            showBoard('frequency') && {
               id: 'trend',
               span: 12,
               bare: true,
@@ -712,7 +726,7 @@ export default function Dashboard() {
                 </section>
               )
             },
-            {
+            showBoard('maintenance') && {
               id: 'more_context',
               span: 12,
               bare: true,
@@ -857,7 +871,7 @@ export default function Dashboard() {
                 );
               }
             }
-          ]}
+          ].filter(Boolean)}
         />
       </div>
     </AppShell>
