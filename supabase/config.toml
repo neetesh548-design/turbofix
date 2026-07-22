@@ -441,6 +441,18 @@ verify_jwt = true
 import_map = "./functions/ai_diagnostics/deno.json"
 entrypoint = "./functions/ai_assistant/index.ts"
 
+[functions.ai_translation]
+enabled = true
+verify_jwt = false
+import_map = "./functions/ai_diagnostics/deno.json"
+entrypoint = "./functions/ai_translation/index.ts"
+
+[functions.ticket_gateway]
+enabled = true
+verify_jwt = false
+import_map = "./functions/ticket_gateway/deno.json"
+entrypoint = "./functions/ticket_gateway/index.ts"
+
 [functions.send_notifications]
 enabled = true
 verify_jwt = true
