@@ -129,6 +129,7 @@ export default function Machines() {
   const [machineData, setMachineData] = useState(null);
   const [machineDataLoading, setMachineDataLoading] = useState(false);
   const [enrichingMachineData, setEnrichingMachineData] = useState(false);
+  const [machineKnowledge, setMachineKnowledge] = useState({ file: null, graph: null, interventions: [], audit: [] });
 
   // Sub-tab Form inputs
   const [uploadFile, setUploadFile] = useState(null);
@@ -427,7 +428,41 @@ export default function Machines() {
 
     setMachineDataLoading(true);
     setMachineData(null);
-    setMachineDataLoading(false);
+    setMachineKnowledge({ file: null, graph: null, interventions: [], audit: [] });
+    try {
+      const [fileRes, graphRes, interventionsRes, auditRes] = await Promise.all([
+        supabase.from('machine_knowledge_files').select('machine_id,file_name,dirty,generated_at,updated_at,content_hash,markdown').eq('machine_id', machineId).maybeSingle(),
+        supabase.from('machine_knowledge_graphs').select('machine_id,nodes,edges,dirty,generated_at,updated_at,graph_hash').eq('machine_id', machineId).maybeSingle(),
+        supabase.from('maintenance_interventions').select('id,type,status,reason,created_at,resolved_at').eq('machine_id', machineId).order('created_at', { ascending: false }).limit(5),
+        supabase.from('audit_log').select('id,action,actor,details,created_at').eq('machine_id', machineId).order('created_at', { ascending: false }).limit(5),
+      ]);
+      const knowledgeFile = fileRes.data || null;
+      const knowledgeGraph = graphRes.data || null;
+      setMachineKnowledge({
+        file: knowledgeFile,
+        graph: knowledgeGraph,
+        interventions: interventionsRes.data || [],
+        audit: auditRes.data || [],
+      });
+      setMachineData(knowledgeFile || knowledgeGraph ? {
+        file_name: knowledgeFile?.file_name || knowledgeGraph?.graph_hash || null,
+        dirty: Boolean(knowledgeFile?.dirty || knowledgeGraph?.dirty),
+        approval_required: Boolean(knowledgeFile?.dirty || knowledgeGraph?.dirty),
+        internet: false,
+        generated_at: knowledgeFile?.generated_at || knowledgeGraph?.generated_at || null,
+        updated_at: knowledgeFile?.updated_at || knowledgeGraph?.updated_at || null,
+        content_hash: knowledgeFile?.content_hash || null,
+        graph_hash: knowledgeGraph?.graph_hash || null,
+        node_count: Array.isArray(knowledgeGraph?.nodes) ? knowledgeGraph.nodes.length : 0,
+        edge_count: Array.isArray(knowledgeGraph?.edges) ? knowledgeGraph.edges.length : 0,
+        missing_sections: knowledgeFile?.dirty || knowledgeGraph?.dirty ? ['Approve the current machine knowledge refresh'] : [],
+      } : null);
+    } catch {
+      setMachineData(null);
+      setMachineKnowledge({ file: null, graph: null, interventions: [], audit: [] });
+    } finally {
+      setMachineDataLoading(false);
+    }
 
     setDocsLoading(true);
     try {
@@ -2103,6 +2138,35 @@ export default function Machines() {
                         </div>
                       );
                     })()}
+                    <div className="machine-section-heading" style={{ display: 'block', marginBottom: '18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <span><BookOpen /></span>
+                          <div><h3>Machine knowledge vault</h3><p>Versioned MachineData, graph links, interventions and audit trail.</p></div>
+                        </div>
+                        <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.76rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: machineData?.dirty ? '#FBBF24' : 'var(--brand)' }}>
+                          {machineDataLoading ? 'Loading…' : machineData?.dirty ? 'Needs approval' : machineData?.file_name ? 'Approved' : 'No knowledge yet'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginTop: '14px', padding: '14px 16px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+                        <div>
+                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Knowledge file</small>
+                          <strong style={{ color: 'white', fontSize: '0.9rem', wordBreak: 'break-word' }}>{machineDataLoading ? 'Refreshing…' : machineKnowledge.file?.file_name || machineData?.file_name || 'Waiting for first approved upload'}</strong>
+                        </div>
+                        <div>
+                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Graph</small>
+                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineDataLoading ? 'Refreshing…' : machineData?.graph_hash ? `${machineData.node_count || 0} nodes · ${machineData.edge_count || 0} edges` : 'Not generated yet'}</strong>
+                        </div>
+                        <div>
+                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Interventions</small>
+                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.interventions.length} logged</strong>
+                        </div>
+                        <div>
+                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Audit trail</small>
+                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.audit.length} recent entries</strong>
+                        </div>
+                      </div>
+                    </div>
                     <div className="machine-section-heading">
                       <div><span><ClipboardList /></span><div><h3>Breakdown response path</h3><p>Who responds first, and when the issue moves to the next level.</p></div></div>
                       <a href="settings.html#response">Change response rules <ChevronRight /></a>
