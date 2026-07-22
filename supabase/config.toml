@@ -450,7 +450,7 @@ entrypoint = "./functions/ai_translation/index.ts"
 [functions.ticket_gateway]
 enabled = true
 verify_jwt = false
-import_map = "./functions/ticket_gateway/deno.json"
+import_map = "./functions/ai_diagnostics/deno.json"
 entrypoint = "./functions/ticket_gateway/index.ts"
 
 [functions.send_notifications]
