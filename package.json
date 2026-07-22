@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:dashboard": "vitest run src/__tests__/dashboard.test.js",
+    "test:lay-owner": "playwright test tests/lay-owner-dashboard.spec.js",
     "test:e2e": "playwright test",
     "test:framework": "vitest run src/__tests__/dashboard.test.js && playwright test tests/dashboard-framework.spec.js",
     "test:qr": "playwright test qr-gateway",
