@@ -6,6 +6,7 @@ import { DashboardGrid } from '@/components/DashboardWidget';
 
 const fallback = {
   kpis: { machines_down: 0, urgent_open: 0, open_tickets: 0, plant_health_pct: 100, avg_hours_to_fix: 0, total_machines: 0, pm_compliance_pct: null },
+  dashboard_overview: { status_mix: [], type_mix: [], cost_by_month: [], scheduled_pct: 0, total_cost: 0, avg_cost: 0, maintenance_count: 0 },
   auto_insights: { mtbf_hours: 0, mttr_hours: 0, repeat_breakdown_pct: 0, top_problem_machines: [] },
   owner_impact: { downtime_hours: 0, downtime_cost: 0, maintenance_cost: 0, repeat_loss_exposure: 0, cost_coverage_pct: 0, top_cost_machine: null, top_loss_machines: [], availability_pct: 100 },
   drilldown: { machines_down: [], urgent_issues: [], open_work: [], resolved_work: [] },
@@ -349,6 +350,25 @@ async function fetchDashboardData() {
   const dataQuality = computeDataQuality(machines, tickets);
   const vendorAmc = computeVendorAmc(machines, tickets);
   const monthlyTrend = buildMonthlyTrend(tickets);
+  const statusCounts = tickets.reduce((acc, ticket) => {
+    const key = String(ticket.status || 'unknown').toLowerCase();
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const typeCounts = tickets.reduce((acc, ticket) => {
+    const key = String(ticket.type || 'breakdown').replace(/_/g, ' ');
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const ticketCost = (ticket) => asNumber(ticket.maintenance_cost) || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost));
+  const totalCost = tickets.reduce((total, ticket) => total + ticketCost(ticket), 0);
+  const costByMonth = monthlyTrend.map((month) => ({
+    ...month,
+    cost: tickets.reduce((total, ticket) => {
+      const opened = new Date(ticket.created_at || ticket.reported_at || '');
+      return monthKey(opened) === month.key ? total + ticketCost(ticket) : total;
+    }, 0),
+  }));
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -375,6 +395,15 @@ async function fetchDashboardData() {
       avg_hours_to_fix: averageRepairHours,
       total_tickets: tickets.length,
       pm_compliance_pct: pmCompliancePct,
+    },
+    dashboard_overview: {
+      status_mix: Object.entries(statusCounts).map(([label, value]) => ({ label, value })),
+      type_mix: Object.entries(typeCounts).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5),
+      cost_by_month: costByMonth,
+      scheduled_pct: pmSchedules.length ? Math.round((pmSchedules.filter((schedule) => schedule.active !== false).length / pmSchedules.length) * 100) : 0,
+      total_cost: Math.round(totalCost),
+      avg_cost: tickets.length ? Math.round(totalCost / tickets.length) : 0,
+      maintenance_count: tickets.length,
     },
     auto_insights: maintenanceInsights,
     owner_impact: ownerImpact,
@@ -416,6 +445,7 @@ export default function Dashboard() {
   }, []);
 
   const { kpis, auto_insights: insights, owner_impact: impact } = data;
+  const overview = data.dashboard_overview || fallback.dashboard_overview;
   const companyName = data.company_name || 'TurboFix';
   const topMachine = insights.top_problem_machines?.[0];
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
@@ -471,6 +501,13 @@ export default function Dashboard() {
           <button type="button">Frequency-wise</button>
           <button type="button">Technician-wise</button>
         </div>
+        <section className="dashboard-scoreboard" aria-label="Maintenance snapshot">
+          <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" />
+          <ScoreTile label="Total cost" value={money.format(overview.total_cost || 0)} detail="Recorded maintenance spend" />
+          <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" />
+          <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" />
+          <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" />
+        </section>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
         
@@ -572,6 +609,36 @@ export default function Dashboard() {
                       <span className="trend-caption">30 days</span>
                     </div>
                     <RiskBars machines={insights.top_problem_machines || []} />
+                  </section>
+                  <section className="decision-panel dashboard-chart-card">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Maintenance status</div>
+                        <h2>Status mix</h2>
+                      </div>
+                      <span className="trend-caption">All records</span>
+                    </div>
+                    <MiniDonutChart items={overview.status_mix || []} />
+                  </section>
+                  <section className="decision-panel dashboard-chart-card">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Maintenance-wise</div>
+                        <h2>Type analysis</h2>
+                      </div>
+                      <span className="trend-caption">Top 5</span>
+                    </div>
+                    <CategoryBars items={overview.type_mix || []} />
+                  </section>
+                  <section className="decision-panel dashboard-chart-card">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Cost trend</div>
+                        <h2>Monthly spend</h2>
+                      </div>
+                      <span className="trend-caption">12 months</span>
+                    </div>
+                    <CostBars items={overview.cost_by_month || []} />
                   </section>
                 </section>
               )
@@ -836,6 +903,16 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
 
+function ScoreTile({ label, value, detail, tone = '' }) {
+  return (
+    <div className={`dashboard-score-tile ${tone}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
 function WorkMixChart({ open = 0, resolved = 0 }) {
   const safeOpen = Math.max(0, open || 0);
   const safeResolved = Math.max(0, resolved || 0);
@@ -851,6 +928,59 @@ function WorkMixChart({ open = 0, resolved = 0 }) {
         <span><i className="legend-open" />Open <b>{safeOpen}</b></span>
         <span><i className="legend-resolved" />Resolved <b>{safeResolved}</b></span>
       </div>
+    </div>
+  );
+}
+
+function MiniDonutChart({ items = [] }) {
+  const rows = items.filter((item) => item.value > 0);
+  const total = rows.reduce((sum, item) => sum + item.value, 0);
+  const open = rows.find((item) => item.label === 'open')?.value || 0;
+  const openPct = total ? Math.round((open / total) * 100) : 0;
+  if (!rows.length) return <Empty text="No maintenance status yet." />;
+  return (
+    <div className="dashboard-work-mix compact">
+      <div className="dashboard-donut status" style={{ '--resolved': `${Math.max(0, 100 - openPct)}%` }}>
+        <strong>{openPct}%</strong>
+        <span>open</span>
+      </div>
+      <div className="dashboard-chart-legend">
+        {rows.slice(0, 4).map((item) => (
+          <span key={item.label}><i className={item.label === 'open' ? 'legend-open' : 'legend-resolved'} />{item.label} <b>{item.value}</b></span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategoryBars({ items = [] }) {
+  const max = Math.max(...items.map((item) => item.value || 0), 1);
+  if (!items.length) return <Empty text="No maintenance type data yet." />;
+  return (
+    <div className="dashboard-category-bars">
+      {items.map((item) => (
+        <div key={item.label}>
+          <span>{item.label}</span>
+          <div><i style={{ width: `${Math.max(8, ((item.value || 0) / max) * 100)}%` }} /></div>
+          <b>{item.value}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CostBars({ items = [] }) {
+  const rows = items.slice(-12);
+  const max = Math.max(...rows.map((item) => item.cost || 0), 1);
+  if (!rows.length) return <Empty text="No cost trend yet." />;
+  return (
+    <div className="dashboard-cost-bars">
+      {rows.map((item) => (
+        <div key={item.key}>
+          <span style={{ height: `${Math.max(8, ((item.cost || 0) / max) * 100)}%` }} />
+          <small>{item.label}</small>
+        </div>
+      ))}
     </div>
   );
 }

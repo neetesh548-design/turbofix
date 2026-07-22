@@ -486,6 +486,40 @@ input:focus, select:focus, textarea:focus {
   background: linear-gradient(180deg, #4ade80, #22c55e);
   box-shadow: 0 10px 24px rgba(34, 197, 94, .22);
 }
+.dashboard-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.dashboard-score-tile {
+  min-width: 0;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(18, 24, 31, .92), rgba(11, 16, 22, .96));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.dashboard-score-tile span {
+  display: block;
+  color: #94a3b8;
+  font: 800 .72rem/1.1 'Rajdhani', sans-serif;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.dashboard-score-tile strong {
+  display: block;
+  margin: 10px 0 6px;
+  color: #f8fafc;
+  font: 900 2rem/1 'Rajdhani', sans-serif;
+  overflow-wrap: anywhere;
+}
+.dashboard-score-tile small {
+  color: #94a3b8;
+  font-size: .76rem;
+  line-height: 1.35;
+}
+.dashboard-score-tile.green strong { color: #4ade80; }
 .dashboard-analysis-board {
   display: grid;
   grid-template-columns: minmax(320px, 1.1fr) minmax(220px, .72fr) minmax(260px, .9fr);
@@ -501,6 +535,10 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   min-height: 188px;
 }
+.dashboard-work-mix.compact {
+  grid-template-columns: 118px 1fr;
+  min-height: 154px;
+}
 .dashboard-donut {
   --resolved: 0%;
   width: 136px;
@@ -511,6 +549,11 @@ input:focus, select:focus, textarea:focus {
   position: relative;
   background: conic-gradient(#22c55e 0 var(--resolved), rgba(248, 113, 113, .72) var(--resolved) 100%);
   box-shadow: 0 14px 34px rgba(34,197,94,.12);
+}
+.dashboard-work-mix.compact .dashboard-donut { width: 118px; }
+.dashboard-work-mix.compact .dashboard-donut::after { inset: 15px; }
+.dashboard-donut.status {
+  background: conic-gradient(#22c55e 0 var(--resolved), rgba(248, 113, 113, .74) var(--resolved) 100%);
 }
 .dashboard-donut::after {
   content: '';
@@ -595,6 +638,69 @@ input:focus, select:focus, textarea:focus {
 .dashboard-risk-bars small {
   color: #94a3b8;
   font-size: .68rem;
+}
+.dashboard-category-bars {
+  display: grid;
+  gap: 13px;
+  min-height: 154px;
+  align-content: center;
+}
+.dashboard-category-bars > div {
+  display: grid;
+  grid-template-columns: minmax(82px, 1fr) minmax(92px, 1.25fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.dashboard-category-bars span {
+  color: #e2e8f0;
+  font-size: .82rem;
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dashboard-category-bars div div {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .13);
+  overflow: hidden;
+}
+.dashboard-category-bars i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
+}
+.dashboard-category-bars b {
+  color: #f8fafc;
+  font-size: .84rem;
+}
+.dashboard-cost-bars {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 7px;
+  align-items: end;
+  min-height: 154px;
+  padding-top: 8px;
+}
+.dashboard-cost-bars > div {
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  gap: 8px;
+  height: 154px;
+}
+.dashboard-cost-bars span {
+  display: block;
+  width: 100%;
+  min-height: 8px;
+  border-radius: 7px 7px 3px 3px;
+  background: linear-gradient(180deg, #fbbf24, rgba(251,191,36,.2));
+  box-shadow: 0 8px 16px rgba(251,191,36,.12);
+}
+.dashboard-cost-bars small {
+  color: #94a3b8;
+  font-size: .6rem;
 }
 .dashboard-trend-heading { margin-bottom: 10px; }
 .dashboard-trend-switch {
@@ -978,6 +1084,8 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 640px) {
   .dashboard-filter-row { width: 100%; }
   .dashboard-filter-row button { flex: 1 1 140px; }
+  .dashboard-scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-score-tile strong { font-size: 1.55rem; }
   .dashboard-analysis-board { grid-template-columns: 1fr; }
   .dashboard-work-mix { grid-template-columns: 112px 1fr; min-height: 150px; }
   .dashboard-donut { width: 112px; }
