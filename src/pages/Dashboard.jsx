@@ -307,7 +307,7 @@ async function fetchDashboardData() {
     supabase.from('factories').select('name').limit(1),
     supabase.from('pm_logs').select('on_time'),
     supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active'),
-    supabase.from('work_order_parts').select('machine_id,total_cost,created_at'),
+    supabase.from('work_order_parts').select('ticket_id,machine_id,total_cost,created_at'),
     supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12),
   ]);
 
@@ -350,6 +350,10 @@ async function fetchDashboardData() {
   const dataQuality = computeDataQuality(machines, tickets);
   const vendorAmc = computeVendorAmc(machines, tickets);
   const monthlyTrend = buildMonthlyTrend(tickets);
+  const partCostByTicket = workOrderParts.reduce((acc, part) => {
+    if (part.ticket_id) acc[part.ticket_id] = (acc[part.ticket_id] || 0) + asNumber(part.total_cost);
+    return acc;
+  }, {});
   const statusCounts = tickets.reduce((acc, ticket) => {
     const key = String(ticket.status || 'unknown').toLowerCase();
     acc[key] = (acc[key] || 0) + 1;
@@ -360,7 +364,7 @@ async function fetchDashboardData() {
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
-  const ticketCost = (ticket) => asNumber(ticket.maintenance_cost) || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost));
+  const ticketCost = (ticket) => asNumber(ticket.maintenance_cost) || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost)) || partCostByTicket[ticket.id] || 0;
   const totalCost = tickets.reduce((total, ticket) => total + ticketCost(ticket), 0);
   const costByMonth = monthlyTrend.map((month) => ({
     ...month,
