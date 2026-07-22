@@ -527,11 +527,24 @@ export default function Dashboard() {
               span: 12,
               bare: true,
               render: () => (
-                <section className="decision-columns">
-                  <div className="decision-panel">
-                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Priority queue</div><h2>Needs attention</h2></div><a href="tickets.html" className="text-link">View all</a></div>
+                <section className="decision-panel dashboard-queue-panel">
+                  <div className="decision-panel-heading">
+                    <div>
+                      <div className="decision-card-kicker">Priority queue</div>
+                      <h2>Needs attention</h2>
+                    </div>
+                    <a href="tickets.html" className="text-link">View all</a>
+                  </div>
+                  <div className="dashboard-queue-list">
                     {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                      <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
+                      <div className="attention-row" key={`${item.machine_name}-${index}`}>
+                        <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
+                        <div>
+                          <strong>{item.machine_name || 'Unknown machine'}</strong>
+                          <span>{item.description || 'Maintenance issue reported'}</span>
+                        </div>
+                        <b>{item.urgency || 'Open'}</b>
+                      </div>
                     )) : <Empty text="No open issues. Your plant is clear." />}
                   </div>
                 </section>
