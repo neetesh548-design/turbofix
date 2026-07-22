@@ -432,9 +432,6 @@ export default function Dashboard() {
     acc.downtime_hours += month.downtime_hours || 0;
     return acc;
   }, { issues: 0, resolved: 0, downtime_hours: 0 });
-  const trendInsight = trendSeries.length
-    ? `Showing the last ${trendMonths} months · ${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime`
-    : 'No ticket history is available yet.';
   const trendMetricLabel = {
     issues: 'Issues',
     resolved: 'Resolved',
@@ -460,7 +457,7 @@ export default function Dashboard() {
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
             <h1>Control Center <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>{companyName} · A chart-led command view for plant signals, cost exposure, and investigation-first decisions. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
+            <p>{companyName} · Chart-led plant signals and investigation-first decisions. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
@@ -487,7 +484,7 @@ export default function Dashboard() {
                   <button type="button" className={`decision-health-card overview-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
                     <div className="overview-hero-kicker">Plant health</div>
                     <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
-                    <p>{kpis.machines_down || 0} machine{(kpis.machines_down || 0) === 1 ? '' : 's'} currently need attention out of {kpis.total_machines || 0}.</p>
+                    <p>{kpis.machines_down || 0} of {kpis.total_machines || 0} machines need attention.</p>
                     <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
                     <div className="overview-hero-meta">
                       <span><Activity size={14} /> {kpis.open_tickets || 0} open</span>
@@ -497,9 +494,9 @@ export default function Dashboard() {
                   </button>
                   <div className="overview-side-stack">
                     <div className="decision-next-card overview-next-card">
-                      <div className="decision-card-kicker">Recommended next action</div>
+                      <div className="decision-card-kicker">Next action</div>
                       <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
-                      <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
+                      <p>{topMachine ? `${topMachine.ticket_count} issues in 30 days.` : 'Add machines to build the baseline.'}</p>
                       <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace <ArrowUpRight size={16} /></a>
                     </div>
                   </div>
@@ -577,7 +574,7 @@ export default function Dashboard() {
                   <div className="dashboard-trend-strip-shell">
                     <div className="dashboard-trend-strip-copy">
                       <strong>{trendMetricLabel}</strong>
-                      <span>{trendInsight}</span>
+                      <span>{trendSeries.length ? `${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime` : 'No trend history yet.'}</span>
                     </div>
                     <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
                       {[
