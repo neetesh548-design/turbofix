@@ -538,13 +538,19 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
-        <section className="dashboard-scoreboard" aria-label="Maintenance snapshot">
-          <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" />
-          <ScoreTile label="Total cost" value={money.format(overview.total_cost || 0)} detail="Recorded maintenance spend" />
-          <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" />
-          <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" />
-          <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" />
-        </section>
+        <details className="dashboard-secondary-kpis">
+          <summary>
+            <span>More KPI parameters</span>
+            <small>Cost, maintenance count, assets, and PM coverage</small>
+          </summary>
+          <section className="dashboard-scoreboard" aria-label="Additional maintenance snapshot">
+            <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" />
+            <ScoreTile label="Total cost" value={money.format(overview.total_cost || 0)} detail="Recorded maintenance spend" />
+            <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" />
+            <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" />
+            <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" />
+          </section>
+        </details>
 
         <section className="factory-glance-board">
           <div className="factory-glance-main">

@@ -520,6 +520,50 @@ input:focus, select:focus, textarea:focus {
   line-height: 1.35;
 }
 .dashboard-score-tile.green strong { color: #4ade80; }
+.dashboard-secondary-kpis {
+  margin: 0 0 18px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .025);
+}
+.dashboard-secondary-kpis summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  color: #cbd5e1;
+}
+.dashboard-secondary-kpis summary::-webkit-details-marker { display: none; }
+.dashboard-secondary-kpis summary span {
+  color: #f8fafc;
+  font: 900 .9rem/1 'Rajdhani', sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.dashboard-secondary-kpis summary small {
+  color: #94a3b8;
+  font-size: .76rem;
+  text-align: right;
+}
+.dashboard-secondary-kpis summary::after {
+  content: '+';
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: #07130d;
+  background: #4ade80;
+  font-weight: 900;
+}
+.dashboard-secondary-kpis[open] summary::after { content: '−'; }
+.dashboard-secondary-kpis .dashboard-scoreboard {
+  margin: 0;
+  padding: 0 12px 12px;
+}
 .factory-glance-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(270px, .36fr);
