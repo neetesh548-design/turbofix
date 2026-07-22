@@ -2,4 +2,16 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://turbofix.io/sitemap.xml
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://turbofix.co.in/sitemap.xml

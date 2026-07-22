@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { NotificationProvider } from './components/NotificationCenter';
 import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 
@@ -20,6 +20,26 @@ const Support = lazy(() => import('./pages/Support'));
 const QRGateway = lazy(() => import('./pages/QRGateway'));
 const Inventory = lazy(() => import('./pages/Inventory'));
 
+function SearchMetadata() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const isPublicMarketingPage = pathname === '/';
+    document.querySelector('meta[name="robots"]')?.setAttribute(
+      'content',
+      isPublicMarketingPage
+        ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+        : 'noindex, nofollow',
+    );
+    document.querySelector('link[rel="canonical"]')?.setAttribute(
+      'href',
+      `https://turbofix.co.in${isPublicMarketingPage ? '/' : pathname}`,
+    );
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
   
@@ -31,6 +51,7 @@ function App() {
   return (
     <NotificationProvider>
       <BrowserRouter basename={basename}>
+        <SearchMetadata />
         <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
           <Routes>
           <Route path="/" element={<Home />} />
