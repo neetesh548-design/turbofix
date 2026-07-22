@@ -5,15 +5,16 @@ import { DASHBOARD_LAYOUT_STORAGE_KEY, readStoredLayout } from '@/lib/dashboardL
 export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
   const [layout, setLayout] = useState(() => {
     const defaultLayout = widgets.map((w, i) => ({ id: w.id, order: i }));
-    return readStoredLayout(defaultLayout);
+    return editable ? readStoredLayout(defaultLayout) : defaultLayout;
   });
 
   const [draggingId, setDraggingId] = useState(null);
 
   useEffect(() => {
+    if (!editable) return;
     localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
     onLayoutChange?.(layout);
-  }, [layout, onLayoutChange]);
+  }, [editable, layout, onLayoutChange]);
 
   const handleDragStart = (e, id) => {
     if (!editable) return;
