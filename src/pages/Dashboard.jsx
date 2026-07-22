@@ -337,6 +337,8 @@ async function fetchDashboardData() {
   const needsAttention = openTickets.map(t => {
     const summary = t.ai_summary || {};
     return {
+      ticket_id: t.id,
+      machine_id: t.machine_id,
       machine_name: machineMap[t.machine_id] || 'Unknown',
       description: t.issue_text || summary.summary || '',
       urgency: (summary.urgency || 'Medium').charAt(0).toUpperCase() + (summary.urgency || 'medium').slice(1),
@@ -387,6 +389,12 @@ async function fetchDashboardData() {
     machine_id: machine.id, machine_name: machine.name, location: machine.location,
     open_count: openTickets.filter((ticket) => ticket.machine_id === machine.id).length,
   })) : [];
+  const onlineMachineDetails = machines.filter((machine) => !machinesWithOpen.has(machine.id)).map((machine) => ({
+    machine_id: machine.id,
+    machine_name: machine.name,
+    location: machine.location,
+    status: 'Online',
+  }));
 
   return {
     company_name: companyName,
@@ -412,6 +420,7 @@ async function fetchDashboardData() {
     auto_insights: maintenanceInsights,
     owner_impact: ownerImpact,
     drilldown: {
+      online_machines: onlineMachineDetails,
       machines_down: machineDetails,
       urgent_issues: needsAttention.filter((item) => item.urgency === 'High' || item.urgency === 'Critical'),
       open_work: needsAttention,
@@ -459,6 +468,7 @@ export default function Dashboard() {
   const machineStatusRows = (insights.top_problem_machines?.length ? insights.top_problem_machines : data.drilldown?.machines_down || [])
     .slice(0, 4)
     .map((machine, index) => ({
+      machine_id: machine.machine_id,
       name: machine.machine_name || machine.machine || `Line ${String.fromCharCode(65 + index)}`,
       pct: Math.max(8, Math.min(100, 100 - ((machine.ticket_count || machine.open_count || index + 1) * 8))),
       status: (machine.ticket_count || machine.open_count || 0) > 2 ? 'Warning' : 'Running',
@@ -483,12 +493,45 @@ export default function Dashboard() {
     downtime_hours: 'Downtime hours',
   }[trendMetric] || 'Issues';
   const trendMetricTotal = trendSeries.reduce((total, month) => total + (month[trendMetric] || 0), 0);
+  const downtimeItems = impact.top_loss_machines?.length ? impact.top_loss_machines.map((machine) => ({
+    machine_id: machine.machine_id,
+    machine_name: machine.machine_name,
+    description: `${machine.downtime_hours} hrs downtime · ${machine.tickets} issue${machine.tickets === 1 ? '' : 's'}`,
+    value: `${machine.downtime_hours}h`,
+  })) : data.drilldown?.resolved_work || [];
+  const predictedItems = insights.top_problem_machines?.map((machine) => ({
+    machine_id: machine.machine_id,
+    machine_name: machine.machine_name,
+    description: `${machine.ticket_count} recent issue${machine.ticket_count === 1 ? '' : 's'} / repeat signal`,
+    value: `${machine.ticket_count} signals`,
+  })) || [];
+  const trendItems = trendSeries.map((month) => ({
+    machine_name: month.label,
+    description: `${month.issues || 0} issues · ${month.resolved || 0} resolved · ${Math.round((month.downtime_hours || 0) * 10) / 10} downtime hrs`,
+    value: month[trendMetric],
+  }));
+  const secondaryKpiItems = [
+    { machine_name: 'Equipment', description: 'Registered assets in this workspace', value: kpis.total_machines || 0 },
+    { machine_name: 'Total cost', description: 'Recorded maintenance spend', value: money.format(overview.total_cost || 0) },
+    { machine_name: 'Average cost', description: 'Average maintenance cost per record', value: money.format(overview.avg_cost || 0) },
+    { machine_name: 'Maintenance records', description: 'Total maintenance records captured', value: overview.maintenance_count || 0 },
+    { machine_name: 'Scheduled PM coverage', description: 'Active preventive maintenance coverage', value: `${overview.scheduled_pct || 0}%` },
+  ];
   const detailConfig = {
     health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
+    online: { title: 'Machines online', items: data.drilldown?.online_machines || [], empty: 'No online machine list is available yet.' },
     machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
     urgent: { title: 'Urgent issues', items: data.drilldown?.urgent_issues || [], empty: 'No urgent issue is currently open.' },
     open: { title: 'Open maintenance work', items: data.drilldown?.open_work || [], empty: 'No open maintenance work.' },
     repair: { title: 'Recent completed work behind the average', items: data.drilldown?.resolved_work || [], empty: 'No completed repair duration is available yet.' },
+    downtime: { title: 'Downtime contributors', items: downtimeItems, empty: 'No downtime contributors are available yet.' },
+    predicted: { title: 'Predicted failure signals', items: predictedItems, empty: 'No repeat or urgent failure signal is available yet.' },
+    uptime: { title: 'Uptime and efficiency details', items: data.drilldown?.machines_down || [], empty: 'No machine is currently reducing uptime.' },
+    line_status: { title: 'Production line status details', items: predictedItems.length ? predictedItems : data.drilldown?.machines_down || [], empty: 'No line-level machine signal is available yet.' },
+    alerts: { title: 'AI insights and alerts', items: predictedItems.length ? predictedItems : data.drilldown?.urgent_issues || [], empty: 'No AI alert needs action right now.' },
+    trend: { title: `${trendMetricLabel} trend details`, items: trendItems, empty: 'No trend data is available yet.' },
+    queue: { title: 'Priority queue details', items: data.needs_attention || [], empty: 'No open priority item is waiting.' },
+    secondary: { title: 'Additional KPI parameters', items: secondaryKpiItems, empty: 'No additional KPI data available.' },
   };
   const revealDetail = (detail) => {
     setActiveDetail(detail);
@@ -544,11 +587,11 @@ export default function Dashboard() {
             <small>Cost, maintenance count, assets, and PM coverage</small>
           </summary>
           <section className="dashboard-scoreboard" aria-label="Additional maintenance snapshot">
-            <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" />
-            <ScoreTile label="Total cost" value={money.format(overview.total_cost || 0)} detail="Recorded maintenance spend" />
-            <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" />
-            <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" />
-            <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" />
+            <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" onClick={() => revealDetail('secondary')} />
+            <ScoreTile label="Total cost" value={money.format(overview.total_cost || 0)} detail="Recorded maintenance spend" onClick={() => revealDetail('secondary')} />
+            <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" onClick={() => revealDetail('secondary')} />
+            <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" onClick={() => revealDetail('secondary')} />
+            <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" onClick={() => revealDetail('secondary')} />
           </section>
         </details>
 
@@ -568,8 +611,8 @@ export default function Dashboard() {
               <button type="button">All departments</button>
             </div>
             <div className="factory-production-card">
-              <FactoryGauge value={uptimePct} label="Avg efficiency" />
-              <LineStatusRows rows={machineStatusRows} />
+              <FactoryGauge value={uptimePct} label="Avg efficiency" onClick={() => revealDetail('uptime')} />
+              <LineStatusRows rows={machineStatusRows} onRowClick={() => revealDetail('line_status')} />
             </div>
             <div className="factory-alert-card">
               <div className="factory-alert-head">
@@ -577,18 +620,18 @@ export default function Dashboard() {
                 <span>Last updated: {new Date().toLocaleTimeString('en-IN')}</span>
               </div>
               <div className="factory-alert-grid">
-                <AlertCard tone="high" title={topMachine ? `${topMachine.machine_name} alert` : 'No high alert'} text={topMachine ? `${topMachine.ticket_count} recent issues. Inspect this machine first.` : 'No major recurring machine issue detected.'} action="Inspect now" />
-                <AlertCard tone="medium" title="Predictive maintenance" text={`${predictedFailures} predicted failure signal${predictedFailures === 1 ? '' : 's'} from urgent/repeat work.`} action="Schedule now" />
-                <AlertCard tone="low" title="Energy & uptime optimization" text={`${uptimePct}% availability. Use planned maintenance to protect uptime.`} action="Optimize schedule" />
+                <AlertCard tone="high" title={topMachine ? `${topMachine.machine_name} alert` : 'No high alert'} text={topMachine ? `${topMachine.ticket_count} recent issues. Inspect this machine first.` : 'No major recurring machine issue detected.'} action="View details" onClick={() => revealDetail('alerts')} />
+                <AlertCard tone="medium" title="Predictive maintenance" text={`${predictedFailures} predicted failure signal${predictedFailures === 1 ? '' : 's'} from urgent/repeat work.`} action="View details" onClick={() => revealDetail('predicted')} />
+                <AlertCard tone="low" title="Energy & uptime optimization" text={`${uptimePct}% availability. Use planned maintenance to protect uptime.`} action="View details" onClick={() => revealDetail('uptime')} />
               </div>
             </div>
           </div>
           <aside className="factory-glance-side">
-            <SideKpiCard tone="blue" title="Total machines online" value={`${onlineMachines}/${kpis.total_machines || 0}`} delta="+ live workspace" />
-            <SideKpiCard tone="purple" title="Total downtime" value={`${Math.round((impact.downtime_hours || trendTotals.downtime_hours || 0) * 10) / 10} hrs`} delta="from tickets" />
-            <SideKpiCard tone="red" title="Predicted failures" value={predictedFailures} delta="urgent/repeat signals" />
-            <SideKpiCard tone="green" title="System uptime" value={`${uptimePct}%`} delta="availability" />
-            <UptimeTrend series={trendSeries} />
+            <SideKpiCard tone="blue" title="Total machines online" value={`${onlineMachines}/${kpis.total_machines || 0}`} delta="+ live workspace" onClick={() => revealDetail('online')} />
+            <SideKpiCard tone="purple" title="Total downtime" value={`${Math.round((impact.downtime_hours || trendTotals.downtime_hours || 0) * 10) / 10} hrs`} delta="from tickets" onClick={() => revealDetail('downtime')} />
+            <SideKpiCard tone="red" title="Predicted failures" value={predictedFailures} delta="urgent/repeat signals" onClick={() => revealDetail('predicted')} />
+            <SideKpiCard tone="green" title="System uptime" value={`${uptimePct}%`} delta="availability" onClick={() => revealDetail('uptime')} />
+            <UptimeTrend series={trendSeries} onClick={() => revealDetail('trend')} />
           </aside>
         </section>
 
@@ -596,7 +639,7 @@ export default function Dashboard() {
         
         {activeDetail && <section className="decision-panel dashboard-drilldown" id="dashboard-drilldown" tabIndex="-1" style={{ marginBottom: '20px' }}>
           <div className="decision-panel-heading"><div><div className="decision-card-kicker">Number explained</div><h2>{detailConfig[activeDetail].title}</h2></div><button type="button" className="dashboard-drilldown-close" onClick={() => setActiveDetail('')}>Close</button></div>
-          {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : 'tickets.html'} key={`${item.ticket_id || item.machine_id || index}-${index}`}><span><strong>{item.machine_name || 'Unknown machine'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || 'Open'}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
+          {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : item.ticket_id ? 'tickets.html' : '#dashboard-drilldown'} key={`${item.ticket_id || item.machine_id || item.machine_name || index}-${index}`}><span><strong>{item.machine_name || 'Dashboard item'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.value ?? (item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || item.status || 'Open')}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
         </section>}
 
         <DashboardGrid
@@ -662,14 +705,14 @@ export default function Dashboard() {
                     </div>
                     <div className="dashboard-queue-list">
                       {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                        <div className="attention-row" key={`${item.machine_name}-${index}`}>
+                        <button type="button" className="attention-row clickable" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
                           <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
                           <div>
                             <strong>{item.machine_name || 'Unknown machine'}</strong>
                             <span>{item.description || 'Maintenance issue reported'}</span>
                           </div>
                           <b>{item.urgency || 'Open'}</b>
-                        </div>
+                        </button>
                       )) : <Empty text="No open issues. Your plant is clear." />}
                     </div>
                   </section>
@@ -986,10 +1029,10 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
 
-function FactoryGauge({ value = 0, label }) {
+function FactoryGauge({ value = 0, label, onClick }) {
   const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
   return (
-    <div className="factory-gauge-card">
+    <button type="button" className="factory-gauge-card dashboard-click-card" onClick={onClick}>
       <div className="factory-card-title">Production line overview</div>
       <div className="factory-gauge" style={{ '--value': `${safeValue}%` }}>
         <div>
@@ -997,11 +1040,12 @@ function FactoryGauge({ value = 0, label }) {
           <span>{label}</span>
         </div>
       </div>
-    </div>
+      <small className="decision-click-hint">View details →</small>
+    </button>
   );
 }
 
-function LineStatusRows({ rows = [] }) {
+function LineStatusRows({ rows = [], onRowClick }) {
   const safeRows = rows.length ? rows : [
     { name: 'Line A', pct: 100, status: 'Running' },
     { name: 'Line B', pct: 100, status: 'Running' },
@@ -1014,45 +1058,46 @@ function LineStatusRows({ rows = [] }) {
       <div className="factory-live-pill"><span /> Live data</div>
       <div className="factory-line-list">
         {safeRows.map((row, index) => (
-          <div className="factory-line-row" key={`${row.name}-${index}`}>
+          <button type="button" className="factory-line-row clickable" onClick={() => onRowClick?.(row)} key={`${row.name}-${index}`}>
             <i className={`line-dot dot-${index % 4}`} />
             <span>{row.name}</span>
             <div><b style={{ width: `${row.pct}%` }} /></div>
             <small>Efficiency</small>
             <strong>{row.pct}%</strong>
             <em className={row.status === 'Warning' ? 'warning' : ''}>{row.status}</em>
-          </div>
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function SideKpiCard({ tone, title, value, delta }) {
+function SideKpiCard({ tone, title, value, delta, onClick }) {
   return (
-    <div className={`factory-side-kpi ${tone}`}>
+    <button type="button" className={`factory-side-kpi dashboard-click-card ${tone}`} onClick={onClick}>
       <span className="factory-side-icon"><Activity size={18} /></span>
       <div>
         <small>{title}</small>
         <strong>{value}</strong>
       </div>
       <em>{delta}</em>
-    </div>
+      <span className="factory-side-hint">View details →</span>
+    </button>
   );
 }
 
-function AlertCard({ tone, title, text, action }) {
+function AlertCard({ tone, title, text, action, onClick }) {
   return (
-    <article className={`factory-alert-item ${tone}`}>
+    <button type="button" className={`factory-alert-item dashboard-click-card ${tone}`} onClick={onClick}>
       <span><AlertTriangle size={17} /></span>
       <b>{title}</b>
       <p>{text}</p>
-      <a href="machines.html">{action}</a>
-    </article>
+      <em>{action}</em>
+    </button>
   );
 }
 
-function UptimeTrend({ series = [] }) {
+function UptimeTrend({ series = [], onClick }) {
   const rows = series.length ? series.slice(-7) : [
     { label: 'Mon', resolved: 2, issues: 3 },
     { label: 'Tue', resolved: 3, issues: 4 },
@@ -1064,7 +1109,7 @@ function UptimeTrend({ series = [] }) {
   ];
   const max = Math.max(...rows.map((row) => (row.resolved || 0) + (row.issues || 0)), 1);
   return (
-    <div className="factory-uptime-card">
+    <button type="button" className="factory-uptime-card dashboard-click-card" onClick={onClick}>
       <div className="factory-uptime-head">
         <strong>Uptime trends</strong>
         <span>Weekly</span>
@@ -1080,17 +1125,17 @@ function UptimeTrend({ series = [] }) {
           );
         })}
       </div>
-    </div>
+    </button>
   );
 }
 
-function ScoreTile({ label, value, detail, tone = '' }) {
+function ScoreTile({ label, value, detail, tone = '', onClick }) {
   return (
-    <div className={`dashboard-score-tile ${tone}`}>
+    <button type="button" className={`dashboard-score-tile dashboard-click-card ${tone}`} onClick={onClick}>
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{detail}</small>
-    </div>
+    </button>
   );
 }
 
