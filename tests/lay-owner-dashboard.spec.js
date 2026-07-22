@@ -2,10 +2,14 @@ import { test, expect } from '@playwright/test';
 import { mockMachines, mockTickets, mockReflectiveMemory } from './fixtures/dashboard-fixtures.js';
 
 test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html)', () => {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
+  const payload = Buffer.from(JSON.stringify({ exp: 9999999999, sub: 'mock-user' })).toString('base64');
+  const fakeJwt = `${header}.${payload}.fake-signature`;
+
   test.beforeEach(async ({ page }) => {
     // 1. Inject Auth Tokens & Lay Owner User Session in localStorage before navigation
-    await page.addInitScript((memory) => {
-      window.localStorage.setItem('tf_token', 'fake-lay-owner-jwt-token');
+    await page.addInitScript(({ jwt, memory }) => {
+      window.localStorage.setItem('tf_token', jwt);
       window.localStorage.setItem('tf_user', JSON.stringify({
         role: 'factory_owner',
         name: 'Rajesh Sharma',
@@ -13,7 +17,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
         company_name: 'TurboFix Manufacturing'
       }));
       window.localStorage.setItem('turbofix_reflective_memory', JSON.stringify(memory));
-    }, mockReflectiveMemory);
+    }, { jwt: fakeJwt, memory: mockReflectiveMemory });
 
     // 2. Mock Supabase REST endpoints for isolated, lightning-fast execution
     await page.route('**/rest/v1/**', (route) => {
@@ -32,7 +36,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-01: Lay Owner Executive Greeting & Crown Jewels Financial Shield', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Verify Royal VIP Header displays executive greeting
     const royalBanner = page.locator('.royal-vip-banner');
@@ -48,7 +52,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-02: Executive Briefing Audio & Plain-English Text Reader', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Verify Executive Briefing text bar
     const briefingCard = page.locator('.royal-briefing-card');
@@ -62,10 +66,10 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-03: 1-Tap Express Spares Approval Action', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Locate 1-Tap Spares Approval button in King's Command Suite
-    const sparesBtn = page.locator('button:has-text("1-Tap Spares Approval")').first();
+    const sparesBtn = page.locator('.royal-action-btn:has-text("1-Tap Spares Approval")');
     await expect(sparesBtn).toBeVisible({ timeout: 10000 });
     await sparesBtn.click();
 
@@ -76,7 +80,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-04: Reflective Behavioral Memory & Contrastive Bias Correction', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Verify Reflective Mirror Banner recalls previous session focus
     const reflectiveBanner = page.locator('.reflective-mirror-banner');
@@ -90,7 +94,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-05: Executive vs Operations View Mode Toggle', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     const shieldGrid = page.locator('.royal-shield-grid');
     await expect(shieldGrid).toBeVisible();
@@ -109,7 +113,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-06: Priority Queue Inspection & Drilldown Scroll', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Locate Needs Attention priority queue
     const queuePanel = page.locator('.dashboard-queue-panel');
@@ -122,7 +126,7 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
   });
 
   test('TC-DASH-07: Royal Concierge Quick Ask Search Command', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Fill in quick ask prompt
     const input = page.locator('.royal-concierge-quick-ask input');

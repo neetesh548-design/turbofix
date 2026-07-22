@@ -410,14 +410,20 @@ function computeVendorAmc(machines, tickets, now = new Date()) {
 }
 
 async function fetchDashboardData() {
+  const fetchWithTimeout = (promise, ms = 3000) =>
+    Promise.race([
+      promise,
+      new Promise((res) => setTimeout(() => res({ data: [] }), ms)),
+    ]).catch(() => ({ data: [] }));
+
   const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes, auditRes] = await Promise.all([
-    supabase.from('machines').select('*'),
-    supabase.from('tickets').select('*'),
-    supabase.from('factories').select('name').limit(1),
-    supabase.from('pm_logs').select('on_time'),
-    supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active'),
-    supabase.from('work_order_parts').select('ticket_id,machine_id,total_cost,created_at'),
-    supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12),
+    fetchWithTimeout(supabase.from('machines').select('*')),
+    fetchWithTimeout(supabase.from('tickets').select('*')),
+    fetchWithTimeout(supabase.from('factories').select('name').limit(1)),
+    fetchWithTimeout(supabase.from('pm_logs').select('on_time')),
+    fetchWithTimeout(supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active')),
+    fetchWithTimeout(supabase.from('work_order_parts').select('ticket_id,machine_id,total_cost,created_at')),
+    fetchWithTimeout(supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12)),
   ]);
 
   const machines = machinesRes.data || [];

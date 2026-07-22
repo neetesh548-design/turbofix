@@ -2,10 +2,14 @@ import { test, expect } from '@playwright/test';
 import { mockMachines, mockTickets, mockReflectiveMemory } from './fixtures/dashboard-fixtures.js';
 
 test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
+  const payload = Buffer.from(JSON.stringify({ exp: 9999999999, sub: 'mock-user' })).toString('base64');
+  const fakeJwt = `${header}.${payload}.fake-signature`;
+
   test.beforeEach(async ({ page }) => {
     // Inject auth token and mock user BEFORE page load
-    await page.addInitScript((memory) => {
-      window.localStorage.setItem('tf_token', 'mock-valid-jwt-token');
+    await page.addInitScript(({ jwt, memory }) => {
+      window.localStorage.setItem('tf_token', jwt);
       window.localStorage.setItem('tf_user', JSON.stringify({
         role: 'plant_head',
         name: 'Royal Tester',
@@ -13,7 +17,7 @@ test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
         company_name: 'TurboFix Manufacturing'
       }));
       window.localStorage.setItem('turbofix_reflective_memory', JSON.stringify(memory));
-    }, mockReflectiveMemory);
+    }, { jwt: fakeJwt, memory: mockReflectiveMemory });
 
     // Mock Supabase REST endpoints
     await page.route('**/rest/v1/**', (route) => {
@@ -32,7 +36,7 @@ test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
   });
 
   test('should render The Analyst\'s Mirror Reflective banner with memory recall', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Verify Reflective Mirror Banner is present
     const reflectiveBanner = page.locator('.reflective-mirror-banner');
@@ -45,7 +49,7 @@ test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
   });
 
   test('should render Royal VIP Concierge banner and switch modes between King\'s View and Operations View', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Verify Royal VIP Header
     const royalBanner = page.locator('.royal-vip-banner');
@@ -70,9 +74,9 @@ test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
   });
 
   test('should execute 1-Tap Spares Approval royal command and display toast notification', async ({ page }) => {
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    const sparesButton = page.locator('button:has-text("1-Tap Spares Approval")').first();
+    const sparesButton = page.locator('.royal-action-btn:has-text("1-Tap Spares Approval")');
     await expect(sparesButton).toBeVisible({ timeout: 10000 });
     await sparesButton.click();
 

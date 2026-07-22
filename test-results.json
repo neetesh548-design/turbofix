@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.pnpm/@playwright+test@1.61.1/node_modules/@playwright/test/cli.js",
       "test",
-      "tests/qr-gateway.spec.ts",
+      "tests/lay-owner-dashboard.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,530 +148,20 @@
   },
   "suites": [
     {
-      "title": "qr-gateway.spec.ts",
-      "file": "qr-gateway.spec.ts",
+      "title": "lay-owner-dashboard.spec.js",
+      "file": "lay-owner-dashboard.spec.js",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "QRGateway - Worst Case Scenarios",
-          "file": "qr-gateway.spec.ts",
-          "line": 3,
+          "title": "Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html)",
+          "file": "lay-owner-dashboard.spec.js",
+          "line": 4,
           "column": 6,
           "specs": [
             {
-              "title": "Should handle offline submission and queue ticket locally",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 13711,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:04.103Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-7e4c0e62388119afd63a",
-              "file": "qr-gateway.spec.ts",
-              "line": 27,
-              "column": 3
-            },
-            {
-              "title": "Should retry on transient network failures",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 16157,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:04.137Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-394499ac901f971ee47c",
-              "file": "qr-gateway.spec.ts",
-              "line": 55,
-              "column": 3
-            },
-            {
-              "title": "Should handle API timeout gracefully",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 14837,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:04.186Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-7056a334d58c18496fcb",
-              "file": "qr-gateway.spec.ts",
-              "line": 82,
-              "column": 3
-            },
-            {
-              "title": "Should handle microphone permission denied",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 15405,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:04.309Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-688ff72f1171556f95a2",
-              "file": "qr-gateway.spec.ts",
-              "line": 104,
-              "column": 3
-            },
-            {
-              "title": "Should handle camera permission denied for photo upload",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 8212,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:19.274Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-77b018ad13b84a84bd40",
-              "file": "qr-gateway.spec.ts",
-              "line": 128,
-              "column": 3
-            },
-            {
-              "title": "Should handle no speech detected error",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 12402,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:20.415Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-82f6179fbfc13177b284",
-              "file": "qr-gateway.spec.ts",
-              "line": 149,
-              "column": 3
-            },
-            {
-              "title": "Should handle transcription API failure",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 13834,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:20.931Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-437dcb24340c59166376",
-              "file": "qr-gateway.spec.ts",
-              "line": 216,
-              "column": 3
-            },
-            {
-              "title": "Should handle SpeechRecognition API unavailable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 8063,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:21.716Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-551396c72eae80b403bc",
-              "file": "qr-gateway.spec.ts",
-              "line": 280,
-              "column": 3
-            },
-            {
-              "title": "Should validate phone number format on phone gate",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 22231,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:27.618Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-1135197f2b5c6e1cb99f",
-              "file": "qr-gateway.spec.ts",
-              "line": 304,
-              "column": 3
-            },
-            {
-              "title": "Should handle very long issue descriptions",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 13431,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:30.049Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-f682d683e1cd31e671af",
-              "file": "qr-gateway.spec.ts",
-              "line": 331,
-              "column": 3
-            },
-            {
-              "title": "Should handle special characters in input",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 11405,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:33.493Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-60225af49e576ceb1071",
-              "file": "qr-gateway.spec.ts",
-              "line": 353,
-              "column": 3
-            },
-            {
-              "title": "Should handle empty/whitespace-only submission",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 11516,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:34.945Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-3206e84252a0bae29042",
-              "file": "qr-gateway.spec.ts",
-              "line": 372,
-              "column": 3
-            },
-            {
-              "title": "Should handle corrupted image file",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 10514,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:44.132Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-386a40c93f83991624ba",
-              "file": "qr-gateway.spec.ts",
-              "line": 391,
-              "column": 3
-            },
-            {
-              "title": "Should handle very large image file (>50MB)",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 11525,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:45.469Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-3be15c8cc6604ab85036",
-              "file": "qr-gateway.spec.ts",
-              "line": 410,
-              "column": 3
-            },
-            {
-              "title": "Should handle storage upload failure",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 12692,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:46.556Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-b14a94ee0126046d7750",
-              "file": "qr-gateway.spec.ts",
-              "line": 435,
-              "column": 3
-            },
-            {
-              "title": "Should handle rapid form submissions",
+              "title": "TC-DASH-01: Lay Owner Executive Greeting & Crown Jewels Financial Shield",
               "ok": false,
               "tags": [],
               "tests": [
@@ -686,7 +176,119 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "timedOut",
-                      "duration": 30435,
+                      "duration": 61697,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T19:00:32.349Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-62c50d6f0b54b0bcdc96",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 38,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-02: Executive Briefing Audio & Plain-English Text Reader",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 61526,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T19:00:32.350Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-d47e50d38ba18cda65a5",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-03: 1-Tap Express Spares Approval Action",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 61089,
                       "error": {
                         "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                         "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -697,28 +299,26 @@
                         },
                         {
                           "location": {
-                            "file": "/Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts",
-                            "column": 23,
-                            "line": 478
+                            "file": "/Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js",
+                            "column": 25,
+                            "line": 78
                           },
-                          "message": "Error: locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Yes, Submit|हाँ, दर्ज करें|होय, नोंदवा/ })\u001b[22m\n\n\n  476 |     const submitBtn = page.getByRole('button', { name: /Yes, Submit|हाँ, दर्ज करें|होय, नोंदवा/ });\n  477 |     for (let i = 0; i < 5; i++) {\n> 478 |       await submitBtn.click();\n      |                       ^\n  479 |       await page.waitForTimeout(100);\n  480 |     }\n  481 |\n    at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:478:23"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.toast-message')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.toast-message')\u001b[22m\n\n\n  76 |     // Verify confirmation toast notification appears\n  77 |     const toast = page.locator('.toast-message');\n> 78 |     await expect(toast).toBeVisible();\n     |                         ^\n  79 |     await expect(toast).toContainText('Royal Command Executed');\n  80 |   });\n  81 |\n    at /Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js:78:25"
+                        },
+                        {
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-22T08:58:50.279Z",
+                      "startTime": "2026-07-22T19:00:32.349Z",
                       "annotations": [],
                       "attachments": [
                         {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/test-failed-1.png"
-                        },
-                        {
                           "name": "error-context",
                           "contentType": "text/markdown",
-                          "path": "/Users/nkumarsoni/TurboFix/test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md"
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-52996-ress-Spares-Approval-Action-chromium/error-context.md"
                         }
                       ]
                     }
@@ -726,14 +326,14 @@
                   "status": "unexpected"
                 }
               ],
-              "id": "7a0af3cd8b94d02f7f04-7c836ff7b5d96220522e",
-              "file": "qr-gateway.spec.ts",
-              "line": 465,
+              "id": "b80885ab45873f2336ef-0e3d9a5d78c19fb3d220",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 68,
               "column": 3
             },
             {
-              "title": "Should handle language change during submission",
-              "ok": true,
+              "title": "TC-DASH-04: Reflective Behavioral Memory & Contrastive Bias Correction",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -744,102 +344,49 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 10339,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:55.793Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-1d06b4a552f5c9fe42af",
-              "file": "qr-gateway.spec.ts",
-              "line": 487,
-              "column": 3
-            },
-            {
-              "title": "Should handle localStorage quota exceeded",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 9257,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 60204,
+                      "error": {
+                        "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m",
+                        "stack": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                      },
+                      "errors": [
                         {
-                          "text": "(node:14670) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n"
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
                         }
                       ],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:58:57.248Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-658933c8f92d6500f3e3",
-              "file": "qr-gateway.spec.ts",
-              "line": 510,
-              "column": 3
-            },
-            {
-              "title": "Should handle speechSynthesis API failure",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 6075,
-                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-22T08:58:59.368Z",
+                      "startTime": "2026-07-22T19:00:32.349Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/error-context.md"
+                        }
+                      ]
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "7a0af3cd8b94d02f7f04-128c7aa1cd52e08830fd",
-              "file": "qr-gateway.spec.ts",
-              "line": 547,
+              "id": "b80885ab45873f2336ef-d5d525a859f387cbb956",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 82,
               "column": 3
             },
             {
-              "title": "Should handle back button during phone gate",
-              "ok": true,
+              "title": "TC-DASH-05: Executive vs Operations View Mode Toggle",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -850,30 +397,49 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 5487,
-                      "errors": [],
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 43825,
+                      "error": {
+                        "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m",
+                        "stack": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-22T08:59:05.516Z",
+                      "startTime": "2026-07-22T19:01:43.273Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/error-context.md"
+                        }
+                      ]
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "7a0af3cd8b94d02f7f04-4c5d9231ddc5dd18c8c3",
-              "file": "qr-gateway.spec.ts",
-              "line": 564,
+              "id": "b80885ab45873f2336ef-768e8c6a0ceb3968ce25",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 96,
               "column": 3
             },
             {
-              "title": "Should persist reporter phone across page reload",
-              "ok": true,
+              "title": "TC-DASH-06: Priority Queue Inspection & Drilldown Scroll",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -884,195 +450,118 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 42793,
+                      "error": {
+                        "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m",
+                        "stack": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTearing down \"context\" exceeded the test timeout of 30000ms.\u001b[39m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T19:01:43.263Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-6dc74c783e4c15366157",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-07: Royal Concierge Quick Ask Search Command",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
                       "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 8327,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 55092,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.toast-message')\nExpected substring: \u001b[32m\"Royal Concierge\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.toast-message')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.toast-message')\nExpected substring: \u001b[32m\"Royal Concierge\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.toast-message')\u001b[22m\n\n    at /Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js:143:25",
+                        "location": {
+                          "file": "/Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js",
+                          "column": 25,
+                          "line": 143
+                        },
+                        "snippet": "  141 |     const toast = page.locator('.toast-message');\n  142 |     await expect(toast).toBeVisible();\n> 143 |     await expect(toast).toContainText('Royal Concierge');\n      |                         ^\n  144 |   });\n  145 | });\n  146 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js",
+                            "column": 25,
+                            "line": 143
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.toast-message')\nExpected substring: \u001b[32m\"Royal Concierge\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.toast-message')\u001b[22m\n\n\n  141 |     const toast = page.locator('.toast-message');\n  142 |     await expect(toast).toBeVisible();\n> 143 |     await expect(toast).toContainText('Royal Concierge');\n      |                         ^\n  144 |   });\n  145 | });\n  146 |\n    at /Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js:143:25"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-22T08:59:06.564Z",
+                      "startTime": "2026-07-22T19:01:43.300Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/nkumarsoni/TurboFix/test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js",
+                        "column": 25,
+                        "line": 143
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "7a0af3cd8b94d02f7f04-823bcbbc518d168e6ad6",
-              "file": "qr-gateway.spec.ts",
-              "line": 577,
-              "column": 3
-            },
-            {
-              "title": "Should handle machine details fetch failure",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 4166,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:59:06.616Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-d602b98db304244f921b",
-              "file": "qr-gateway.spec.ts",
-              "line": 591,
-              "column": 3
-            },
-            {
-              "title": "Should handle duplicate check failure gracefully",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 10692,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:59:10.971Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-71795a794d64016f69e5",
-              "file": "qr-gateway.spec.ts",
-              "line": 605,
-              "column": 3
-            },
-            {
-              "title": "Should handle ticket log failure with fallback",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 10466,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:59:11.176Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-cdf9afe0108a7b137ad5",
-              "file": "qr-gateway.spec.ts",
-              "line": 633,
-              "column": 3
-            },
-            {
-              "title": "Should handle rapid language switches without state corruption",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 7844,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:59:15.151Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-d5948876d2aa31a60e59",
-              "file": "qr-gateway.spec.ts",
-              "line": 655,
-              "column": 3
-            },
-            {
-              "title": "Should handle zero-width screen edge case",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 4044,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-22T08:59:22.061Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7a0af3cd8b94d02f7f04-44aa8ed74157ee3a8f29",
-              "file": "qr-gateway.spec.ts",
-              "line": 673,
+              "id": "b80885ab45873f2336ef-24951f24660623e5b155",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 128,
               "column": 3
             }
           ]
@@ -1082,11 +571,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-22T08:58:01.903Z",
-    "duration": 84611.51999999999,
-    "expected": 25,
+    "startTime": "2026-07-22T19:00:31.476Z",
+    "duration": 128064.871,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 7,
     "flaky": 0
   }
 }

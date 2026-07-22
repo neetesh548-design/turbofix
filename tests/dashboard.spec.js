@@ -46,8 +46,8 @@ test.describe('Dashboard Premium UI Tests', () => {
       });
     });
 
-    // Navigate to the dashboard on the VITE dev server (port 5173)
-    await page.goto('http://localhost:5173/dashboard.html', { waitUntil: 'networkidle' });
+    // Navigate to the dashboard
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Wait for the dashboard to render
     const metricCard = page.locator('.decision-metric').first();

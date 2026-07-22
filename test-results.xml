@@ -1,93 +1,197 @@
-<testsuites id="" name="" tests="26" failures="0" skipped="0" errors="1" time="84.61151999999998">
-<testsuite name="qr-gateway.spec.ts" timestamp="2026-07-22T08:58:02.294Z" hostname="chromium" tests="26" failures="0" skipped="0" time="303.067" errors="1">
-<testcase name="QRGateway - Worst Case Scenarios › Should handle offline submission and queue ticket locally" classname="qr-gateway.spec.ts" time="13.711">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should retry on transient network failures" classname="qr-gateway.spec.ts" time="16.157">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle API timeout gracefully" classname="qr-gateway.spec.ts" time="14.837">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle microphone permission denied" classname="qr-gateway.spec.ts" time="15.405">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle camera permission denied for photo upload" classname="qr-gateway.spec.ts" time="8.212">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle no speech detected error" classname="qr-gateway.spec.ts" time="12.402">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle transcription API failure" classname="qr-gateway.spec.ts" time="13.834">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle SpeechRecognition API unavailable" classname="qr-gateway.spec.ts" time="8.063">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should validate phone number format on phone gate" classname="qr-gateway.spec.ts" time="22.231">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very long issue descriptions" classname="qr-gateway.spec.ts" time="13.431">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle special characters in input" classname="qr-gateway.spec.ts" time="11.405">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle empty/whitespace-only submission" classname="qr-gateway.spec.ts" time="11.516">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle corrupted image file" classname="qr-gateway.spec.ts" time="10.514">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very large image file (&gt;50MB)" classname="qr-gateway.spec.ts" time="11.525">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle storage upload failure" classname="qr-gateway.spec.ts" time="12.692">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid form submissions" classname="qr-gateway.spec.ts" time="30.435">
+<testsuites id="" name="" tests="7" failures="1" skipped="0" errors="6" time="128.064871">
+<testsuite name="lay-owner-dashboard.spec.js" timestamp="2026-07-22T19:00:31.836Z" hostname="chromium" tests="7" failures="1" skipped="0" time="386.226" errors="6">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-01: Lay Owner Executive Greeting &amp; Crown Jewels Financial Shield" classname="lay-owner-dashboard.spec.js" time="61.697">
 <system-out>
 <![CDATA[
-[[ATTACHMENT|test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/test-failed-1.png]]
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md]]
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/error-context.md]]
 ]]>
 </system-out>
 <error message="Test timeout of 30000ms exceeded." type="Error">
-<![CDATA[  [chromium] › qr-gateway.spec.ts:465:3 › QRGateway - Worst Case Scenarios › Should handle rapid form submissions 
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:38:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-01: Lay Owner Executive Greeting & Crown Jewels Financial Shield 
 
     Test timeout of 30000ms exceeded.
 
-    Error: locator.click: Target page, context or browser has been closed
-    Call log:
-      - waiting for getByRole('button', { name: /Yes, Submit|हाँ, दर्ज करें|होय, नोंदवा/ })
-
-
-      476 |     const submitBtn = page.getByRole('button', { name: /Yes, Submit|हाँ, दर्ज करें|होय, नोंदवा/ });
-      477 |     for (let i = 0; i < 5; i++) {
-    > 478 |       await submitBtn.click();
-          |                       ^
-      479 |       await page.waitForTimeout(100);
-      480 |     }
-      481 |
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:478:23
+    Tearing down "context" exceeded the test timeout of 30000ms.
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/test-failed-1.png
+    ../test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-722fa-own-Jewels-Financial-Shield-chromium/error-context.md
 ]]>
 </error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle language change during submission" classname="qr-gateway.spec.ts" time="10.339">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle localStorage quota exceeded" classname="qr-gateway.spec.ts" time="9.257">
-<system-err>
-<![CDATA[(node:14670) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-02: Executive Briefing Audio &amp; Plain-English Text Reader" classname="lay-owner-dashboard.spec.js" time="61.526">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/error-context.md]]
 ]]>
-</system-err>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:54:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-02: Executive Briefing Audio & Plain-English Text Reader 
+
+    Test timeout of 30000ms exceeded.
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-5ad00-o-Plain-English-Text-Reader-chromium/error-context.md
+]]>
+</error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle speechSynthesis API failure" classname="qr-gateway.spec.ts" time="6.075">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-03: 1-Tap Express Spares Approval Action" classname="lay-owner-dashboard.spec.js" time="61.089">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-52996-ress-Spares-Approval-Action-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:68:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-03: 1-Tap Express Spares Approval Action 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.toast-message')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.toast-message')
+
+
+      76 |     // Verify confirmation toast notification appears
+      77 |     const toast = page.locator('.toast-message');
+    > 78 |     await expect(toast).toBeVisible();
+         |                         ^
+      79 |     await expect(toast).toContainText('Royal Command Executed');
+      80 |   });
+      81 |
+        at /Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js:78:25
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-52996-ress-Spares-Approval-Action-chromium/error-context.md
+]]>
+</error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle back button during phone gate" classname="qr-gateway.spec.ts" time="5.487">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-04: Reflective Behavioral Memory &amp; Contrastive Bias Correction" classname="lay-owner-dashboard.spec.js" time="60.204">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Tearing down &quot;context&quot; exceeded the test timeout of 30000ms." type="Error">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:82:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-04: Reflective Behavioral Memory & Contrastive Bias Correction 
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-a0f77-Contrastive-Bias-Correction-chromium/error-context.md
+]]>
+</error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should persist reporter phone across page reload" classname="qr-gateway.spec.ts" time="8.327">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-05: Executive vs Operations View Mode Toggle" classname="lay-owner-dashboard.spec.js" time="43.825">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Tearing down &quot;context&quot; exceeded the test timeout of 30000ms." type="Error">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:96:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-05: Executive vs Operations View Mode Toggle 
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-c4a96-Operations-View-Mode-Toggle-chromium/error-context.md
+]]>
+</error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle machine details fetch failure" classname="qr-gateway.spec.ts" time="4.166">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-06: Priority Queue Inspection &amp; Drilldown Scroll" classname="lay-owner-dashboard.spec.js" time="42.793">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Tearing down &quot;context&quot; exceeded the test timeout of 30000ms." type="Error">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:115:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-06: Priority Queue Inspection & Drilldown Scroll 
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-004ae-Inspection-Drilldown-Scroll-chromium/error-context.md
+]]>
+</error>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle duplicate check failure gracefully" classname="qr-gateway.spec.ts" time="10.692">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle ticket log failure with fallback" classname="qr-gateway.spec.ts" time="10.466">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid language switches without state corruption" classname="qr-gateway.spec.ts" time="7.844">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle zero-width screen edge case" classname="qr-gateway.spec.ts" time="4.044">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-07: Royal Concierge Quick Ask Search Command" classname="lay-owner-dashboard.spec.js" time="55.092">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/error-context.md]]
+]]>
+</system-out>
+<failure message="expect(locator).toContainText(expected) failed" type="expect.toContainText">
+<![CDATA[  [chromium] › lay-owner-dashboard.spec.js:128:3 › Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html) › TC-DASH-07: Royal Concierge Quick Ask Search Command 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.toast-message')
+    Expected substring: "Royal Concierge"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('.toast-message')
+
+
+      141 |     const toast = page.locator('.toast-message');
+      142 |     await expect(toast).toBeVisible();
+    > 143 |     await expect(toast).toContainText('Royal Concierge');
+          |                         ^
+      144 |   });
+      145 | });
+      146 |
+        at /Users/nkumarsoni/TurboFix/tests/lay-owner-dashboard.spec.js:143:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/lay-owner-dashboard-Lay-Ow-280f4-ge-Quick-Ask-Search-Command-chromium/error-context.md
+]]>
+</failure>
 </testcase>
 </testsuite>
 </testsuites>
