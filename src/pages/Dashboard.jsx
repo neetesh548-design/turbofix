@@ -401,6 +401,7 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [activeDetail, setActiveDetail] = useState('');
   const [trendWindow, setTrendWindow] = useState('12m');
+  const [trendMetric, setTrendMetric] = useState('issues');
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -447,6 +448,21 @@ export default function Dashboard() {
   const trendInsight = trendSeries.length
     ? `Showing the last ${trendMonths} months · ${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime`
     : 'No ticket history is available yet.';
+  const trendMetricLabel = {
+    issues: 'Issues',
+    resolved: 'Resolved',
+    downtime_hours: 'Downtime hours',
+  }[trendMetric] || 'Issues';
+  const trendMetricDetail = {
+    issues: 'Monthly open tickets',
+    resolved: 'Monthly resolved tickets',
+    downtime_hours: 'Monthly downtime hours',
+  }[trendMetric] || 'Monthly open tickets';
+  const trendMetricSeries = trendSeries.map((month) => ({
+    ...month,
+    value: month[trendMetric] || 0,
+  }));
+  const trendMetricTotal = trendMetricSeries.reduce((total, month) => total + (month.value || 0), 0);
   const detailConfig = {
     health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
     machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
@@ -644,10 +660,30 @@ export default function Dashboard() {
                   <div className="dashboard-trend-layout">
                     <div className="dashboard-trend-chart-card">
                       <div className="dashboard-trend-chart-header">
-                        <strong>Issues vs resolved tickets</strong>
-                        <span>Monthly</span>
+                        <strong>{trendMetricLabel}</strong>
+                        <span>{trendMetricDetail}</span>
                       </div>
-                      <TrendChart series={trendSeries} />
+                      <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
+                        {[
+                          ['issues', 'Issues'],
+                          ['resolved', 'Resolved'],
+                          ['downtime_hours', 'Downtime'],
+                        ].map(([key, label]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            className={trendMetric === key ? 'active' : ''}
+                            onClick={() => setTrendMetric(key)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <TrendChart series={trendMetricSeries} metric={trendMetric} />
+                      <div className="dashboard-trend-footer">
+                        <strong>{trendMetricTotal}</strong>
+                        <small>Total over selected window</small>
+                      </div>
                     </div>
                     <div className="dashboard-trend-side">
                       <div className="dashboard-trend-summary">
@@ -904,7 +940,7 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
 
-function TrendChart({ series }) {
+function TrendChart({ series, metric = 'issues' }) {
   if (!series?.length) return <Empty text="No trend history yet." />;
   const width = 900;
   const height = 260;
@@ -912,21 +948,18 @@ function TrendChart({ series }) {
   const paddingY = 24;
   const innerWidth = width - (paddingX * 2);
   const innerHeight = height - (paddingY * 2);
-  const issueMax = Math.max(...series.map((item) => item.issues || 0), 1);
-  const resolveMax = Math.max(...series.map((item) => item.resolved || 0), 1);
+  const maxValue = Math.max(...series.map((item) => item.value || 0), 1);
   const points = series.map((item, index) => {
     const x = paddingX + (index / Math.max(series.length - 1, 1)) * innerWidth;
-    const yIssues = paddingY + innerHeight - ((item.issues || 0) / issueMax) * innerHeight;
-    const yResolved = paddingY + innerHeight - ((item.resolved || 0) / resolveMax) * innerHeight;
-    return { x, yIssues, yResolved, label: item.label, issues: item.issues || 0, resolved: item.resolved || 0 };
+    const yValue = paddingY + innerHeight - ((item.value || 0) / maxValue) * innerHeight;
+    return { x, yValue, label: item.label, value: item.value || 0 };
   });
-  const issuePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yIssues}`).join(' ');
-  const resolvedPath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yResolved}`).join(' ');
-  const issueArea = `${issuePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+  const valuePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yValue}`).join(' ');
+  const valueArea = `${valuePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
 
   return (
     <div className="dashboard-trend-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Monthly issue and resolved trend chart">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Monthly ${metric} trend chart`}>
         <defs>
           <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="rgba(37, 211, 102, 0.35)" />
@@ -937,20 +970,18 @@ function TrendChart({ series }) {
           const y = paddingY + (innerHeight / 3) * step;
           return <line key={step} x1={paddingX} x2={width - paddingX} y1={y} y2={y} className="dashboard-trend-gridline" />;
         })}
-        <path d={issueArea} className="dashboard-trend-area" />
-        <path d={issuePath} className="dashboard-trend-line issues" />
-        <path d={resolvedPath} className="dashboard-trend-line resolved" />
+        <path d={valueArea} className="dashboard-trend-area" />
+        <path d={valuePath} className="dashboard-trend-line issues" />
         {points.map((point) => (
           <g key={point.label}>
-            <circle cx={point.x} cy={point.yIssues} r="4.5" className="dashboard-trend-point issues" />
-            <circle cx={point.x} cy={point.yResolved} r="4.5" className="dashboard-trend-point resolved" />
+            <circle cx={point.x} cy={point.yValue} r="4.5" className="dashboard-trend-point issues" />
             <text x={point.x} y={height - 4} textAnchor="middle" className="dashboard-trend-axis">{point.label}</text>
           </g>
         ))}
       </svg>
       <div className="dashboard-trend-legend">
-        <span><i className="legend-issues" />Issues</span>
-        <span><i className="legend-resolved" />Resolved</span>
+        <span><i className="legend-issues" />{metric === 'downtime_hours' ? 'Downtime' : metric === 'resolved' ? 'Resolved' : 'Issues'}</span>
+        <span><i className="legend-resolved" />Monthly</span>
       </div>
     </div>
   );
