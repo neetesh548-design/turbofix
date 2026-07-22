@@ -121,7 +121,7 @@ export default function Navbar() {
           </svg>
           <span className="public-nav-brand-copy">
             <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-            <small>AI maintenance decisions</small>
+            <small>Workflow layer · analytics underneath</small>
           </span>
         </Link>
 
