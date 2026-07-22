@@ -53,6 +53,21 @@ const uploadDataUrl = async (
   return { bucket, path: filePath, mime, size: bytes.length }
 }
 
+const optionalTicketColumns = [
+  'raw_audio_bucket',
+  'raw_audio_path',
+  'ai_output_snapshot',
+  'review_snapshot',
+  'final_submission_snapshot',
+  'voice_language',
+]
+
+const withoutOptionalTicketColumns = (payload: Record<string, unknown>) => {
+  const clean = { ...payload }
+  for (const key of optionalTicketColumns) delete clean[key]
+  return clean
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(req) })
   if (req.method !== 'POST') return reply(req, { error: 'Method not allowed.' }, 405)
@@ -264,11 +279,21 @@ serve(async (req) => {
       payload.ai_summary.machine_name = machineName;
       payload.ai_summary.total_past_breakdowns = totalPastCount;
 
-      const { data, error } = await admin
+      let { data, error } = await admin
         .from('tickets')
         .insert(payload)
         .select('id, wo_number, created_at, lifecycle_stage, urgency')
         .single()
+      if (error && optionalTicketColumns.some((column) => error.message?.includes(`'${column}' column`))) {
+        console.warn('Ticket schema is missing optional AI record columns; retrying public ticket insert without snapshots:', error.message)
+        const retry = await admin
+          .from('tickets')
+          .insert(withoutOptionalTicketColumns(payload))
+          .select('id, wo_number, created_at, lifecycle_stage, urgency')
+          .single()
+        data = retry.data
+        error = retry.error
+      }
       if (error) {
         console.error('Error inserting public ticket:', error)
         return reply(req, { error: error.message }, 500)
