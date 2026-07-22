@@ -149,18 +149,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   test('Should handle no speech detected error', async () => {
     // Mock the voice path so the recorder ends without a transcript.
     await page.context().addInitScript(() => {
-      const SpeechRecognitionMock = class {
-        lang = 'en-US';
-        continuous = true;
-        interimResults = true;
-        onresult;
-        onerror;
-
-        start() {}
-        stop() {}
-        abort() {}
-      };
-
       const MediaRecorderMock = class {
         state = 'inactive';
         mimeType = 'audio/webm';
@@ -191,22 +179,12 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
       if (navigator.mediaDevices) {
         navigator.mediaDevices.getUserMedia = async () => new MediaStream();
       }
-      window.SpeechRecognition = SpeechRecognitionMock;
-      window.webkitSpeechRecognition = SpeechRecognitionMock;
       window.MediaRecorder = MediaRecorderMock;
     });
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
-    // Start voice input
-    await page.locator('button#voice-mic-button').click({ force: true });
-
-    await expect(page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i })).toBeVisible();
-    await page.route('**/functions/v1/*', route => {
+    await page.context().route('**/functions/v1/*', route => {
       if (route.request().postDataJSON()?.action === 'transcribe') {
         route.fulfill({
           status: 200,
@@ -217,6 +195,15 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
         route.continue();
       }
     });
+
+    await page.fill('input[type="tel"]', '9876543210');
+    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
+    await page.waitForTimeout(500);
+
+    // Start voice input
+    await page.locator('button#voice-mic-button').click({ force: true });
+
+    await expect(page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i })).toBeVisible();
     await page.getByRole('button', { name: /Send for transcription|transcription के लिए भेजें|ट्रांसक्रिप्शन के लिए भेजें/i }).click();
     await page.waitForTimeout(500);
 

@@ -325,11 +325,7 @@ export default function QRGateway() {
 
   const recorderRef = useRef(null);
   const micStreamRef = useRef(null);
-  const micPermissionAskedRef = useRef(false);
-  const micPermissionDeniedRef = useRef(false);
   const chunksRef = useRef([]);
-  const speechRecognitionRef = useRef(null);
-  const transcriptRef = useRef('');
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   const getLiveMicStream = async () => {
@@ -345,10 +341,6 @@ export default function QRGateway() {
     const mimeType = types.find((type) => window.MediaRecorder?.isTypeSupported?.(type));
     return mimeType ? { mimeType } : undefined;
   };
-
-  useEffect(() => {
-    transcriptRef.current = transcript;
-  }, [transcript]);
 
   useEffect(() => {
     if (!machine.id) return;
@@ -718,6 +710,91 @@ export default function QRGateway() {
     }
   };
 
+  const uploadIssuePhoto = async () => {
+    if (!photoFile) return null;
+    try {
+      const fileExt = photoFile.name.split('.').pop();
+      const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `${machine.id}/${fileName}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('repair-proofs')
+        .upload(filePath, photoFile);
+      if (uploadErr) {
+        console.warn('Storage upload notice (handled):', uploadErr.message);
+        return null;
+      }
+      const { data: { publicUrl } } = supabase.storage
+        .from('repair-proofs')
+        .getPublicUrl(filePath);
+      return publicUrl;
+    } catch (photoErr) {
+      console.warn('Photo upload exception handled:', photoErr);
+      return null;
+    }
+  };
+
+  const buildSnapshots = ({ uploadedUrl = null, includeTechnician = true } = {}) => {
+    const reporter = reporterPhone.match(/^\d+$/) ? reporterPhone : null;
+    const base = {
+      machine_id: machine.id,
+      machine_name: machine.name,
+      location: machine.loc,
+      issue_text: extractedInfo.issue,
+      urgency: extractedInfo.urgency,
+      condition: extractedInfo.condition,
+      reporter_phone: reporter,
+      voice_language: voiceArtifacts?.language_code || lang,
+    };
+    const technician = includeTechnician ? { technician_name: technicianName || null } : {};
+    return {
+      ai_output_snapshot: voiceArtifacts?.ai_output_snapshot || {
+        transcript,
+        normalized_issue: extractedInfo.issue,
+        normalized_condition: extractedInfo.condition,
+        normalized_urgency: extractedInfo.urgency
+      },
+      review_snapshot: {
+        ...base,
+        ...technician,
+        photo_url: uploadedUrl,
+        draft_mode: false,
+        reviewed_at: new Date().toISOString()
+      },
+      final_submission_snapshot: {
+        ...base,
+        ...technician,
+        photo_url: uploadedUrl,
+        submitted_at: new Date().toISOString(),
+        source: showTextFallback ? 'text' : 'voice'
+      }
+    };
+  };
+
+  const buildTicketPayload = ({ uploadedUrl = null, verified = false, offline = false } = {}) => {
+    const reporter = reporterPhone.match(/^\d+$/) ? reporterPhone : null;
+    return {
+      machine_id: machine.id,
+      status: 'open',
+      issue_text: extractedInfo.issue,
+      urgency: extractedInfo.urgency,
+      type: 'breakdown',
+      reporter_phone: reporter,
+      factory_id: machine.factory_id,
+      lifecycle_stage: verified ? 'open' : 'unverified',
+      voice_language: voiceArtifacts?.language_code || lang,
+      ai_summary: {
+        voice_reported: !showTextFallback,
+        extracted_condition: extractedInfo.condition,
+        reporter_id: reporterPhone,
+        verified_reporter: verified,
+        flag: offline ? 'offline_submission' : verified ? null : 'unverified_reporter',
+        photo_url: uploadedUrl
+      },
+      ...buildSnapshots({ uploadedUrl, includeTechnician: !offline }),
+      voice_artifacts: voiceArtifacts
+    };
+  };
+
   const resetForm = () => {
     setSuccess(false);
     setSubmittedTicketInfo(null);
@@ -774,10 +851,6 @@ export default function QRGateway() {
   };
 
   const stopVoiceInput = () => {
-    if (speechRecognitionRef.current) {
-      try { speechRecognitionRef.current.stop(); } catch (e) {}
-      speechRecognitionRef.current = null;
-    }
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
       try { recorderRef.current.stop(); } catch (e) {}
     }
@@ -826,8 +899,6 @@ export default function QRGateway() {
       setVoiceError('');
       chunksRef.current = [];
       const stream = await getLiveMicStream();
-      micPermissionAskedRef.current = true;
-      micPermissionDeniedRef.current = false;
       const recorder = new MediaRecorder(stream, getRecorderOptions());
       
       recorder.ondataavailable = (e) => {
@@ -859,7 +930,6 @@ export default function QRGateway() {
       recorder.start();
     } catch (e) {
       console.error(e);
-      micPermissionDeniedRef.current = true;
       setIsListening(false);
       fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
       setWorkflowStage('capture');
@@ -877,57 +947,7 @@ export default function QRGateway() {
       if (!navigator.onLine) {
         console.log('Device is offline. Queuing ticket locally.');
         const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-        
-        const payload = {
-          machine_id: machine.id,
-          status: 'open',
-          issue_text: extractedInfo.issue,
-          urgency: extractedInfo.urgency,
-          type: 'breakdown',
-          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-          factory_id: machine.factory_id,
-          lifecycle_stage: 'unverified',
-          voice_language: voiceArtifacts?.language_code || lang,
-          ai_summary: {
-            voice_reported: !showTextFallback,
-            extracted_condition: extractedInfo.condition,
-            reporter_id: reporterPhone,
-            verified_reporter: false,
-            flag: 'offline_submission',
-            photo_url: null
-          },
-          ai_output_snapshot: voiceArtifacts?.ai_output_snapshot || {
-            transcript,
-            normalized_issue: extractedInfo.issue,
-            normalized_condition: extractedInfo.condition,
-            normalized_urgency: extractedInfo.urgency
-          },
-          review_snapshot: {
-            machine_id: machine.id,
-            machine_name: machine.name,
-            location: machine.loc,
-            issue_text: extractedInfo.issue,
-            urgency: extractedInfo.urgency,
-            condition: extractedInfo.condition,
-            reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-            voice_language: voiceArtifacts?.language_code || lang,
-            reviewed_at: new Date().toISOString()
-          },
-          final_submission_snapshot: {
-            machine_id: machine.id,
-            machine_name: machine.name,
-            location: machine.loc,
-            issue_text: extractedInfo.issue,
-            urgency: extractedInfo.urgency,
-            condition: extractedInfo.condition,
-            reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-            submitted_at: new Date().toISOString(),
-            source: showTextFallback ? 'text' : 'voice'
-          },
-          voice_artifacts: voiceArtifacts
-        };
-        
-        queue.push(payload);
+        queue.push(buildTicketPayload({ offline: true }));
         localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
         setOfflineQueued(true);
 
@@ -974,91 +994,8 @@ export default function QRGateway() {
         }
       }
 
-      let factoryId = machine.factory_id;
-      if (!factoryId) {
-        const { data: factData } = await invokeWithRetry('ticket_gateway', {
-          body: { action: 'get_factory_id' }
-        });
-        factoryId = factData?.factory_id || null;
-      }
-
-      let uploadedUrl = null;
-      if (photoFile) {
-        try {
-          const fileExt = photoFile.name.split('.').pop();
-          const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-          const filePath = `${machine.id}/${fileName}`;
-          
-          const { error: uploadErr } = await supabase.storage
-            .from('repair-proofs')
-            .upload(filePath, photoFile);
-            
-          if (!uploadErr) {
-            const { data: { publicUrl } } = supabase.storage
-              .from('repair-proofs')
-              .getPublicUrl(filePath);
-            uploadedUrl = publicUrl;
-          } else {
-            console.warn('Storage upload notice (handled):', uploadErr.message);
-          }
-        } catch (photoErr) {
-          console.warn('Photo upload exception handled:', photoErr);
-        }
-      }
-
-      const payload = {
-        machine_id: machine.id,
-        status: 'open',
-        issue_text: extractedInfo.issue,
-        urgency: extractedInfo.urgency,
-        type: 'breakdown',
-        reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-        factory_id: factoryId,
-        lifecycle_stage: verified ? 'open' : 'unverified',
-        voice_language: voiceArtifacts?.language_code || lang,
-        ai_summary: {
-          voice_reported: !showTextFallback,
-          extracted_condition: extractedInfo.condition,
-          reporter_id: reporterPhone,
-          verified_reporter: verified,
-          flag: verified ? null : 'unverified_reporter',
-          photo_url: uploadedUrl
-        },
-        ai_output_snapshot: voiceArtifacts?.ai_output_snapshot || {
-          transcript,
-          normalized_issue: extractedInfo.issue,
-          normalized_condition: extractedInfo.condition,
-          normalized_urgency: extractedInfo.urgency
-        },
-        review_snapshot: {
-          machine_id: machine.id,
-          machine_name: machine.name,
-          location: machine.loc,
-          issue_text: extractedInfo.issue,
-          urgency: extractedInfo.urgency,
-          condition: extractedInfo.condition,
-          technician_name: technicianName || null,
-          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-          photo_url: uploadedUrl,
-          draft_mode: false,
-          voice_language: voiceArtifacts?.language_code || lang,
-          reviewed_at: new Date().toISOString()
-        },
-        final_submission_snapshot: {
-          machine_id: machine.id,
-          machine_name: machine.name,
-          location: machine.loc,
-          issue_text: extractedInfo.issue,
-          urgency: extractedInfo.urgency,
-          condition: extractedInfo.condition,
-          technician_name: technicianName || null,
-          reporter_phone: reporterPhone.match(/^\d+$/) ? reporterPhone : null,
-          photo_url: uploadedUrl,
-          submitted_at: new Date().toISOString(),
-          source: showTextFallback ? 'text' : 'voice'
-        },
-        voice_artifacts: voiceArtifacts
-      };
+      const uploadedUrl = await uploadIssuePhoto();
+      const payload = buildTicketPayload({ uploadedUrl, verified });
 
       const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
         body: { action: 'log_ticket', payload }
@@ -1099,25 +1036,7 @@ export default function QRGateway() {
     setUploadingPhoto(true);
     setWorkflowStage('submitting');
     try {
-      let uploadedUrl = null;
-      if (photoFile) {
-        try {
-          const fileExt = photoFile.name.split('.').pop();
-          const fileName = `issue-${machine.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-          const filePath = `${machine.id}/${fileName}`;
-          
-          const { error: uploadErr } = await supabase.storage
-            .from('repair-proofs')
-            .upload(filePath, photoFile);
-            
-          if (!uploadErr) {
-            const { data: { publicUrl } } = supabase.storage
-              .from('repair-proofs')
-              .getPublicUrl(filePath);
-            uploadedUrl = publicUrl;
-          }
-        } catch (e) {}
-      }
+      const uploadedUrl = await uploadIssuePhoto();
 
       const { data: fetchResult, error: fetchErr } = await invokeWithRetry('ticket_gateway', {
         body: { action: 'get_ticket', ticket_id: duplicateTicket.id }
