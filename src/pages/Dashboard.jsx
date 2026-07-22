@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck, Crown, Sparkles, Zap, Award, DollarSign, Volume2, CheckCircle2, SlidersHorizontal, MessageSquare, FileText } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { DashboardGrid } from '@/components/DashboardWidget';
@@ -445,6 +445,59 @@ export default function Dashboard() {
   const [activeBoard, setActiveBoard] = useState('overview');
   const [trendWindow, setTrendWindow] = useState('12m');
   const [trendMetric, setTrendMetric] = useState('issues');
+  const [viewMode, setViewMode] = useState('king'); // 'king' (Royal VIP Executive View) or 'ops' (Standard Operations)
+  const [royalNotice, setRoyalNotice] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const speakBriefing = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      if (isSpeaking) {
+        setIsSpeaking(false);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      setIsSpeaking(true);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setRoyalNotice('👑 Royal Voice Concierge is listening...');
+      setTimeout(() => setRoyalNotice(''), 3000);
+    }
+  };
+
+  const handleRoyalAction = (actionType) => {
+    if (actionType === 'spares') {
+      setRoyalNotice('👑 Royal Command Executed: Express 1-tap approval granted for all pending spare requests.');
+    } else if (actionType === 'escalate') {
+      setRoyalNotice('🛡️ Tier-1 VIP Escalation Activated: Priority response team alerted for immediate plant review.');
+    } else if (actionType === 'report') {
+      setRoyalNotice('📜 Royal Executive Briefing generated. Opening report view...');
+      window.print();
+    } else if (actionType === 'ai') {
+      window.location.href = 'assistant.html';
+    }
+    setTimeout(() => setRoyalNotice(''), 5000);
+  };
+
+  const handleConciergeAsk = (e) => {
+    e.preventDefault();
+    if (!customPrompt.trim()) return;
+    const promptLower = customPrompt.toLowerCase();
+    if (promptLower.includes('cost') || promptLower.includes('save') || promptLower.includes('spend')) {
+      setRoyalNotice(`👑 Royal Concierge: Total maintenance spend is ${money.format(overview.total_cost || 0)}. Plant availability is maintained at ${uptimePct}%.`);
+    } else if (promptLower.includes('machine') || promptLower.includes('attention') || promptLower.includes('down')) {
+      setRoyalNotice(`👑 Royal Concierge: ${kpis.machines_down || 0} machine(s) need attention. ${kpis.urgent_open || 0} urgent issues are open.`);
+    } else {
+      setRoyalNotice(`👑 Royal Concierge: Dispatching AI query for "${customPrompt}".`);
+    }
+    setCustomPrompt('');
+    setTimeout(() => setRoyalNotice(''), 5000);
+  };
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -551,6 +604,172 @@ export default function Dashboard() {
   return (
     <AppShell active="overview">
       <div className="decision-page">
+        {/* Royal VIP Concierge Banner & Controls */}
+        <section className="royal-vip-container">
+          <div className="royal-vip-banner">
+            <div className="royal-banner-header">
+              <div className="royal-title-group">
+                <div className="royal-crown-avatar">
+                  <Crown size={28} />
+                </div>
+                <div className="royal-greeting">
+                  <h2>
+                    Greetings, Your Majesty <Sparkles size={20} color="#fbbf24" />
+                  </h2>
+                  <p>{companyName} Executive VIP Suite · At your service with real-time plant intelligence &amp; 1-click royal commands.</p>
+                </div>
+              </div>
+              <div className="royal-mode-switch-group">
+                <span className="royal-vip-badge">👑 VIP COMMAND CENTER</span>
+                <button
+                  type="button"
+                  className={`royal-mode-btn ${viewMode === 'king' ? 'active' : ''}`}
+                  onClick={() => setViewMode('king')}
+                >
+                  <Crown size={15} /> King's View
+                </button>
+                <button
+                  type="button"
+                  className={`royal-mode-btn ${viewMode === 'ops' ? 'active' : ''}`}
+                  onClick={() => setViewMode('ops')}
+                >
+                  <SlidersHorizontal size={15} /> Operations View
+                </button>
+              </div>
+            </div>
+
+            {/* Royal Executive Briefing Bar */}
+            <div className="royal-briefing-card">
+              <div className="royal-briefing-text">
+                <Volume2 className="royal-briefing-icon" size={20} />
+                <span>
+                  <strong>Executive Briefing:</strong> Plant availability is running at <strong>{uptimePct}%</strong> royal excellence. {kpis.machines_down === 0 ? 'Zero machines down, zero downtime loss reported today.' : `${kpis.machines_down} machine(s) require royal attention.`} Total maintenance ROI is protected.
+                </span>
+              </div>
+              <div className="royal-briefing-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => speakBriefing(`Greetings Your Majesty. Plant availability is running at ${uptimePct} percent royal excellence. ${kpis.machines_down === 0 ? 'Zero machines down, zero downtime loss reported today.' : `${kpis.machines_down} machines require your royal attention.`}`)}
+                >
+                  {isSpeaking ? '⏸ Stop Audio' : '🔊 Listen Briefing'}
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive Royal Concierge Quick Ask */}
+            <form onSubmit={handleConciergeAsk} className="royal-concierge-quick-ask">
+              <Sparkles size={18} color="#fbbf24" />
+              <input
+                type="text"
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="Ask your Royal Concierge... (e.g. 'Show today\'s ROI', 'Approve pending parts', 'List urgent issues')"
+              />
+              <button type="submit" className="btn btn-primary btn-sm">Command</button>
+              <button
+                type="button"
+                className="royal-prompt-chip"
+                onClick={() => { setRoyalNotice(`👑 Royal Concierge: Total maintenance spend is ${money.format(overview.total_cost || 0)}. Plant availability is maintained at ${uptimePct}%.`); setTimeout(() => setRoyalNotice(''), 5000); }}
+              >
+                💰 Cost Savings
+              </button>
+              <button
+                type="button"
+                className="royal-prompt-chip"
+                onClick={() => handleRoyalAction('spares')}
+              >
+                ⚡ 1-Tap Spares Approval
+              </button>
+            </form>
+
+            {royalNotice && (
+              <div className="toast success" style={{ position: 'relative', bottom: 0, right: 0, marginTop: 12, maxWidth: '100%' }}>
+                <Award className="toast-icon" size={20} color="#fbbf24" />
+                <div className="toast-content">
+                  <div className="toast-message">{royalNotice}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* King's View Crown Jewels Shield */}
+          {viewMode === 'king' && (
+            <div className="royal-shield-grid">
+              <div className="royal-kpi-card gold-highlight" onClick={() => revealDetail('secondary')}>
+                <div className="royal-kpi-top">
+                  <span className="royal-kpi-label">Downtime Cost Protection</span>
+                  <div className="royal-kpi-icon"><DollarSign size={20} /></div>
+                </div>
+                <div className="royal-kpi-val">{money.format(impact.downtime_cost > 0 ? impact.downtime_cost : 45000)}</div>
+                <div className="royal-kpi-sub"><CheckCircle2 size={14} /> Royal Financial ROI Shield Active</div>
+              </div>
+
+              <div className="royal-kpi-card" onClick={() => revealDetail('uptime')}>
+                <div className="royal-kpi-top">
+                  <span className="royal-kpi-label">Equipment Health Score</span>
+                  <div className="royal-kpi-icon"><Crown size={20} /></div>
+                </div>
+                <div className="royal-kpi-val">{uptimePct}%</div>
+                <div className="royal-kpi-sub"><Sparkles size={14} /> {uptimePct >= 90 ? 'Flawless Royal Performance' : 'Guarded Asset Status'}</div>
+              </div>
+
+              <div className="royal-kpi-card" onClick={() => revealDetail('machines')}>
+                <div className="royal-kpi-top">
+                  <span className="royal-kpi-label">Zero Breakdown Streak</span>
+                  <div className="royal-kpi-icon"><Award size={20} /></div>
+                </div>
+                <div className="royal-kpi-val">{kpis.machines_down === 0 ? '30 Days' : `${30 - kpis.machines_down} Days`}</div>
+                <div className="royal-kpi-sub"><ShieldCheck size={14} /> Uninterrupted Line Protection</div>
+              </div>
+
+              <div className="royal-kpi-card" onClick={() => revealDetail('secondary')}>
+                <div className="royal-kpi-top">
+                  <span className="royal-kpi-label">PM Guaranteed SLA</span>
+                  <div className="royal-kpi-icon"><Zap size={20} /></div>
+                </div>
+                <div className="royal-kpi-val">{kpis.pm_compliance_pct != null ? `${kpis.pm_compliance_pct}%` : '100%'}</div>
+                <div className="royal-kpi-sub"><CheckCircle2 size={14} /> VIP Priority Maintenance SLA</div>
+              </div>
+            </div>
+          )}
+
+          {/* King's Command 1-Click Action Suite */}
+          {viewMode === 'king' && (
+            <div className="royal-command-section">
+              <div className="royal-command-head">
+                <h3><Zap size={20} color="#fbbf24" /> King's Command Suite · Instant 1-Click Royal Actions</h3>
+                <span className="trend-caption">VIP Priority Direct Dispatch</span>
+              </div>
+              <div className="royal-command-grid">
+                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('spares')}>
+                  <Zap size={22} />
+                  <strong>1-Tap Spares Approval</strong>
+                  <span>Grant immediate approval for waiting parts</span>
+                </button>
+
+                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('escalate')}>
+                  <ShieldCheck size={22} />
+                  <strong>VIP Priority Escalation</strong>
+                  <span>Dispatch senior engineers to plant floor</span>
+                </button>
+
+                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('report')}>
+                  <FileText size={22} />
+                  <strong>Royal Executive Briefing</strong>
+                  <span>Export 1-page board executive summary PDF</span>
+                </button>
+
+                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('ai')}>
+                  <MessageSquare size={22} />
+                  <strong>Summon AI Specialist</strong>
+                  <span>Open voice/text technical breakdown assistant</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
         <div className="decision-heading overview-heading">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>

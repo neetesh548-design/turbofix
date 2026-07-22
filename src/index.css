@@ -8999,3 +8999,370 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     display: none !important;
   }
 }
+
+/* ===========================================================
+   ROYAL VIP "CUSTOMER IS KING" CONCIERGE DESIGN SYSTEM
+   =========================================================== */
+
+:root {
+  --royal-gold: #fbbf24;
+  --royal-gold-light: #fef08a;
+  --royal-gold-dark: #b45309;
+  --royal-emerald: #10b981;
+  --royal-emerald-glow: rgba(16, 185, 129, 0.25);
+  --royal-obsidian: #0b0f17;
+  --royal-card-bg: linear-gradient(135deg, rgba(18, 24, 38, 0.95), rgba(10, 14, 22, 0.98));
+}
+
+.royal-vip-container {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 24px;
+  animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.royal-vip-banner {
+  background: linear-gradient(135deg, rgba(20, 26, 40, 0.95), rgba(12, 16, 26, 0.98));
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.08);
+  border-radius: 18px;
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.royal-vip-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.12) 0%, rgba(16, 185, 129, 0.05) 50%, transparent 80%);
+  pointer-events: none;
+}
+
+.royal-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.royal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.royal-crown-avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(180, 83, 9, 0.3));
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 14px;
+  color: var(--royal-gold);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.2);
+}
+
+.royal-greeting h2 {
+  font-family: 'Rajdhani', -apple-system, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 30%, #fef08a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.royal-greeting p {
+  color: var(--slate);
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.royal-vip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.08));
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 999px;
+  color: var(--royal-gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.royal-mode-switch-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.royal-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--slate);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+
+.royal-mode-btn.active {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(16, 185, 129, 0.2));
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Royal AI Concierge Briefing Bar */
+.royal-briefing-card {
+  margin-top: 18px;
+  padding: 16px 20px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.royal-briefing-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+}
+
+.royal-briefing-icon {
+  color: var(--royal-emerald);
+  flex-shrink: 0;
+  animation: pulseDot 2s infinite;
+}
+
+.royal-briefing-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Royal Crown Jewels & Shield KPI Grid */
+.royal-shield-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.royal-kpi-card {
+  background: var(--royal-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease);
+  cursor: pointer;
+}
+
+.royal-kpi-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4), 0 0 15px rgba(251, 191, 36, 0.1);
+}
+
+.royal-kpi-card.gold-highlight {
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, rgba(28, 34, 48, 0.95), rgba(15, 20, 30, 0.98));
+}
+
+.royal-kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.royal-kpi-label {
+  color: var(--slate);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.royal-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--royal-gold);
+}
+
+.royal-kpi-val {
+  font-family: 'Rajdhani', -apple-system, sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.royal-kpi-sub {
+  color: var(--royal-emerald);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* King's Command Actions */
+.royal-command-section {
+  background: var(--royal-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 22px 26px;
+}
+
+.royal-command-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.royal-command-head h3 {
+  font-size: 1.15rem;
+  margin: 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.royal-command-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.royal-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s var(--ease);
+}
+
+.royal-action-btn:hover {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.royal-action-btn svg {
+  color: var(--royal-gold);
+}
+
+.royal-action-btn strong {
+  font-size: 0.92rem;
+}
+
+.royal-action-btn span {
+  font-size: 0.76rem;
+  color: var(--slate);
+}
+
+/* Interactive Royal Concierge Butler Search/Ask Bar */
+.royal-concierge-quick-ask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 14px;
+  padding: 8px 16px;
+  margin-top: 14px;
+}
+
+.royal-concierge-quick-ask input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.royal-concierge-quick-ask input::placeholder {
+  color: rgba(160, 174, 192, 0.6);
+}
+
+.royal-prompt-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--slate-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.royal-prompt-chip:hover {
+  border-color: var(--royal-gold);
+  color: var(--royal-gold);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+@media (max-width: 900px) {
+  .royal-shield-grid, .royal-command-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .royal-shield-grid, .royal-command-grid {
+    grid-template-columns: 1fr;
+  }
+  .royal-banner-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .royal-briefing-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
