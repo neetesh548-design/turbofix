@@ -199,6 +199,7 @@ export default function QRGateway() {
   const [speakFeedback, setSpeakFeedback] = useState(true);
   const [assistantPrompt, setAssistantPrompt] = useState('');
   const [workflowStage, setWorkflowStage] = useState('capture');
+  const [voiceError, setVoiceError] = useState('');
   const [transcript, setTranscript] = useState('');
   const [extractedInfo, setExtractedInfo] = useState(null); // { issue, condition, urgency }
   const [success, setSuccess] = useState(false);
@@ -330,6 +331,20 @@ export default function QRGateway() {
   const speechRecognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const [isTranscribing, setIsTranscribing] = useState(false);
+
+  const getLiveMicStream = async () => {
+    const existing = micStreamRef.current;
+    const hasLiveTrack = existing?.getAudioTracks?.().some((track) => track.readyState === 'live');
+    if (hasLiveTrack) return existing;
+    micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return micStreamRef.current;
+  };
+
+  const getRecorderOptions = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+    const mimeType = types.find((type) => window.MediaRecorder?.isTypeSupported?.(type));
+    return mimeType ? { mimeType } : undefined;
+  };
 
   useEffect(() => {
     transcriptRef.current = transcript;
@@ -594,6 +609,7 @@ export default function QRGateway() {
     setIsTranscribing(true);
     setWorkflowStage('transcribing');
     setAssistantPrompt(t('transcribing'));
+    setVoiceError('');
     try {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -608,6 +624,7 @@ export default function QRGateway() {
       const text = String(data.transcript || '').trim();
       if (!text) {
         const noSpeechMsg = t('noSpeechDetected');
+        setVoiceError(noSpeechMsg);
         setAssistantPrompt(noSpeechMsg);
         speak(noSpeechMsg);
         setWorkflowStage('listenback');
@@ -650,7 +667,15 @@ export default function QRGateway() {
       speak(reviewMsg);
     } catch (err) {
       console.error(err);
-      const errMsg = t('transcribeError');
+      const rawMsg = String(err?.message || '').trim();
+      const errMsg = rawMsg || (
+        /not configured/i.test(rawMsg)
+          ? 'Voice transcription is not configured right now.'
+          : /temporarily unavailable/i.test(rawMsg)
+            ? 'Voice transcription is temporarily unavailable. Please try again.'
+            : t('transcribeError')
+      );
+      setVoiceError(errMsg);
       setAssistantPrompt(errMsg);
       speak(errMsg);
       setWorkflowStage('listenback');
@@ -668,7 +693,12 @@ export default function QRGateway() {
   };
 
   const transcribePendingAudio = async () => {
-    if (!pendingAudioBlob) return;
+    if (!pendingAudioBlob || pendingAudioBlob.size < 512) {
+      const msg = 'Recording is empty. Please re-record once.';
+      setVoiceError(msg);
+      setAssistantPrompt(msg);
+      return;
+    }
     await transcribeAudio(pendingAudioBlob);
   };
 
@@ -793,12 +823,12 @@ export default function QRGateway() {
     setIsListening(true);
 
     try {
-      const stream = micStreamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true });
+      setVoiceError('');
+      chunksRef.current = [];
+      const stream = await getLiveMicStream();
       micPermissionAskedRef.current = true;
       micPermissionDeniedRef.current = false;
-      micStreamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
-      chunksRef.current = [];
+      const recorder = new MediaRecorder(stream, getRecorderOptions());
       
       recorder.ondataavailable = (e) => {
         if (e.data.size) chunksRef.current.push(e.data);
@@ -807,13 +837,21 @@ export default function QRGateway() {
       recorder.onstop = async () => {
         setIsListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        chunksRef.current = [];
+        recorderRef.current = null;
+        if (!blob.size) {
+          const msg = 'Recording is empty. Please re-record once.';
+          setVoiceError(msg);
+          setWorkflowStage('capture');
+          setAssistantPrompt(msg);
+          return;
+        }
         clearPendingAudio();
         const url = URL.createObjectURL(blob);
         setPendingAudioBlob(blob);
         setPendingAudioUrl(url);
         setWorkflowStage('listenback');
         setAssistantPrompt('Listen to your recording, then send it for transcription.');
-        recorderRef.current = null;
       };
 
       recorderRef.current = recorder;
@@ -1406,6 +1444,7 @@ export default function QRGateway() {
                   clearPendingAudio();
                   setTranscript('');
                   setExtractedInfo(null);
+                  setVoiceError('');
                   setWorkflowStage('capture');
                   setAssistantPrompt('Tap the mic and record again.');
                 }}
@@ -1421,11 +1460,17 @@ export default function QRGateway() {
                 Send for transcription
               </button>
             </div>
+            {voiceError ? (
+              <div style={{ background: 'rgba(239, 68, 68, 0.14)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#fecaca', borderRadius: '12px', padding: '10px 12px', fontSize: '0.8rem', lineHeight: 1.45, textAlign: 'center' }}>
+                {voiceError}
+              </div>
+            ) : null}
             <button
               type="button"
               onClick={() => {
                 clearPendingAudio();
                 setShowTextFallback(true);
+                setVoiceError('');
                 setWorkflowStage('capture');
                 setAssistantPrompt(t('troubleSpeaking'));
               }}

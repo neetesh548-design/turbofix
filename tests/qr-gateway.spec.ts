@@ -173,11 +173,17 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
           this.state = 'recording';
           setTimeout(() => {
             this.state = 'inactive';
+            if (this.ondataavailable) {
+              this.ondataavailable({ data: new Blob(['voice'.repeat(200)], { type: this.mimeType }) });
+            }
             if (this.onstop) this.onstop();
           }, 250);
         }
         stop() {
           this.state = 'inactive';
+          if (this.ondataavailable) {
+            this.ondataavailable({ data: new Blob(['voice'.repeat(200)], { type: this.mimeType }) });
+          }
           if (this.onstop) this.onstop();
         }
       };
@@ -234,11 +240,17 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
           this.state = 'recording';
           setTimeout(() => {
             this.state = 'inactive';
+            if (this.ondataavailable) {
+              this.ondataavailable({ data: new Blob(['voice'.repeat(200)], { type: this.mimeType }) });
+            }
             if (this.onstop) this.onstop();
           }, 250);
         }
         stop() {
           this.state = 'inactive';
+          if (this.ondataavailable) {
+            this.ondataavailable({ data: new Blob(['voice'.repeat(200)], { type: this.mimeType }) });
+          }
           if (this.onstop) this.onstop();
         }
       };
