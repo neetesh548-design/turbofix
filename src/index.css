@@ -226,6 +226,23 @@ input:focus, select:focus, textarea:focus {
 
 /* AI maintenance decision center */
 .decision-page, .assistant-page, .planner-page { max-width: 1240px; margin: 0 auto; padding: 42px 34px 80px; }
+.support-page,
+.records-page,
+.technician-page,
+.inventory-page,
+.settings-page,
+.app-shell .vault-wrap.workspace-page {
+  width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+.support-page,
+.records-page,
+.technician-page,
+.inventory-page,
+.settings-page {
+  max-width: 1460px;
+}
 .decision-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; }
 .decision-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 8px 0 10px; font-weight: 800; }
 .decision-heading p { color: #94a3b8; max-width: 680px; font-size: 1.05rem; }
@@ -3661,6 +3678,7 @@ h1, h2, h3, .brand-name, .stat-num, .big-number, .payoff-value, .kpi-num {
 /* QR Gateway: tuned toward the cleaner shadcn dashboard references. */
 .qr-gateway-page {
   justify-content: flex-start !important;
+  align-items: center !important;
   gap: 12px !important;
   padding: clamp(10px, 1.5vw, 16px) clamp(10px, 2vw, 16px) !important;
   background:
@@ -3682,6 +3700,10 @@ h1, h2, h3, .brand-name, .stat-num, .big-number, .payoff-value, .kpi-num {
     0 18px 34px rgba(0,0,0,.16),
     0 0 0 1px rgba(74, 222, 128, .03) !important;
   backdrop-filter: blur(14px);
+}
+.qr-gateway-page > footer {
+  width: min(100%, 1120px);
+  margin-inline: auto;
 }
 .qr-gateway-shell {
   display: grid !important;
@@ -5368,7 +5390,18 @@ details.faq-item p {
 }
 .app-user-name { font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 
-.app-content { flex: 1; min-width: 0; margin-top: 60px; }
+.app-content {
+  flex: 1;
+  min-width: 0;
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+}
+.app-content > * {
+  width: min(100%, 1460px);
+  margin-inline: auto;
+  box-sizing: border-box;
+}
 
 /* Hide the duplicated internal userbars — the shell owns identity + logout now. */
 .app-shell .vault-userbar { display: none !important; }
