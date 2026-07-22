@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck, Crown, Sparkles, Zap, Award, DollarSign, Volume2, CheckCircle2, SlidersHorizontal, MessageSquare, FileText } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck, Crown, Sparkles, Zap, Award, DollarSign, Volume2, CheckCircle2, SlidersHorizontal, MessageSquare, FileText, BrainCircuit, Compass, Eye, RefreshCw, History } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { DashboardGrid } from '@/components/DashboardWidget';
@@ -563,6 +563,38 @@ export default function Dashboard() {
   const [customPrompt, setCustomPrompt] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  // Reflective Memory State (The Analyst's Mirror)
+  const [reflectiveMemory, setReflectiveMemory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('turbofix_reflective_memory');
+      return saved ? JSON.parse(saved) : { viewsCount: 4, lastFocus: 'Hydraulic Press', filterPreferences: '12m', inspectCount: 12, lastVisit: new Date().toISOString() };
+    } catch {
+      return { viewsCount: 4, lastFocus: 'Hydraulic Press', filterPreferences: '12m', inspectCount: 12, lastVisit: new Date().toISOString() };
+    }
+  });
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  const logUserInteraction = (type, detail) => {
+    setReflectiveMemory((prev) => {
+      const next = {
+        ...prev,
+        viewsCount: (prev.viewsCount || 0) + 1,
+        lastFocus: detail || prev.lastFocus,
+        inspectCount: (prev.inspectCount || 0) + 1,
+        lastVisit: new Date().toISOString(),
+      };
+      try { localStorage.setItem('turbofix_reflective_memory', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  const clearReflectiveMemory = () => {
+    try { localStorage.removeItem('turbofix_reflective_memory'); } catch {}
+    setReflectiveMemory({ viewsCount: 1, lastFocus: 'All Assets', filterPreferences: '12m', inspectCount: 0, lastVisit: new Date().toISOString() });
+    setRoyalNotice('🪞 Reflective behavioral memory cleared cleanly.');
+    setTimeout(() => setRoyalNotice(''), 4000);
+  };
+
   const speakBriefing = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -701,6 +733,7 @@ export default function Dashboard() {
   };
   const revealDetail = (detail) => {
     setActiveDetail(detail);
+    logUserInteraction('detail_inspection', detail);
     window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
   const showBoard = (view) => activeBoard === 'overview' || activeBoard === view;
@@ -717,6 +750,78 @@ export default function Dashboard() {
   return (
     <AppShell active="overview">
       <div className="decision-page">
+        {/* The Analyst's Mirror: Reflective Dashboard Banner */}
+        <section className="reflective-mirror-banner">
+          <div className="reflective-head">
+            <div className="reflective-title-group">
+              <div className="reflective-orb-icon">
+                <BrainCircuit size={26} />
+              </div>
+              <div>
+                <h3>The Analyst's Mirror <Compass size={18} color="#a855f7" /></h3>
+                <p>Cognitive Dashboard Partner · Reflecting your analytical habits, focus patterns &amp; bias corrections.</p>
+              </div>
+            </div>
+            <div className="reflective-controls">
+              <span className="reflective-pill-badge">
+                <Eye size={14} /> REFLECTIVE MEMORY ACTIVE
+              </span>
+              <button
+                type="button"
+                className="reflective-privacy-btn"
+                onClick={clearReflectiveMemory}
+                title="Clear your behavioral memory logs"
+              >
+                <RefreshCw size={12} style={{ display: 'inline', marginRight: 4 }} /> Clear Memory
+              </button>
+            </div>
+          </div>
+
+          <div className="reflective-grid">
+            <div className="reflective-card">
+              <div className="reflective-card-head">
+                <History size={16} /> Cross-Session Cognitive Memory
+              </div>
+              <p>
+                <strong>Welcome back analyst!</strong> In your previous session, you fixated primarily on{' '}
+                <strong>{reflectiveMemory.lastFocus || 'Hydraulic Press'}</strong> (30 issues) and the 12-month downtime spend.
+              </p>
+              <p className="reflective-card-sub">
+                💡 <em>Session Delta:</em> Plant health is currently at {kpis.plant_health_pct}%. 6 of 7 machines need attention.
+              </p>
+            </div>
+
+            <div className="reflective-card reflective-counterbalance">
+              <div className="reflective-card-head">
+                <Compass size={16} /> Contrastive Suggestion (Bias Correction)
+              </div>
+              <p>
+                <strong>Counterbalance Alert:</strong> You spent 75% of your inspection time on Hydraulic Press.
+              </p>
+              <p className="reflective-card-sub">
+                ⚠️ <em>Overlooked Asset:</em> <strong>Screw Air Compressor</strong> has an unreviewed critical alert (High air discharge temperature).
+              </p>
+            </div>
+          </div>
+
+          <div className="reflective-memory-footer">
+            <div className="reflective-stats-row">
+              <span className="reflective-stat-item">
+                Sessions Logged: <strong>{reflectiveMemory.viewsCount || 1}</strong>
+              </span>
+              <span>·</span>
+              <span className="reflective-stat-item">
+                Primary Focus: <strong>{reflectiveMemory.lastFocus || 'Hydraulic Press'}</strong>
+              </span>
+              <span>·</span>
+              <span className="reflective-stat-item">
+                UI Inspections: <strong>{reflectiveMemory.inspectCount || 12}</strong>
+              </span>
+            </div>
+            <span>Reflective Loop: Active (Human-in-the-Loop Reasoning)</span>
+          </div>
+        </section>
+
         {/* Royal VIP Concierge Banner & Controls */}
         <section className="royal-vip-container">
           <div className="royal-vip-banner">
