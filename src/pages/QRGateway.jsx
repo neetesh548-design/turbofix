@@ -53,6 +53,8 @@ const GATEWAY_I18N = {
     reviewConfirm: 'समीक्षा और पुष्टि',
     reviewTitle: 'रिपोर्ट समीक्षा और पुष्टि',
     issueDescEdit: 'समस्या का विवरण (बदलाव कर सकते हैं):',
+    reporterNameLabel: 'रिपोर्ट करने वाले का नाम (वैकल्पिक):',
+    reporterNamePlaceholder: 'उदा. रमेश',
     assignedTech: 'आवंटित टेक्नीशियन:',
     notAssigned: 'सहायक कर्मचारी',
     yesSubmit: 'हाँ, दर्ज करें',
@@ -108,6 +110,8 @@ const GATEWAY_I18N = {
     reviewConfirm: 'पुनरावलोकन आणि पुष्टी',
     reviewTitle: 'अहवाल पुनरावलोकन आणि पुष्टी',
     issueDescEdit: 'समस्येचे वर्णन (बदल करू शकता):',
+    reporterNameLabel: 'रिपोर्ट करणाऱ्याचे नाव (ऐच्छिक):',
+    reporterNamePlaceholder: 'उदा. रमेश',
     assignedTech: 'नियुक्त तंत्रज्ञ:',
     notAssigned: 'कर्मचारी',
     yesSubmit: 'होय, नोंदवा',
@@ -163,6 +167,8 @@ const GATEWAY_I18N = {
     reviewConfirm: 'Review & confirm →',
     reviewTitle: 'Review & Confirm Report',
     issueDescEdit: 'Issue Description (Edit if needed):',
+    reporterNameLabel: 'Reporter name (optional):',
+    reporterNamePlaceholder: 'e.g. Ramesh',
     assignedTech: 'Assigned Technician:',
     notAssigned: 'Staff',
     yesSubmit: 'Yes, Submit',
@@ -228,6 +234,7 @@ export default function QRGateway() {
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
+  const [reporterName, setReporterName] = useState(() => localStorage.getItem('tf_reporter_name') || '');
   const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
   const [phoneInput, setPhoneInput] = useState('');
 
@@ -355,6 +362,7 @@ export default function QRGateway() {
       if (saved.workflowStage) setWorkflowStage(saved.workflowStage);
       if (saved.phoneInput) setPhoneInput(saved.phoneInput);
       if (saved.technicianName) setTechnicianName(saved.technicianName);
+      if (saved.reporterName) setReporterName(saved.reporterName);
     } catch (err) {
       console.warn('Could not restore QR draft', err);
     }
@@ -373,12 +381,13 @@ export default function QRGateway() {
         showTextFallback,
         workflowStage,
         phoneInput,
-        technicianName
+        technicianName,
+        reporterName
       }));
     } catch (err) {
       console.warn('Could not save QR draft', err);
     }
-  }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, showTextFallback, workflowStage, phoneInput, technicianName]);
+  }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, showTextFallback, workflowStage, phoneInput, technicianName, reporterName]);
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
@@ -509,6 +518,8 @@ export default function QRGateway() {
   const normalizeTranscriptForApproval = ({ rawText = '', language = lang, machineName = '', machineLocation = '' }) => {
     const original = String(rawText || '').trim();
     const lower = original.toLowerCase();
+    const nameMatch = original.match(/(?:my name is|mera naam|मेरा नाम|माझे नाव|माझं नाव)\s+([A-Za-z\u0900-\u097F][A-Za-z\u0900-\u097F .'-]{1,40})/i);
+    const spokenReporterName = nameMatch?.[1]?.replace(/\b(hai|है|आहे)\b.*$/i, '').trim() || '';
 
     const replacements = [
       [/मशीन/gi, machineName || 'machine'],
@@ -574,6 +585,7 @@ export default function QRGateway() {
       condition,
       urgency,
       machineContext: contextPrefix,
+      reporterName: spokenReporterName,
       originalText: original,
       normalizedText: normalized.trim(),
       aiDraft: true,
@@ -630,6 +642,10 @@ export default function QRGateway() {
         machineName: machine.name,
         machineLocation: machine.loc
       });
+      if (normalized.reporterName) {
+        setReporterName(normalized.reporterName);
+        localStorage.setItem('tf_reporter_name', normalized.reporterName);
+      }
       setManualCondition(normalized.condition || suggestCondition(text));
       setExtractedInfo(normalized);
       setVoiceArtifacts({
@@ -642,6 +658,7 @@ export default function QRGateway() {
           normalized_issue: normalized.issue,
           normalized_condition: normalized.condition,
           normalized_urgency: normalized.urgency,
+          reporter_name: normalized.reporterName || reporterName || '',
           approval_note: normalized.approvalNote || '',
           ai_draft: true
         },
@@ -735,6 +752,7 @@ export default function QRGateway() {
 
   const buildSnapshots = ({ uploadedUrl = null, includeTechnician = true } = {}) => {
     const reporter = reporterPhone.match(/^\d+$/) ? reporterPhone : null;
+    const cleanReporterName = reporterName.trim() || null;
     const base = {
       machine_id: machine.id,
       machine_name: machine.name,
@@ -743,6 +761,7 @@ export default function QRGateway() {
       urgency: extractedInfo.urgency,
       condition: extractedInfo.condition,
       reporter_phone: reporter,
+      reporter_name: cleanReporterName,
       voice_language: voiceArtifacts?.language_code || lang,
     };
     const technician = includeTechnician ? { technician_name: technicianName || null } : {};
@@ -751,7 +770,8 @@ export default function QRGateway() {
         transcript,
         normalized_issue: extractedInfo.issue,
         normalized_condition: extractedInfo.condition,
-        normalized_urgency: extractedInfo.urgency
+        normalized_urgency: extractedInfo.urgency,
+        reporter_name: cleanReporterName
       },
       review_snapshot: {
         ...base,
@@ -772,6 +792,7 @@ export default function QRGateway() {
 
   const buildTicketPayload = ({ uploadedUrl = null, verified = false, offline = false } = {}) => {
     const reporter = reporterPhone.match(/^\d+$/) ? reporterPhone : null;
+    const cleanReporterName = reporterName.trim() || null;
     return {
       machine_id: machine.id,
       status: 'open',
@@ -786,6 +807,7 @@ export default function QRGateway() {
         voice_reported: !showTextFallback,
         extracted_condition: extractedInfo.condition,
         reporter_id: reporterPhone,
+        reporter_name: cleanReporterName,
         verified_reporter: verified,
         flag: offline ? 'offline_submission' : verified ? null : 'unverified_reporter',
         photo_url: uploadedUrl
@@ -944,6 +966,7 @@ export default function QRGateway() {
     setWorkflowStage('submitting');
 
     try {
+      if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
       if (!navigator.onLine) {
         console.log('Device is offline. Queuing ticket locally.');
         const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
@@ -1048,10 +1071,12 @@ export default function QRGateway() {
       
       const mergedSummary = {
         ...(currentTicket?.ai_summary || {}),
+        reporter_name: reporterName.trim() || currentTicket?.ai_summary?.reporter_name || null,
         photo_url: uploadedUrl || currentTicket?.ai_summary?.photo_url || null
       };
 
-      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterPhone}]: ${extractedInfo.issue}`;
+      const reporterLabel = reporterName.trim() || reporterPhone || 'QR reporter';
+      const mergedText = `${duplicateTicket.issue_text}\n[Append from ${reporterLabel}]: ${extractedInfo.issue}`;
       
       const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
         body: {
@@ -1093,6 +1118,7 @@ export default function QRGateway() {
       return;
     }
     localStorage.setItem('tf_reporter_phone', phoneInput.trim());
+    if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
     setReporterPhone(phoneInput.trim());
     setPhoneGate(false);
     setWorkflowStage('capture');
@@ -1293,6 +1319,14 @@ export default function QRGateway() {
               onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))} 
               placeholder={t('phoneGatePlaceholder')} 
               style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
+            />
+            <input
+              type="text"
+              maxLength={48}
+              value={reporterName}
+              onChange={(e) => setReporterName(e.target.value)}
+              placeholder={t('reporterNamePlaceholder')}
+              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '0.95rem', color: 'white', boxSizing: 'border-box' }}
             />
             <button 
               type="button" 
@@ -1644,6 +1678,7 @@ export default function QRGateway() {
                 {[
                   ['Machine', machine.name || 'Selected machine'],
                   ['Location', machine.loc || 'Not set'],
+                  ['Reporter', reporterName.trim() || 'Not provided'],
                   ['Report type', extractedInfo?.aiDraft ? 'AI-reviewed voice' : showTextFallback ? 'Text / Voice' : 'Voice']
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem', alignItems: 'start' }}>
@@ -1668,6 +1703,20 @@ export default function QRGateway() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div style={{ display: 'grid', gap: '6px' }}>
+                <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
+                  {t('reporterNameLabel')}
+                </label>
+                <input
+                  type="text"
+                  maxLength={48}
+                  value={reporterName}
+                  onChange={(e) => setReporterName(e.target.value)}
+                  placeholder={t('reporterNamePlaceholder')}
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '14px', padding: '12px', color: 'white', fontFamily: 'inherit', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                />
               </div>
 
               <div style={{ display: 'grid', gap: '6px' }}>
