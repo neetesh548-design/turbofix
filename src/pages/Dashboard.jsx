@@ -456,6 +456,16 @@ export default function Dashboard() {
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
   const pmComplianceValue = kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`;
   const topMachineName = topMachine ? (topMachine.machine_name || topMachine.machine_id) : 'No data yet';
+  const machineStatusRows = (insights.top_problem_machines?.length ? insights.top_problem_machines : data.drilldown?.machines_down || [])
+    .slice(0, 4)
+    .map((machine, index) => ({
+      name: machine.machine_name || machine.machine || `Line ${String.fromCharCode(65 + index)}`,
+      pct: Math.max(8, Math.min(100, 100 - ((machine.ticket_count || machine.open_count || index + 1) * 8))),
+      status: (machine.ticket_count || machine.open_count || 0) > 2 ? 'Warning' : 'Running',
+    }));
+  const onlineMachines = Math.max(0, (kpis.total_machines || 0) - (kpis.machines_down || 0));
+  const uptimePct = Math.max(0, Math.min(100, Math.round(impact.availability_pct ?? kpis.plant_health_pct ?? 0)));
+  const predictedFailures = Math.max(kpis.urgent_open || 0, insights.top_problem_machines?.filter((m) => (m.ticket_count || 0) >= 3).length || 0);
   const trendMonths = TREND_WINDOWS.find((item) => item.key === trendWindow)?.months || 12;
   const trendSeries = (data.monthly_trend || []).slice(-trendMonths);
   const maxTrendCount = Math.max(...trendSeries.map((month) => month.issues || 0), 1);
@@ -485,6 +495,15 @@ export default function Dashboard() {
     window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
   const showBoard = (view) => activeBoard === 'overview' || activeBoard === view;
+  const exportDashboardData = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `turbofix-dashboard-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <AppShell active="overview">
@@ -525,6 +544,46 @@ export default function Dashboard() {
           <ScoreTile label="Avg. cost" value={money.format(overview.avg_cost || 0)} detail="Per maintenance record" />
           <ScoreTile label="Maintenance" value={overview.maintenance_count || 0} detail="Total records" />
           <ScoreTile label="Scheduled" value={`${overview.scheduled_pct || 0}%`} detail="Active PM coverage" tone="green" />
+        </section>
+
+        <section className="factory-glance-board">
+          <div className="factory-glance-main">
+            <div className="factory-glance-toolbar">
+              <div>
+                <h2>Factory performance at a glance</h2>
+                <p>Efficiency, uptime, production health, and alerts in one operating view.</p>
+              </div>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={exportDashboardData}>Export data</button>
+            </div>
+            <div className="factory-filter-chips" aria-label="Dashboard quick filters">
+              <span>Filters</span>
+              <button type="button">Today</button>
+              <button type="button">All shifts</button>
+              <button type="button">All departments</button>
+            </div>
+            <div className="factory-production-card">
+              <FactoryGauge value={uptimePct} label="Avg efficiency" />
+              <LineStatusRows rows={machineStatusRows} />
+            </div>
+            <div className="factory-alert-card">
+              <div className="factory-alert-head">
+                <h3>AI insights &amp; alerts</h3>
+                <span>Last updated: {new Date().toLocaleTimeString('en-IN')}</span>
+              </div>
+              <div className="factory-alert-grid">
+                <AlertCard tone="high" title={topMachine ? `${topMachine.machine_name} alert` : 'No high alert'} text={topMachine ? `${topMachine.ticket_count} recent issues. Inspect this machine first.` : 'No major recurring machine issue detected.'} action="Inspect now" />
+                <AlertCard tone="medium" title="Predictive maintenance" text={`${predictedFailures} predicted failure signal${predictedFailures === 1 ? '' : 's'} from urgent/repeat work.`} action="Schedule now" />
+                <AlertCard tone="low" title="Energy & uptime optimization" text={`${uptimePct}% availability. Use planned maintenance to protect uptime.`} action="Optimize schedule" />
+              </div>
+            </div>
+          </div>
+          <aside className="factory-glance-side">
+            <SideKpiCard tone="blue" title="Total machines online" value={`${onlineMachines}/${kpis.total_machines || 0}`} delta="+ live workspace" />
+            <SideKpiCard tone="purple" title="Total downtime" value={`${Math.round((impact.downtime_hours || trendTotals.downtime_hours || 0) * 10) / 10} hrs`} delta="from tickets" />
+            <SideKpiCard tone="red" title="Predicted failures" value={predictedFailures} delta="urgent/repeat signals" />
+            <SideKpiCard tone="green" title="System uptime" value={`${uptimePct}%`} delta="availability" />
+            <UptimeTrend series={trendSeries} />
+          </aside>
         </section>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
@@ -920,6 +979,104 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
   );
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
+
+function FactoryGauge({ value = 0, label }) {
+  const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+  return (
+    <div className="factory-gauge-card">
+      <div className="factory-card-title">Production line overview</div>
+      <div className="factory-gauge" style={{ '--value': `${safeValue}%` }}>
+        <div>
+          <strong>{safeValue}%</strong>
+          <span>{label}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LineStatusRows({ rows = [] }) {
+  const safeRows = rows.length ? rows : [
+    { name: 'Line A', pct: 100, status: 'Running' },
+    { name: 'Line B', pct: 100, status: 'Running' },
+    { name: 'Line C', pct: 100, status: 'Running' },
+    { name: 'Line D', pct: 100, status: 'Running' },
+  ];
+  return (
+    <div className="factory-line-card">
+      <div className="factory-card-title">Production line status</div>
+      <div className="factory-live-pill"><span /> Live data</div>
+      <div className="factory-line-list">
+        {safeRows.map((row, index) => (
+          <div className="factory-line-row" key={`${row.name}-${index}`}>
+            <i className={`line-dot dot-${index % 4}`} />
+            <span>{row.name}</span>
+            <div><b style={{ width: `${row.pct}%` }} /></div>
+            <small>Efficiency</small>
+            <strong>{row.pct}%</strong>
+            <em className={row.status === 'Warning' ? 'warning' : ''}>{row.status}</em>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SideKpiCard({ tone, title, value, delta }) {
+  return (
+    <div className={`factory-side-kpi ${tone}`}>
+      <span className="factory-side-icon"><Activity size={18} /></span>
+      <div>
+        <small>{title}</small>
+        <strong>{value}</strong>
+      </div>
+      <em>{delta}</em>
+    </div>
+  );
+}
+
+function AlertCard({ tone, title, text, action }) {
+  return (
+    <article className={`factory-alert-item ${tone}`}>
+      <span><AlertTriangle size={17} /></span>
+      <b>{title}</b>
+      <p>{text}</p>
+      <a href="machines.html">{action}</a>
+    </article>
+  );
+}
+
+function UptimeTrend({ series = [] }) {
+  const rows = series.length ? series.slice(-7) : [
+    { label: 'Mon', resolved: 2, issues: 3 },
+    { label: 'Tue', resolved: 3, issues: 4 },
+    { label: 'Wed', resolved: 2, issues: 5 },
+    { label: 'Thu', resolved: 5, issues: 6 },
+    { label: 'Fri', resolved: 4, issues: 5 },
+    { label: 'Sat', resolved: 4, issues: 4 },
+    { label: 'Sun', resolved: 5, issues: 5 },
+  ];
+  const max = Math.max(...rows.map((row) => (row.resolved || 0) + (row.issues || 0)), 1);
+  return (
+    <div className="factory-uptime-card">
+      <div className="factory-uptime-head">
+        <strong>Uptime trends</strong>
+        <span>Weekly</span>
+      </div>
+      <div className="factory-uptime-bars">
+        {rows.map((row) => {
+          const value = (row.resolved || 0) + (row.issues || 0);
+          return (
+            <div key={row.key || row.label}>
+              <i style={{ height: `${Math.max(18, (value / max) * 92)}%` }} />
+              <small>{row.label}</small>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ScoreTile({ label, value, detail, tone = '' }) {
   return (
