@@ -404,7 +404,7 @@ export default function Dashboard() {
   const [trendMetric, setTrendMetric] = useState('issues');
 
   useEffect(() => {
-    document.title = 'Control Center | TurboFix';
+    document.title = 'Dashboard | TurboFix';
     let mounted = true;
     fetchDashboardData()
       .then((next) => {
@@ -456,13 +456,20 @@ export default function Dashboard() {
         <div className="decision-heading overview-heading">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
-            <h1>Control Center <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>{companyName} · Chart-led plant signals and investigation-first decisions. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
+            <h1>Dashboard <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
+            <p>{companyName} · Preventive maintenance control board. Analytics computes the numbers; TurboFix turns them into action.</p>
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
             <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
           </div>
+        </div>
+        <div className="dashboard-filter-row" aria-label="Dashboard filters">
+          <button type="button" className="active">Overview</button>
+          <button type="button">Equipment-wise</button>
+          <button type="button">Maintenance-wise</button>
+          <button type="button">Frequency-wise</button>
+          <button type="button">Technician-wise</button>
         </div>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
@@ -509,7 +516,7 @@ export default function Dashboard() {
               bare: true,
               render: () => (
                 <>
-                  <div className="decision-section-label">Priority today <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
+                  <div className="decision-section-label">Core maintenance KPIs <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
                   <section className="decision-kpi-grid">
                     <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} detail="Need immediate attention" icon={AlertTriangle} onClick={() => revealDetail('machines')} />
                     <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} detail="High or critical severity" icon={Clock3} onClick={() => revealDetail('urgent')} />
@@ -520,30 +527,52 @@ export default function Dashboard() {
               )
             },
             {
-              id: 'attention_trend',
+              id: 'maintenance_board',
               span: 12,
               bare: true,
               render: () => (
-                <section className="decision-panel dashboard-queue-panel">
-                  <div className="decision-panel-heading">
-                    <div>
-                      <div className="decision-card-kicker">Investigation queue</div>
-                      <h2>Needs attention</h2>
-                    </div>
-                    <a href="tickets.html" className="text-link">View all</a>
-                  </div>
-                  <div className="dashboard-queue-list">
-                    {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                      <div className="attention-row" key={`${item.machine_name}-${index}`}>
-                        <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
-                        <div>
-                          <strong>{item.machine_name || 'Unknown machine'}</strong>
-                          <span>{item.description || 'Maintenance issue reported'}</span>
-                        </div>
-                        <b>{item.urgency || 'Open'}</b>
+                <section className="dashboard-analysis-board">
+                  <section className="decision-panel dashboard-queue-panel">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Priority queue</div>
+                        <h2>Needs attention</h2>
                       </div>
-                    )) : <Empty text="No open issues. Your plant is clear." />}
-                  </div>
+                      <a href="tickets.html" className="text-link">View all</a>
+                    </div>
+                    <div className="dashboard-queue-list">
+                      {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
+                        <div className="attention-row" key={`${item.machine_name}-${index}`}>
+                          <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
+                          <div>
+                            <strong>{item.machine_name || 'Unknown machine'}</strong>
+                            <span>{item.description || 'Maintenance issue reported'}</span>
+                          </div>
+                          <b>{item.urgency || 'Open'}</b>
+                        </div>
+                      )) : <Empty text="No open issues. Your plant is clear." />}
+                    </div>
+                  </section>
+                  <section className="decision-panel dashboard-chart-card">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Work distribution</div>
+                        <h2>Open vs resolved</h2>
+                      </div>
+                      <span className="trend-caption">Selected window</span>
+                    </div>
+                    <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
+                  </section>
+                  <section className="decision-panel dashboard-chart-card">
+                    <div className="decision-panel-heading">
+                      <div>
+                        <div className="decision-card-kicker">Equipment-wise risk</div>
+                        <h2>Top machines</h2>
+                      </div>
+                      <span className="trend-caption">30 days</span>
+                    </div>
+                    <RiskBars machines={insights.top_problem_machines || []} />
+                  </section>
                 </section>
               )
             },
@@ -555,7 +584,7 @@ export default function Dashboard() {
                 <section className="decision-panel dashboard-trend-panel dashboard-trend-strip">
                   <div className="decision-panel-heading dashboard-trend-heading">
                     <div>
-                      <div className="decision-card-kicker">Chart strip</div>
+                      <div className="decision-card-kicker">Trend strip</div>
                       <h2>Last 1 year, customizable</h2>
                     </div>
                     <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
@@ -806,6 +835,43 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
   );
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
+
+function WorkMixChart({ open = 0, resolved = 0 }) {
+  const safeOpen = Math.max(0, open || 0);
+  const safeResolved = Math.max(0, resolved || 0);
+  const total = Math.max(1, safeOpen + safeResolved);
+  const resolvedPct = Math.round((safeResolved / total) * 100);
+  return (
+    <div className="dashboard-work-mix">
+      <div className="dashboard-donut" style={{ '--resolved': `${resolvedPct}%` }} aria-label={`${resolvedPct}% resolved`}>
+        <strong>{resolvedPct}%</strong>
+        <span>resolved</span>
+      </div>
+      <div className="dashboard-chart-legend">
+        <span><i className="legend-open" />Open <b>{safeOpen}</b></span>
+        <span><i className="legend-resolved" />Resolved <b>{safeResolved}</b></span>
+      </div>
+    </div>
+  );
+}
+
+function RiskBars({ machines = [] }) {
+  const rows = machines.slice(0, 5);
+  const max = Math.max(...rows.map((machine) => machine.ticket_count || 0), 1);
+  if (!rows.length) return <Empty text="No repeat-failure signal yet." />;
+  return (
+    <div className="dashboard-risk-bars">
+      {rows.map((machine, index) => (
+        <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
+          <span>{machine.machine_name || machine.machine_id}</span>
+          <div><i style={{ width: `${Math.max(8, ((machine.ticket_count || 0) / max) * 100)}%` }} /></div>
+          <b>{machine.ticket_count || 0}</b>
+          <small>#{index + 1}</small>
+        </a>
+      ))}
+    </div>
+  );
+}
 
 function TrendChart({ series, metric = 'issues' }) {
   if (!series?.length) return <Empty text="No trend history yet." />;
