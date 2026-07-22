@@ -1,23 +1,22 @@
 import { test, expect } from '@playwright/test';
-import { mockMachines, mockTickets, mockReflectiveMemory } from './fixtures/dashboard-fixtures.js';
+import { mockMachines, mockTickets } from './fixtures/dashboard-fixtures.js';
 
-test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
+test.describe('Dashboard End-to-End Framework Tests', () => {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
   const payload = Buffer.from(JSON.stringify({ exp: 9999999999, sub: 'mock-user' })).toString('base64');
   const fakeJwt = `${header}.${payload}.fake-signature`;
 
   test.beforeEach(async ({ page }) => {
     // Inject auth token and mock user BEFORE page load
-    await page.addInitScript(({ jwt, memory }) => {
+    await page.addInitScript(({ jwt }) => {
       window.localStorage.setItem('tf_token', jwt);
       window.localStorage.setItem('tf_user', JSON.stringify({
         role: 'plant_head',
-        name: 'Royal Tester',
+        name: 'Test User',
         user_id: 'tester-123',
         company_name: 'TurboFix Manufacturing'
       }));
-      window.localStorage.setItem('turbofix_reflective_memory', JSON.stringify(memory));
-    }, { jwt: fakeJwt, memory: mockReflectiveMemory });
+    }, { jwt: fakeJwt });
 
     // Mock Supabase REST endpoints
     await page.route('**/rest/v1/**', (route) => {
@@ -35,53 +34,53 @@ test.describe('Dashboard End-to-End & Reflective Framework Tests', () => {
     });
   });
 
-  test('should render The Analyst\'s Mirror Reflective banner with memory recall', async ({ page }) => {
+  test('should render the plant status pulse strip with core KPIs', async ({ page }) => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    // Verify Reflective Mirror Banner is present
-    const reflectiveBanner = page.locator('.reflective-mirror-banner');
-    await expect(reflectiveBanner).toBeVisible({ timeout: 10000 });
-
-    // Verify Cross-Session Memory recall text
-    await expect(reflectiveBanner).toContainText("The Analyst's Mirror");
-    await expect(reflectiveBanner).toContainText('Hydraulic Press');
-    await expect(reflectiveBanner).toContainText('Contrastive Suggestion');
+    const pulse = page.locator('.md-pulse');
+    await expect(pulse).toBeVisible({ timeout: 10000 });
+    await expect(pulse).toContainText('Machines down');
+    await expect(pulse).toContainText('Urgent issues');
+    await expect(pulse).toContainText('MTTR');
   });
 
-  test('should render Royal VIP Concierge banner and switch modes between King\'s View and Operations View', async ({ page }) => {
+  test('should render the priority row with queue, reliability, and cost-impact cards', async ({ page }) => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    // Verify Royal VIP Header
-    const royalBanner = page.locator('.royal-vip-banner');
-    await expect(royalBanner).toBeVisible({ timeout: 10000 });
-    await expect(royalBanner).toContainText('Greetings, Your Majesty');
-
-    // Verify King's View Crown Jewels Grid is visible by default
-    const shieldGrid = page.locator('.royal-shield-grid');
-    await expect(shieldGrid).toBeVisible();
-
-    // Click Operations View button
-    const opsButton = page.locator('button:has-text("Operations View")');
-    await opsButton.click();
-
-    // Verify Crown Jewels grid toggles off in Operations View
-    await expect(shieldGrid).not.toBeVisible();
-
-    // Switch back to King's View
-    const kingsButton = page.locator('button:has-text("King\'s View")');
-    await kingsButton.click();
-    await expect(shieldGrid).toBeVisible();
+    const priorityRow = page.locator('.md-priority-row');
+    await expect(priorityRow).toBeVisible({ timeout: 10000 });
+    await expect(priorityRow).toContainText('Needs attention');
+    await expect(priorityRow).toContainText('Equipment health');
+    await expect(priorityRow).toContainText('Financial impact');
+    await expect(priorityRow).toContainText('MTBF');
+    await expect(priorityRow).toContainText('MTTR');
   });
 
-  test('should execute 1-Tap Spares Approval royal command and display toast notification', async ({ page }) => {
+  test('should expand a category tab and collapse it back on second click', async ({ page }) => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    const sparesButton = page.locator('.royal-action-btn:has-text("1-Tap Spares Approval")');
-    await expect(sparesButton).toBeVisible({ timeout: 10000 });
-    await sparesButton.click();
+    // Categories are collapsed by default — a hint is shown instead of the details.
+    await expect(page.locator('.md-filter-hint')).toBeVisible({ timeout: 10000 });
 
-    // Verify Toast notification appears
-    const toast = page.locator('.toast-message');
-    await expect(toast).toContainText('Royal Command Executed');
+    const efficiencyTab = page.locator('.dashboard-filter-row button:has-text("Equipment-wise")');
+    await efficiencyTab.click();
+    await expect(efficiencyTab).toHaveClass(/active/);
+    await expect(page.locator('.md-category', { hasText: 'Operational efficiency' })).toBeVisible();
+
+    // Clicking the same tab again collapses it back to the hint state.
+    await efficiencyTab.click();
+    await expect(efficiencyTab).not.toHaveClass(/active/);
+    await expect(page.locator('.md-filter-hint')).toBeVisible();
+  });
+
+  test('should open the priority queue drilldown on click', async ({ page }) => {
+    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
+
+    const queueRow = page.locator('.md-queue-row').first();
+    await expect(queueRow).toBeVisible({ timeout: 10000 });
+    await queueRow.click();
+
+    const drilldown = page.locator('#dashboard-drilldown');
+    await expect(drilldown).toBeVisible();
   });
 });

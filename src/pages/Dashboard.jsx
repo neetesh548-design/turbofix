@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, ArrowUpRight, BarChart3, Clock3, ShieldCheck, Crown, Sparkles, Zap, Award, DollarSign, Volume2, CheckCircle2, SlidersHorizontal, MessageSquare, FileText, BrainCircuit, Compass, Eye, RefreshCw, History } from 'lucide-react';
+import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
-import { DashboardGrid } from '@/components/DashboardWidget';
+import './Dashboard.css';
 
 const fallback = {
   company_name: 'TurboFix',
@@ -101,12 +101,16 @@ const fallback = {
   repair_replace: [],
   data_quality: [], audit_log: [], vendor_amc: { alerts: [], outsourced_open: 0 },
   needs_attention: [
-    { machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन में अभी भी बहुत सारी इशू हैं', urgency: 'Medium' },
-    { machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन इस टॉप एंड ड्रिल इस ए वर्ग', urgency: 'Medium' },
-    { machine_id: 'm4', machine_name: 'Screw Air Compressor', description: 'Air discharge temperature high, auto-shutting down', urgency: 'Critical' },
-    { machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन में चलते समय बहुत ज्यादा आवाज आ रही है', urgency: 'Medium' },
-    { machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'Emergency stop button stuck and wont reset', urgency: 'Critical' },
+    { ticket_id: 'fb1', machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन में अभी भी बहुत सारी इशू हैं', urgency: 'Medium' },
+    { ticket_id: 'fb2', machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन इस टॉप एंड ड्रिल इस ए वर्ग', urgency: 'Medium' },
+    { ticket_id: 'fb3', machine_id: 'm4', machine_name: 'Screw Air Compressor', description: 'Air discharge temperature high, auto-shutting down', urgency: 'Critical' },
+    { ticket_id: 'fb4', machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'मशीन में चलते समय बहुत ज्यादा आवाज आ रही है', urgency: 'Medium' },
+    { ticket_id: 'fb5', machine_id: 'm1', machine_name: 'Hydraulic Press', description: 'Emergency stop button stuck and wont reset', urgency: 'Critical' },
   ],
+  efficiency: { total: 62, planned_count: 40, reactive_count: 22, planned_pct: 65 },
+  cost_ratios: { annual_maintenance_cost: 846457, emergency_cost: 320000, cost_pct_of_rav: 5.2, emergency_cost_ratio: 38 },
+  backlog: { open_count: 219, avg_age_days: 6.4, over_7d_count: 58 },
+  backlog_velocity: { opened_7d: 24, resolved_7d: 12, net_7d: 12 },
   recent_activity: [],
   weekly_trend: [],
   monthly_trend: [
@@ -135,6 +139,13 @@ const TREND_WINDOWS = [
 function asNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
+}
+
+function ticketCost(ticket, partCostByTicket = {}) {
+  return asNumber(ticket.maintenance_cost)
+    || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost))
+    || partCostByTicket[ticket.id]
+    || 0;
 }
 
 function ticketHours(ticket, now = new Date()) {
@@ -409,6 +420,87 @@ function computeVendorAmc(machines, tickets, now = new Date()) {
   return { alerts, outsourced_open };
 }
 
+// Planned-vs-reactive ratio (industry KPI, roadmap-agnostic): share of maintenance
+// work that was scheduled ahead of time vs emergency breakdown response, trailing 30 days.
+function computePlannedReactiveRatio(tickets, now = new Date()) {
+  const cutoff = new Date(now.getTime() - (30 * 24 * 3_600_000));
+  const recent = tickets.filter((t) => {
+    const opened = new Date(t.created_at || t.reported_at || '');
+    return !Number.isNaN(opened.getTime()) && opened >= cutoff;
+  });
+  const reactive = recent.filter((t) => (t.type || 'breakdown') === 'breakdown').length;
+  const planned = recent.length - reactive;
+  return {
+    total: recent.length,
+    planned_count: planned,
+    reactive_count: reactive,
+    planned_pct: recent.length ? Math.round((planned / recent.length) * 100) : null,
+  };
+}
+
+// Cost-management KPIs: maintenance spend relative to asset replacement value, and
+// the share consumed by emergency (unplanned/critical) work. Null — not 0% — when
+// the fleet hasn't recorded replacement costs yet, so the number never lies.
+function computeCostRatios(machines, tickets, workOrderParts, now = new Date()) {
+  const yearAgo = new Date(now.getTime() - (365 * 24 * 3_600_000));
+  const partCostByTicket = workOrderParts.reduce((acc, part) => {
+    if (part.ticket_id) acc[part.ticket_id] = (acc[part.ticket_id] || 0) + asNumber(part.total_cost);
+    return acc;
+  }, {});
+  const yearTickets = tickets.filter((t) => {
+    const opened = new Date(t.created_at || t.reported_at || '');
+    return !Number.isNaN(opened.getTime()) && opened >= yearAgo;
+  });
+  let annualCost = 0;
+  let emergencyCost = 0;
+  yearTickets.forEach((t) => {
+    const cost = ticketCost(t, partCostByTicket);
+    annualCost += cost;
+    const urgency = String((t.ai_summary && typeof t.ai_summary === 'object' && t.ai_summary.urgency) || t.urgency || '').toLowerCase();
+    if ((t.type || 'breakdown') === 'breakdown' || ['high', 'critical'].includes(urgency)) emergencyCost += cost;
+  });
+  const totalRav = machines.reduce((total, m) => total + asNumber(m.replacement_cost), 0);
+  return {
+    annual_maintenance_cost: Math.round(annualCost),
+    emergency_cost: Math.round(emergencyCost),
+    cost_pct_of_rav: totalRav > 0 ? Math.round((annualCost / totalRav) * 1000) / 10 : null,
+    emergency_cost_ratio: annualCost > 0 ? Math.round((emergencyCost / annualCost) * 100) : null,
+  };
+}
+
+// Backlog (strategic-planning KPI): open work waiting in queue and how long it has
+// waited — the honest proxy for "backlog weeks" available without crew-hours data.
+function computeBacklog(tickets, now = new Date()) {
+  const open = tickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
+  const ages = open.map((t) => {
+    const opened = new Date(t.created_at || t.reported_at || '');
+    return Number.isNaN(opened.getTime()) ? 0 : (now.getTime() - opened.getTime()) / 86_400_000;
+  });
+  return {
+    open_count: open.length,
+    avg_age_days: ages.length ? Math.round((ages.reduce((a, b) => a + b, 0) / ages.length) * 10) / 10 : 0,
+    over_7d_count: ages.filter((age) => age > 7).length,
+  };
+}
+
+// Backlog velocity: is the queue growing or shrinking this week? A raw open-count
+// is a snapshot; owners need direction — opened vs resolved over the trailing 7 days.
+function computeBacklogVelocity(tickets, now = new Date()) {
+  const cutoff = new Date(now.getTime() - (7 * 24 * 3_600_000));
+  let opened7d = 0;
+  let resolved7d = 0;
+  tickets.forEach((t) => {
+    const openedAt = new Date(t.created_at || t.reported_at || '');
+    if (!Number.isNaN(openedAt.getTime()) && openedAt >= cutoff) opened7d += 1;
+    const closedAt = t.resolved_at || t.closed_at;
+    if (closedAt) {
+      const closedDate = new Date(closedAt);
+      if (!Number.isNaN(closedDate.getTime()) && closedDate >= cutoff) resolved7d += 1;
+    }
+  });
+  return { opened_7d: opened7d, resolved_7d: resolved7d, net_7d: opened7d - resolved7d };
+}
+
 async function fetchDashboardData() {
   const fetchWithTimeout = (promise, ms = 3000) =>
     Promise.race([
@@ -467,6 +559,10 @@ async function fetchDashboardData() {
   const dataQuality = computeDataQuality(machines, tickets);
   const vendorAmc = computeVendorAmc(machines, tickets);
   const monthlyTrend = buildMonthlyTrend(tickets);
+  const plannedReactive = computePlannedReactiveRatio(tickets);
+  const costRatios = computeCostRatios(machines, tickets, workOrderParts);
+  const backlog = computeBacklog(tickets);
+  const backlogVelocity = computeBacklogVelocity(tickets);
   const partCostByTicket = workOrderParts.reduce((acc, part) => {
     if (part.ticket_id) acc[part.ticket_id] = (acc[part.ticket_id] || 0) + asNumber(part.total_cost);
     return acc;
@@ -481,13 +577,12 @@ async function fetchDashboardData() {
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
-  const ticketCost = (ticket) => asNumber(ticket.maintenance_cost) || (asNumber(ticket.parts_cost) + asNumber(ticket.labor_cost) + asNumber(ticket.repair_cost)) || partCostByTicket[ticket.id] || 0;
-  const totalCost = tickets.reduce((total, ticket) => total + ticketCost(ticket), 0);
+  const totalCost = tickets.reduce((total, ticket) => total + ticketCost(ticket, partCostByTicket), 0);
   const costByMonth = monthlyTrend.map((month) => ({
     ...month,
     cost: tickets.reduce((total, ticket) => {
       const opened = new Date(ticket.created_at || ticket.reported_at || '');
-      return monthKey(opened) === month.key ? total + ticketCost(ticket) : total;
+      return monthKey(opened) === month.key ? total + ticketCost(ticket, partCostByTicket) : total;
     }, 0),
   }));
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
@@ -553,6 +648,10 @@ async function fetchDashboardData() {
     vendor_amc: vendorAmc,
     recent_activity: [],
     monthly_trend: monthlyTrend,
+    efficiency: plannedReactive,
+    cost_ratios: costRatios,
+    backlog,
+    backlog_velocity: backlogVelocity,
   };
 }
 
@@ -564,91 +663,6 @@ export default function Dashboard() {
   const [activeBoard, setActiveBoard] = useState('overview');
   const [trendWindow, setTrendWindow] = useState('12m');
   const [trendMetric, setTrendMetric] = useState('issues');
-  const [viewMode, setViewMode] = useState('king'); // 'king' (Royal VIP Executive View) or 'ops' (Standard Operations)
-  const [royalNotice, setRoyalNotice] = useState('');
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [isSpeaking, setIsSpeaking] = useState(false);
-
-  // Reflective Memory State (The Analyst's Mirror)
-  const [reflectiveMemory, setReflectiveMemory] = useState(() => {
-    try {
-      const saved = localStorage.getItem('turbofix_reflective_memory');
-      return saved ? JSON.parse(saved) : { viewsCount: 4, lastFocus: 'Hydraulic Press', filterPreferences: '12m', inspectCount: 12, lastVisit: new Date().toISOString() };
-    } catch {
-      return { viewsCount: 4, lastFocus: 'Hydraulic Press', filterPreferences: '12m', inspectCount: 12, lastVisit: new Date().toISOString() };
-    }
-  });
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-
-  const logUserInteraction = (type, detail) => {
-    setReflectiveMemory((prev) => {
-      const next = {
-        ...prev,
-        viewsCount: (prev.viewsCount || 0) + 1,
-        lastFocus: detail || prev.lastFocus,
-        inspectCount: (prev.inspectCount || 0) + 1,
-        lastVisit: new Date().toISOString(),
-      };
-      try { localStorage.setItem('turbofix_reflective_memory', JSON.stringify(next)); } catch {}
-      return next;
-    });
-  };
-
-  const clearReflectiveMemory = () => {
-    try { localStorage.removeItem('turbofix_reflective_memory'); } catch {}
-    setReflectiveMemory({ viewsCount: 1, lastFocus: 'All Assets', filterPreferences: '12m', inspectCount: 0, lastVisit: new Date().toISOString() });
-    setRoyalNotice('🪞 Reflective behavioral memory cleared cleanly.');
-    setTimeout(() => setRoyalNotice(''), 4000);
-  };
-
-  const speakBriefing = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      if (isSpeaking) {
-        setIsSpeaking(false);
-        return;
-      }
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      setIsSpeaking(true);
-      window.speechSynthesis.speak(utterance);
-    } else {
-      setRoyalNotice('👑 Royal Voice Concierge is listening...');
-      setTimeout(() => setRoyalNotice(''), 3000);
-    }
-  };
-
-  const handleRoyalAction = (actionType) => {
-    if (actionType === 'spares') {
-      setRoyalNotice('👑 Royal Command Executed: Express 1-tap approval granted for all pending spare requests.');
-    } else if (actionType === 'escalate') {
-      setRoyalNotice('🛡️ Tier-1 VIP Escalation Activated: Priority response team alerted for immediate plant review.');
-    } else if (actionType === 'report') {
-      setRoyalNotice('📜 Royal Executive Briefing generated. Opening report view...');
-      window.print();
-    } else if (actionType === 'ai') {
-      window.location.href = 'assistant.html';
-    }
-    setTimeout(() => setRoyalNotice(''), 5000);
-  };
-
-  const handleConciergeAsk = (e) => {
-    e.preventDefault();
-    if (!customPrompt.trim()) return;
-    const promptLower = customPrompt.toLowerCase();
-    if (promptLower.includes('cost') || promptLower.includes('save') || promptLower.includes('spend')) {
-      setRoyalNotice(`👑 Royal Concierge: Total maintenance spend is ${money.format(overview.total_cost || 0)}. Plant availability is maintained at ${uptimePct}%.`);
-    } else if (promptLower.includes('machine') || promptLower.includes('attention') || promptLower.includes('down')) {
-      setRoyalNotice(`👑 Royal Concierge: ${kpis.machines_down || 0} machine(s) need attention. ${kpis.urgent_open || 0} urgent issues are open.`);
-    } else {
-      setRoyalNotice(`👑 Royal Concierge: Dispatching AI query for "${customPrompt}".`);
-    }
-    setCustomPrompt('');
-    setTimeout(() => setRoyalNotice(''), 5000);
-  };
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -664,22 +678,21 @@ export default function Dashboard() {
 
   const { kpis, auto_insights: insights, owner_impact: impact } = data;
   const overview = data.dashboard_overview || fallback.dashboard_overview;
+  const efficiency = data.efficiency || fallback.efficiency;
+  const costRatios = data.cost_ratios || fallback.cost_ratios;
+  const backlog = data.backlog || fallback.backlog;
+  const backlogVelocity = data.backlog_velocity || fallback.backlog_velocity;
   const companyName = data.company_name || 'TurboFix';
   const topMachine = insights.top_problem_machines?.[0];
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
-  const pmComplianceValue = kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`;
-  const topMachineName = topMachine ? (topMachine.machine_name || topMachine.machine_id) : 'No data yet';
-  const machineStatusRows = (insights.top_problem_machines?.length ? insights.top_problem_machines : data.drilldown?.machines_down || [])
-    .slice(0, 4)
-    .map((machine, index) => ({
-      machine_id: machine.machine_id,
-      name: machine.machine_name || machine.machine || `Line ${String.fromCharCode(65 + index)}`,
-      pct: Math.max(8, Math.min(100, 100 - ((machine.ticket_count || machine.open_count || index + 1) * 8))),
-      status: (machine.ticket_count || machine.open_count || 0) > 2 ? 'Warning' : 'Running',
-    }));
-  const onlineMachines = Math.max(0, (kpis.total_machines || 0) - (kpis.machines_down || 0));
   const uptimePct = Math.max(0, Math.min(100, Math.round(impact.availability_pct ?? kpis.plant_health_pct ?? 0)));
-  const predictedFailures = Math.max(kpis.urgent_open || 0, insights.top_problem_machines?.filter((m) => (m.ticket_count || 0) >= 3).length || 0);
+  const urgencyRank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+  const mostCritical = [...(data.needs_attention || [])].sort(
+    (a, b) => (urgencyRank[a.urgency] ?? 9) - (urgencyRank[b.urgency] ?? 9),
+  )[0];
+  const fleetDown = data.drilldown?.machines_down || [];
+  const fleetOnlineCount = data.drilldown?.online_machines?.length || 0;
+  const fleetTotal = fleetDown.length + fleetOnlineCount;
   const trendMonths = TREND_WINDOWS.find((item) => item.key === trendWindow)?.months || 12;
   const trendSeries = (data.monthly_trend || []).slice(-trendMonths);
   const maxTrendCount = Math.max(...trendSeries.map((month) => month.issues || 0), 1);
@@ -731,7 +744,6 @@ export default function Dashboard() {
     downtime: { title: 'Downtime contributors', items: downtimeItems, empty: 'No downtime contributors are available yet.' },
     predicted: { title: 'Predicted failure signals', items: predictedItems, empty: 'No repeat or urgent failure signal is available yet.' },
     uptime: { title: 'Uptime and efficiency details', items: data.drilldown?.machines_down || [], empty: 'No machine is currently reducing uptime.' },
-    line_status: { title: 'Production line status details', items: predictedItems.length ? predictedItems : data.drilldown?.machines_down || [], empty: 'No line-level machine signal is available yet.' },
     alerts: { title: 'AI insights and alerts', items: predictedItems.length ? predictedItems : data.drilldown?.urgent_issues || [], empty: 'No AI alert needs action right now.' },
     trend: { title: `${trendMetricLabel} trend details`, items: trendItems, empty: 'No trend data is available yet.' },
     queue: { title: 'Priority queue details', items: data.needs_attention || [], empty: 'No open priority item is waiting.' },
@@ -739,10 +751,25 @@ export default function Dashboard() {
   };
   const revealDetail = (detail) => {
     setActiveDetail(detail);
-    logUserInteraction('detail_inspection', detail);
     window.requestAnimationFrame(() => document.getElementById('dashboard-drilldown')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
-  const showBoard = (view) => activeBoard === 'overview' || activeBoard === view;
+  const toggleBoard = (key) => setActiveBoard((prev) => (prev === key ? 'overview' : key));
+  const handover = data.shift_handover || {};
+  const handoverGroups = [
+    ['Critical open jobs', handover.critical, '#F87171'],
+    ['Waiting for spare', handover.waiting_spare, '#F59E0B'],
+    ['Waiting for approval / verification', handover.waiting_approval, '#A78BFA'],
+    ['Waiting for vendor', handover.waiting_vendor, '#F59E0B'],
+    ['Recurring failures', handover.repeat, '#F87171'],
+  ];
+  const handoverPmDue = handover.pm_due || [];
+  const handoverTotal = handoverGroups.reduce((n, [, items]) => n + (items?.length || 0), 0) + handoverPmDue.length;
+  const buildHandoverText = () => {
+    const lines = [`TurboFix shift handover — ${new Date().toLocaleString('en-IN')}`, `Machines down: ${handover.machines_down || 0}`];
+    handoverGroups.forEach(([label, items]) => { if (items?.length) { lines.push(`\n${label} (${items.length}):`); items.forEach((i) => lines.push(`- ${i.machine}${i.wo ? ` [${i.wo}]` : ''}: ${i.text}`)); } });
+    if (handoverPmDue.length) { lines.push(`\nPM due (${handoverPmDue.length}):`); handoverPmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
+    return lines.join('\n');
+  };
   const exportDashboardData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -755,259 +782,145 @@ export default function Dashboard() {
 
   return (
     <AppShell active="overview">
-      <div className="decision-page">
-        {/* The Analyst's Mirror: Reflective Dashboard Banner */}
-        <section className="reflective-mirror-banner">
-          <div className="reflective-head">
-            <div className="reflective-title-group">
-              <div className="reflective-orb-icon">
-                <BrainCircuit size={26} />
-              </div>
-              <div>
-                <h3>The Analyst's Mirror <Compass size={18} color="#a855f7" /></h3>
-                <p>Cognitive Dashboard Partner · Reflecting your analytical habits, focus patterns &amp; bias corrections.</p>
-              </div>
-            </div>
-            <div className="reflective-controls">
-              <span className="reflective-pill-badge">
-                <Eye size={14} /> REFLECTIVE MEMORY ACTIVE
-              </span>
-              <button
-                type="button"
-                className="reflective-privacy-btn"
-                onClick={clearReflectiveMemory}
-                title="Clear your behavioral memory logs"
-              >
-                <RefreshCw size={12} style={{ display: 'inline', marginRight: 4 }} /> Clear Memory
-              </button>
-            </div>
-          </div>
+      <div className="decision-page md-dashboard">
+        <div className="md-aurora" aria-hidden="true" />
 
-          <div className="reflective-grid">
-            <div className="reflective-card">
-              <div className="reflective-card-head">
-                <History size={16} /> Cross-Session Cognitive Memory
-              </div>
-              <p>
-                <strong>Welcome back analyst!</strong> In your previous session, you fixated primarily on{' '}
-                <strong>{reflectiveMemory.lastFocus || 'Hydraulic Press'}</strong> (30 issues) and the 12-month downtime spend.
-              </p>
-              <p className="reflective-card-sub">
-                💡 <em>Session Delta:</em> Plant health is currently at {kpis.plant_health_pct}%. 6 of 7 machines need attention.
-              </p>
-            </div>
-
-            <div className="reflective-card reflective-counterbalance">
-              <div className="reflective-card-head">
-                <Compass size={16} /> Contrastive Suggestion (Bias Correction)
-              </div>
-              <p>
-                <strong>Counterbalance Alert:</strong> You spent 75% of your inspection time on Hydraulic Press.
-              </p>
-              <p className="reflective-card-sub">
-                ⚠️ <em>Overlooked Asset:</em> <strong>Screw Air Compressor</strong> has an unreviewed critical alert (High air discharge temperature).
-              </p>
-            </div>
-          </div>
-
-          <div className="reflective-memory-footer">
-            <div className="reflective-stats-row">
-              <span className="reflective-stat-item">
-                Sessions Logged: <strong>{reflectiveMemory.viewsCount || 1}</strong>
-              </span>
-              <span>·</span>
-              <span className="reflective-stat-item">
-                Primary Focus: <strong>{reflectiveMemory.lastFocus || 'Hydraulic Press'}</strong>
-              </span>
-              <span>·</span>
-              <span className="reflective-stat-item">
-                UI Inspections: <strong>{reflectiveMemory.inspectCount || 12}</strong>
-              </span>
-            </div>
-            <span>Reflective Loop: Active (Human-in-the-Loop Reasoning)</span>
-          </div>
-        </section>
-
-        {/* Royal VIP Concierge Banner & Controls */}
-        <section className="royal-vip-container">
-          <div className="royal-vip-banner">
-            <div className="royal-banner-header">
-              <div className="royal-title-group">
-                <div className="royal-crown-avatar">
-                  <Crown size={28} />
-                </div>
-                <div className="royal-greeting">
-                  <h2>
-                    Greetings, Your Majesty <Sparkles size={20} color="#fbbf24" />
-                  </h2>
-                  <p>{companyName} Executive VIP Suite · At your service with real-time plant intelligence &amp; 1-click royal commands.</p>
-                </div>
-              </div>
-              <div className="royal-mode-switch-group">
-                <span className="royal-vip-badge">👑 VIP COMMAND CENTER</span>
-                <button
-                  type="button"
-                  className={`royal-mode-btn ${viewMode === 'king' ? 'active' : ''}`}
-                  onClick={() => setViewMode('king')}
-                >
-                  <Crown size={15} /> King's View
-                </button>
-                <button
-                  type="button"
-                  className={`royal-mode-btn ${viewMode === 'ops' ? 'active' : ''}`}
-                  onClick={() => setViewMode('ops')}
-                >
-                  <SlidersHorizontal size={15} /> Operations View
-                </button>
-              </div>
-            </div>
-
-            {/* Royal Executive Briefing Bar */}
-            <div className="royal-briefing-card">
-              <div className="royal-briefing-text">
-                <Volume2 className="royal-briefing-icon" size={20} />
-                <span>
-                  <strong>Executive Briefing:</strong> Plant availability is running at <strong>{uptimePct}%</strong> royal excellence. {kpis.machines_down === 0 ? 'Zero machines down, zero downtime loss reported today.' : `${kpis.machines_down} machine(s) require royal attention.`} Total maintenance ROI is protected.
-                </span>
-              </div>
-              <div className="royal-briefing-actions">
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => speakBriefing(`Greetings Your Majesty. Plant availability is running at ${uptimePct} percent royal excellence. ${kpis.machines_down === 0 ? 'Zero machines down, zero downtime loss reported today.' : `${kpis.machines_down} machines require your royal attention.`}`)}
-                >
-                  {isSpeaking ? '⏸ Stop Audio' : '🔊 Listen Briefing'}
-                </button>
-              </div>
-            </div>
-
-            {/* Interactive Royal Concierge Quick Ask */}
-            <form onSubmit={handleConciergeAsk} className="royal-concierge-quick-ask">
-              <Sparkles size={18} color="#fbbf24" />
-              <input
-                type="text"
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Ask your Royal Concierge... (e.g. 'Show today\'s ROI', 'Approve pending parts', 'List urgent issues')"
-              />
-              <button type="submit" className="btn btn-primary btn-sm">Command</button>
-              <button
-                type="button"
-                className="royal-prompt-chip"
-                onClick={() => { setRoyalNotice(`👑 Royal Concierge: Total maintenance spend is ${money.format(overview.total_cost || 0)}. Plant availability is maintained at ${uptimePct}%.`); setTimeout(() => setRoyalNotice(''), 5000); }}
-              >
-                💰 Cost Savings
-              </button>
-              <button
-                type="button"
-                className="royal-prompt-chip"
-                onClick={() => handleRoyalAction('spares')}
-              >
-                ⚡ 1-Tap Spares Approval
-              </button>
-            </form>
-
-            {royalNotice && (
-              <div className="toast success" style={{ position: 'relative', bottom: 0, right: 0, marginTop: 12, maxWidth: '100%' }}>
-                <Award className="toast-icon" size={20} color="#fbbf24" />
-                <div className="toast-content">
-                  <div className="toast-message">{royalNotice}</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* King's View Crown Jewels Shield */}
-          {viewMode === 'king' && (
-            <div className="royal-shield-grid">
-              <div className="royal-kpi-card gold-highlight" onClick={() => revealDetail('secondary')}>
-                <div className="royal-kpi-top">
-                  <span className="royal-kpi-label">Downtime Cost Protection</span>
-                  <div className="royal-kpi-icon"><DollarSign size={20} /></div>
-                </div>
-                <div className="royal-kpi-val">{money.format(impact.downtime_cost > 0 ? impact.downtime_cost : 45000)}</div>
-                <div className="royal-kpi-sub"><CheckCircle2 size={14} /> Royal Financial ROI Shield Active</div>
-              </div>
-
-              <div className="royal-kpi-card" onClick={() => revealDetail('uptime')}>
-                <div className="royal-kpi-top">
-                  <span className="royal-kpi-label">Equipment Health Score</span>
-                  <div className="royal-kpi-icon"><Crown size={20} /></div>
-                </div>
-                <div className="royal-kpi-val">{uptimePct}%</div>
-                <div className="royal-kpi-sub"><Sparkles size={14} /> {uptimePct >= 90 ? 'Flawless Royal Performance' : 'Guarded Asset Status'}</div>
-              </div>
-
-              <div className="royal-kpi-card" onClick={() => revealDetail('machines')}>
-                <div className="royal-kpi-top">
-                  <span className="royal-kpi-label">Zero Breakdown Streak</span>
-                  <div className="royal-kpi-icon"><Award size={20} /></div>
-                </div>
-                <div className="royal-kpi-val">{kpis.machines_down === 0 ? '30 Days' : `${30 - kpis.machines_down} Days`}</div>
-                <div className="royal-kpi-sub"><ShieldCheck size={14} /> Uninterrupted Line Protection</div>
-              </div>
-
-              <div className="royal-kpi-card" onClick={() => revealDetail('secondary')}>
-                <div className="royal-kpi-top">
-                  <span className="royal-kpi-label">PM Guaranteed SLA</span>
-                  <div className="royal-kpi-icon"><Zap size={20} /></div>
-                </div>
-                <div className="royal-kpi-val">{kpis.pm_compliance_pct != null ? `${kpis.pm_compliance_pct}%` : '100%'}</div>
-                <div className="royal-kpi-sub"><CheckCircle2 size={14} /> VIP Priority Maintenance SLA</div>
-              </div>
-            </div>
-          )}
-
-          {/* King's Command 1-Click Action Suite */}
-          {viewMode === 'king' && (
-            <div className="royal-command-section">
-              <div className="royal-command-head">
-                <h3><Zap size={20} color="#fbbf24" /> King's Command Suite · Instant 1-Click Royal Actions</h3>
-                <span className="trend-caption">VIP Priority Direct Dispatch</span>
-              </div>
-              <div className="royal-command-grid">
-                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('spares')}>
-                  <Zap size={22} />
-                  <strong>1-Tap Spares Approval</strong>
-                  <span>Grant immediate approval for waiting parts</span>
-                </button>
-
-                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('escalate')}>
-                  <ShieldCheck size={22} />
-                  <strong>VIP Priority Escalation</strong>
-                  <span>Dispatch senior engineers to plant floor</span>
-                </button>
-
-                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('report')}>
-                  <FileText size={22} />
-                  <strong>Royal Executive Briefing</strong>
-                  <span>Export 1-page board executive summary PDF</span>
-                </button>
-
-                <button type="button" className="royal-action-btn" onClick={() => handleRoyalAction('ai')}>
-                  <MessageSquare size={22} />
-                  <strong>Summon AI Specialist</strong>
-                  <span>Open voice/text technical breakdown assistant</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <div className="decision-heading overview-heading">
+        <header className="md-header">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
-            <h1>Dashboard <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>{companyName} · Preventive maintenance control board. Analytics computes the numbers; TurboFix turns them into action.</p>
+            <h1>{companyName} <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
+            <p>Maintenance command center · reliability, efficiency, cost &amp; planning, live.</p>
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
             <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
           </div>
-        </div>
+        </header>
+
+        {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
+
+        {/* PULSE STRIP — the one-glance plant status row */}
+        <section className="md-pulse" aria-label="Plant status at a glance">
+          <button type="button" className={`md-pulse-ring md-tone-${healthTone}`} onClick={() => revealDetail('uptime')}>
+            <HealthRing value={loading ? 0 : uptimePct} tone={healthTone} loading={loading} size={72} stroke={7} label="available" />
+          </button>
+          <span className="md-pulse-divider" />
+          <PulseStat icon={AlertTriangle} tone="danger" label="Machines down" value={kpis.machines_down} onClick={() => revealDetail('machines')} />
+          <PulseStat icon={Clock3} tone="warning" label="Urgent issues" value={kpis.urgent_open} onClick={() => revealDetail('urgent')} />
+          <PulseStat
+            icon={Layers}
+            label="Open backlog"
+            value={backlog.open_count}
+            trend={<TrendBadge delta={backlogVelocity.net_7d} unit="" />}
+            onClick={() => revealDetail('open')}
+          />
+          <PulseStat icon={Wrench} label="MTTR" value={`${insights.mttr_hours || 0}h`} onClick={() => revealDetail('repair')} />
+          <span className="md-pulse-divider" />
+          <PulseStat icon={DollarSign} tone="danger" label="Downtime cost · 30d" value={money.format(impact.downtime_cost || 0)} onClick={() => revealDetail('downtime')} />
+        </section>
+
+        {/* FLEET STATUS — every machine as a colored chip, spatial read at a glance */}
+        <FleetStrip downMachines={fleetDown} onlineCount={fleetOnlineCount} totalCount={fleetTotal} onClick={revealDetail} />
+
+        {/* PRIORITY ROW — what needs action right now */}
+        <section className="md-priority-row">
+          <div className="md-card md-queue-card">
+            <div className="md-card-head">
+              <div>
+                <span className="md-kicker">Priority queue</span>
+                <h2>Needs attention</h2>
+              </div>
+              <a href="tickets.html" className="text-link">View all</a>
+            </div>
+            {mostCritical && (
+              <button type="button" className="md-most-critical" onClick={() => revealDetail('urgent')}>
+                <AlertTriangle size={15} />
+                <span className="md-most-critical-text">
+                  <strong>Most urgent · {mostCritical.machine_name}</strong>
+                  <small>{mostCritical.description}</small>
+                </span>
+                <b className="md-queue-tag">{mostCritical.urgency}</b>
+              </button>
+            )}
+            <div className="md-queue-list">
+              {data.needs_attention?.length ? data.needs_attention
+                .filter((item) => !mostCritical || item.ticket_id == null || item.ticket_id !== mostCritical.ticket_id)
+                .slice(0, 3).map((item, index) => (
+                <button type="button" className="md-queue-row" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
+                  <span className={`md-dot md-dot-${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'ok'}`} />
+                  <span className="md-queue-text">
+                    <strong>{item.machine_name || 'Unknown machine'}</strong>
+                    <small>{item.description || 'Maintenance issue reported'}</small>
+                  </span>
+                  <b className="md-queue-tag">{item.urgency || 'Open'}</b>
+                </button>
+              )) : <Empty text="No open issues. Your plant is clear." />}
+            </div>
+          </div>
+
+          <div className="md-card md-reliability-card">
+            <div className="md-card-head">
+              <div>
+                <span className="md-kicker">Category 1 · Reliability</span>
+                <h2>Equipment health</h2>
+              </div>
+            </div>
+            <SeverityBar
+              label="MTBF"
+              value={insights.mtbf_hours || 0}
+              unit="h"
+              pct={Math.min(100, ((insights.mtbf_hours || 0) / 48) * 100)}
+              tone={(insights.mtbf_hours || 0) >= 24 ? 'ok' : (insights.mtbf_hours || 0) >= 12 ? 'warning' : 'danger'}
+              hint="Time between failures — higher is better"
+              onClick={() => revealDetail('predicted')}
+            />
+            <SeverityBar
+              label="MTTR"
+              value={insights.mttr_hours || 0}
+              unit="h"
+              pct={Math.min(100, ((insights.mttr_hours || 0) / 12) * 100)}
+              tone={(insights.mttr_hours || 0) <= 4 ? 'ok' : (insights.mttr_hours || 0) <= 8 ? 'warning' : 'danger'}
+              hint="Average repair time — lower is better"
+              onClick={() => revealDetail('repair')}
+            />
+            <SeverityBar
+              label="Repeat breakdowns"
+              value={insights.repeat_breakdown_pct || 0}
+              unit="%"
+              pct={insights.repeat_breakdown_pct || 0}
+              tone={insights.repeat_breakdown_pct >= 50 ? 'danger' : insights.repeat_breakdown_pct >= 20 ? 'warning' : 'ok'}
+              hint="Assets failing 3+ times in 30 days"
+              onClick={() => revealDetail('alerts')}
+            />
+            <button type="button" className="md-alert-mini" onClick={() => revealDetail('alerts')}>
+              <AlertTriangle size={14} />
+              <span>
+                <strong>{topMachine ? topMachine.machine_name : 'No repeat-failure signal'}</strong>
+                <small>{topMachine ? `${topMachine.ticket_count} issues in 30 days — inspect first` : 'No major recurring issue detected'}</small>
+              </span>
+            </button>
+          </div>
+
+          <div className="md-card md-impact-card">
+            <div className="md-card-head">
+              <div>
+                <span className="md-kicker">Category 3 · Cost</span>
+                <h2>Financial impact</h2>
+              </div>
+            </div>
+            <CostComposition
+              segments={[
+                { label: 'Downtime cost', value: impact.downtime_cost || 0, tone: 'danger', detail: 'downtime' },
+                { label: 'Maintenance cost', value: impact.maintenance_cost || 0, tone: 'blue', detail: 'secondary' },
+                { label: 'Repeat-failure exposure', value: impact.repeat_loss_exposure || 0, tone: 'amber', detail: 'alerts' },
+              ]}
+              onSegmentClick={(s) => revealDetail(s.detail)}
+            />
+          </div>
+        </section>
+
         <div className="dashboard-filter-row" aria-label="Dashboard filters">
           {[
-            ['overview', 'Overview'],
             ['equipment', 'Equipment-wise'],
             ['maintenance', 'Maintenance-wise'],
             ['frequency', 'Frequency-wise'],
@@ -1017,17 +930,334 @@ export default function Dashboard() {
               key={key}
               type="button"
               className={activeBoard === key ? 'active' : ''}
-              onClick={() => setActiveBoard(key)}
+              onClick={() => toggleBoard(key)}
               aria-pressed={activeBoard === key}
             >
               {label}
             </button>
           ))}
         </div>
+        {activeBoard === 'overview' && (
+          <p className="md-filter-hint">Pick a category above to drill into its detailed KPIs, charts, and breakdowns.</p>
+        )}
+        {activeBoard === 'technician' && (
+          <div className="md-category-empty">No technician-level breakdown is available yet — this view will populate once work orders are attributed to individual technicians.</div>
+        )}
+
+        {/* CATEGORY 2 — Operational Efficiency */}
+        {activeBoard === 'equipment' && (
+        <section className="md-category">
+          <button type="button" className="md-category-head md-category-head-btn" onClick={() => toggleBoard('equipment')}>
+            <TrendingUp size={18} />
+            <div>
+              <span className="md-kicker">Category 2</span>
+              <h2>Operational efficiency</h2>
+            </div>
+            <span className="md-category-collapse">Collapse ▲</span>
+          </button>
+          <div className="md-kpi-grid">
+            <KpiCard
+              label="PM compliance rate"
+              value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`}
+              hint="World-class 95%+ · PMs completed on time"
+              tone={kpis.pm_compliance_pct != null && kpis.pm_compliance_pct < 80 ? 'warning' : 'ok'}
+              onClick={() => revealDetail('secondary')}
+            />
+            <KpiCard
+              label="Planned vs reactive"
+              value={efficiency.planned_pct == null ? 'No data yet' : `${efficiency.planned_pct}% planned`}
+              hint="World-class 85%+ planned · 30 days"
+              tone={efficiency.planned_pct != null && efficiency.planned_pct < 50 ? 'danger' : ''}
+              onClick={() => revealDetail('secondary')}
+            />
+            <KpiCard
+              label="Scheduled PM coverage"
+              value={`${overview.scheduled_pct || 0}%`}
+              hint="Active preventive schedules on the fleet"
+              onClick={() => revealDetail('secondary')}
+            />
+            <KpiCard
+              label="Backlog age"
+              value={`${backlog.avg_age_days || 0}d avg`}
+              hint={`${backlog.over_7d_count || 0} open tickets waiting over a week`}
+              tone={backlog.over_7d_count > 0 ? 'warning' : ''}
+              onClick={() => revealDetail('open')}
+            />
+          </div>
+          <section className="dashboard-analysis-board md-charts-row">
+            <section className="decision-panel dashboard-chart-card">
+              <div className="decision-panel-heading">
+                <div>
+                  <div className="decision-card-kicker">Work distribution</div>
+                  <h2>Open vs resolved</h2>
+                </div>
+                <span className="trend-caption">Selected window</span>
+              </div>
+              <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
+            </section>
+            <section className="decision-panel dashboard-chart-card">
+              <div className="decision-panel-heading">
+                <div>
+                  <div className="decision-card-kicker">Equipment-wise risk</div>
+                  <h2>Top machines</h2>
+                </div>
+                <span className="trend-caption">30 days</span>
+              </div>
+              <RiskBars machines={insights.top_problem_machines || []} />
+            </section>
+            <section className="decision-panel dashboard-chart-card">
+              <div className="decision-panel-heading">
+                <div>
+                  <div className="decision-card-kicker">Maintenance status</div>
+                  <h2>Status mix</h2>
+                </div>
+                <span className="trend-caption">All records</span>
+              </div>
+              <MiniDonutChart items={overview.status_mix || []} />
+            </section>
+            <section className="decision-panel dashboard-chart-card">
+              <div className="decision-panel-heading">
+                <div>
+                  <div className="decision-card-kicker">Maintenance-wise</div>
+                  <h2>Type analysis</h2>
+                </div>
+                <span className="trend-caption">Top 5</span>
+              </div>
+              <CategoryBars items={overview.type_mix || []} />
+            </section>
+          </section>
+        </section>
+        )}
+
+        {/* CATEGORY 3 — Cost Management */}
+        {activeBoard === 'maintenance' && (
+        <section className="md-category">
+          <button type="button" className="md-category-head md-category-head-btn" onClick={() => toggleBoard('maintenance')}>
+            <DollarSign size={18} />
+            <div>
+              <span className="md-kicker">Category 3</span>
+              <h2>Cost management</h2>
+            </div>
+            <span className="md-category-collapse">Collapse ▲</span>
+          </button>
+          <div className="md-category-export">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={exportDashboardData}>Export data</button>
+          </div>
+          <div className="md-kpi-grid">
+            <KpiCard
+              label="Maintenance cost vs asset value"
+              value={costRatios.cost_pct_of_rav == null ? 'Set replacement costs' : `${costRatios.cost_pct_of_rav}%`}
+              hint="World-class 2–3% of replacement value · 12 months"
+              tone={costRatios.cost_pct_of_rav != null && costRatios.cost_pct_of_rav > 8 ? 'danger' : ''}
+              onClick={() => revealDetail('secondary')}
+            />
+            <KpiCard
+              label="Emergency cost ratio"
+              value={costRatios.emergency_cost_ratio == null ? 'No data yet' : `${costRatios.emergency_cost_ratio}%`}
+              hint="World-class under 15% · share spent on unplanned work"
+              tone={costRatios.emergency_cost_ratio != null && costRatios.emergency_cost_ratio > 45 ? 'danger' : ''}
+              onClick={() => revealDetail('secondary')}
+            />
+            <KpiCard label="Total maintenance spend" value={money.format(overview.total_cost || 0)} hint="All recorded maintenance records" onClick={() => revealDetail('secondary')} />
+            <KpiCard label="Average cost per record" value={money.format(overview.avg_cost || 0)} hint={`${overview.maintenance_count || 0} maintenance records`} onClick={() => revealDetail('secondary')} />
+          </div>
+          <section className="dashboard-analysis-board md-charts-row md-charts-row-cost">
+            <section className="decision-panel dashboard-chart-card md-cost-trend-card">
+              <div className="decision-panel-heading">
+                <div>
+                  <div className="decision-card-kicker">Cost trend</div>
+                  <h2>Monthly spend</h2>
+                </div>
+                <span className="trend-caption">12 months</span>
+              </div>
+              <CostBars items={overview.cost_by_month || []} />
+            </section>
+            {impact.top_loss_machines?.length > 0 && (
+              <section className="decision-panel dashboard-chart-card md-loss-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Where the money goes</div>
+                    <h2>Top loss-making machines</h2>
+                  </div>
+                  <span className="trend-caption">30 days</span>
+                </div>
+                <div className="dashboard-detail-list">
+                  {impact.top_loss_machines.slice(0, 4).map((machine, index) => (
+                    <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
+                        <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
+                      </span>
+                      <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </section>
+        </section>
+        )}
+
+        {/* CATEGORY 4 — Strategic Planning */}
+        {activeBoard === 'frequency' && (
+        <section className="md-category">
+          <button type="button" className="md-category-head md-category-head-btn" onClick={() => toggleBoard('frequency')}>
+            <Layers size={18} />
+            <div>
+              <span className="md-kicker">Category 4</span>
+              <h2>Strategic planning</h2>
+            </div>
+            <span className="md-category-collapse">Collapse ▲</span>
+          </button>
+          <section className="decision-panel dashboard-trend-panel dashboard-trend-strip">
+            <div className="decision-panel-heading dashboard-trend-heading">
+              <div>
+                <div className="decision-card-kicker">Trend strip</div>
+                <h2>Last 1 year, customizable</h2>
+              </div>
+              <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
+                {TREND_WINDOWS.map((item) => (
+                  <button key={item.key} type="button" className={trendWindow === item.key ? 'active' : ''} onClick={() => setTrendWindow(item.key)}>{item.label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="dashboard-trend-strip-shell">
+              <div className="dashboard-trend-strip-copy">
+                <strong>{trendMetricLabel}</strong>
+                <span>{trendSeries.length ? `${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime` : 'No trend history yet.'}</span>
+              </div>
+              <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
+                {[
+                  ['issues', 'Issues'],
+                  ['resolved', 'Resolved'],
+                  ['downtime_hours', 'Downtime'],
+                ].map(([key, label]) => (
+                  <button key={key} type="button" className={trendMetric === key ? 'active' : ''} onClick={() => setTrendMetric(key)}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <button type="button" className="dashboard-trend-click-layer" onClick={() => revealDetail('trend')} aria-label="View trend details">
+              <div className="dashboard-trend-strip-bars">
+                {trendSeries.length ? trendSeries.map((month) => {
+                  const value = month[trendMetric] || 0;
+                  const maxValue = trendMetric === 'resolved' ? maxTrendResolved : trendMetric === 'downtime_hours' ? maxTrendDowntime : maxTrendCount;
+                  return (
+                    <div className="dashboard-trend-strip-bar" key={month.key}>
+                      <span className="dashboard-trend-strip-fill" style={{ height: `${Math.max(10, (value / Math.max(maxValue, 1)) * 100)}%` }} />
+                      <small>{month.label}</small>
+                    </div>
+                  );
+                }) : <Empty text="No trend history yet." />}
+              </div>
+            </button>
+            <div className="dashboard-trend-strip-footer">
+              <strong>{trendMetricTotal}</strong>
+              <small>Total over selected window</small>
+            </div>
+          </section>
+
+          {data.repair_replace?.length > 0 && (
+            <section className="decision-panel">
+              <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
+              <div className="dashboard-detail-list">
+                {data.repair_replace.map((m) => (
+                  <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
+                    <span style={{ display: 'flex', flexDirection: 'column' }}>
+                      <strong>{m.machine_name}</strong>
+                      <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
+                    </span>
+                    <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) && (
+            <section className="decision-panel">
+              <div className="decision-panel-heading"><div><div className="decision-card-kicker">Contracts &amp; vendors</div><h2>AMC &amp; warranty</h2></div><span className="trend-caption">{data.vendor_amc.outsourced_open > 0 ? `${data.vendor_amc.outsourced_open} open at vendor` : 'Next 60 days'}</span></div>
+              {data.vendor_amc.alerts?.length ? (
+                <div className="dashboard-detail-list">
+                  {data.vendor_amc.alerts.map((a, index) => {
+                    const expired = a.days < 0;
+                    const tone = expired ? '#F87171' : a.days <= 30 ? '#FBBF24' : 'var(--slate)';
+                    return (
+                      <a href={`machines.html?machine=${encodeURIComponent(a.machine_id)}`} key={`${a.machine_id}-${a.type}-${index}`}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <b style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: tone, border: `1px solid ${tone}`, borderRadius: '999px', padding: '2px 8px' }}>{a.type}</b>
+                          <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{a.machine}</strong><small>{a.party} · expires {new Date(a.expiry).toLocaleDateString('en-IN')}</small></span>
+                        </span>
+                        <b style={{ color: tone, whiteSpace: 'nowrap' }}>{expired ? `Expired ${Math.abs(a.days)}d ago` : a.days === 0 ? 'Expires today' : `${a.days}d left`}</b>
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : <Empty text="No AMC or warranty expiring in the next 60 days." />}
+            </section>
+          )}
+
+          <section className="decision-columns">
+            <div className="decision-panel">
+              <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
+              {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
+                <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
+                  <span className="status-dot warning" />
+                  <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
+                </a>
+              )) : <Empty text="Records look clean. KPIs are trustworthy." />}
+            </div>
+            <div className="decision-panel">
+              <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
+              {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
+                const d = entry.details || {};
+                const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
+                  : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
+                  : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
+                  : `Status: ${d.from || '—'} → ${d.to || '—'}`;
+                return (
+                  <div className="attention-row" key={entry.id}>
+                    <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
+                    <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
+                  </div>
+                );
+              }) : <Empty text="No recorded changes yet." />}
+            </div>
+          </section>
+
+          <section className="decision-panel">
+            <div className="decision-panel-heading">
+              <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildHandoverText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
+            </div>
+            {handoverTotal === 0 ? <Empty text="Nothing pending — clean handover." /> : (
+              <div style={{ display: 'grid', gap: '14px' }}>
+                <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{handover.machines_down || 0} machine{handover.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
+                {handoverGroups.map(([label, items, color]) => items?.length ? (
+                  <div key={label}>
+                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color, fontWeight: 700, marginBottom: '6px' }}>{label} · {items.length}</div>
+                    <div className="dashboard-detail-list">
+                      {items.map((i) => <a href={`machines.html?machine=${encodeURIComponent(i.machine_id)}`} key={i.id}><span><strong>{i.machine}</strong><small>{i.text}</small></span>{i.wo && <b style={{ color: 'var(--slate)', fontFamily: 'monospace' }}>{i.wo}</b>}</a>)}
+                    </div>
+                  </div>
+                ) : null)}
+                {handoverPmDue.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#FBBF24', fontWeight: 700, marginBottom: '6px' }}>PM due · {handoverPmDue.length}</div>
+                    <div className="dashboard-detail-list">
+                      {handoverPmDue.map((p) => <a href={`machines.html?machine=${encodeURIComponent(p.machine_id)}`} key={p.id}><span><strong>{p.machine}</strong><small>{p.text}</small></span><b style={{ color: p.overdue ? '#F87171' : '#FBBF24' }}>{p.overdue ? 'Overdue' : 'Due'}</b></a>)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        </section>
+        )}
+
         <details className="dashboard-secondary-kpis">
           <summary>
             <span>More KPI parameters</span>
-            <small>Cost, maintenance count, assets, and PM coverage</small>
+            <small>Equipment count, PM coverage, and per-record averages</small>
           </summary>
           <section className="dashboard-scoreboard" aria-label="Additional maintenance snapshot">
             <ScoreTile label="Equipment" value={kpis.total_machines || 0} detail="Registered assets" onClick={() => revealDetail('secondary')} />
@@ -1038,562 +1268,12 @@ export default function Dashboard() {
           </section>
         </details>
 
-        <section className="factory-glance-board">
-          <div className="factory-glance-main">
-            <div className="factory-glance-toolbar">
-              <div>
-                <h2>Factory performance at a glance</h2>
-                <p>Efficiency, uptime, production health, and alerts in one operating view.</p>
-              </div>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={exportDashboardData}>Export data</button>
-            </div>
-            <div className="factory-filter-chips" aria-label="Dashboard quick filters">
-              <span>Filters</span>
-              <button type="button">Today</button>
-              <button type="button">All shifts</button>
-              <button type="button">All departments</button>
-            </div>
-            <div className="factory-production-card">
-              <FactoryGauge value={uptimePct} label="Avg efficiency" onClick={() => revealDetail('uptime')} />
-              <LineStatusRows rows={machineStatusRows} onRowClick={() => revealDetail('line_status')} />
-            </div>
-            <div className="factory-alert-card">
-              <div className="factory-alert-head">
-                <h3>AI insights &amp; alerts</h3>
-                <span>Last updated: {new Date().toLocaleTimeString('en-IN')}</span>
-              </div>
-              <div className="factory-alert-grid">
-                <AlertCard tone="high" title={topMachine ? `${topMachine.machine_name} alert` : 'No high alert'} text={topMachine ? `${topMachine.ticket_count} recent issues. Inspect this machine first.` : 'No major recurring machine issue detected.'} action="View details" onClick={() => revealDetail('alerts')} />
-                <AlertCard tone="medium" title="Predictive maintenance" text={`${predictedFailures} predicted failure signal${predictedFailures === 1 ? '' : 's'} from urgent/repeat work.`} action="View details" onClick={() => revealDetail('predicted')} />
-                <AlertCard tone="low" title="Energy & uptime optimization" text={`${uptimePct}% availability. Use planned maintenance to protect uptime.`} action="View details" onClick={() => revealDetail('uptime')} />
-              </div>
-            </div>
-            <div className="factory-embedded-section">
-              <div className="decision-section-label">Core maintenance KPIs <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
-              <section className="decision-kpi-grid">
-                <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} detail="Need immediate attention" icon={AlertTriangle} onClick={() => revealDetail('machines')} />
-                <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} detail="High or critical severity" icon={Clock3} onClick={() => revealDetail('urgent')} />
-                <Metric label="Open work" value={kpis.open_tickets} loading={loading} detail="Live tickets in progress" icon={Activity} onClick={() => revealDetail('open')} />
-                <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} detail="Average closed repair duration" icon={BarChart3} onClick={() => revealDetail('repair')} />
-              </section>
-            </div>
-            <section className="dashboard-analysis-board factory-embedded-analysis">
-              <section className="decision-panel dashboard-queue-panel">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Priority queue</div>
-                    <h2>Needs attention</h2>
-                  </div>
-                  <a href="tickets.html" className="text-link">View all</a>
-                </div>
-                <div className="dashboard-queue-list">
-                  {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                    <button type="button" className="attention-row clickable" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
-                      <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
-                      <div>
-                        <strong>{item.machine_name || 'Unknown machine'}</strong>
-                        <span>{item.description || 'Maintenance issue reported'}</span>
-                      </div>
-                      <b>{item.urgency || 'Open'}</b>
-                    </button>
-                  )) : <Empty text="No open issues. Your plant is clear." />}
-                </div>
-              </section>
-              <section className="decision-panel dashboard-chart-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Work distribution</div>
-                    <h2>Open vs resolved</h2>
-                  </div>
-                  <span className="trend-caption">Selected window</span>
-                </div>
-                <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
-              </section>
-              <section className="decision-panel dashboard-chart-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Equipment-wise risk</div>
-                    <h2>Top machines</h2>
-                  </div>
-                  <span className="trend-caption">30 days</span>
-                </div>
-                <RiskBars machines={insights.top_problem_machines || []} />
-              </section>
-              <section className="decision-panel dashboard-chart-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Maintenance status</div>
-                    <h2>Status mix</h2>
-                  </div>
-                  <span className="trend-caption">All records</span>
-                </div>
-                <MiniDonutChart items={overview.status_mix || []} />
-              </section>
-              <section className="decision-panel dashboard-chart-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Maintenance-wise</div>
-                    <h2>Type analysis</h2>
-                  </div>
-                  <span className="trend-caption">Top 5</span>
-                </div>
-                <CategoryBars items={overview.type_mix || []} />
-              </section>
-              <section className="decision-panel dashboard-chart-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Cost trend</div>
-                    <h2>Monthly spend</h2>
-                  </div>
-                  <span className="trend-caption">12 months</span>
-                </div>
-                <CostBars items={overview.cost_by_month || []} />
-              </section>
-            </section>
-            <section className="decision-panel dashboard-trend-panel dashboard-trend-strip factory-embedded-trend">
-              <div className="decision-panel-heading dashboard-trend-heading">
-                <div>
-                  <div className="decision-card-kicker">Trend strip</div>
-                  <h2>Last 1 year, customizable</h2>
-                </div>
-                <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
-                  {TREND_WINDOWS.map((item) => (
-                    <button key={item.key} type="button" className={trendWindow === item.key ? 'active' : ''} onClick={() => setTrendWindow(item.key)}>{item.label}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="dashboard-trend-strip-shell">
-                <div className="dashboard-trend-strip-copy">
-                  <strong>{trendMetricLabel}</strong>
-                  <span>{trendSeries.length ? `${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime` : 'No trend history yet.'}</span>
-                </div>
-                <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
-                  {[
-                    ['issues', 'Issues'],
-                    ['resolved', 'Resolved'],
-                    ['downtime_hours', 'Downtime'],
-                  ].map(([key, label]) => (
-                    <button key={key} type="button" className={trendMetric === key ? 'active' : ''} onClick={() => setTrendMetric(key)}>{label}</button>
-                  ))}
-                </div>
-              </div>
-              <button type="button" className="dashboard-trend-click-layer" onClick={() => revealDetail('trend')} aria-label="View trend details">
-                <div className="dashboard-trend-strip-bars">
-                  {trendSeries.length ? trendSeries.map((month) => {
-                    const value = month[trendMetric] || 0;
-                    const maxValue = trendMetric === 'resolved' ? maxTrendResolved : trendMetric === 'downtime_hours' ? maxTrendDowntime : maxTrendCount;
-                    return (
-                      <div className="dashboard-trend-strip-bar" key={month.key}>
-                        <span className="dashboard-trend-strip-fill" style={{ height: `${Math.max(10, (value / Math.max(maxValue, 1)) * 100)}%` }} />
-                        <small>{month.label}</small>
-                      </div>
-                    );
-                  }) : <Empty text="No trend history yet." />}
-                </div>
-              </button>
-              <div className="dashboard-trend-strip-footer">
-                <strong>{trendMetricTotal}</strong>
-                <small>Total over selected window</small>
-              </div>
-            </section>
-            <details className="decision-panel dashboard-more-context factory-embedded-more">
-              <summary>
-                <div>
-                  <div className="decision-card-kicker">More operating context</div>
-                  <strong>Open loss, audit, and handover detail</strong>
-                </div>
-                <em>Only when needed</em>
-              </summary>
-            </details>
-          </div>
-          <aside className="factory-glance-side">
-            <SideKpiCard tone="blue" title="Total machines online" value={`${onlineMachines}/${kpis.total_machines || 0}`} delta="+ live workspace" onClick={() => revealDetail('online')} />
-            <SideKpiCard tone="purple" title="Total downtime" value={`${Math.round((impact.downtime_hours || trendTotals.downtime_hours || 0) * 10) / 10} hrs`} delta="from tickets" onClick={() => revealDetail('downtime')} />
-            <SideKpiCard tone="red" title="Predicted failures" value={predictedFailures} delta="urgent/repeat signals" onClick={() => revealDetail('predicted')} />
-            <SideKpiCard tone="green" title="System uptime" value={`${uptimePct}%`} delta="availability" onClick={() => revealDetail('uptime')} />
-            <UptimeTrend series={trendSeries} onClick={() => revealDetail('trend')} />
-          </aside>
-        </section>
-
-        {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
-        
         {activeDetail && <section className="decision-panel dashboard-drilldown" id="dashboard-drilldown" tabIndex="-1" style={{ marginBottom: '20px' }}>
           <div className="decision-panel-heading"><div><div className="decision-card-kicker">Number explained</div><h2>{detailConfig[activeDetail].title}</h2></div><button type="button" className="dashboard-drilldown-close" onClick={() => setActiveDetail('')}>Close</button></div>
           {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : item.ticket_id ? 'tickets.html' : '#dashboard-drilldown'} key={`${item.ticket_id || item.machine_id || item.machine_name || index}-${index}`}><span><strong>{item.machine_name || 'Dashboard item'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.value ?? (item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || item.status || 'Open')}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
         </section>}
-
-        {false && <DashboardGrid
-          editable={false}
-          widgets={[
-            {
-              id: 'hero',
-              span: 12,
-              bare: true,
-              render: () => (
-                <section className="overview-hero-grid">
-                  <button type="button" className={`decision-health-card overview-health-card clickable ${healthTone}`} onClick={() => revealDetail('health')}>
-                    <div className="overview-hero-kicker">Plant health</div>
-                    <div className="decision-health-value">{loading ? '—' : `${kpis.plant_health_pct}%`}</div>
-                    <p>{kpis.machines_down || 0} of {kpis.total_machines || 0} machines need attention.</p>
-                    <div className="decision-progress"><span style={{ width: `${Math.min(100, kpis.plant_health_pct || 0)}%` }} /></div>
-                    <div className="overview-hero-meta">
-                      <span><Activity size={14} /> {kpis.open_tickets || 0} open</span>
-                      <span><AlertTriangle size={14} /> {kpis.urgent_open || 0} urgent</span>
-                      <span><ShieldCheck size={14} /> {pmComplianceValue} PM</span>
-                    </div>
-                  </button>
-                  <div className="overview-side-stack">
-                    <div className="decision-next-card overview-next-card">
-                      <div className="decision-card-kicker">Next action</div>
-                      <h2>{topMachine ? `Inspect ${topMachine.machine_name || topMachine.machine_id}` : 'Start with your first machine'}</h2>
-                      <p>{topMachine ? `${topMachine.ticket_count} issues in 30 days.` : 'Add machines to build the baseline.'}</p>
-                      <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace <ArrowUpRight size={16} /></a>
-                    </div>
-                  </div>
-                </section>
-              )
-            },
-            {
-              id: 'kpis',
-              span: 12,
-              bare: true,
-              render: () => (
-                <>
-                  <div className="decision-section-label">Core maintenance KPIs <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
-                  <section className="decision-kpi-grid">
-                    <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} detail="Need immediate attention" icon={AlertTriangle} onClick={() => revealDetail('machines')} />
-                    <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} detail="High or critical severity" icon={Clock3} onClick={() => revealDetail('urgent')} />
-                    <Metric label="Open work" value={kpis.open_tickets} loading={loading} detail="Live tickets in progress" icon={Activity} onClick={() => revealDetail('open')} />
-                    <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} detail="Average closed repair duration" icon={BarChart3} onClick={() => revealDetail('repair')} />
-                  </section>
-                </>
-              )
-            },
-            (showBoard('equipment') || activeBoard === 'maintenance' || activeBoard === 'technician') && {
-              id: 'maintenance_board',
-              span: 12,
-              bare: true,
-              render: () => (
-                <section className="dashboard-analysis-board">
-                  <section className="decision-panel dashboard-queue-panel">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Priority queue</div>
-                        <h2>Needs attention</h2>
-                      </div>
-                      <a href="tickets.html" className="text-link">View all</a>
-                    </div>
-                    <div className="dashboard-queue-list">
-                      {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
-                        <button type="button" className="attention-row clickable" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
-                          <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
-                          <div>
-                            <strong>{item.machine_name || 'Unknown machine'}</strong>
-                            <span>{item.description || 'Maintenance issue reported'}</span>
-                          </div>
-                          <b>{item.urgency || 'Open'}</b>
-                        </button>
-                      )) : <Empty text="No open issues. Your plant is clear." />}
-                    </div>
-                  </section>
-                  <section className="decision-panel dashboard-chart-card">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Work distribution</div>
-                        <h2>Open vs resolved</h2>
-                      </div>
-                      <span className="trend-caption">Selected window</span>
-                    </div>
-                    <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
-                  </section>
-                  <section className="decision-panel dashboard-chart-card">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Equipment-wise risk</div>
-                        <h2>Top machines</h2>
-                      </div>
-                      <span className="trend-caption">30 days</span>
-                    </div>
-                    <RiskBars machines={insights.top_problem_machines || []} />
-                  </section>
-                  <section className="decision-panel dashboard-chart-card">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Maintenance status</div>
-                        <h2>Status mix</h2>
-                      </div>
-                      <span className="trend-caption">All records</span>
-                    </div>
-                    <MiniDonutChart items={overview.status_mix || []} />
-                  </section>
-                  <section className="decision-panel dashboard-chart-card">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Maintenance-wise</div>
-                        <h2>Type analysis</h2>
-                      </div>
-                      <span className="trend-caption">Top 5</span>
-                    </div>
-                    <CategoryBars items={overview.type_mix || []} />
-                  </section>
-                  <section className="decision-panel dashboard-chart-card">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Cost trend</div>
-                        <h2>Monthly spend</h2>
-                      </div>
-                      <span className="trend-caption">12 months</span>
-                    </div>
-                    <CostBars items={overview.cost_by_month || []} />
-                  </section>
-                </section>
-              )
-            },
-            showBoard('frequency') && {
-              id: 'trend',
-              span: 12,
-              bare: true,
-              render: () => (
-                <section className="decision-panel dashboard-trend-panel dashboard-trend-strip">
-                  <div className="decision-panel-heading dashboard-trend-heading">
-                    <div>
-                      <div className="decision-card-kicker">Trend strip</div>
-                      <h2>Last 1 year, customizable</h2>
-                    </div>
-                    <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
-                      {TREND_WINDOWS.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          className={trendWindow === item.key ? 'active' : ''}
-                          onClick={() => setTrendWindow(item.key)}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="dashboard-trend-strip-shell">
-                    <div className="dashboard-trend-strip-copy">
-                      <strong>{trendMetricLabel}</strong>
-                      <span>{trendSeries.length ? `${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime` : 'No trend history yet.'}</span>
-                    </div>
-                    <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
-                      {[
-                        ['issues', 'Issues'],
-                        ['resolved', 'Resolved'],
-                        ['downtime_hours', 'Downtime'],
-                      ].map(([key, label]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          className={trendMetric === key ? 'active' : ''}
-                          onClick={() => setTrendMetric(key)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="dashboard-trend-strip-bars">
-                    {trendSeries.length ? trendSeries.map((month) => {
-                      const value = month[trendMetric] || 0;
-                      const maxValue = trendMetric === 'resolved' ? maxTrendResolved : trendMetric === 'downtime_hours' ? maxTrendDowntime : maxTrendCount;
-                      return (
-                        <div className="dashboard-trend-strip-bar" key={month.key}>
-                          <span className="dashboard-trend-strip-fill" style={{ height: `${Math.max(10, (value / Math.max(maxValue, 1)) * 100)}%` }} />
-                          <small>{month.label}</small>
-                        </div>
-                      );
-                    }) : <Empty text="No trend history yet." />}
-                  </div>
-                  <div className="dashboard-trend-strip-footer">
-                    <strong>{trendMetricTotal}</strong>
-                    <small>Total over selected window</small>
-                  </div>
-                </section>
-              )
-            },
-            showBoard('maintenance') && {
-              id: 'more_context',
-              span: 12,
-              bare: true,
-              render: () => {
-                const h = data.shift_handover || {};
-                const groups = [
-                  ['Critical open jobs', h.critical, '#F87171'],
-                  ['Waiting for spare', h.waiting_spare, '#F59E0B'],
-                  ['Waiting for approval / verification', h.waiting_approval, '#A78BFA'],
-                  ['Waiting for vendor', h.waiting_vendor, '#F59E0B'],
-                  ['Recurring failures', h.repeat, '#F87171'],
-                ];
-                const pmDue = h.pm_due || [];
-                const totalItems = groups.reduce((n, [, items]) => n + (items?.length || 0), 0) + pmDue.length;
-                const buildText = () => {
-                  const lines = [`TurboFix shift handover — ${new Date().toLocaleString('en-IN')}`, `Machines down: ${h.machines_down || 0}`];
-                  groups.forEach(([label, items]) => { if (items?.length) { lines.push(`\n${label} (${items.length}):`); items.forEach((i) => lines.push(`- ${i.machine}${i.wo ? ` [${i.wo}]` : ''}: ${i.text}`)); } });
-                  if (pmDue.length) { lines.push(`\nPM due (${pmDue.length}):`); pmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
-                  return lines.join('\n');
-                };
-                return (
-                <details className="decision-panel dashboard-more-context">
-                  <summary>
-                    <div>
-                      <div className="decision-card-kicker">More operating context</div>
-                      <strong>Open loss, audit, and handover detail</strong>
-                    </div>
-                    <em>Only when needed</em>
-                  </summary>
-                  <div className="dashboard-more-context-body">
-                    {impact.top_loss_machines?.length > 0 && (
-                      <section className="decision-panel">
-                        <div className="decision-panel-heading"><div><div className="decision-card-kicker">Where the money goes</div><h2>Top loss-making machines · 30 days</h2></div><span className="trend-caption">By production-loss cost</span></div>
-                        <div className="dashboard-detail-list">
-                          {impact.top_loss_machines.map((machine, index) => (
-                            <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
-                                <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
-                              </span>
-                              <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
-                            </a>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                    {data.repair_replace?.length > 0 && (
-                      <section className="decision-panel">
-                        <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
-                        <div className="dashboard-detail-list">
-                          {data.repair_replace.map((m) => (
-                            <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
-                              <span style={{ display: 'flex', flexDirection: 'column' }}>
-                                <strong>{m.machine_name}</strong>
-                                <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
-                              </span>
-                              <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
-                            </a>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                    {(data.vendor_amc?.alerts?.length > 0 || data.vendor_amc?.outsourced_open > 0) && (
-                      <section className="decision-panel">
-                        <div className="decision-panel-heading"><div><div className="decision-card-kicker">Contracts &amp; vendors</div><h2>AMC &amp; warranty</h2></div><span className="trend-caption">{data.vendor_amc.outsourced_open > 0 ? `${data.vendor_amc.outsourced_open} open at vendor` : 'Next 60 days'}</span></div>
-                        {data.vendor_amc.alerts?.length ? (
-                          <div className="dashboard-detail-list">
-                            {data.vendor_amc.alerts.map((a, index) => {
-                              const expired = a.days < 0;
-                              const tone = expired ? '#F87171' : a.days <= 30 ? '#FBBF24' : 'var(--slate)';
-                              return (
-                                <a href={`machines.html?machine=${encodeURIComponent(a.machine_id)}`} key={`${a.machine_id}-${a.type}-${index}`}>
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <b style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: tone, border: `1px solid ${tone}`, borderRadius: '999px', padding: '2px 8px' }}>{a.type}</b>
-                                    <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{a.machine}</strong><small>{a.party} · expires {new Date(a.expiry).toLocaleDateString('en-IN')}</small></span>
-                                  </span>
-                                  <b style={{ color: tone, whiteSpace: 'nowrap' }}>{expired ? `Expired ${Math.abs(a.days)}d ago` : a.days === 0 ? 'Expires today' : `${a.days}d left`}</b>
-                                </a>
-                              );
-                            })}
-                          </div>
-                        ) : <Empty text="No AMC or warranty expiring in the next 60 days." />}
-                      </section>
-                    )}
-                    <section className="decision-columns">
-                      <div className="decision-panel">
-                        <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
-                        {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
-                          <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
-                            <span className="status-dot warning" />
-                            <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
-                          </a>
-                        )) : <Empty text="Records look clean. KPIs are trustworthy." />}
-                      </div>
-                      <div className="decision-panel">
-                        <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
-                        {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
-                          const d = entry.details || {};
-                          const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
-                            : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
-                            : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
-                            : `Status: ${d.from || '—'} → ${d.to || '—'}`;
-                          return (
-                            <div className="attention-row" key={entry.id}>
-                              <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
-                              <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
-                            </div>
-                          );
-                        }) : <Empty text="No recorded changes yet." />}
-                      </div>
-                    </section>
-                    {(data.data_quality?.length > 8) && <p style={{ color: 'var(--slate)', fontSize: '0.8rem', margin: '4px 0 0' }}>Showing 8 of {data.data_quality.length} data-quality items.</p>}
-                    <section className="decision-panel">
-                      <div className="decision-panel-heading">
-                        <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
-                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
-                      </div>
-                      {totalItems === 0 ? <Empty text="Nothing pending — clean handover." /> : (
-                        <div style={{ display: 'grid', gap: '14px' }}>
-                          <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{h.machines_down || 0} machine{h.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
-                          {groups.map(([label, items, color]) => items?.length ? (
-                            <div key={label}>
-                              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color, fontWeight: 700, marginBottom: '6px' }}>{label} · {items.length}</div>
-                              <div className="dashboard-detail-list">
-                                {items.map((i) => <a href={`machines.html?machine=${encodeURIComponent(i.machine_id)}`} key={i.id}><span><strong>{i.machine}</strong><small>{i.text}</small></span>{i.wo && <b style={{ color: 'var(--slate)', fontFamily: 'monospace' }}>{i.wo}</b>}</a>)}
-                              </div>
-                            </div>
-                          ) : null)}
-                          {pmDue.length > 0 && (
-                            <div>
-                              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#FBBF24', fontWeight: 700, marginBottom: '6px' }}>PM due · {pmDue.length}</div>
-                              <div className="dashboard-detail-list">
-                                {pmDue.map((p) => <a href={`machines.html?machine=${encodeURIComponent(p.machine_id)}`} key={p.id}><span><strong>{p.machine}</strong><small>{p.text}</small></span><b style={{ color: p.overdue ? '#F87171' : '#FBBF24' }}>{p.overdue ? 'Overdue' : 'Due'}</b></a>)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </section>
-                  </div>
-                </details>
-                );
-              }
-            }
-          ].filter(Boolean)}
-        />}
       </div>
     </AppShell>
-  );
-}
-
-function Metric({ label, value, tone = '', loading = false, onClick, detail = '', icon: Icon = null }) { 
-  return (
-    <button type="button" className="decision-metric clickable" onClick={onClick}>
-      <div className="metric-topline">
-        <span className={`metric-label metric-label-strong ${tone}`}>
-          {Icon && <Icon size={15} strokeWidth={2.1} />}
-          {label}
-        </span>
-        <small className="decision-click-hint">View details →</small>
-      </div>
-      <span className={`metric-value ${tone}`}>
-        {tone && value > 0 && <span className={`pulse-dot ${tone}`} />}
-        {loading ? <span className="skeleton-pulse" /> : (value ?? '—')}
-      </span>
-      {detail && <small className="metric-detail">{detail}</small>}
-    </button>
-  ); 
-}
-function Insight({ label, value, detail, icon: Icon = null }) {
-  return (
-    <div className="decision-insight">
-      <span className="decision-card-kicker">
-        {Icon && <Icon size={14} strokeWidth={2.2} />}
-        {label}
-      </span>
-      <strong>{value}</strong>
-      <span>{detail}</span>
-    </div>
   );
 }
 
@@ -1609,42 +1289,94 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
 
-function FactoryGauge({ value = 0, label, onClick }) {
-  const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+// SVG ring gauge — rounded stroke cap, animated draw, tone-tinted glow.
+function HealthRing({ value = 0, tone = 'success', size = 172, stroke = 13, label = 'available', loading = false }) {
+  const safe = Math.max(0, Math.min(100, Number(value) || 0));
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = (safe / 100) * c;
   return (
-    <button type="button" className="factory-gauge-card dashboard-click-card" onClick={onClick}>
-      <div className="factory-card-title">Production line overview</div>
-      <div className="factory-gauge" style={{ '--value': `${safeValue}%` }}>
-        <div>
-          <strong>{safeValue}%</strong>
-          <span>{label}</span>
-        </div>
+    <div className={`health-ring ${tone}`} style={{ width: size, height: size }}>
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${safe}% ${label}`}>
+        <circle className="health-ring-track" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none" />
+        <circle
+          className="health-ring-value"
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${c}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div className="health-ring-center">
+        <strong>{loading ? '—' : `${safe}%`}</strong>
+        <span>{label}</span>
       </div>
-      <small className="decision-click-hint">View details →</small>
+    </div>
+  );
+}
+
+// Single headline number in the pulse strip — icon + label + value, tone-colored.
+function PulseStat({ icon: Icon, label, value, tone = '', trend, onClick }) {
+  return (
+    <button type="button" className={`md-pulse-stat ${tone}`} onClick={onClick}>
+      <span className="md-pulse-label">{Icon && <Icon size={13} />}{label}</span>
+      <span className="md-pulse-value-row">
+        <strong className="md-pulse-value">{value ?? '—'}</strong>
+        {trend}
+      </span>
     </button>
   );
 }
 
-function LineStatusRows({ rows = [], onRowClick }) {
-  const safeRows = rows.length ? rows : [
-    { name: 'Line A', pct: 100, status: 'Running' },
-    { name: 'Line B', pct: 100, status: 'Running' },
-    { name: 'Line C', pct: 100, status: 'Running' },
-    { name: 'Line D', pct: 100, status: 'Running' },
-  ];
+// Small directional badge — is this metric trending better or worse this week?
+function TrendBadge({ delta, goodWhenNegative = true, unit = '' }) {
+  if (!delta) return <span className="md-trend-badge flat">flat</span>;
+  const rising = delta > 0;
+  const good = goodWhenNegative ? !rising : rising;
   return (
-    <div className="factory-line-card">
-      <div className="factory-card-title">Production line status</div>
-      <div className="factory-live-pill"><span /> Live data</div>
-      <div className="factory-line-list">
-        {safeRows.map((row, index) => (
-          <button type="button" className="factory-line-row clickable" onClick={() => onRowClick?.(row)} key={`${row.name}-${index}`}>
-            <i className={`line-dot dot-${index % 4}`} />
-            <span>{row.name}</span>
-            <div><b style={{ width: `${row.pct}%` }} /></div>
-            <small>Efficiency</small>
-            <strong>{row.pct}%</strong>
-            <em className={row.status === 'Warning' ? 'warning' : ''}>{row.status}</em>
+    <span className={`md-trend-badge ${good ? 'good' : 'bad'}`}>
+      {rising ? '▲' : '▼'} {Math.abs(delta)}{unit} / wk
+    </span>
+  );
+}
+
+// Horizontal severity bar — turns a bare number into an instant good/warn/bad read.
+function SeverityBar({ label, value, unit = '', pct, tone = '', hint, onClick }) {
+  const safePct = Math.max(4, Math.min(100, pct));
+  return (
+    <button type="button" className={`md-severity-row ${tone}`} onClick={onClick} title={hint}>
+      <span className="md-severity-label">{label}</span>
+      <span className="md-severity-track"><span className="md-severity-fill" style={{ width: `${safePct}%` }} /></span>
+      <span className="md-severity-value">{value}{unit}</span>
+    </button>
+  );
+}
+
+// Stacked composition bar — shows cost proportions at a glance instead of 3 flat numbers.
+function CostComposition({ segments, onSegmentClick }) {
+  const total = Math.max(1, segments.reduce((sum, s) => sum + Math.max(0, s.value), 0));
+  return (
+    <div className="md-cost-composition">
+      <div className="md-cost-comp-bar">
+        {segments.map((s) => (
+          <span
+            key={s.label}
+            className={`md-cost-comp-seg ${s.tone}`}
+            style={{ width: `${Math.max(0, (s.value / total) * 100)}%` }}
+            title={`${s.label}: ${money.format(s.value)}`}
+          />
+        ))}
+      </div>
+      <div className="md-cost-comp-legend">
+        {segments.map((s) => (
+          <button type="button" key={s.label} className="md-cost-comp-item" onClick={() => onSegmentClick?.(s)}>
+            <span className={`md-cost-comp-dot ${s.tone}`} />
+            <span className="md-cost-comp-label">{s.label}</span>
+            <b className={`md-cost-comp-value ${s.tone}`}>{money.format(s.value)}</b>
           </button>
         ))}
       </div>
@@ -1652,59 +1384,61 @@ function LineStatusRows({ rows = [], onRowClick }) {
   );
 }
 
-function SideKpiCard({ tone, title, value, delta, onClick }) {
+// Fleet status strip — every machine as a colored chip, so "which ones are down"
+// is answered visually instead of by reading a count.
+// Fleet status strip — scales from a handful of machines to hundreds: named
+// machines are shown only for what needs attention (down/warning), capped with
+// an overflow chip; the healthy majority collapses into one summary chip
+// instead of a wall of identical "running fine" pills.
+const FLEET_MAX_VISIBLE = 10;
+function FleetStrip({ downMachines, onlineCount, totalCount, onClick }) {
+  if (!totalCount) return null;
+  const sorted = [...downMachines].sort((a, b) => (b.open_count || 0) - (a.open_count || 0));
+  const visible = sorted.slice(0, FLEET_MAX_VISIBLE);
+  const overflow = sorted.length - visible.length;
   return (
-    <button type="button" className={`factory-side-kpi dashboard-click-card ${tone}`} onClick={onClick}>
-      <span className="factory-side-icon"><Activity size={18} /></span>
-      <div>
-        <small>{title}</small>
-        <strong>{value}</strong>
+    <section className="md-fleet-strip" aria-label="Fleet status at a glance">
+      <span className="md-fleet-label">Fleet status · {totalCount} machines</span>
+      <div className="md-fleet-chips">
+        {visible.map((m, index) => (
+          <button
+            type="button"
+            key={m.machine_id || `${m.machine_name}-${index}`}
+            className={`md-fleet-chip ${(m.open_count || 0) >= 3 ? 'danger' : 'warning'}`}
+            onClick={() => onClick('machines')}
+            title={m.location || ''}
+          >
+            <span className="md-fleet-dot" />
+            {m.machine_name}
+          </button>
+        ))}
+        {overflow > 0 && (
+          <button type="button" className="md-fleet-chip md-fleet-more" onClick={() => onClick('machines')}>
+            +{overflow} more down
+          </button>
+        )}
+        {!downMachines.length && (
+          <span className="md-fleet-chip ok">
+            <span className="md-fleet-dot" /> All clear
+          </span>
+        )}
+        {onlineCount > 0 && (
+          <button type="button" className="md-fleet-chip ok" onClick={() => onClick('online')}>
+            <span className="md-fleet-dot" /> {onlineCount} running fine
+          </button>
+        )}
       </div>
-      <em>{delta}</em>
-      <span className="factory-side-hint">View details →</span>
-    </button>
+    </section>
   );
 }
 
-function AlertCard({ tone, title, text, action, onClick }) {
+// A category-section KPI tile — label, value, and the benchmark/context hint.
+function KpiCard({ label, value, hint, tone = '', onClick }) {
   return (
-    <button type="button" className={`factory-alert-item dashboard-click-card ${tone}`} onClick={onClick}>
-      <span><AlertTriangle size={17} /></span>
-      <b>{title}</b>
-      <p>{text}</p>
-      <em>{action}</em>
-    </button>
-  );
-}
-
-function UptimeTrend({ series = [], onClick }) {
-  const rows = series.length ? series.slice(-7) : [
-    { label: 'Mon', resolved: 2, issues: 3 },
-    { label: 'Tue', resolved: 3, issues: 4 },
-    { label: 'Wed', resolved: 2, issues: 5 },
-    { label: 'Thu', resolved: 5, issues: 6 },
-    { label: 'Fri', resolved: 4, issues: 5 },
-    { label: 'Sat', resolved: 4, issues: 4 },
-    { label: 'Sun', resolved: 5, issues: 5 },
-  ];
-  const max = Math.max(...rows.map((row) => (row.resolved || 0) + (row.issues || 0)), 1);
-  return (
-    <button type="button" className="factory-uptime-card dashboard-click-card" onClick={onClick}>
-      <div className="factory-uptime-head">
-        <strong>Uptime trends</strong>
-        <span>Weekly</span>
-      </div>
-      <div className="factory-uptime-bars">
-        {rows.map((row) => {
-          const value = (row.resolved || 0) + (row.issues || 0);
-          return (
-            <div key={row.key || row.label}>
-              <i style={{ height: `${Math.max(18, (value / max) * 92)}%` }} />
-              <small>{row.label}</small>
-            </div>
-          );
-        })}
-      </div>
+    <button type="button" className={`md-kpi-card ${tone}`} onClick={onClick}>
+      <span className="md-kpi-label">{label}</span>
+      <strong className="md-kpi-value">{value}</strong>
+      {hint && <small className="md-kpi-hint">{hint}</small>}
     </button>
   );
 }
@@ -1805,53 +1539,6 @@ function RiskBars({ machines = [] }) {
           <small>#{index + 1}</small>
         </a>
       ))}
-    </div>
-  );
-}
-
-function TrendChart({ series, metric = 'issues' }) {
-  if (!series?.length) return <Empty text="No trend history yet." />;
-  const width = 900;
-  const height = 260;
-  const paddingX = 28;
-  const paddingY = 24;
-  const innerWidth = width - (paddingX * 2);
-  const innerHeight = height - (paddingY * 2);
-  const maxValue = Math.max(...series.map((item) => item.value || 0), 1);
-  const points = series.map((item, index) => {
-    const x = paddingX + (index / Math.max(series.length - 1, 1)) * innerWidth;
-    const yValue = paddingY + innerHeight - ((item.value || 0) / maxValue) * innerHeight;
-    return { x, yValue, label: item.label, value: item.value || 0 };
-  });
-  const valuePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yValue}`).join(' ');
-  const valueArea = `${valuePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
-
-  return (
-    <div className="dashboard-trend-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Monthly ${metric} trend chart`}>
-        <defs>
-          <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(37, 211, 102, 0.35)" />
-            <stop offset="100%" stopColor="rgba(37, 211, 102, 0.02)" />
-          </linearGradient>
-        </defs>
-        {[0, 1, 2, 3].map((step) => {
-          const y = paddingY + (innerHeight / 3) * step;
-          return <line key={step} x1={paddingX} x2={width - paddingX} y1={y} y2={y} className="dashboard-trend-gridline" />;
-        })}
-        <path d={valueArea} className="dashboard-trend-area" />
-        <path d={valuePath} className="dashboard-trend-line issues" />
-        {points.map((point) => (
-          <g key={point.label}>
-            <circle cx={point.x} cy={point.yValue} r="4.5" className="dashboard-trend-point issues" />
-            <text x={point.x} y={height - 4} textAnchor="middle" className="dashboard-trend-axis">{point.label}</text>
-          </g>
-        ))}
-      </svg>
-      <div className="dashboard-trend-legend">
-        <span><i className="legend-issues" />{metric === 'downtime_hours' ? 'Downtime' : metric === 'resolved' ? 'Resolved' : 'Issues'}</span>
-        <span><i className="legend-resolved" />Monthly</span>
-      </div>
     </div>
   );
 }

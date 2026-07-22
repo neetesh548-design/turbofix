@@ -16,11 +16,3 @@ export const mockTickets = [
   { id: 't3', machine_id: 'm4', status: 'open', urgency: 'critical', issue_text: 'Air discharge temperature high', created_at: new Date().toISOString() },
   { id: 't4', machine_id: 'm2', status: 'closed', urgency: 'low', issue_text: 'Filter replacement', downtime_minutes: 120, maintenance_cost: 4500, created_at: new Date(Date.now() - 86400000 * 5).toISOString() },
 ];
-
-export const mockReflectiveMemory = {
-  viewsCount: 5,
-  lastFocus: 'Hydraulic Press',
-  filterPreferences: '12m',
-  inspectCount: 14,
-  lastVisit: new Date().toISOString(),
-};

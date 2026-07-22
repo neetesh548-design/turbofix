@@ -1,24 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mockMachines, mockTickets, mockReflectiveMemory } from '../../tests/fixtures/dashboard-fixtures.js';
+import { describe, it, expect } from 'vitest';
+import { mockMachines, mockTickets } from '../../tests/fixtures/dashboard-fixtures.js';
 
-// Polyfill localStorage if running in Node environment without DOM
-const storageMap = new Map();
-const mockLocalStorage = {
-  getItem: (key) => storageMap.get(key) || null,
-  setItem: (key, val) => storageMap.set(key, String(val)),
-  removeItem: (key) => storageMap.delete(key),
-  clear: () => storageMap.clear(),
-};
-
-if (typeof globalThis.localStorage === 'undefined' || !globalThis.localStorage.clear) {
-  globalThis.localStorage = mockLocalStorage;
-}
-
-describe('Dashboard Calculation Engine & Reflective Memory Suite', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
+describe('Dashboard Calculation Engine', () => {
   it('should verify correct calculation of open tickets and machines down', () => {
     const openTickets = mockTickets.filter((t) => t.status === 'open');
     const machinesWithOpen = new Set(openTickets.map((t) => t.machine_id));
@@ -34,19 +17,8 @@ describe('Dashboard Calculation Engine & Reflective Memory Suite', () => {
     expect(totalMaintenanceCost).toBe(4500);
   });
 
-  it('should verify localStorage persistence for Reflective Behavioral Memory', () => {
-    localStorage.setItem('turbofix_reflective_memory', JSON.stringify(mockReflectiveMemory));
-
-    const loaded = JSON.parse(localStorage.getItem('turbofix_reflective_memory'));
-    expect(loaded.lastFocus).toBe('Hydraulic Press');
-    expect(loaded.viewsCount).toBe(5);
-    expect(loaded.inspectCount).toBe(14);
-  });
-
-  it('should clear Reflective Memory cleanly upon request', () => {
-    localStorage.setItem('turbofix_reflective_memory', JSON.stringify(mockReflectiveMemory));
-    localStorage.removeItem('turbofix_reflective_memory');
-
-    expect(localStorage.getItem('turbofix_reflective_memory')).toBeNull();
+  it('should verify machines carry replacement cost for cost-vs-RAV KPI math', () => {
+    const totalRav = mockMachines.reduce((total, m) => total + (m.replacement_cost || 0), 0);
+    expect(totalRav).toBe(1850000);
   });
 });
