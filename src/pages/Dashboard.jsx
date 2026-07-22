@@ -16,6 +16,11 @@ const fallback = {
 };
 
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+const TREND_WINDOWS = [
+  { key: '3m', label: '3M', months: 3 },
+  { key: '6m', label: '6M', months: 6 },
+  { key: '12m', label: '12M', months: 12 },
+];
 
 function asNumber(value) {
   const number = Number(value);
@@ -29,6 +34,42 @@ function ticketHours(ticket, now = new Date()) {
   const resolved = resolvedValue ? new Date(resolvedValue) : now;
   if (Number.isNaN(resolved.getTime())) return 0;
   return Math.max(0, (resolved.getTime() - opened.getTime()) / 3_600_000);
+}
+
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabel(date) {
+  return date.toLocaleDateString('en-IN', { month: 'short' });
+}
+
+function buildMonthlyTrend(tickets, now = new Date()) {
+  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const map = new Map();
+  for (let offset = 0; offset < 12; offset += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + offset, 1);
+    map.set(monthKey(date), {
+      key: monthKey(date),
+      label: monthLabel(date),
+      issues: 0,
+      resolved: 0,
+      downtime_hours: 0,
+    });
+  }
+
+  tickets.forEach((ticket) => {
+    const opened = new Date(ticket.created_at || ticket.reported_at || '');
+    if (Number.isNaN(opened.getTime()) || opened < start) return;
+    const bucket = map.get(monthKey(new Date(opened.getFullYear(), opened.getMonth(), 1)));
+    if (!bucket) return;
+    bucket.issues += 1;
+    const status = String(ticket.status || '').toLowerCase();
+    if (['resolved', 'closed'].includes(status)) bucket.resolved += 1;
+    bucket.downtime_hours += ticketHours(ticket, now);
+  });
+
+  return Array.from(map.values());
 }
 
 function computeMaintenanceInsights(machines, tickets, now = new Date()) {
@@ -307,6 +348,7 @@ async function fetchDashboardData() {
   const repairReplace = computeRepairReplace(machines, tickets, workOrderParts);
   const dataQuality = computeDataQuality(machines, tickets);
   const vendorAmc = computeVendorAmc(machines, tickets);
+  const monthlyTrend = buildMonthlyTrend(tickets);
   const resolvedWork = tickets.filter((ticket) => ['resolved', 'closed'].includes(String(ticket.status || '').toLowerCase())).map((ticket) => ({
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
@@ -349,7 +391,7 @@ async function fetchDashboardData() {
     audit_log: auditLog,
     vendor_amc: vendorAmc,
     recent_activity: [],
-    weekly_trend: [],
+    monthly_trend: monthlyTrend,
   };
 }
 
@@ -358,6 +400,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeDetail, setActiveDetail] = useState('');
+  const [trendWindow, setTrendWindow] = useState('12m');
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -390,6 +433,20 @@ export default function Dashboard() {
     { label: 'Risk cost', value: money.format(impact.downtime_cost || 0), detail: '30-day production loss' },
     { label: 'PM compliance', value: pmComplianceValue, detail: 'Preventive tasks on time' },
   ];
+  const trendMonths = TREND_WINDOWS.find((item) => item.key === trendWindow)?.months || 12;
+  const trendSeries = (data.monthly_trend || []).slice(-trendMonths);
+  const maxTrendCount = Math.max(...trendSeries.map((month) => month.issues || 0), 1);
+  const maxTrendResolved = Math.max(...trendSeries.map((month) => month.resolved || 0), 1);
+  const maxTrendDowntime = Math.max(...trendSeries.map((month) => month.downtime_hours || 0), 1);
+  const trendTotals = trendSeries.reduce((acc, month) => {
+    acc.issues += month.issues || 0;
+    acc.resolved += month.resolved || 0;
+    acc.downtime_hours += month.downtime_hours || 0;
+    return acc;
+  }, { issues: 0, resolved: 0, downtime_hours: 0 });
+  const trendInsight = trendSeries.length
+    ? `Showing the last ${trendMonths} months · ${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime`
+    : 'No ticket history is available yet.';
   const detailConfig = {
     health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
     machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
@@ -557,6 +614,55 @@ export default function Dashboard() {
                     <Insight label="#1 risk" value={topMachineName} detail={topMachineContext} icon={BarChart3} />
                   </section>
                 </>
+              )
+            },
+            {
+              id: 'trend',
+              span: 12,
+              bare: true,
+              render: () => (
+                <section className="decision-panel dashboard-trend-panel">
+                  <div className="decision-panel-heading dashboard-trend-heading">
+                    <div>
+                      <div className="decision-card-kicker">Trend signal</div>
+                      <h2>Last 1 year, customizable</h2>
+                    </div>
+                    <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
+                      {TREND_WINDOWS.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          className={trendWindow === item.key ? 'active' : ''}
+                          onClick={() => setTrendWindow(item.key)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="dashboard-trend-copy">{trendInsight}</p>
+                  <div className="dashboard-trend-layout">
+                    <div className="dashboard-trend-chart-card">
+                      <div className="dashboard-trend-chart-header">
+                        <strong>Issues vs resolved tickets</strong>
+                        <span>Monthly</span>
+                      </div>
+                      <TrendChart series={trendSeries} />
+                    </div>
+                    <div className="dashboard-trend-side">
+                      <div className="dashboard-trend-summary">
+                        <span>Open vs resolved</span>
+                        <strong>{trendTotals.issues}</strong>
+                        <small>{trendTotals.resolved} resolved in the same window</small>
+                      </div>
+                      <div className="dashboard-trend-summary">
+                        <span>Downtime hours</span>
+                        <strong>{Math.round(trendTotals.downtime_hours * 10) / 10}h</strong>
+                        <small>Calculated from the same ticket history</small>
+                      </div>
+                    </div>
+                  </div>
+                </section>
               )
             },
             {
@@ -797,3 +903,55 @@ function LeanTag({ term, kanji, meaning, tone = '' }) {
   );
 }
 function Empty({ text }) { return <p className="decision-empty">{text}</p>; }
+
+function TrendChart({ series }) {
+  if (!series?.length) return <Empty text="No trend history yet." />;
+  const width = 900;
+  const height = 260;
+  const paddingX = 28;
+  const paddingY = 24;
+  const innerWidth = width - (paddingX * 2);
+  const innerHeight = height - (paddingY * 2);
+  const issueMax = Math.max(...series.map((item) => item.issues || 0), 1);
+  const resolveMax = Math.max(...series.map((item) => item.resolved || 0), 1);
+  const points = series.map((item, index) => {
+    const x = paddingX + (index / Math.max(series.length - 1, 1)) * innerWidth;
+    const yIssues = paddingY + innerHeight - ((item.issues || 0) / issueMax) * innerHeight;
+    const yResolved = paddingY + innerHeight - ((item.resolved || 0) / resolveMax) * innerHeight;
+    return { x, yIssues, yResolved, label: item.label, issues: item.issues || 0, resolved: item.resolved || 0 };
+  });
+  const issuePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yIssues}`).join(' ');
+  const resolvedPath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.yResolved}`).join(' ');
+  const issueArea = `${issuePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+  return (
+    <div className="dashboard-trend-chart">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Monthly issue and resolved trend chart">
+        <defs>
+          <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(37, 211, 102, 0.35)" />
+            <stop offset="100%" stopColor="rgba(37, 211, 102, 0.02)" />
+          </linearGradient>
+        </defs>
+        {[0, 1, 2, 3].map((step) => {
+          const y = paddingY + (innerHeight / 3) * step;
+          return <line key={step} x1={paddingX} x2={width - paddingX} y1={y} y2={y} className="dashboard-trend-gridline" />;
+        })}
+        <path d={issueArea} className="dashboard-trend-area" />
+        <path d={issuePath} className="dashboard-trend-line issues" />
+        <path d={resolvedPath} className="dashboard-trend-line resolved" />
+        {points.map((point) => (
+          <g key={point.label}>
+            <circle cx={point.x} cy={point.yIssues} r="4.5" className="dashboard-trend-point issues" />
+            <circle cx={point.x} cy={point.yResolved} r="4.5" className="dashboard-trend-point resolved" />
+            <text x={point.x} y={height - 4} textAnchor="middle" className="dashboard-trend-axis">{point.label}</text>
+          </g>
+        ))}
+      </svg>
+      <div className="dashboard-trend-legend">
+        <span><i className="legend-issues" />Issues</span>
+        <span><i className="legend-resolved" />Resolved</span>
+      </div>
+    </div>
+  );
+}
