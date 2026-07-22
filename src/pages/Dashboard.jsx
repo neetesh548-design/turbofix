@@ -625,6 +625,143 @@ export default function Dashboard() {
                 <AlertCard tone="low" title="Energy & uptime optimization" text={`${uptimePct}% availability. Use planned maintenance to protect uptime.`} action="View details" onClick={() => revealDetail('uptime')} />
               </div>
             </div>
+            <div className="factory-embedded-section">
+              <div className="decision-section-label">Core maintenance KPIs <LeanTag term="Andon" kanji="行灯" tone="andon" meaning="Andon — the signal that stops the line. Act on these first." /></div>
+              <section className="decision-kpi-grid">
+                <Metric label="Machines down" value={kpis.machines_down} tone="danger" loading={loading} detail="Need immediate attention" icon={AlertTriangle} onClick={() => revealDetail('machines')} />
+                <Metric label="Urgent issues" value={kpis.urgent_open} tone="warning" loading={loading} detail="High or critical severity" icon={Clock3} onClick={() => revealDetail('urgent')} />
+                <Metric label="Open work" value={kpis.open_tickets} loading={loading} detail="Live tickets in progress" icon={Activity} onClick={() => revealDetail('open')} />
+                <Metric label="Avg. time to fix" value={`${kpis.avg_hours_to_fix || 0}h`} loading={loading} detail="Average closed repair duration" icon={BarChart3} onClick={() => revealDetail('repair')} />
+              </section>
+            </div>
+            <section className="dashboard-analysis-board factory-embedded-analysis">
+              <section className="decision-panel dashboard-queue-panel">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Priority queue</div>
+                    <h2>Needs attention</h2>
+                  </div>
+                  <a href="tickets.html" className="text-link">View all</a>
+                </div>
+                <div className="dashboard-queue-list">
+                  {data.needs_attention?.length ? data.needs_attention.slice(0, 5).map((item, index) => (
+                    <button type="button" className="attention-row clickable" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
+                      <span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} />
+                      <div>
+                        <strong>{item.machine_name || 'Unknown machine'}</strong>
+                        <span>{item.description || 'Maintenance issue reported'}</span>
+                      </div>
+                      <b>{item.urgency || 'Open'}</b>
+                    </button>
+                  )) : <Empty text="No open issues. Your plant is clear." />}
+                </div>
+              </section>
+              <section className="decision-panel dashboard-chart-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Work distribution</div>
+                    <h2>Open vs resolved</h2>
+                  </div>
+                  <span className="trend-caption">Selected window</span>
+                </div>
+                <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
+              </section>
+              <section className="decision-panel dashboard-chart-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Equipment-wise risk</div>
+                    <h2>Top machines</h2>
+                  </div>
+                  <span className="trend-caption">30 days</span>
+                </div>
+                <RiskBars machines={insights.top_problem_machines || []} />
+              </section>
+              <section className="decision-panel dashboard-chart-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Maintenance status</div>
+                    <h2>Status mix</h2>
+                  </div>
+                  <span className="trend-caption">All records</span>
+                </div>
+                <MiniDonutChart items={overview.status_mix || []} />
+              </section>
+              <section className="decision-panel dashboard-chart-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Maintenance-wise</div>
+                    <h2>Type analysis</h2>
+                  </div>
+                  <span className="trend-caption">Top 5</span>
+                </div>
+                <CategoryBars items={overview.type_mix || []} />
+              </section>
+              <section className="decision-panel dashboard-chart-card">
+                <div className="decision-panel-heading">
+                  <div>
+                    <div className="decision-card-kicker">Cost trend</div>
+                    <h2>Monthly spend</h2>
+                  </div>
+                  <span className="trend-caption">12 months</span>
+                </div>
+                <CostBars items={overview.cost_by_month || []} />
+              </section>
+            </section>
+            <section className="decision-panel dashboard-trend-panel dashboard-trend-strip factory-embedded-trend">
+              <div className="decision-panel-heading dashboard-trend-heading">
+                <div>
+                  <div className="decision-card-kicker">Trend strip</div>
+                  <h2>Last 1 year, customizable</h2>
+                </div>
+                <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
+                  {TREND_WINDOWS.map((item) => (
+                    <button key={item.key} type="button" className={trendWindow === item.key ? 'active' : ''} onClick={() => setTrendWindow(item.key)}>{item.label}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="dashboard-trend-strip-shell">
+                <div className="dashboard-trend-strip-copy">
+                  <strong>{trendMetricLabel}</strong>
+                  <span>{trendSeries.length ? `${trendTotals.issues} issues · ${trendTotals.resolved} resolved · ${Math.round(trendTotals.downtime_hours * 10) / 10}h downtime` : 'No trend history yet.'}</span>
+                </div>
+                <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
+                  {[
+                    ['issues', 'Issues'],
+                    ['resolved', 'Resolved'],
+                    ['downtime_hours', 'Downtime'],
+                  ].map(([key, label]) => (
+                    <button key={key} type="button" className={trendMetric === key ? 'active' : ''} onClick={() => setTrendMetric(key)}>{label}</button>
+                  ))}
+                </div>
+              </div>
+              <button type="button" className="dashboard-trend-click-layer" onClick={() => revealDetail('trend')} aria-label="View trend details">
+                <div className="dashboard-trend-strip-bars">
+                  {trendSeries.length ? trendSeries.map((month) => {
+                    const value = month[trendMetric] || 0;
+                    const maxValue = trendMetric === 'resolved' ? maxTrendResolved : trendMetric === 'downtime_hours' ? maxTrendDowntime : maxTrendCount;
+                    return (
+                      <div className="dashboard-trend-strip-bar" key={month.key}>
+                        <span className="dashboard-trend-strip-fill" style={{ height: `${Math.max(10, (value / Math.max(maxValue, 1)) * 100)}%` }} />
+                        <small>{month.label}</small>
+                      </div>
+                    );
+                  }) : <Empty text="No trend history yet." />}
+                </div>
+              </button>
+              <div className="dashboard-trend-strip-footer">
+                <strong>{trendMetricTotal}</strong>
+                <small>Total over selected window</small>
+              </div>
+            </section>
+            <details className="decision-panel dashboard-more-context factory-embedded-more">
+              <summary>
+                <div>
+                  <div className="decision-card-kicker">More operating context</div>
+                  <strong>Open loss, audit, and handover detail</strong>
+                </div>
+                <em>Only when needed</em>
+              </summary>
+            </details>
           </div>
           <aside className="factory-glance-side">
             <SideKpiCard tone="blue" title="Total machines online" value={`${onlineMachines}/${kpis.total_machines || 0}`} delta="+ live workspace" onClick={() => revealDetail('online')} />
@@ -642,7 +779,7 @@ export default function Dashboard() {
           {detailConfig[activeDetail].items.length ? <div className="dashboard-detail-list">{detailConfig[activeDetail].items.map((item, index) => <a href={item.machine_id ? `machines.html?machine=${encodeURIComponent(item.machine_id)}` : item.ticket_id ? 'tickets.html' : '#dashboard-drilldown'} key={`${item.ticket_id || item.machine_id || item.machine_name || index}-${index}`}><span><strong>{item.machine_name || 'Dashboard item'}</strong><small>{item.location || item.description || 'Maintenance attention required'}</small></span><b>{item.value ?? (item.open_count != null ? `${item.open_count} open` : item.hours != null ? `${item.hours}h` : item.urgency || item.status || 'Open')}</b></a>)}</div> : <div className="decision-empty">{detailConfig[activeDetail].empty}</div>}
         </section>}
 
-        <DashboardGrid
+        {false && <DashboardGrid
           editable={false}
           widgets={[
             {
@@ -980,7 +1117,7 @@ export default function Dashboard() {
               }
             }
           ].filter(Boolean)}
-        />
+        />}
       </div>
     </AppShell>
   );

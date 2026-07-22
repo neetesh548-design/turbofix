@@ -586,6 +586,34 @@ input:focus, select:focus, textarea:focus {
   background: linear-gradient(145deg, rgba(248, 250, 252, .05), rgba(15, 23, 42, .68));
   box-shadow: 0 24px 70px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06);
 }
+.factory-embedded-section {
+  display: grid;
+  gap: 12px;
+}
+.factory-embedded-analysis {
+  margin-top: 2px;
+}
+.factory-embedded-analysis .decision-panel,
+.factory-embedded-trend,
+.factory-embedded-more {
+  background: rgba(7, 12, 18, .42);
+}
+.factory-embedded-trend {
+  margin-top: 0;
+}
+.factory-embedded-more {
+  margin: 0;
+}
+.dashboard-trend-click-layer {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .factory-glance-toolbar {
   display: flex;
   justify-content: space-between;
