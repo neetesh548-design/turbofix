@@ -599,6 +599,68 @@ input:focus, select:focus, textarea:focus {
   display: grid;
   gap: 14px;
 }
+.dashboard-trend-strip .dashboard-trend-strip-shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 10px 0 14px;
+}
+.dashboard-trend-strip-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.dashboard-trend-strip-copy strong {
+  color: #f8fafc;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.15rem;
+}
+.dashboard-trend-strip-copy span {
+  color: #94a3b8;
+  font-size: .8rem;
+  line-height: 1.45;
+}
+.dashboard-trend-strip-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
+  gap: 10px;
+  align-items: end;
+  min-height: 160px;
+}
+.dashboard-trend-strip-bar {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  align-items: end;
+  min-height: 160px;
+}
+.dashboard-trend-strip-fill {
+  width: 100%;
+  min-height: 10px;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #34d399, rgba(37, 211, 102, .34));
+  box-shadow: 0 8px 18px rgba(37, 211, 102, .18);
+}
+.dashboard-trend-strip-bar small {
+  color: #94a3b8;
+  font-size: .65rem;
+}
+.dashboard-trend-strip-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+}
+.dashboard-trend-strip-footer strong {
+  color: #f8fafc;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.35rem;
+}
+.dashboard-trend-strip-footer small {
+  color: #94a3b8;
+  font-size: .78rem;
+}
 .dashboard-trend-summary {
   padding: 18px;
   border-radius: 16px;

@@ -421,19 +421,6 @@ export default function Dashboard() {
   const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
   const pmComplianceValue = kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`;
   const topMachineName = topMachine ? (topMachine.machine_name || topMachine.machine_id) : 'No data yet';
-  const topMachineContext = topMachine ? `${topMachine.ticket_count} issues in the last 30 days` : 'Build history to surface the highest-risk machine';
-  const executiveSummary = kpis.total_machines
-    ? `There are ${kpis.open_tickets || 0} open tickets across ${kpis.machines_down || 0} affected machines. ${kpis.urgent_open || 0} of those need urgent attention, and the current top risk is ${topMachineName}.`
-    : 'No machine history has been built yet. Add machines first so TurboFix can turn live issues into a clear operating brief.';
-  const executiveAction = topMachine
-    ? `Recommended focus: inspect ${topMachine.machine_name || topMachine.machine_id} next.`
-    : 'Recommended focus: start by onboarding the first machine.';
-  const executiveSupport = [
-    { label: 'Open work', value: `${kpis.open_tickets || 0}`, detail: 'Live jobs in progress' },
-    { label: 'Urgent', value: `${kpis.urgent_open || 0}`, detail: 'High or critical severity' },
-    { label: 'Risk cost', value: money.format(impact.downtime_cost || 0), detail: '30-day production loss' },
-    { label: 'PM compliance', value: pmComplianceValue, detail: 'Preventive tasks on time' },
-  ];
   const trendMonths = TREND_WINDOWS.find((item) => item.key === trendWindow)?.months || 12;
   const trendSeries = (data.monthly_trend || []).slice(-trendMonths);
   const maxTrendCount = Math.max(...trendSeries.map((month) => month.issues || 0), 1);
@@ -453,16 +440,7 @@ export default function Dashboard() {
     resolved: 'Resolved',
     downtime_hours: 'Downtime hours',
   }[trendMetric] || 'Issues';
-  const trendMetricDetail = {
-    issues: 'Monthly open tickets',
-    resolved: 'Monthly resolved tickets',
-    downtime_hours: 'Monthly downtime hours',
-  }[trendMetric] || 'Monthly open tickets';
-  const trendMetricSeries = trendSeries.map((month) => ({
-    ...month,
-    value: month[trendMetric] || 0,
-  }));
-  const trendMetricTotal = trendMetricSeries.reduce((total, month) => total + (month.value || 0), 0);
+  const trendMetricTotal = trendSeries.reduce((total, month) => total + (month[trendMetric] || 0), 0);
   const detailConfig = {
     health: { title: 'Plant health details', items: data.drilldown?.machines_down || [], empty: 'All registered machines are currently clear.' },
     machines: { title: 'Machines needing attention', items: data.drilldown?.machines_down || [], empty: 'No machine is currently marked down.' },
@@ -524,57 +502,6 @@ export default function Dashboard() {
                       <p>{topMachine ? `${topMachine.ticket_count} recent issues make this your highest-risk machine.` : 'Register machines, upload manuals, and let TurboFix build your maintenance baseline.'}</p>
                       <a href={topMachine ? `machines.html?machine=${encodeURIComponent(topMachine.machine_id)}` : 'machines.html'} className="text-link">Open machine workspace <ArrowUpRight size={16} /></a>
                     </div>
-                    <div className="overview-mini-grid">
-                      <div className="overview-mini-card">
-                        <span className="overview-mini-label">Production loss</span>
-                        <strong>{money.format(impact.downtime_cost || 0)}</strong>
-                        <small>30-day cost exposure</small>
-                      </div>
-                      <div className="overview-mini-card">
-                        <span className="overview-mini-label">Availability</span>
-                        <strong>{`${impact.availability_pct ?? 100}%`}</strong>
-                        <small>Uptime over the last 30 days</small>
-                      </div>
-                      <div className="overview-mini-card">
-                        <span className="overview-mini-label">Top risk</span>
-                        <strong>{topMachineName}</strong>
-                        <small>{topMachineContext}</small>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              )
-            },
-            {
-              id: 'brief',
-              span: 12,
-              bare: true,
-              render: () => (
-                <section className="overview-brief-grid">
-                  <div className="decision-panel overview-brief-panel">
-                    <div className="decision-panel-heading">
-                      <div>
-                        <div className="decision-card-kicker">Executive brief</div>
-                        <h2>What matters right now</h2>
-                      </div>
-                      <span className="trend-caption">Owner view</span>
-                    </div>
-                    <p className="overview-brief-copy">{executiveSummary}</p>
-                    <p className="overview-brief-action">{executiveAction}</p>
-                    <div className="overview-brief-pills">
-                      <span>Focus on the highest-risk machine first</span>
-                      <span>Resolve urgent jobs before they cascade</span>
-                      <span>Use PM compliance to protect uptime</span>
-                    </div>
-                  </div>
-                  <div className="overview-brief-support">
-                    {executiveSupport.map((item) => (
-                      <div className="overview-brief-stat" key={item.label}>
-                        <span className="overview-mini-label">{item.label}</span>
-                        <strong>{item.value}</strong>
-                        <small>{item.detail}</small>
-                      </div>
-                    ))}
                   </div>
                 </section>
               )
@@ -597,7 +524,7 @@ export default function Dashboard() {
             },
             {
               id: 'attention_trend',
-              span: 7,
+              span: 12,
               bare: true,
               render: () => (
                 <section className="decision-columns">
@@ -607,29 +534,7 @@ export default function Dashboard() {
                       <div className="attention-row" key={`${item.machine_name}-${index}`}><span className={`status-dot ${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'success'}`} /><div><strong>{item.machine_name || 'Unknown machine'}</strong><span>{item.description || 'Maintenance issue reported'}</span></div><b>{item.urgency || 'Open'}</b></div>
                     )) : <Empty text="No open issues. Your plant is clear." />}
                   </div>
-                  <div className="decision-panel">
-                    <div className="decision-panel-heading"><div><div className="decision-card-kicker">Six-week signal</div><h2>Breakdown trend</h2></div><span className="trend-caption">Tickets / week</span></div>
-                    {data.weekly_trend?.length ? <div className="trend-bars">{data.weekly_trend.map((week) => <div className="trend-bar-wrap" key={week.week_start}><div className="trend-bar" style={{ height: `${Math.max(8, ((week.count || 0) / Math.max(...data.weekly_trend.map((x) => x.count || 0), 1)) * 100)}%` }} title={`${week.count} tickets`} /><span>{week.week_start}</span></div>)}</div> : <Empty text="No breakdown history yet." />}
-                  </div>
                 </section>
-              )
-            },
-            {
-              id: 'insights',
-              span: 5,
-              bare: true,
-              render: () => (
-                <>
-                  <div className="decision-section-label">Operational intelligence <LeanTag term="Kaizen" kanji="改善" meaning="Kaizen — continuous improvement. Watch these trends move, not just today's number." /></div>
-                  <section className="overview-insight-grid">
-                    <Insight label="Availability" value={`${impact.availability_pct ?? 100}%`} detail="Uptime over 30 days (24×7 basis)" icon={ShieldCheck} />
-                    <Insight label="MTBF" value={`${insights.mtbf_hours || 0} hrs`} detail="Mean time between failures" icon={Clock3} />
-                    <Insight label="MTTR" value={`${insights.mttr_hours || 0} hrs`} detail="Mean time to repair" icon={Activity} />
-                    <Insight label="PM compliance" value={pmComplianceValue} detail="Preventive tasks completed on time" icon={ShieldCheck} />
-                    <Insight label="Repeat breakdowns" value={`${insights.repeat_breakdown_pct || 0}%`} detail="Machines with 3+ issues in 30 days" icon={AlertTriangle} />
-                    <Insight label="#1 risk" value={topMachineName} detail={topMachineContext} icon={BarChart3} />
-                  </section>
-                </>
               )
             },
             {
@@ -637,10 +542,10 @@ export default function Dashboard() {
               span: 12,
               bare: true,
               render: () => (
-                <section className="decision-panel dashboard-trend-panel">
+                <section className="decision-panel dashboard-trend-panel dashboard-trend-strip">
                   <div className="decision-panel-heading dashboard-trend-heading">
                     <div>
-                      <div className="decision-card-kicker">Trend signal</div>
+                      <div className="decision-card-kicker">Trend strip</div>
                       <h2>Last 1 year, customizable</h2>
                     </div>
                     <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">
@@ -656,65 +561,45 @@ export default function Dashboard() {
                       ))}
                     </div>
                   </div>
-                  <p className="dashboard-trend-copy">{trendInsight}</p>
-                  <div className="dashboard-trend-layout">
-                    <div className="dashboard-trend-chart-card">
-                      <div className="dashboard-trend-chart-header">
-                        <strong>{trendMetricLabel}</strong>
-                        <span>{trendMetricDetail}</span>
-                      </div>
-                      <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
-                        {[
-                          ['issues', 'Issues'],
-                          ['resolved', 'Resolved'],
-                          ['downtime_hours', 'Downtime'],
-                        ].map(([key, label]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            className={trendMetric === key ? 'active' : ''}
-                            onClick={() => setTrendMetric(key)}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                      <TrendChart series={trendMetricSeries} metric={trendMetric} />
-                      <div className="dashboard-trend-footer">
-                        <strong>{trendMetricTotal}</strong>
-                        <small>Total over selected window</small>
-                      </div>
+                  <div className="dashboard-trend-strip-shell">
+                    <div className="dashboard-trend-strip-copy">
+                      <strong>{trendMetricLabel}</strong>
+                      <span>{trendInsight}</span>
                     </div>
-                    <div className="dashboard-trend-side">
-                      <div className="dashboard-trend-summary">
-                        <span>Open vs resolved</span>
-                        <strong>{trendTotals.issues}</strong>
-                        <small>{trendTotals.resolved} resolved in the same window</small>
-                      </div>
-                      <div className="dashboard-trend-summary">
-                        <span>Downtime hours</span>
-                        <strong>{Math.round(trendTotals.downtime_hours * 10) / 10}h</strong>
-                        <small>Calculated from the same ticket history</small>
-                      </div>
+                    <div className="dashboard-trend-switch dashboard-trend-metric-switch" role="tablist" aria-label="Trend metric">
+                      {[
+                        ['issues', 'Issues'],
+                        ['resolved', 'Resolved'],
+                        ['downtime_hours', 'Downtime'],
+                      ].map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={trendMetric === key ? 'active' : ''}
+                          onClick={() => setTrendMetric(key)}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   </div>
+                  <div className="dashboard-trend-strip-bars">
+                    {trendSeries.length ? trendSeries.map((month) => {
+                      const value = month[trendMetric] || 0;
+                      const maxValue = trendMetric === 'resolved' ? maxTrendResolved : trendMetric === 'downtime_hours' ? maxTrendDowntime : maxTrendCount;
+                      return (
+                        <div className="dashboard-trend-strip-bar" key={month.key}>
+                          <span className="dashboard-trend-strip-fill" style={{ height: `${Math.max(10, (value / Math.max(maxValue, 1)) * 100)}%` }} />
+                          <small>{month.label}</small>
+                        </div>
+                      );
+                    }) : <Empty text="No trend history yet." />}
+                  </div>
+                  <div className="dashboard-trend-strip-footer">
+                    <strong>{trendMetricTotal}</strong>
+                    <small>Total over selected window</small>
+                  </div>
                 </section>
-              )
-            },
-            {
-              id: 'impact',
-              span: 12,
-              bare: true,
-              render: () => (
-                <>
-                  <div className="decision-section-label">Owner impact · last 30 days</div>
-                  <section className="decision-insight-grid">
-                    <Insight label="Downtime" value={`${impact.downtime_hours || 0} hrs`} detail="Automatically calculated from tickets" />
-                    <Insight label="Estimated production loss" value={money.format(impact.downtime_cost || 0)} detail="Based on each machine's hourly value" />
-                    <Insight label="Maintenance spend" value={money.format(impact.maintenance_cost || 0)} detail="Parts, labour and repair costs recorded" />
-                    <Insight label="Repeat-loss exposure" value={money.format(impact.repeat_loss_exposure || 0)} detail="Cost linked to machines with 3+ issues" />
-                  </section>
-                </>
               )
             },
             {
