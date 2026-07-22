@@ -404,7 +404,7 @@ export default function Dashboard() {
   const [trendMetric, setTrendMetric] = useState('issues');
 
   useEffect(() => {
-    document.title = 'Dashboard | TurboFix';
+    document.title = 'Control Center | TurboFix';
     let mounted = true;
     fetchDashboardData()
       .then((next) => {
@@ -459,8 +459,8 @@ export default function Dashboard() {
         <div className="decision-heading overview-heading">
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
-            <h1>Operations Overview <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>{companyName} · Live plant signals, cost exposure, and the next best action. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
+            <h1>Control Center <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
+            <p>{companyName} · A chart-led command view for plant signals, cost exposure, and investigation-first decisions. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
@@ -530,7 +530,7 @@ export default function Dashboard() {
                 <section className="decision-panel dashboard-queue-panel">
                   <div className="decision-panel-heading">
                     <div>
-                      <div className="decision-card-kicker">Priority queue</div>
+                      <div className="decision-card-kicker">Investigation queue</div>
                       <h2>Needs attention</h2>
                     </div>
                     <a href="tickets.html" className="text-link">View all</a>
@@ -558,7 +558,7 @@ export default function Dashboard() {
                 <section className="decision-panel dashboard-trend-panel dashboard-trend-strip">
                   <div className="decision-panel-heading dashboard-trend-heading">
                     <div>
-                      <div className="decision-card-kicker">Trend strip</div>
+                      <div className="decision-card-kicker">Chart strip</div>
                       <h2>Last 1 year, customizable</h2>
                     </div>
                     <div className="dashboard-trend-switch" role="tablist" aria-label="Trend range">

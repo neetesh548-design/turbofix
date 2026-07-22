@@ -79,7 +79,7 @@ function readAuth() {
   return { authed: true, user };
 }
 const NAV_LIVE = [
-  { id: 'overview', label: 'Overview', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
+  { id: 'overview', label: 'Control Center', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
   { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
   { id: 'records', label: 'AI Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
   { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
