@@ -418,9 +418,9 @@ export default function Technician() {
                     .slice(0, 3);
                   if (priorFixes.length === 0) return null;
                   return (
-                    <div className="technician-checklist" style={{ borderColor: 'rgba(167,139,250,0.35)' }}>
-                      <div className="technician-card-heading"><Wrench className="size-5" /><div><h3>Proven fixes on this machine</h3><small>What worked before — reuse it instead of re-diagnosing.</small></div></div>
-                      <div style={{ display: 'grid', gap: '8px' }}>
+                    <details className="technician-optional-details technician-prior-fixes">
+                      <summary>Proven fixes on this machine <span>What worked before — reuse it instead of re-diagnosing</span></summary>
+                      <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
                         {priorFixes.map((h) => (
                           <div key={h.id} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px 12px' }}>
                             <div style={{ fontSize: '0.72rem', color: 'var(--slate)', marginBottom: '3px' }}>{h.resolved_at ? new Date(h.resolved_at).toLocaleDateString('en-IN') : ''}{h.wo_number ? ` · ${h.wo_number}` : ''}</div>
@@ -430,7 +430,7 @@ export default function Technician() {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </details>
                   );
                 })()}
                 <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>

@@ -670,6 +670,31 @@ input:focus, select:focus, textarea:focus {
 .machine-owner-details summary { font-weight: 700; font-size: 1rem; color: var(--text); }
 .machine-owner-details summary span { color: var(--slate); font-weight: 500; font-size: .82rem; margin-left: 8px; }
 .machine-owner-details > p { color: var(--slate); margin: 10px 0 18px; }
+.dashboard-more-context, .machine-workspace-more, .support-history { cursor: pointer; }
+.dashboard-more-context summary, .machine-workspace-more summary, .support-history summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  list-style: none;
+  font-weight: 800;
+  color: var(--text);
+}
+.dashboard-more-context summary::-webkit-details-marker,
+.machine-workspace-more summary::-webkit-details-marker,
+.support-history summary::-webkit-details-marker { display: none; }
+.dashboard-more-context summary span,
+.machine-workspace-more summary span,
+.support-history summary span { display: grid; gap: 4px; }
+.dashboard-more-context summary em,
+.machine-workspace-more summary em,
+.support-history summary em { color: var(--slate); font-style: normal; font-size: .76rem; font-weight: 500; }
+.dashboard-more-context-body { display: grid; gap: 14px; margin-top: 18px; }
+.dashboard-more-context .decision-panel { padding: 18px; }
+.support-history { margin-top: 18px; }
+.support-history summary { margin-bottom: 14px; padding: 4px 0 10px; border-bottom: 1px solid var(--border); }
+.technician-prior-fixes { margin-top: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+.technician-prior-fixes summary span { color: var(--slate); font-size: .76rem; font-weight: 500; margin-left: 6px; }
 .technician-check.dynamic { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .technician-check-copy { display: flex; flex-direction: column; gap: 5px; }
 .technician-check-copy small, .technician-card-heading small { color: var(--slate); font-size: .76rem; }

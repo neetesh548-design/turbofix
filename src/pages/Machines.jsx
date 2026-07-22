@@ -2138,62 +2138,69 @@ export default function Machines() {
                         </div>
                       );
                     })()}
-                    <div className="machine-section-heading" style={{ display: 'block', marginBottom: '18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <span><BookOpen /></span>
-                          <div><h3>Machine knowledge vault</h3><p>Versioned MachineData, graph links, interventions and audit trail.</p></div>
-                        </div>
-                        <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.76rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: machineData?.dirty ? '#FBBF24' : 'var(--brand)' }}>
-                          {machineDataLoading ? 'Loading…' : machineData?.dirty ? 'Needs approval' : machineData?.file_name ? 'Approved' : 'No knowledge yet'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginTop: '14px', padding: '14px 16px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px' }}>
-                        <div>
-                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Knowledge file</small>
-                          <strong style={{ color: 'white', fontSize: '0.9rem', wordBreak: 'break-word' }}>{machineDataLoading ? 'Refreshing…' : machineKnowledge.file?.file_name || machineData?.file_name || 'Waiting for first approved upload'}</strong>
-                        </div>
-                        <div>
-                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Graph</small>
-                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineDataLoading ? 'Refreshing…' : machineData?.graph_hash ? `${machineData.node_count || 0} nodes · ${machineData.edge_count || 0} edges` : 'Not generated yet'}</strong>
-                        </div>
-                        <div>
-                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Interventions</small>
-                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.interventions.length} logged</strong>
-                        </div>
-                        <div>
-                          <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Audit trail</small>
-                          <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.audit.length} recent entries</strong>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="machine-section-heading">
-                      <div><span><ClipboardList /></span><div><h3>Breakdown response path</h3><p>Who responds first, and when the issue moves to the next level.</p></div></div>
-                      <a href="settings.html#response">Change response rules <ChevronRight /></a>
-                    </div>
-                    <div className="machine-escalation-timeline">
-                      {(() => {
-                        let accumulatedHours = 0;
-                        return escalationPath.map((step, index) => {
-                          const triggerHour = accumulatedHours;
-                          accumulatedHours += Number(step.threshold_hours || 0);
-                          const isLast = index === escalationPath.length - 1;
-                          const assignee = getAssigneeForStep(step, index);
-                          return <article key={`${step.role}-${index}`} className={index === 0 ? 'active' : ''}>
-                            <div className="machine-escalation-marker"><span>{index + 1}</span></div>
-                            <div className="machine-escalation-copy">
-                              <small>{index === 0 ? 'Immediately after reporting' : `If still open after ${triggerHour} hour${triggerHour === 1 ? '' : 's'}`}</small>
-                              <h4>{step.label}</h4>
-                              {step.role === 'owner'
-                                ? <p><Users />All owner accounts</p>
-                                : <ContactReveal member={assignee} compact showIdentity />}
+                    <details className="machine-workspace-more">
+                      <summary>More machine context <span>Knowledge vault and response path</span></summary>
+                      <div style={{ display: 'grid', gap: '18px', marginTop: '14px' }}>
+                        <div className="machine-section-heading" style={{ display: 'block', marginBottom: '0' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                              <span><BookOpen /></span>
+                              <div><h3>Machine knowledge vault</h3><p>Versioned MachineData, graph links, interventions and audit trail.</p></div>
                             </div>
-                            <span className="machine-escalation-time">{isLast ? 'Final escalation' : `${step.threshold_hours || 0}h response window`}</span>
-                          </article>;
-                        });
-                      })()}
-                      {escalationPath.length === 0 && <div className="machine-workspace-empty"><CircleAlert /><strong>No response path configured</strong><span>Set the response order in Settings before a breakdown occurs.</span></div>}
-                    </div>
+                            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.76rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: machineData?.dirty ? '#FBBF24' : 'var(--brand)' }}>
+                              {machineDataLoading ? 'Loading…' : machineData?.dirty ? 'Needs approval' : machineData?.file_name ? 'Approved' : 'No knowledge yet'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginTop: '14px', padding: '14px 16px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+                            <div>
+                              <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Knowledge file</small>
+                              <strong style={{ color: 'white', fontSize: '0.9rem', wordBreak: 'break-word' }}>{machineDataLoading ? 'Refreshing…' : machineKnowledge.file?.file_name || machineData?.file_name || 'Waiting for first approved upload'}</strong>
+                            </div>
+                            <div>
+                              <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Graph</small>
+                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineDataLoading ? 'Refreshing…' : machineData?.graph_hash ? `${machineData.node_count || 0} nodes · ${machineData.edge_count || 0} edges` : 'Not generated yet'}</strong>
+                            </div>
+                            <div>
+                              <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Interventions</small>
+                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.interventions.length} logged</strong>
+                            </div>
+                            <div>
+                              <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Audit trail</small>
+                              <strong style={{ color: 'white', fontSize: '0.9rem' }}>{machineKnowledge.audit.length} recent entries</strong>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="machine-section-heading">
+                            <div><span><ClipboardList /></span><div><h3>Breakdown response path</h3><p>Who responds first, and when the issue moves to the next level.</p></div></div>
+                            <a href="settings.html#response">Change response rules <ChevronRight /></a>
+                          </div>
+                          <div className="machine-escalation-timeline">
+                            {(() => {
+                              let accumulatedHours = 0;
+                              return escalationPath.map((step, index) => {
+                                const triggerHour = accumulatedHours;
+                                accumulatedHours += Number(step.threshold_hours || 0);
+                                const isLast = index === escalationPath.length - 1;
+                                const assignee = getAssigneeForStep(step, index);
+                                return <article key={`${step.role}-${index}`} className={index === 0 ? 'active' : ''}>
+                                  <div className="machine-escalation-marker"><span>{index + 1}</span></div>
+                                  <div className="machine-escalation-copy">
+                                    <small>{index === 0 ? 'Immediately after reporting' : `If still open after ${triggerHour} hour${triggerHour === 1 ? '' : 's'}`}</small>
+                                    <h4>{step.label}</h4>
+                                    {step.role === 'owner'
+                                      ? <p><Users />All owner accounts</p>
+                                      : <ContactReveal member={assignee} compact showIdentity />}
+                                  </div>
+                                  <span className="machine-escalation-time">{isLast ? 'Final escalation' : `${step.threshold_hours || 0}h response window`}</span>
+                                </article>;
+                              });
+                            })()}
+                            {escalationPath.length === 0 && <div className="machine-workspace-empty"><CircleAlert /><strong>No response path configured</strong><span>Set the response order in Settings before a breakdown occurs.</span></div>}
+                          </div>
+                        </div>
+                      </div>
+                    </details>
                   </section>
 
                   <aside className="machine-overview-side">
