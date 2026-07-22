@@ -1,0 +1,21 @@
+# TurboFix
+
+> TurboFix is an AI-assisted maintenance decision platform for manufacturing SMEs.
+
+TurboFix helps factory maintenance teams turn paper registers, spreadsheets, PDFs, manuals, job cards, breakdown history, preventive-maintenance records, BOMs, and spare lists into structured machine knowledge. Extracted information is reviewed by people and requires Maintenance Head approval before it can influence AI recommendations.
+
+Core capabilities:
+- Machine-specific maintenance records and knowledge
+- Preventive maintenance and breakdown workflows
+- AI-assisted maintenance questions grounded in approved plant data
+- Shutdown planning and work prioritization
+- Technician work queues, evidence, and supervisor review
+- WhatsApp dispatch and escalation workflows
+- Exportable plant-owned records and backups
+
+Primary audience: maintenance heads, plant managers, technicians, and owners of small and medium manufacturing businesses.
+
+Official website: https://turbofix.co.in/
+Product overview and guided demo: https://turbofix.co.in/
+
+TurboFix supports maintenance decisions; authorized plant personnel remain responsible for safety, approvals, and execution.
