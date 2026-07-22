@@ -353,7 +353,7 @@ export default function Technician() {
     <AppShell active="technician">
       <div className="technician-page">
         <div className="technician-heading">
-          <div><span className="eyebrow eyebrow-light">Technician workspace</span><h1>Do the work. Close the loop.</h1><p>Everything assigned to you, from the first check to supervisor-approved closure.</p></div>
+          <div><span className="eyebrow eyebrow-light">Technician workspace</span><h1>Do the work. Close the loop.</h1><p>TurboFix keeps the execution flow simple here; analytics supplies the task context, while your checks, evidence, and closure decisions stay front and center.</p></div>
           <div className="technician-identity"><Wrench className="size-5" /><span>{user?.name || 'Technician'}</span></div>
         </div>
         {error && <div className="technician-alert error">{error}</div>}

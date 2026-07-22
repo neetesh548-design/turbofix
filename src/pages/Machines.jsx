@@ -1759,7 +1759,7 @@ export default function Machines() {
                   {error && <div className="vault-error show" style={{ marginBottom: '16px', gridColumn: 'span 2' }}>{error}</div>}
 
                   <div className="machine-form-actions">
-                    <div><strong>TurboFix creates the machine ID and QR tag automatically.</strong><span>You can upload manuals, BOM, and diagrams after onboarding.</span></div>
+                    <div><strong>TurboFix creates the machine ID and QR tag automatically.</strong><span>The machine page stays the workflow layer; analytics and machine history power the signals underneath. You can upload manuals, BOM, and diagrams after onboarding.</span></div>
                     <button type="submit" className="vault-btn vault-btn-primary machine-submit" disabled={technicians.length === 0}>Add machine</button>
                   </div>
                 </form>
@@ -2036,7 +2036,7 @@ export default function Machines() {
                   </button>
                   {editSections.people && (
                     <div style={{ padding: '18px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix uses the same connection in the machine workspace and response path.</p>
+                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix keeps that relationship in the machine workspace and response path, while analytics uses the same stored links to shape recommendations and escalations.</p>
                       <div className="machine-owner-edit-grid">
                         <label><span>Primary technician</span><select value={machineEdit.technician_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, technician_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{technicians.length ? 'Not assigned' : 'No technician found — add in Team'}</option>{technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
                         <label><span>Supervisor</span><select value={machineEdit.supervisor_id} onChange={(e) => setMachineEdit({ ...machineEdit, supervisor_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{supervisors.length ? 'Not assigned' : 'No supervisor found — add in Team'}</option>{supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>

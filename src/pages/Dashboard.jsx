@@ -409,7 +409,7 @@ export default function Dashboard() {
           <div>
             <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
             <h1>Operations Overview <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
-            <p>{companyName} · Live plant signals, cost exposure, and the next best action.</p>
+            <p>{companyName} · Live plant signals, cost exposure, and the next best action. TurboFix stays the workflow layer while the analytics engine computes the numbers underneath.</p>
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>

@@ -82,7 +82,7 @@ const Inventory = () => {
     <AppShell active="inventory">
       <div className="inventory-page max-w-7xl mx-auto space-y-6">
         <header className="inventory-page-heading">
-          <div><span>Supply readiness</span><h1>Inventory &amp; Supply Chain</h1><p>Keep critical spares available and purchasing decisions clear before work stops.</p></div>
+          <div><span>Supply readiness</span><h1>Inventory &amp; Supply Chain</h1><p>TurboFix manages the supply workflow here; analytics keeps the stock and reorder signals current underneath so work can continue without clutter.</p></div>
           <div className="inventory-live-chip"><i />Live stock view</div>
         </header>
         

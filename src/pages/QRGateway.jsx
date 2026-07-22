@@ -495,7 +495,7 @@ export default function QRGateway() {
       } else if (lang === 'mr-IN') {
         greetingText = 'नमस्कार! तक्रार नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका.';
       } else {
-        greetingText = 'Welcome to TurboFix. Please enter your 10 digit mobile number to proceed.';
+        greetingText = 'Welcome to TurboFix. This is the guided reporting flow while analytics works underneath. Please enter your 10 digit mobile number to proceed.';
       }
     } else {
       if (lang === 'hi-IN') {
@@ -503,7 +503,7 @@ export default function QRGateway() {
       } else if (lang === 'mr-IN') {
         greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
       } else {
-        greetingText = 'I am your TurboFix assistant. Tap the big button to speak your problem.';
+        greetingText = 'I am your TurboFix assistant. This is the guided reporting flow while analytics works underneath. Tap the big button to speak your problem.';
       }
     }
     if (!phoneGate) {

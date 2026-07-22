@@ -314,7 +314,7 @@ export default function Tickets() {
       <div className="vault-wrap workspace-page tickets-page" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
         <div className="workspace-page-heading" style={{ marginBottom: '20px' }}>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Tickets Directory</h1>
-          <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Monitor plant floor maintenance issues, view AI root-cause diagnostics, and close resolved tickets.</p>
+          <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>TurboFix keeps ticket triage and closure in one workflow while analytics continues to power the diagnostics and priority signals underneath.</p>
         </div>
 
         {/* Japanese TPS Andon Visual Health Banner */}

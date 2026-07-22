@@ -190,7 +190,7 @@ export default function Team() {
         <div className="workspace-page-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
-            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Manage technicians, supervisors, engineers, and plant directors access authorization permissions.</p>
+            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>TurboFix keeps people, roles, and approvals aligned here; analytics uses the stored team relationships behind the scenes without changing the workflow.</p>
           </div>
           {isOwner && (
             <button className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(!showAddForm)}>
