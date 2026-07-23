@@ -343,6 +343,11 @@ export default function QRGateway() {
     return micStreamRef.current;
   };
 
+  const releaseMicStream = () => {
+    micStreamRef.current?.getTracks?.().forEach((track) => track.stop());
+    micStreamRef.current = null;
+  };
+
   const getRecorderOptions = () => {
     const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
     const mimeType = types.find((type) => window.MediaRecorder?.isTypeSupported?.(type));
@@ -677,13 +682,11 @@ export default function QRGateway() {
     } catch (err) {
       console.error(err);
       const rawMsg = String(err?.message || '').trim();
-      const errMsg = rawMsg || (
-        /not configured/i.test(rawMsg)
-          ? 'Voice transcription is not configured right now.'
-          : /temporarily unavailable/i.test(rawMsg)
-            ? 'Voice transcription is temporarily unavailable. Please try again.'
-            : t('transcribeError')
-      );
+      const errMsg = /not configured|api key|secret/i.test(rawMsg)
+        ? 'Voice transcription is not configured right now.'
+        : /temporarily unavailable|quota|429|overloaded/i.test(rawMsg)
+          ? 'Voice transcription is temporarily unavailable. Please try again.'
+          : rawMsg || t('transcribeError');
       setVoiceError(errMsg);
       setAssistantPrompt(errMsg);
       speak(errMsg);
@@ -1395,6 +1398,7 @@ export default function QRGateway() {
                 type="button"
                 onClick={() => {
                   clearPendingAudio();
+                  releaseMicStream();
                   setTranscript('');
                   setExtractedInfo(null);
                   setVoiceError('');
@@ -1679,7 +1683,8 @@ export default function QRGateway() {
                   ['Machine', machine.name || 'Selected machine'],
                   ['Location', machine.loc || 'Not set'],
                   ['Reporter', reporterName.trim() || 'Not provided'],
-                  ['Report type', extractedInfo?.aiDraft ? 'AI-reviewed voice' : showTextFallback ? 'Text / Voice' : 'Voice']
+                  ['Report type', extractedInfo?.aiDraft ? 'AI-reviewed voice' : showTextFallback ? 'Text / Voice' : 'Voice'],
+                  ['Assigned technician', technicianName || t('notAssigned')]
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem', alignItems: 'start' }}>
                     <span style={{ color: '#94a3b8' }}>{label}</span>
@@ -1769,9 +1774,12 @@ export default function QRGateway() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', background: 'rgba(134,59,255,0.08)', padding: '10px 12px', borderRadius: '14px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.76rem' }}>
-                <span style={{ color: '#cbd5e1' }}>{t('assignedTech')}</span>
-                <strong style={{ color: '#a78bfa', fontWeight: 800, textAlign: 'right' }}>{technicianName || t('notAssigned')}</strong>
+              <div style={{ display: 'grid', gap: '8px', background: 'rgba(134,59,255,0.08)', padding: '10px 12px', borderRadius: '14px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.76rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <span style={{ color: '#cbd5e1' }}>{t('assignedTech')}</span>
+                  <strong style={{ color: '#a78bfa', fontWeight: 800, textAlign: 'right' }}>{technicianName || t('notAssigned')}</strong>
+                </div>
+                <span style={{ color: '#94a3b8', lineHeight: 1.4 }}>After approval, TurboFix creates the WO and saves voice, AI draft, review snapshot and final submission.</span>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '8px', marginTop: '2px' }}>

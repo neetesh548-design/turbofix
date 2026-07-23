@@ -507,7 +507,7 @@ export default function Machines() {
       const [rcaRes, capaRes, ticketsRes, wopRes] = await Promise.all([
         supabase.from('rca_reports').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('capa_actions').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
-        supabase.from('tickets').select('id,issue_text,created_at,resolved_at,status,type,wo_number,repeat_failure_count,repeat_failure_flag,labour_minutes,downtime_minutes').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('tickets').select('id,issue_text,created_at,resolved_at,status,type,urgency,lifecycle_stage,closure_approved_by,verified_at,wo_number,repeat_failure_count,repeat_failure_flag,labour_minutes,downtime_minutes').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('work_order_parts').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
       ]);
       setRcaReports(rcaRes.data || []);
@@ -887,6 +887,30 @@ export default function Machines() {
   const duePmCount = pmSchedules.filter((pm) => pm.active !== false && pm.next_due_at && new Date(pm.next_due_at) <= new Date()).length;
   const openCapaCount = capaActions.filter((capa) => !['done', 'verified', 'closed'].includes(String(capa.status || '').toLowerCase())).length;
   const waitingStatus = ['waiting_spare', 'waiting_vendor'].includes(String(selectedMachine?.status || '').toLowerCase());
+  const waitingClosureTickets = machineTickets.filter((t) => ['verification_pending', 'waiting_approval'].includes(String(t.lifecycle_stage || t.status || '').toLowerCase()));
+  const repeatSignalCount = machineTickets.filter((t) => t.repeat_failure_flag || Number(t.repeat_failure_count || 0) > 0).length;
+  const assignedTech = getAssignment(selectedMachine, 'technician');
+  const loopGaps = [
+    machineOpenTickets.length && 'open work',
+    waitingClosureTickets.length && 'closure approval',
+    !assignedTech && 'technician owner',
+    duePmCount && 'PM due',
+    (lowPartCount + lowConsumableCount) && 'material low',
+    openCapaCount && 'CAPA open',
+    machineData?.dirty && 'AI approval',
+    machineData?.missing_sections?.length && 'knowledge gap',
+  ].filter(Boolean);
+  const nextLoopAction = (() => {
+    if (waitingClosureTickets.length) return { tone: 'warning', label: 'Verify closure', text: `${waitingClosureTickets.length} repair${waitingClosureTickets.length === 1 ? '' : 's'} waiting for approval.`, tab: 'info' };
+    if (waitingStatus) return { tone: 'warning', label: 'Unblock machine', text: selectedMachine?.status === 'waiting_vendor' ? 'Waiting for vendor support.' : 'Waiting for spare material.', tab: selectedMachine?.status === 'waiting_vendor' ? 'info' : 'parts' };
+    if (machineOpenTickets.length) return { tone: 'attention', label: 'Control open work', text: `${machineOpenTickets.length} active ticket${machineOpenTickets.length === 1 ? '' : 's'} need update or repair.`, tab: 'info' };
+    if (!assignedTech) return { tone: 'warning', label: 'Assign owner', text: 'Connect a primary technician so the response loop has no dead zone.', action: openMachineEdit };
+    if (duePmCount) return { tone: 'warning', label: 'Do preventive maintenance', text: `${duePmCount} PM task${duePmCount === 1 ? '' : 's'} due now.`, tab: 'pm' };
+    if (lowPartCount + lowConsumableCount) return { tone: 'warning', label: 'Protect material flow', text: `${lowPartCount + lowConsumableCount} item${lowPartCount + lowConsumableCount === 1 ? '' : 's'} below reorder level.`, tab: lowPartCount ? 'parts' : 'consumables' };
+    if (openCapaCount) return { tone: 'warning', label: 'Verify CAPA', text: `${openCapaCount} corrective action${openCapaCount === 1 ? '' : 's'} still open.`, tab: 'reliability' };
+    if (machineData?.dirty || machineData?.missing_sections?.length) return { tone: 'warning', label: 'Complete AI context', text: machineData?.dirty ? 'Approve updated MachineData before AI uses it.' : 'Fill the missing knowledge gaps.', tab: 'docs' };
+    return { tone: 'good', label: 'Loop closed', text: 'Machine has owner, work, PM, material and AI context under control.', tab: 'calendar' };
+  })();
   const machineCost = (() => {
     const partsCost = workOrderParts.reduce((sum, w) => sum + Number(w.total_cost || 0), 0);
     const labourCost = machineTickets.reduce((sum, t) => sum + (Number(t.labour_minutes || 0) / 60) * LABOUR_RATE_PER_HOUR, 0);
@@ -2145,6 +2169,17 @@ export default function Machines() {
                         </div>
                       );
                     })()}
+                    <section className={`machine-loop-next ${nextLoopAction.tone}`}>
+                      <div>
+                        <small>Closed-loop next action</small>
+                        <h3>{nextLoopAction.label}</h3>
+                        <p>{nextLoopAction.text}</p>
+                      </div>
+                      <button type="button" onClick={() => nextLoopAction.action ? nextLoopAction.action() : setWsTab(nextLoopAction.tab)}>
+                        Take action <ChevronRight />
+                      </button>
+                      <span>{loopGaps.length ? `${loopGaps.length} loop gap${loopGaps.length === 1 ? '' : 's'}: ${loopGaps.slice(0, 3).join(', ')}${loopGaps.length > 3 ? '…' : ''}` : 'All critical loops closed'}</span>
+                    </section>
                     <section className="machine-loop-status">
                       <div className="machine-section-heading">
                         <div><span><ShieldCheck /></span><div><h3>Machine loop status</h3><p>Shows whether this machine’s work loop is open, blocked, or closed.</p></div></div>
@@ -2155,15 +2190,15 @@ export default function Machines() {
                           <strong>{machineOpenTickets.length ? `${machineOpenTickets.length} open` : 'No open work'}</strong>
                           <span>{waitingStatus ? 'Machine is waiting for external input' : machineOpenTickets.length ? 'Technician action or update needed' : 'Ready for PM / routine checks'}</span>
                         </button>
-                        <button type="button" className={`machine-loop-card ${latestClosedTicket ? 'good' : ''}`} onClick={() => setWsTab('info')}>
+                        <button type="button" className={`machine-loop-card ${waitingClosureTickets.length ? 'warning' : latestClosedTicket ? 'good' : ''}`} onClick={() => setWsTab('info')}>
                           <small>Closure loop</small>
-                          <strong>{latestClosedTicket ? latestClosedTicket.wo_number || latestClosedTicket.id.slice(0, 8) : 'No closure yet'}</strong>
-                          <span>{latestClosedTicket ? `Closed ${new Date(latestClosedTicket.resolved_at || latestClosedTicket.created_at).toLocaleDateString('en-IN')}` : 'Closed work will appear here'}</span>
+                          <strong>{waitingClosureTickets.length ? `${waitingClosureTickets.length} awaiting` : latestClosedTicket ? latestClosedTicket.wo_number || latestClosedTicket.id.slice(0, 8) : 'No closure yet'}</strong>
+                          <span>{waitingClosureTickets.length ? 'Supervisor verification needed' : latestClosedTicket ? `Closed ${new Date(latestClosedTicket.resolved_at || latestClosedTicket.created_at).toLocaleDateString('en-IN')}` : 'Closed work will appear here'}</span>
                         </button>
                         <button type="button" className={`machine-loop-card ${getAssignment(selectedMachine, 'technician') ? 'good' : 'warning'}`} onClick={() => openMachineEdit()}>
                           <small>Owner loop</small>
                           <strong>{getAssignment(selectedMachine, 'technician') ? 'Assigned' : 'No technician'}</strong>
-                          <span>{getAssignment(selectedMachine, 'technician')?.name || 'Assign responsible person'}</span>
+                          <span>{getAssignment(selectedMachine, 'technician')?.name || 'Assign responsible person'}{getAssignment(selectedMachine, 'supervisor') ? ` · ${getAssignment(selectedMachine, 'supervisor')?.name}` : ''}</span>
                         </button>
                         <button type="button" className={`machine-loop-card ${lowPartCount || lowConsumableCount ? 'warning' : 'good'}`} onClick={() => setWsTab(lowPartCount ? 'parts' : 'consumables')}>
                           <small>Material loop</small>
@@ -2175,10 +2210,10 @@ export default function Machines() {
                           <strong>{duePmCount ? `${duePmCount} due` : 'On track'}</strong>
                           <span>{pmSchedules.length ? 'Preventive schedule active' : 'No PM schedule yet'}</span>
                         </button>
-                        <button type="button" className={`machine-loop-card ${machineData?.dirty || openCapaCount ? 'warning' : machineData?.missing_sections?.length ? 'attention' : 'good'}`} onClick={() => setWsTab(openCapaCount ? 'reliability' : 'docs')}>
+                        <button type="button" className={`machine-loop-card ${machineData?.dirty || openCapaCount ? 'warning' : machineData?.missing_sections?.length || repeatSignalCount ? 'attention' : 'good'}`} onClick={() => setWsTab(openCapaCount || repeatSignalCount ? 'reliability' : 'docs')}>
                           <small>Learning loop</small>
-                          <strong>{openCapaCount ? `${openCapaCount} CAPA open` : machineData?.dirty ? 'Approval needed' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready'}</strong>
-                          <span>{openCapaCount ? 'Verify corrective action' : machineData?.dirty ? 'Approve knowledge before AI uses it' : 'Machine knowledge feeds AI and KPIs'}</span>
+                          <strong>{openCapaCount ? `${openCapaCount} CAPA open` : repeatSignalCount ? `${repeatSignalCount} repeat signal${repeatSignalCount === 1 ? '' : 's'}` : machineData?.dirty ? 'Approval needed' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready'}</strong>
+                          <span>{openCapaCount ? 'Verify corrective action' : repeatSignalCount ? 'RCA/CAPA should close the learning loop' : machineData?.dirty ? 'Approve knowledge before AI uses it' : 'Machine knowledge feeds AI and KPIs'}</span>
                         </button>
                       </div>
                     </section>
@@ -2194,7 +2229,7 @@ export default function Machines() {
                             {machineOpenTickets.length ? machineOpenTickets.slice(0, 4).map((ticket) => (
                               <a key={ticket.id} href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&status=open&activeFilter=open`}>
                                 <span><b>{ticket.wo_number || ticket.id.slice(0, 8)}</b><small>{ticket.issue_text || 'Open maintenance issue'}</small></span>
-                                <em>{new Date(ticket.created_at).toLocaleDateString('en-IN')}</em>
+                                <em>{String(ticket.lifecycle_stage || ticket.status || 'open').replace(/_/g, ' ')}</em>
                               </a>
                             )) : <p>No open tickets.</p>}
                           </div>
@@ -2205,7 +2240,7 @@ export default function Machines() {
                             {machineClosedTickets.length ? machineClosedTickets.slice(0, 4).map((ticket) => (
                               <a key={ticket.id} href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&status=closed&activeFilter=closed`}>
                                 <span><b>{ticket.wo_number || ticket.id.slice(0, 8)}</b><small>{ticket.issue_text || 'Closed maintenance issue'}</small></span>
-                                <em>{new Date(ticket.resolved_at || ticket.created_at).toLocaleDateString('en-IN')}</em>
+                                <em>{ticket.closure_approved_by ? `Verified by ${ticket.closure_approved_by}` : new Date(ticket.resolved_at || ticket.created_at).toLocaleDateString('en-IN')}</em>
                               </a>
                             )) : <p>No closed tickets yet.</p>}
                           </div>
