@@ -238,7 +238,7 @@ const platformFeatures = [
   { icon: CalendarClock, title: 'Shutdown Planner', body: 'Prioritize the right machines, edit effort assumptions, compare work with available hours, and prepare an achievable sequence.' },
   { icon: ClipboardCheck, title: 'Technician Workspace', body: 'Give technicians a focused work queue with checklists, notes, parts, evidence, and supervisor review.' },
   { icon: TicketCheck, title: 'WhatsApp Dispatch & Escalation', body: 'Capture machine breakdowns, dispatch tickets instantly to technicians over WhatsApp via our upcoming Business API integration, and track resolution progress.' },
-  { icon: LayoutDashboard, title: 'Maintenance Control View', body: 'See machine attention, PM status, open work, knowledge gaps, and operational priorities without chasing updates.' },
+  { icon: LayoutDashboard, title: 'Maintenance Control Board', body: 'See machine attention, PM status, open work, knowledge gaps, and the next exception to handle without chasing updates.' },
 ];
 
 const workflowSteps = [

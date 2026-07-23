@@ -353,7 +353,7 @@ export default function Technician() {
     <AppShell active="technician">
       <div className="technician-page">
         <div className="technician-heading">
-          <div><span className="eyebrow eyebrow-light">Technician workspace</span><h1>Do the work. Close the loop.</h1><p>TurboFix keeps the execution flow simple here; analytics supplies the task context, while your checks, evidence, and closure decisions stay front and center.</p></div>
+          <div><span className="eyebrow eyebrow-light">Technician workspace</span><h1>Accept, repair, verify, close.</h1><p>TurboFix keeps the execution flow simple here; analytics supplies the task context, while your checks, evidence, and verification-ready closure stay front and center.</p></div>
           <div className="technician-identity"><Wrench className="size-5" /><span>{user?.name || 'Technician'}</span></div>
         </div>
         {error && <div className="technician-alert error">{error}</div>}
@@ -441,7 +441,7 @@ export default function Technician() {
                     <span>{criticalBlocksSubmit ? 'Critical job — a photo of the completed repair is required before it can be submitted and verified.' : 'Photo evidence attached. This critical repair will close only after supervisor verification.'}</span>
                   </div>
                 )}
-                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : isCriticalJob ? 'Critical job: complete the checklist and attach a photo. Closure requires supervisor verification.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Approve &amp; close ticket</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked || criticalBlocksSubmit}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : criticalBlocksSubmit ? 'Add photo to submit' : 'Submit for closure'}</button>}</div>
+                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : isCriticalJob ? 'Critical job: complete the checklist and attach a photo. Closure requires supervisor verification.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Verify &amp; close</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked || criticalBlocksSubmit}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : criticalBlocksSubmit ? 'Add photo to submit' : 'Submit for verification'}</button>}</div>
               </>}
             </section>
           </div>

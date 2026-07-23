@@ -313,8 +313,8 @@ export default function Tickets() {
 
       <div className="vault-wrap workspace-page tickets-page" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
         <div className="workspace-page-heading" style={{ marginBottom: '20px' }}>
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Tickets Directory</h1>
-          <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>TurboFix keeps ticket triage and closure in one workflow while analytics continues to power the diagnostics and priority signals underneath.</p>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Work Order Control Board</h1>
+          <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>TurboFix keeps the normal flow on repair, verification, and closure while analytics continues to power diagnostics and priority signals underneath.</p>
         </div>
 
         {/* Japanese TPS Andon Visual Health Banner */}
@@ -342,7 +342,7 @@ export default function Tickets() {
                 {openCount > 0 ? `${openCount} active maintenance item${openCount === 1 ? '' : 's'} need attention` : 'All machines are clear right now'}
               </strong>
               <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
-                {openCount > 0 ? 'Use the queue below to see priority, ownership and the next safe action.' : 'There are no open tickets. New issues will appear here as soon as they are reported.'}
+              {openCount > 0 ? 'Use the queue below to see priority, ownership, stage, and the next safe action.' : 'There are no open tickets. New issues will appear here as soon as they are reported.'}
               </div>
             </div>
           </div>
@@ -551,7 +551,7 @@ export default function Tickets() {
                       <td style={{ textAlign: 'right' }}>
                         {status === 'open' ? (
                           <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); handleCloseTicket(ticketId); }}>
-                            Close Ticket
+                            Direct close
                           </button>
                         ) : (
                           <span style={{ fontSize: '0.8rem', color: 'var(--slate-light)' }}>
