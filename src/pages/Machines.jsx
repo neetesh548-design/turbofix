@@ -880,6 +880,7 @@ export default function Machines() {
   // Machine-wise maintenance cost (Tier 3): spares consumed + labour + downtime.
   const LABOUR_RATE_PER_HOUR = 300; // assumed shop-floor labour rate (₹/hr)
   const machineOpenTickets = machineTickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
+  const machineClosedTickets = machineTickets.filter((t) => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase()));
   const machineCost = (() => {
     const partsCost = workOrderParts.reduce((sum, w) => sum + Number(w.total_cost || 0), 0);
     const labourCost = machineTickets.reduce((sum, t) => sum + (Number(t.labour_minutes || 0) / 60) * LABOUR_RATE_PER_HOUR, 0);
@@ -2138,6 +2139,36 @@ export default function Machines() {
                         </div>
                       );
                     })()}
+                    <section className="machine-ticket-snapshot">
+                      <div className="machine-section-heading">
+                        <div><span><ClipboardList /></span><div><h3>Machine tickets</h3><p>Open work and closed history for this machine.</p></div></div>
+                        <a href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&activeFilter=all`}>View all tickets <ChevronRight /></a>
+                      </div>
+                      <div className="machine-ticket-snapshot-grid">
+                        <div>
+                          <div className="machine-ticket-list-head"><strong>Open</strong><span>{machineOpenTickets.length}</span></div>
+                          <div className="machine-ticket-list">
+                            {machineOpenTickets.length ? machineOpenTickets.slice(0, 4).map((ticket) => (
+                              <a key={ticket.id} href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&status=open&activeFilter=open`}>
+                                <span><b>{ticket.wo_number || ticket.id.slice(0, 8)}</b><small>{ticket.issue_text || 'Open maintenance issue'}</small></span>
+                                <em>{new Date(ticket.created_at).toLocaleDateString('en-IN')}</em>
+                              </a>
+                            )) : <p>No open tickets.</p>}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="machine-ticket-list-head closed"><strong>Closed</strong><span>{machineClosedTickets.length}</span></div>
+                          <div className="machine-ticket-list">
+                            {machineClosedTickets.length ? machineClosedTickets.slice(0, 4).map((ticket) => (
+                              <a key={ticket.id} href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&status=closed&activeFilter=closed`}>
+                                <span><b>{ticket.wo_number || ticket.id.slice(0, 8)}</b><small>{ticket.issue_text || 'Closed maintenance issue'}</small></span>
+                                <em>{new Date(ticket.resolved_at || ticket.created_at).toLocaleDateString('en-IN')}</em>
+                              </a>
+                            )) : <p>No closed tickets yet.</p>}
+                          </div>
+                        </div>
+                      </div>
+                    </section>
                     <details className="machine-workspace-more">
                       <summary>More machine context <span>Knowledge vault and response path</span></summary>
                       <div style={{ display: 'grid', gap: '18px', marginTop: '14px' }}>
