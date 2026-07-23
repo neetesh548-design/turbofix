@@ -165,7 +165,7 @@ const GATEWAY_I18N = {
     removePhoto: 'Remove',
     cancel: 'Cancel',
     reviewConfirm: 'Review & confirm →',
-    reviewTitle: 'Review & Confirm Report',
+    reviewTitle: 'Review & Confirm Work Order',
     issueDescEdit: 'Issue Description (Edit if needed):',
     reporterNameLabel: 'Reporter name (optional):',
     reporterNamePlaceholder: 'e.g. Ramesh',
@@ -1387,7 +1387,7 @@ export default function QRGateway() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '10px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-listenback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', display: 'grid', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-              Hear your recording
+              Hear it back
             </h3>
             <div style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.45 }}>
               Play once, re-record if needed, then send it for transcription.

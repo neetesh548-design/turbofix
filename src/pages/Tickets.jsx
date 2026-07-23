@@ -188,7 +188,7 @@ export default function Tickets() {
   };
 
   const handleCloseTicket = async (ticketId) => {
-    if (!window.confirm('Close this ticket directly? This bypasses the technician repair record and supervisor verification.')) return;
+    if (!window.confirm('Close this work order directly? This bypasses the technician repair record and supervisor verification.')) return;
     setError('');
     setSuccess('');
     try {

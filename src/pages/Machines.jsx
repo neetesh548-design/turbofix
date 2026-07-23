@@ -1522,7 +1522,7 @@ export default function Machines() {
             <div className="machines-directory-header">
               <div>
                 <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines Directory</h1>
-                <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Click any machine to access its operational workspace (manuals, BOM, consumables, and replenishment calendar).</p>
+                <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Open a machine to see its current loop first. Open work, closed work, PM, parts, learning, and people stay one click away.</p>
               </div>
               <div className="machines-directory-actions">
                 <div className="machines-view-toggle" role="group" aria-label="Machine directory view">
@@ -1554,7 +1554,7 @@ export default function Machines() {
                     Fleet health at a glance
                   </strong>
                   <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
-                    {machines.length} machines connected. Select a machine to review its people, history, parts and next action.
+                    {machines.length} machines connected. Select a machine to review its current loop, history, parts, people, and next action.
                   </div>
                 </div>
               </div>
@@ -1617,7 +1617,7 @@ export default function Machines() {
                 <div className="machine-onboard-header">
                   <div>
                     <span className="machine-onboard-kicker">New machine</span>
-                    <h2>Add a machine to your plant</h2>
+                    <h2>Add a machine to your control board</h2>
                     <p>Enter the machine identity, then assign the people who respond when it needs attention.</p>
                   </div>
                   <span className="machine-onboard-time">About 2 minutes</span>
@@ -1645,8 +1645,8 @@ export default function Machines() {
                   </section>
 
                   <details className="machine-form-section machine-owner-details">
-                    <summary>Machine identity &amp; asset details <span>Optional · build the digital profile</span></summary>
-                    <p>Capture manufacturer, model and warranty once so every future breakdown, spare and report is tied to a complete machine record.</p>
+                    <summary>Machine identity &amp; asset details <span>Optional · more context</span></summary>
+                    <p>Capture manufacturer, model and warranty once so every future breakdown, spare and report stays tied to the same machine record.</p>
                     <div className="machine-form-grid">
                       <div className="vault-field">
                         <label htmlFor="assetCode">Asset tag / code</label>

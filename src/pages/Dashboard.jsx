@@ -1256,7 +1256,7 @@ export default function Dashboard() {
 
         <details className="dashboard-secondary-kpis">
           <summary>
-            <span>More KPI parameters</span>
+            <span>More context</span>
             <small>Equipment count, PM coverage, and per-record averages</small>
           </summary>
           <section className="dashboard-scoreboard" aria-label="Additional maintenance snapshot">
