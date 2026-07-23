@@ -257,10 +257,10 @@ export default function Assistant() {
   };
 
   return <AppShell active="assistant"><div className="assistant-page">
-    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Maintenance Assistant</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language. TurboFix shapes the workflow; analytics stays the engine behind the answers.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
+    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Assistant</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language. TurboFix shapes the workflow; analytics stays the engine behind the answers.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
     <section className="assistant-layout">
       <div className="assistant-chat">
-        <div className="assistant-orb">✦</div><h2>What do you need to decide?</h2><p className="assistant-helper">Choose the scope, then ask your question. TurboFix uses the matching maintenance data automatically.</p>
+        <div className="assistant-orb">✦</div><h2>What do you need to decide?</h2><p className="assistant-helper">Choose the scope, then ask your question. TurboFix uses the matching machine data automatically.</p>
         <form onSubmit={ask} className="assistant-form">
           <label className="assistant-field">
             <span>Answer using</span>

@@ -787,7 +787,7 @@ export default function Dashboard() {
 
         <header className="md-header">
           <div>
-            <span className="eyebrow eyebrow-light">AI maintenance operating system</span>
+            <span className="eyebrow eyebrow-light">Maintenance control board</span>
             <h1>{companyName} <LeanTag term="Gemba" kanji="現場" meaning="Gemba — 'the actual place' where value is created. Start your walk here." /></h1>
             <p>Maintenance command center · reliability, efficiency, cost &amp; planning, live.</p>
           </div>

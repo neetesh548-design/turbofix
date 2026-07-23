@@ -38,9 +38,9 @@ const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const contentByLanguage = {
   en: {
-    eyebrow: 'AI maintenance decision platform for manufacturing SMEs',
+    eyebrow: 'Maintenance decision platform for manufacturing teams',
     heroTitle: 'Know what to fix next—before downtime decides for you.',
-    heroBody: 'TurboFix turns your old paper records and soft copies into approved machine knowledge, while analytics stays the engine underneath and TurboFix stays the workflow layer for review, decisions, and execution.',
+    heroBody: 'TurboFix turns old paper records and soft copies into approved machine knowledge, while analytics stays the engine underneath and TurboFix stays the workflow layer for review, decisions, and execution.',
     bookDemo: 'Book a guided demo',
     explore: 'Explore the product',
     trust: ['Direct WhatsApp API Integration', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
@@ -93,7 +93,7 @@ const contentByLanguage = {
     demoTitle: 'See the workflow before you explore the product',
     demoBody: 'This illustrative video shows how TurboFix connects machine records, AI recommendations, and maintenance execution, with analytics supplying the engine underneath. Open the live demo to explore the actual product screens.',
     demoLogin: 'Open demo sign-in',
-    demoList: ['Upload a handwritten or digital record', 'Review and approve AI-extracted machine data', 'Ask one-machine or plant-wide questions', 'Plan shutdown work and review technician closure'],
+    demoList: ['Upload a handwritten or digital record', 'Review and approve AI-extracted machine data', 'Ask one-machine or plant-wide questions', 'Plan shutdown work and verify technician closure'],
     fitEyebrow: 'Built for the real factory floor',
     fitTitle: 'Start where maintenance is hardest today',
     fitBody: 'TurboFix fits teams that have outgrown paper, spreadsheets, calls, and disconnected files—but want to preserve that history instead of starting from zero while analytics keeps the engine beneath the workflow.',
@@ -234,11 +234,11 @@ const contentByLanguage = {
 
 const platformFeatures = [
   { icon: ScanText, title: 'AI Records & Machine Knowledge', body: 'Photograph handwritten registers or upload PDFs, Excel, Word, CSV, manuals, job cards, BOMs, and spare lists for structured review.' },
-  { icon: BrainCircuit, title: 'AI Maintenance Assistant', body: 'Ask about one machine or the entire plant. Get recommendations grounded in machine knowledge, history, and current work.' },
-  { icon: CalendarClock, title: 'Shutdown Planner', body: 'Prioritize the right machines, edit effort assumptions, compare work with available hours, and prepare an achievable sequence.' },
-  { icon: ClipboardCheck, title: 'Technician Workspace', body: 'Give technicians a focused work queue with checklists, notes, parts, evidence, and supervisor review.' },
-  { icon: TicketCheck, title: 'WhatsApp Dispatch & Escalation', body: 'Capture machine breakdowns, dispatch tickets instantly to technicians over WhatsApp via our upcoming Business API integration, and track resolution progress.' },
-  { icon: LayoutDashboard, title: 'Maintenance Control Board', body: 'See machine attention, PM status, open work, knowledge gaps, and the next exception to handle without chasing updates.' },
+  { icon: BrainCircuit, title: 'AI Assistant', body: 'Ask about one machine or the entire plant. Get recommendations grounded in machine knowledge, history, and current work.' },
+  { icon: CalendarClock, title: 'Shutdown Planner', body: 'Prioritize the right machines and prepare an achievable sequence.' },
+  { icon: ClipboardCheck, title: 'Technician Work Board', body: 'Give technicians a focused queue with checklists, notes, parts, evidence, and supervisor review.' },
+  { icon: TicketCheck, title: 'WhatsApp Dispatch', body: 'Capture machine breakdowns, dispatch tickets to technicians, and track resolution progress.' },
+  { icon: LayoutDashboard, title: 'Control Board', body: 'See machine attention, PM status, open work, knowledge gaps, and the next exception to handle without chasing updates.' },
 ];
 
 const workflowSteps = [

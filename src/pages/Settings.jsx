@@ -232,8 +232,8 @@ export default function Settings() {
 
   return <AppShell active="settings"><div className="settings-page">
     <header className="settings-page-header">
-      <div className="settings-page-title"><span><Settings2 /></span><div><p>Workspace setup</p><h1>Settings</h1><small>Configure your plant one section at a time.</small></div></div>
-      <div className="settings-plant-chip"><span>{companyInfo?.code || currentUser.company_code || 'Plant'}</span><b>Live workspace</b></div>
+      <div className="settings-page-title"><span><Settings2 /></span><div><p>Plant setup</p><h1>Settings</h1><small>Configure your plant one section at a time.</small></div></div>
+      <div className="settings-plant-chip"><span>{companyInfo?.code || currentUser.company_code || 'Plant'}</span><b>Live</b></div>
     </header>
 
     {error && <Alert variant="destructive" className="settings-alert"><AlertCircle className="size-4" /><AlertTitle>Action needed</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}

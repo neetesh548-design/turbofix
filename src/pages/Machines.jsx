@@ -1521,7 +1521,7 @@ export default function Machines() {
           <>
             <div className="machines-directory-header">
               <div>
-                <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines Directory</h1>
+                <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines</h1>
                 <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Open a machine to see its current loop first. Open work, closed work, PM, parts, learning, and people stay one click away.</p>
               </div>
               <div className="machines-directory-actions">
@@ -1560,7 +1560,7 @@ export default function Machines() {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#25D366', background: 'rgba(37, 211, 102, 0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(37, 211, 102, 0.25)', fontFamily: 'monospace' }}>
-                  Live workspace
+                  Live
                 </span>
               </div>
             </div>
@@ -1617,7 +1617,7 @@ export default function Machines() {
                 <div className="machine-onboard-header">
                   <div>
                     <span className="machine-onboard-kicker">New machine</span>
-                    <h2>Add a machine to your control board</h2>
+                    <h2>Add a machine</h2>
                     <p>Enter the machine identity, then assign the people who respond when it needs attention.</p>
                   </div>
                   <span className="machine-onboard-time">About 2 minutes</span>
@@ -1645,8 +1645,8 @@ export default function Machines() {
                   </section>
 
                   <details className="machine-form-section machine-owner-details">
-                    <summary>Machine identity &amp; asset details <span>Optional · more context</span></summary>
-                    <p>Capture manufacturer, model and warranty once so every future breakdown, spare and report stays tied to the same machine record.</p>
+                    <summary>Machine details <span>Optional · more context</span></summary>
+                    <p>Capture manufacturer, model and warranty once so future work stays tied to the same machine.</p>
                     <div className="machine-form-grid">
                       <div className="vault-field">
                         <label htmlFor="assetCode">Asset tag / code</label>
@@ -1932,7 +1932,7 @@ export default function Machines() {
           <div className="machine-workspace-page">
             <nav className="machine-workspace-breadcrumbs" aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '20px', fontFamily: 'Rajdhani, -apple-system, sans-serif', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
               <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: 'var(--brand)', cursor: 'pointer', font: 'inherit', textDecoration: 'none' }} onClick={() => setSelectedMachine(null)}>
-                Machines Directory
+                Machines
               </button>
               <span>/</span>
               <span style={{ color: '#fff' }}>{selectedMachine.machine_name}</span>
@@ -2067,7 +2067,7 @@ export default function Machines() {
                   </button>
                   {editSections.people && (
                     <div style={{ padding: '18px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix keeps that relationship in the machine workspace and response path, while analytics uses the same stored links to shape recommendations and escalations.</p>
+                      <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '14px' }}>Select the responsible people once. TurboFix keeps that relationship on the machine, while analytics uses the same stored links to shape recommendations and escalations.</p>
                       <div className="machine-owner-edit-grid">
                         <label><span>Primary technician</span><select value={machineEdit.technician_user_id} onChange={(e) => setMachineEdit({ ...machineEdit, technician_user_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{technicians.length ? 'Not assigned' : 'No technician found — add in Team'}</option>{technicians.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
                         <label><span>Supervisor</span><select value={machineEdit.supervisor_id} onChange={(e) => setMachineEdit({ ...machineEdit, supervisor_id: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}><option value="">{supervisors.length ? 'Not assigned' : 'No supervisor found — add in Team'}</option>{supervisors.map((member) => <option key={member.user_id} value={member.user_id}>{member.name}</option>)}</select></label>
@@ -2410,29 +2410,29 @@ export default function Machines() {
               {/* TAB 3: SPARE PARTS (BOM) */}
               {wsTab === 'parts' && (
                 <div>
-                  <div className="machine-workspace-section-intro"><span><PackageSearch /></span><div><h3>Spare parts and reorder levels</h3><p>Add critical BOM items and set the minimum stock that should trigger replenishment.</p></div><strong>{parts.length} part{parts.length === 1 ? '' : 's'} tracked</strong></div>
+                  <div className="machine-workspace-section-intro"><span><PackageSearch /></span><div><h3>Spare parts</h3><p>Keep the parts this machine depends on close at hand.</p></div><strong>{parts.length} part{parts.length === 1 ? '' : 's'} tracked</strong></div>
                   <form onSubmit={handleAddPart} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <div className="vault-field">
-                      <label>Part Name</label>
-                      <input type="text" value={newPartName} onChange={(e) => setNewPartName(e.target.value)} placeholder="e.g. Servo Motor" required />
+                      <label>Part name</label>
+                      <input type="text" value={newPartName} onChange={(e) => setNewPartName(e.target.value)} placeholder="e.g. Servo motor" required />
                     </div>
                     <div className="vault-field">
-                      <label>Part Number</label>
+                      <label>Part number</label>
                       <input type="text" value={newPartNum} onChange={(e) => setNewPartNum(e.target.value)} placeholder="e.g. SN-4819" required />
                     </div>
                     <div className="vault-field">
-                      <label>Stock Qty</label>
+                      <label>Stock on hand</label>
                       <input type="number" value={newPartQty} onChange={(e) => setNewPartQty(e.target.value)} placeholder="e.g. 5" required />
                     </div>
                     <div className="vault-field">
-                      <label>Reorder Threshold</label>
+                      <label>Reorder point</label>
                       <input type="number" value={newPartReorder} onChange={(e) => setNewPartReorder(e.target.value)} placeholder="e.g. 2" required />
                     </div>
                     <div className="vault-field">
                       <label>Unit price (₹)</label>
                       <input type="number" min="0" step="1" value={newPartPrice} onChange={(e) => setNewPartPrice(e.target.value)} placeholder="e.g. 4500" />
                     </div>
-                    <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', marginTop: '22px', background: 'var(--brand)', color: '#000' }}>Add Part</button>
+                    <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', marginTop: '22px', background: 'var(--brand)', color: '#000' }}>Add part</button>
                   </form>
 
                   {/* Machine-wise maintenance cost (Tier 3) */}
@@ -2458,10 +2458,10 @@ export default function Machines() {
                     <table className="vault-table">
                       <thead>
                         <tr>
-                          <th>Part Name</th>
-                          <th>Part Number</th>
-                          <th>Stock Level</th>
-                          <th>Reorder Level</th>
+                          <th>Part</th>
+                          <th>Number</th>
+                          <th>Stock</th>
+                          <th>Reorder point</th>
                           <th>Unit price</th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
@@ -2526,41 +2526,55 @@ export default function Machines() {
               {/* TAB 4: CONSUMABLES */}
               {wsTab === 'consumables' && (
                 <div>
-                  <div className="machine-workspace-section-intro"><span><Droplets /></span><div><h3>Consumable usage and coverage</h3><p>Enter actual consumption and supplier lead time so TurboFix can calculate order-by dates.</p></div><strong>{consumables.length} item{consumables.length === 1 ? '' : 's'} tracked</strong></div>
-                  <form onSubmit={handleAddConsumable} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <div className="vault-field" style={{ gridColumn: 'span 2' }}>
-                      <label>Consumable Name</label>
-                      <input type="text" value={newConsName} onChange={(e) => setNewConsName(e.target.value)} placeholder="e.g. Hydraulic Lubricant Oil" required />
+                  <div className="machine-workspace-section-intro"><span><Droplets /></span><div><h3>Consumables</h3><p>Add only the few supply items this machine depends on.</p></div><strong>{consumables.length} item{consumables.length === 1 ? '' : 's'} tracked</strong></div>
+                  <form onSubmit={handleAddConsumable} className="consumables-form-shell">
+                    <div className="consumables-step-card">
+                      <div className="consumables-step-badge">1</div>
+                      <div className="vault-field consumables-wide">
+                        <label>Item name</label>
+                        <input type="text" value={newConsName} onChange={(e) => setNewConsName(e.target.value)} placeholder="e.g. Hydraulic lubricant oil" required />
+                      </div>
                     </div>
-                    <div className="vault-field">
-                      <label>Stock Qty</label>
-                      <input type="number" value={newConsQty} onChange={(e) => setNewConsQty(e.target.value)} placeholder="e.g. 100" required />
+                    <div className="consumables-step-card">
+                      <div className="consumables-step-badge">2</div>
+                      <div className="consumables-main-grid">
+                        <div className="vault-field">
+                          <label>Stock on hand</label>
+                          <input type="number" value={newConsQty} onChange={(e) => setNewConsQty(e.target.value)} placeholder="e.g. 100" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Unit</label>
+                          <input type="text" value={newConsUnit} onChange={(e) => setNewConsUnit(e.target.value)} placeholder="e.g. L" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Last changed</label>
+                          <input type="date" value={newConsLastRep} onChange={(e) => setNewConsLastRep(e.target.value)} required />
+                        </div>
+                      </div>
                     </div>
-                    <div className="vault-field">
-                      <label>Unit</label>
-                      <input type="text" value={newConsUnit} onChange={(e) => setNewConsUnit(e.target.value)} placeholder="e.g. L" required />
-                    </div>
-                    <div className="vault-field">
-                      <label>Daily Burn Rate</label>
-                      <input type="number" value={newConsBurn} onChange={(e) => setNewConsBurn(e.target.value)} placeholder="e.g. 5" required />
-                    </div>
-                    <div className="vault-field">
-                      <label>Lead Time (days)</label>
-                      <input type="number" value={newConsLead} onChange={(e) => setNewConsLead(e.target.value)} placeholder="e.g. 7" required />
-                    </div>
-                    <div className="vault-field">
-                      <label>Buffer Days</label>
-                      <input type="number" value={newConsBuffer} onChange={(e) => setNewConsBuffer(e.target.value)} placeholder="e.g. 3" required />
-                    </div>
-                    <div className="vault-field">
-                      <label>Cadence (days)</label>
-                      <input type="number" value={newConsFreq} onChange={(e) => setNewConsFreq(e.target.value)} placeholder="e.g. 30" required />
-                    </div>
-                    <div className="vault-field">
-                      <label>Last Replaced Date</label>
-                      <input type="date" value={newConsLastRep} onChange={(e) => setNewConsLastRep(e.target.value)} required />
-                    </div>
-                    <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', gridColumn: 'span 2', marginTop: '22px', background: 'var(--brand)', color: '#000' }}>Add Consumable</button>
+                    <details className="consumables-planning-details">
+                      <summary>3. Planning details</summary>
+                      <p>Use these only if you want TurboFix to suggest reorder timing.</p>
+                      <div className="consumables-planning-grid">
+                        <div className="vault-field">
+                          <label>Used per day</label>
+                          <input type="number" value={newConsBurn} onChange={(e) => setNewConsBurn(e.target.value)} placeholder="e.g. 5" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Supplier lead time</label>
+                          <input type="number" value={newConsLead} onChange={(e) => setNewConsLead(e.target.value)} placeholder="e.g. 7" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Safety buffer</label>
+                          <input type="number" value={newConsBuffer} onChange={(e) => setNewConsBuffer(e.target.value)} placeholder="e.g. 3" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Check every</label>
+                          <input type="number" value={newConsFreq} onChange={(e) => setNewConsFreq(e.target.value)} placeholder="e.g. 30" required />
+                        </div>
+                      </div>
+                    </details>
+                    <button type="submit" className="vault-btn vault-btn-primary consumables-submit">Add item</button>
                   </form>
 
                   {consumablesLoading ? (
@@ -2571,12 +2585,12 @@ export default function Machines() {
                     <table className="vault-table">
                       <thead>
                         <tr>
-                          <th>Consumable Name</th>
-                          <th>Stock Level</th>
-                          <th>Daily Burn</th>
-                          <th>Days Cover</th>
-                          <th>Order-By</th>
-                          <th>Replace-Due</th>
+                          <th>Item</th>
+                          <th>Stock</th>
+                          <th>Per day</th>
+                          <th>Cover</th>
+                          <th>Reorder by</th>
+                          <th>Replace by</th>
                           <th>Status</th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
@@ -2627,7 +2641,7 @@ export default function Machines() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
                     <div>
                       <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Preventive maintenance</h3>
-                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Scheduled PM tasks, reminders and compliance for this machine.</p>
+                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Keep the routine checks visible so this machine stays ahead of repeat trouble.</p>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       {pmCompliancePct !== null && (
@@ -2700,7 +2714,7 @@ export default function Machines() {
                   {pmLoading ? (
                     <div style={{ textAlign: 'center', padding: '24px', color: 'var(--slate)' }}>Loading PM schedule…</div>
                   ) : pmSchedules.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>No preventive maintenance scheduled yet. {isOwner ? 'Add a PM task to get automatic reminders before failures happen.' : 'Ask an owner to schedule PM tasks for this machine.'}</div>
+                        <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>No preventive maintenance is set yet. {isOwner ? 'Add a PM task to keep reminders in place before failures happen.' : 'Ask an owner to set PM tasks for this machine.'}</div>
                   ) : (
                     <div style={{ display: 'grid', gap: '10px' }}>
                       {pmSchedules.map((pm) => {

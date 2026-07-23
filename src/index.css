@@ -8531,13 +8531,77 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .machine-workspace-shell .vault-table { min-width: 720px; }
 .machine-workspace-shell .vault-field label { color: #cfd9e3 !important; }
 .machine-workspace-shell .vault-field input, .machine-workspace-shell .vault-field select { border-color: #3b4d61 !important; background: #101a25 !important; }
-.machine-workspace-section-intro { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; border: 1px solid #33465a; border-radius: 11px; padding: 14px 16px; background: #152230; }
+.machine-workspace-section-intro { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; border: 1px solid #33465a; border-radius: 11px; padding: 14px 16px; background: #152230; flex-wrap: nowrap; }
 .machine-workspace-section-intro > span { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 10px; color: #86efac; background: rgba(20, 83, 45, .3); }
 .machine-workspace-section-intro > span svg { width: 18px; }
-.machine-workspace-section-intro > div { min-width: 0; }
+.machine-workspace-section-intro > div { min-width: 0; display: flex; align-items: baseline; gap: 10px; flex: 1 1 auto; }
 .machine-workspace-section-intro h3 { color: #eef5fa; font: 850 .84rem/1.2 Outfit, sans-serif; }
-.machine-workspace-section-intro p { margin-top: 4px; color: #8497aa; font-size: .65rem; line-height: 1.45; }
+.machine-workspace-section-intro p { margin-top: 0; color: #8497aa; font-size: .65rem; line-height: 1.45; }
 .machine-workspace-section-intro > strong { margin-left: auto; border-radius: 999px; padding: 6px 9px; color: #9cebb7; background: rgba(20, 83, 45, .26); font-size: .6rem; white-space: nowrap; }
+.consumables-planning-details {
+  border: 1px solid #33465a;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(12, 20, 28, .68);
+}
+.consumables-planning-details > summary {
+  cursor: pointer;
+  list-style: none;
+  color: #e5eef7;
+  font: 700 .78rem/1.2 Outfit, sans-serif;
+}
+.consumables-planning-details > summary::-webkit-details-marker { display: none; }
+.consumables-planning-details > p {
+  margin: 4px 0 0;
+  color: #8497aa;
+  font-size: .68rem;
+  line-height: 1.45;
+}
+.consumables-planning-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.consumables-form-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  background: rgba(0,0,0,0.2);
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.consumables-step-card {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.consumables-step-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 35px;
+  border-radius: 999px;
+  background: rgba(34, 163, 90, .18);
+  color: #86efac;
+  font: 800 .74rem/1 Outfit, sans-serif;
+}
+.consumables-wide { width: 100%; }
+.consumables-main-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.consumables-submit {
+  height: 40px;
+  width: 100%;
+  background: var(--brand);
+  color: #000;
+}
 
 @media (max-width: 1450px) {
   .machine-workspace-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -8553,6 +8617,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   .machine-workspace-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .machine-overview-grid { grid-template-columns: 1fr; }
   .machine-overview-side { grid-template-columns: 1fr 1fr; }
+  .consumables-planning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .consumables-main-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .consumables-step-card { grid-template-columns: 26px minmax(0, 1fr); }
+  .consumables-step-badge { margin-top: 33px; }
 }
 @media (max-width: 720px) {
   .machine-owner-edit, .team-edit-card { padding: 18px 15px; }
@@ -8577,7 +8645,12 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   .machine-escalation-time { grid-column: 2; justify-self: start; }
   .machine-overview-side { grid-template-columns: 1fr; }
   .machine-workspace-section-intro { align-items: flex-start; flex-wrap: wrap; }
+  .machine-workspace-section-intro > div { flex-direction: column; align-items: flex-start; gap: 4px; }
   .machine-workspace-section-intro > strong { width: max-content; margin-left: 50px; }
+  .consumables-step-card { grid-template-columns: 1fr; gap: 8px; }
+  .consumables-step-badge { margin-top: 0; }
+  .consumables-planning-grid { grid-template-columns: 1fr; }
+  .consumables-main-grid { grid-template-columns: 1fr; }
   .machine-workspace-shell .vault-table { min-width: 650px; }
   .machine-workspace-tabs + div > form { display: grid !important; grid-template-columns: 1fr !important; }
   .machine-workspace-tabs + div > form > div { width: auto !important; grid-column: auto !important; }
