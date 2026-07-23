@@ -881,6 +881,12 @@ export default function Machines() {
   const LABOUR_RATE_PER_HOUR = 300; // assumed shop-floor labour rate (₹/hr)
   const machineOpenTickets = machineTickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
   const machineClosedTickets = machineTickets.filter((t) => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase()));
+  const latestClosedTicket = machineClosedTickets[0];
+  const lowPartCount = parts.filter((part) => Number(part.quantity_on_hand) <= Number(part.reorder_level)).length;
+  const lowConsumableCount = consumables.filter((item) => Number(item.quantity_on_hand) <= Number(item.reorder_level)).length;
+  const duePmCount = pmSchedules.filter((pm) => pm.active !== false && pm.next_due_at && new Date(pm.next_due_at) <= new Date()).length;
+  const openCapaCount = capaActions.filter((capa) => !['done', 'verified', 'closed'].includes(String(capa.status || '').toLowerCase())).length;
+  const waitingStatus = ['waiting_spare', 'waiting_vendor'].includes(String(selectedMachine?.status || '').toLowerCase());
   const machineCost = (() => {
     const partsCost = workOrderParts.reduce((sum, w) => sum + Number(w.total_cost || 0), 0);
     const labourCost = machineTickets.reduce((sum, t) => sum + (Number(t.labour_minutes || 0) / 60) * LABOUR_RATE_PER_HOUR, 0);
@@ -2139,6 +2145,43 @@ export default function Machines() {
                         </div>
                       );
                     })()}
+                    <section className="machine-loop-status">
+                      <div className="machine-section-heading">
+                        <div><span><ShieldCheck /></span><div><h3>Machine loop status</h3><p>Shows whether this machine’s work loop is open, blocked, or closed.</p></div></div>
+                      </div>
+                      <div className="machine-loop-grid">
+                        <button type="button" className={`machine-loop-card ${machineOpenTickets.length ? 'attention' : 'good'}`} onClick={() => machineOpenTickets.length ? setWsTab('info') : setWsTab('calendar')}>
+                          <small>Work loop</small>
+                          <strong>{machineOpenTickets.length ? `${machineOpenTickets.length} open` : 'No open work'}</strong>
+                          <span>{waitingStatus ? 'Machine is waiting for external input' : machineOpenTickets.length ? 'Technician action or update needed' : 'Ready for PM / routine checks'}</span>
+                        </button>
+                        <button type="button" className={`machine-loop-card ${latestClosedTicket ? 'good' : ''}`} onClick={() => setWsTab('info')}>
+                          <small>Closure loop</small>
+                          <strong>{latestClosedTicket ? latestClosedTicket.wo_number || latestClosedTicket.id.slice(0, 8) : 'No closure yet'}</strong>
+                          <span>{latestClosedTicket ? `Closed ${new Date(latestClosedTicket.resolved_at || latestClosedTicket.created_at).toLocaleDateString('en-IN')}` : 'Closed work will appear here'}</span>
+                        </button>
+                        <button type="button" className={`machine-loop-card ${getAssignment(selectedMachine, 'technician') ? 'good' : 'warning'}`} onClick={() => openMachineEdit()}>
+                          <small>Owner loop</small>
+                          <strong>{getAssignment(selectedMachine, 'technician') ? 'Assigned' : 'No technician'}</strong>
+                          <span>{getAssignment(selectedMachine, 'technician')?.name || 'Assign responsible person'}</span>
+                        </button>
+                        <button type="button" className={`machine-loop-card ${lowPartCount || lowConsumableCount ? 'warning' : 'good'}`} onClick={() => setWsTab(lowPartCount ? 'parts' : 'consumables')}>
+                          <small>Material loop</small>
+                          <strong>{lowPartCount + lowConsumableCount ? `${lowPartCount + lowConsumableCount} low` : 'Stock OK'}</strong>
+                          <span>{lowPartCount ? `${lowPartCount} spare part${lowPartCount === 1 ? '' : 's'} low` : lowConsumableCount ? `${lowConsumableCount} consumable${lowConsumableCount === 1 ? '' : 's'} low` : 'Parts and consumables covered'}</span>
+                        </button>
+                        <button type="button" className={`machine-loop-card ${duePmCount ? 'warning' : 'good'}`} onClick={() => setWsTab('pm')}>
+                          <small>PM loop</small>
+                          <strong>{duePmCount ? `${duePmCount} due` : 'On track'}</strong>
+                          <span>{pmSchedules.length ? 'Preventive schedule active' : 'No PM schedule yet'}</span>
+                        </button>
+                        <button type="button" className={`machine-loop-card ${machineData?.dirty || openCapaCount ? 'warning' : machineData?.missing_sections?.length ? 'attention' : 'good'}`} onClick={() => setWsTab(openCapaCount ? 'reliability' : 'docs')}>
+                          <small>Learning loop</small>
+                          <strong>{openCapaCount ? `${openCapaCount} CAPA open` : machineData?.dirty ? 'Approval needed' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready'}</strong>
+                          <span>{openCapaCount ? 'Verify corrective action' : machineData?.dirty ? 'Approve knowledge before AI uses it' : 'Machine knowledge feeds AI and KPIs'}</span>
+                        </button>
+                      </div>
+                    </section>
                     <section className="machine-ticket-snapshot">
                       <div className="machine-section-heading">
                         <div><span><ClipboardList /></span><div><h3>Machine tickets</h3><p>Open work and closed history for this machine.</p></div></div>

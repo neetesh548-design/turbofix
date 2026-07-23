@@ -8438,6 +8438,20 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .machine-section-heading p, .machine-side-title p { margin-top: 4px; color: #8497aa; font-size: .66rem; }
 .machine-section-heading > a { display: flex; align-items: center; gap: 3px; color: #8deead; font-size: .65rem; font-weight: 800; white-space: nowrap; }
 .machine-section-heading > a svg { width: 14px; }
+.machine-loop-status { margin-bottom: 18px; padding: 16px; border: 1px solid #2e4052; border-radius: 12px; background: rgba(0,0,0,.14); }
+.machine-loop-status .machine-section-heading { margin-bottom: 14px; }
+.machine-loop-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.machine-loop-card { display: grid; gap: 5px; min-height: 104px; padding: 12px; border: 1px solid #2e4052; border-radius: 11px; background: rgba(17,28,39,.72); color: #eaf1f7; text-align: left; cursor: pointer; }
+.machine-loop-card:hover { border-color: rgba(141,238,173,.45); transform: translateY(-1px); }
+.machine-loop-card small { color: #8497aa; font-size: .62rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.machine-loop-card strong { color: #f1f6fa; font: 850 .95rem/1.1 Outfit, sans-serif; }
+.machine-loop-card span { color: #91a4b7; font-size: .66rem; line-height: 1.35; }
+.machine-loop-card.good { border-color: rgba(134,239,172,.28); }
+.machine-loop-card.good strong { color: #86efac; }
+.machine-loop-card.warning { border-color: rgba(251,191,36,.34); }
+.machine-loop-card.warning strong { color: #fbbf24; }
+.machine-loop-card.attention { border-color: rgba(248,113,113,.36); }
+.machine-loop-card.attention strong { color: #f87171; }
 .machine-ticket-snapshot { margin-bottom: 18px; padding: 16px; border: 1px solid #2e4052; border-radius: 12px; background: rgba(0,0,0,.14); }
 .machine-ticket-snapshot .machine-section-heading { margin-bottom: 14px; }
 .machine-ticket-snapshot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -8542,6 +8556,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   .machine-workspace-tabs + div { padding: 15px 12px; }
   .machine-overview-main { padding: 15px 12px; }
   .machine-section-heading { align-items: flex-start; flex-direction: column; }
+  .machine-loop-grid { grid-template-columns: 1fr; }
   .machine-ticket-snapshot-grid { grid-template-columns: 1fr; }
   .machine-escalation-timeline article { grid-template-columns: 38px minmax(0, 1fr); }
   .machine-escalation-time { grid-column: 2; justify-self: start; }
@@ -9580,4 +9595,3 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     grid-template-columns: 1fr;
   }
 }
-
