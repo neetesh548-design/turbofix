@@ -34,6 +34,9 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
+import AntDKPICard from '../components/AntDKPICard';
+import { AntDChartCard, AntDDetailList, AntDEmptyState } from '../components/AntDDashboardComponents';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
 
@@ -836,45 +839,13 @@ export default function Dashboard() {
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
 
-        {/* CLOSED-LOOP CONTROL — track work assignment and system gaps */}
-        {(data.loop_gap_count > 0 || data.open_work_count > 0) && (
-          <section className="md-closed-loop-card" style={{
-            marginBottom: '24px', padding: '20px', borderRadius: '8px',
-            background: 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(168,85,247,0.05) 100%)',
-            border: '2px solid rgba(239,68,68,0.3)', position: 'relative', overflow: 'hidden'
-          }}>
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <div>
-                  <span style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', color: '#EF4444', display: 'block', marginBottom: '6px' }}>CLOSED-LOOP NEXT ACTION</span>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 600, color: '#1F2937' }}>Control open work</h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
-                    {data.open_work_count} active ticket{data.open_work_count === 1 ? '' : 's'} need{data.open_work_count === 1 ? 's' : ''} update or repair.
-                  </p>
-                </div>
-                <a
-                  href="technician.html"
-                  style={{
-                    padding: '12px 24px', borderRadius: '24px', background: '#EF4444', color: 'white',
-                    border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
-                    fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#DC2626'}
-                  onMouseLeave={(e) => e.target.style.background = '#EF4444'}
-                >
-                  Take action
-                  <span style={{ fontSize: '16px' }}>›</span>
-                </a>
-              </div>
-              {data.loop_gaps && data.loop_gaps.length > 0 && (
-                <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 500, marginTop: '12px' }}>
-                  {data.loop_gaps.length} loop gap{data.loop_gaps.length === 1 ? '' : 's'}: {data.loop_gaps.join(', ')}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
+        {/* CLOSED-LOOP CONTROL — Ant Design version with work assignment tracking */}
+        <ClosedLoopControlCard
+          openWorkCount={data.open_work_count || 0}
+          loopGapCount={data.loop_gap_count || 0}
+          loopGaps={data.loop_gaps || []}
+          onTakeAction={() => window.location.href = 'technician.html'}
+        />
 
         {/* PULSE STRIP — the one-glance plant status row */}
         <section className="md-pulse" aria-label="Plant status at a glance">
@@ -1033,27 +1004,27 @@ export default function Dashboard() {
             <span className="md-category-collapse">Collapse ▲</span>
           </button>
           <div className="md-kpi-grid">
-            <KpiCard
+            <AntDKPICard
               label="PM compliance rate"
               value={kpis.pm_compliance_pct == null ? 'No PM yet' : `${kpis.pm_compliance_pct}%`}
               hint="World-class 95%+ · PMs completed on time"
               tone={kpis.pm_compliance_pct != null && kpis.pm_compliance_pct < 80 ? 'warning' : 'ok'}
               onClick={() => revealDetail('secondary')}
             />
-            <KpiCard
+            <AntDKPICard
               label="Planned vs reactive"
               value={efficiency.planned_pct == null ? 'No data yet' : `${efficiency.planned_pct}% planned`}
               hint="World-class 85%+ planned · 30 days"
               tone={efficiency.planned_pct != null && efficiency.planned_pct < 50 ? 'danger' : ''}
               onClick={() => revealDetail('secondary')}
             />
-            <KpiCard
+            <AntDKPICard
               label="Scheduled PM coverage"
               value={`${overview.scheduled_pct || 0}%`}
               hint="Active preventive schedules on the fleet"
               onClick={() => revealDetail('secondary')}
             />
-            <KpiCard
+            <AntDKPICard
               label="Backlog age"
               value={`${backlog.avg_age_days || 0}d avg`}
               hint={`${backlog.over_7d_count || 0} open tickets waiting over a week`}
@@ -1062,46 +1033,18 @@ export default function Dashboard() {
             />
           </div>
           <section className="dashboard-analysis-board md-charts-row">
-            <section className="decision-panel dashboard-chart-card">
-              <div className="decision-panel-heading">
-                <div>
-                  <div className="decision-card-kicker">Work distribution</div>
-                  <h2>Open vs resolved</h2>
-                </div>
-                <span className="trend-caption">Selected window</span>
-              </div>
+            <AntDChartCard title="Open vs resolved" subtitle="Work distribution" caption="Selected window">
               <WorkMixChart open={trendTotals.issues - trendTotals.resolved} resolved={trendTotals.resolved} />
-            </section>
-            <section className="decision-panel dashboard-chart-card">
-              <div className="decision-panel-heading">
-                <div>
-                  <div className="decision-card-kicker">Equipment-wise risk</div>
-                  <h2>Top machines</h2>
-                </div>
-                <span className="trend-caption">30 days</span>
-              </div>
+            </AntDChartCard>
+            <AntDChartCard title="Top machines" subtitle="Equipment-wise risk" caption="30 days">
               <RiskBars machines={insights.top_problem_machines || []} />
-            </section>
-            <section className="decision-panel dashboard-chart-card">
-              <div className="decision-panel-heading">
-                <div>
-                  <div className="decision-card-kicker">Maintenance status</div>
-                  <h2>Status mix</h2>
-                </div>
-                <span className="trend-caption">All records</span>
-              </div>
+            </AntDChartCard>
+            <AntDChartCard title="Status mix" subtitle="Maintenance status" caption="All records">
               <MiniDonutChart items={overview.status_mix || []} />
-            </section>
-            <section className="decision-panel dashboard-chart-card">
-              <div className="decision-panel-heading">
-                <div>
-                  <div className="decision-card-kicker">Maintenance-wise</div>
-                  <h2>Type analysis</h2>
-                </div>
-                <span className="trend-caption">Top 5</span>
-              </div>
+            </AntDChartCard>
+            <AntDChartCard title="Type analysis" subtitle="Maintenance-wise" caption="Top 5">
               <CategoryBars items={overview.type_mix || []} />
-            </section>
+            </AntDChartCard>
           </section>
         </section>
         )}
@@ -1121,55 +1064,43 @@ export default function Dashboard() {
             <button type="button" className="btn btn-ghost btn-sm" onClick={exportDashboardData}>Export data</button>
           </div>
           <div className="md-kpi-grid">
-            <KpiCard
+            <AntDKPICard
               label="Maintenance cost vs asset value"
               value={costRatios.cost_pct_of_rav == null ? 'Set replacement costs' : `${costRatios.cost_pct_of_rav}%`}
               hint="World-class 2–3% of replacement value · 12 months"
               tone={costRatios.cost_pct_of_rav != null && costRatios.cost_pct_of_rav > 8 ? 'danger' : ''}
               onClick={() => revealDetail('secondary')}
             />
-            <KpiCard
+            <AntDKPICard
               label="Emergency cost ratio"
               value={costRatios.emergency_cost_ratio == null ? 'No data yet' : `${costRatios.emergency_cost_ratio}%`}
               hint="World-class under 15% · share spent on unplanned work"
               tone={costRatios.emergency_cost_ratio != null && costRatios.emergency_cost_ratio > 45 ? 'danger' : ''}
               onClick={() => revealDetail('secondary')}
             />
-            <KpiCard label="Total maintenance spend" value={money.format(overview.total_cost || 0)} hint="All recorded maintenance records" onClick={() => revealDetail('secondary')} />
-            <KpiCard label="Average cost per record" value={money.format(overview.avg_cost || 0)} hint={`${overview.maintenance_count || 0} maintenance records`} onClick={() => revealDetail('secondary')} />
+            <AntDKPICard label="Total maintenance spend" value={money.format(overview.total_cost || 0)} hint="All recorded maintenance records" onClick={() => revealDetail('secondary')} />
+            <AntDKPICard label="Average cost per record" value={money.format(overview.avg_cost || 0)} hint={`${overview.maintenance_count || 0} maintenance records`} onClick={() => revealDetail('secondary')} />
           </div>
           <section className="dashboard-analysis-board md-charts-row md-charts-row-cost">
-            <section className="decision-panel dashboard-chart-card md-cost-trend-card">
-              <div className="decision-panel-heading">
-                <div>
-                  <div className="decision-card-kicker">Cost trend</div>
-                  <h2>Monthly spend</h2>
-                </div>
-                <span className="trend-caption">12 months</span>
-              </div>
+            <AntDChartCard title="Monthly spend" subtitle="Cost trend" caption="12 months">
               <CostBars items={overview.cost_by_month || []} />
-            </section>
+            </AntDChartCard>
             {impact.top_loss_machines?.length > 0 && (
-              <section className="decision-panel dashboard-chart-card md-loss-card">
-                <div className="decision-panel-heading">
-                  <div>
-                    <div className="decision-card-kicker">Where the money goes</div>
-                    <h2>Top loss-making machines</h2>
-                  </div>
-                  <span className="trend-caption">30 days</span>
-                </div>
-                <div className="dashboard-detail-list">
-                  {impact.top_loss_machines.slice(0, 4).map((machine, index) => (
-                    <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} key={machine.machine_id}>
+              <AntDChartCard title="Top loss-making machines" subtitle="Where the money goes" caption="30 days">
+                <AntDDetailList
+                  items={impact.top_loss_machines.slice(0, 4).map((m, i) => ({ ...m, id: m.machine_id, index: i }))}
+                  renderItem={(machine, index) => (
+                    <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', textDecoration: 'none', color: 'inherit' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
                         <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
                       </span>
                       <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
                     </a>
-                  ))}
-                </div>
-              </section>
+                  )}
+                  emptyMessage="No loss-making machines detected"
+                />
+              </AntDChartCard>
             )}
           </section>
         </section>
@@ -1236,17 +1167,19 @@ export default function Dashboard() {
           {data.repair_replace?.length > 0 && (
             <section className="decision-panel">
               <div className="decision-panel-heading"><div><div className="decision-card-kicker">Capital decision signal</div><h2>Repair vs. replacement</h2></div><span className="trend-caption">Last 12 months · you decide</span></div>
-              <div className="dashboard-detail-list">
-                {data.repair_replace.map((m) => (
-                  <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} key={m.machine_id}>
+              <AntDDetailList
+                items={data.repair_replace}
+                renderItem={(m) => (
+                  <a href={`machines.html?machine=${encodeURIComponent(m.machine_id)}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', textDecoration: 'none', color: 'inherit' }}>
                     <span style={{ display: 'flex', flexDirection: 'column' }}>
                       <strong>{m.machine_name}</strong>
                       <small>{money.format(m.annual_cost)} maintenance{m.replacement_cost > 0 ? ` · ${m.ratio_pct}% of ${money.format(m.replacement_cost)} replacement` : ' · set a replacement cost to compare'} · {m.breakdowns} breakdown{m.breakdowns === 1 ? '' : 's'}</small>
                     </span>
                     <b style={{ color: m.recommendation === 'Consider replacement' ? '#F87171' : '#FBBF24', whiteSpace: 'nowrap' }}>{m.recommendation}</b>
                   </a>
-                ))}
-              </div>
+                )}
+                emptyMessage="No repair/replacement recommendations at this time"
+              />
             </section>
           )}
 
@@ -1306,7 +1239,7 @@ export default function Dashboard() {
               <div><div className="decision-card-kicker">For the incoming shift</div><h2>Shift handover</h2></div>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { navigator.clipboard?.writeText(buildHandoverText()); } catch { /* clipboard unavailable */ } }}>Copy brief</button>
             </div>
-            {handoverTotal === 0 ? <Empty text="Nothing pending — clean handover." /> : (
+            {handoverTotal === 0 ? <AntDEmptyState message="Nothing pending — clean handover." type="success" /> : (
               <div style={{ display: 'grid', gap: '14px' }}>
                 <div style={{ color: 'var(--slate)', fontSize: '0.85rem' }}>{handover.machines_down || 0} machine{handover.machines_down === 1 ? '' : 's'} currently down. Everything the next shift must not miss:</div>
                 {handoverGroups.map(([label, items, color]) => items?.length ? (
