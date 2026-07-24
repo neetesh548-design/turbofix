@@ -2,49 +2,33 @@
 
 ## Main work streams
 
-### 1. Closed-loop maintenance
-- QR Gateway: scan → speak → listen back → review → submit
-- Technician: accept → repair → evidence → verify → close
-- Support: approve, return, or escalate
-- Machines: show the current loop first
-- Dashboard: clickable KPI and chart drilldowns
+### 1. Closed-Loop Maintenance (Community 7 & 9)
+- **Ticket Interface**: `TicketRepository` (Supabase vs local Sheets).
+- **QR Gateway wizard**: `src/pages/QRGateway.jsx` with audio player.
+- **Technician checklists & photos**: `src/pages/Technician.jsx`.
+- **Closed loop analytics hooks**: Capture downtime cost and duration at closure.
 
-### 2. Machine knowledge
-- Upload old records
-- Review the AI draft
-- Approve useful knowledge
-- Keep raw files, review snapshots, and final submissions separate
-- Link history back to the machine
+### 2. Machine Knowledge (Community 2 & 40)
+- **Record Repository**: `MachineRecordRepository` and `DocumentRepository`.
+- **File System/Drive storage**: Partitioned under `DriveFileStorage`.
+- **Draft Reviews**: Page and API to preview AI-generated records draft before approval.
 
-### 3. Simpler UI
-- Shorter headers
-- Fewer visible cards at once
-- One main action per section
-- Consistent labels across pages
+### 3. Service Integrations & Webhooks (Community 1 & 4)
+- **WhatsApp Gateway client**: `backend/wacrm_client.py` templates and retry loops.
+- **AI Diagnostics edge function**: `supabase/functions/ai_diagnostics/index.ts`.
+- **Shift handovers & schedulers**: `check_schedules` and `pm_scheduler` routines.
 
-### 4. Dashboard drilldowns
-- Machines online
-- Downtime
-- Predicted failures
-- Uptime / efficiency
-- Priority queue
-- Trend charts
+### 4. Dashboard & KPI Drilldowns (Community 16 & 17)
+- **KPI Repository**: `CustomKpiRepository` data logs.
+- **Drill-down views**: Interactive overlay panels to inspect backlog velocity.
 
-### 5. Machine page clarity
-- Current loop status
-- Open work
-- Closed work
-- Assigned people
-- PM status
-- Parts and consumables
-- Knowledge readiness
+### 5. Machine Page Clarity (Community 34)
+- **Machine Repository**: `MachineRepository` data fields.
+- **Active loops visualization**: Visual timeline showing PMs, parts stock, and team assignments.
 
-### 6. Security
-- Company-only data
-- Role-based access
-- Session expiry handling
-- RLS review
-- Secure privileged actions
+### 6. Security & Multi-Tenancy (Community 0 & 10)
+- **Isolation Checks**: Validate RLS policies on all tables.
+- **Permission Helpers**: Code reviews and test assertions using `.assert_can_close_ticket()`, `.assert_can_manage_escalation()`.
 
 ### 7. Reliability
 - Better transcription flow

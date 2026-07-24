@@ -37,34 +37,22 @@ Make the app feel calm, clear, and easy to use. Show less at once, but keep ever
 - Keep it closed by default
 - Use it for lower-priority detail
 
-## Page behavior
+## Core Frontend Components & Layouts
 
-### Dashboard
-- Show the executive brief first
-- Make KPI cards and charts clickable
-- Keep secondary KPI groups collapsed
+- **Shell Layout (`src/components/AppShell.jsx`)**: Responsive navbar, token validation check (`isTokenExpired()`), and multi-role context routing (`readAuth()`).
+- **Dashboard Screen (`src/pages/Dashboard.jsx`)**: Renders high-level KPIs (backlog, planned/reactive ratio, downtime cost velocity) with clickable drill-down events that reveal nested tables on the same page.
+- **Machines Screen (`src/pages/Machines.jsx`)**: Shows active machine indicators, parts stock status, and lists all linked open/closed tickets.
+- **QR Gateway Screen (`src/pages/QRGateway.jsx` / `src/pages/Inventory.jsx`)**: Guided trilingual wizard (voice capture, playback, issue verification step, and auto-assign response). Uses `dynamicChecklist.js` to calculate step similarity scores for incoming work orders.
+- **Technician Portal (`src/pages/Technician.jsx`)**: Self-contained step checklists, camera capture trigger for evidence verification, and supervisor signature request fields.
+- **Records Screen (`src/pages/Records.jsx`)**: Partitioned workspaces showing raw file list, structured markdown reviews, and AI-approved context toggles.
 
-### Machines
-- Show the machine and its current loop first
-- Keep work, PM, parts, consumables, people, and learning one click away
+## Offline Capabilities & Caching Strategy (`src/sw-strategies.js`)
 
-### Tickets
-- Show a clean work-order board
-- Make lifecycle visible
-- Keep closure clear and deliberate
-
-### Technician
-- Show assigned work first
-- Keep checklist, evidence, and verification prominent
-- Push optional fields lower
-
-### Support
-- Show exceptions, approvals, and escalation decisions
-- Keep the focus on the machine, not the person
-
-### Records
-- Upload → review → approve
-- Keep raw files, AI drafts, and approved knowledge separate
+To guarantee operation in signal-dead areas of a factory, TurboFix uses a Service Worker for offline-first operation:
+1. **Static Cache**: Precaches crucial core HTML/CSS/JS shell bundles.
+2. **Offline Action Queue (`OfflineActionQueue`)**: Intercepts writes (e.g. ticket creation, checklist step updates, comments) when the device is offline and queues them.
+3. **Automatic Synchronization**: Plays back queued requests in chronological order as soon as network connectivity is restored.
+4. **Offline Indicators**: Shows alert banners on screens (e.g., QRGateway, Dashboard) when interacting with cached data.
 
 ### QR Gateway
 - One guided flow

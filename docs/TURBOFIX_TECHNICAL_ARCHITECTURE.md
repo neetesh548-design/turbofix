@@ -4,37 +4,34 @@
 
 TurboFix is a React frontend on top of Supabase. Supabase stores the data, handles login, keeps files, and runs backend functions. Analytics calculates the numbers. TurboFix shows the workflow and decisions.
 
-## Main parts
+## Main Components & Graphify God Nodes
 
-- Frontend: React + Vite
-- Backend: Supabase
-- Analytics: existing plant logic and summaries
-- Knowledge: approved machine records and machine history
+The architecture is built around clean boundaries defined by core **Repository Interfaces (God Nodes)**. These interfaces run in **Dual-Mode** (falling back to Local Excel/Google Sheets for development/testing, and using Supabase + Google Drive in production):
 
-## Main screens
+1. **`MachineRepository`**: Manages machine profiles, active loop state (`has_open_ticket`), PM schedules, parts, and consumables.
+   - *Local*: `backend/local/machine_repo.py` (openpyxl)
+   - *Sheets*: `backend/sheets/ticket_repo.py`
+   - *Supabase*: `backend/supabase/machine_repo.py`
+2. **`TicketRepository`**: Manages the end-to-end work order lifecycle (breakdown tickets, evidence media, verification, and closure).
+   - *Local*: `backend/local/ticket_repo.py`
+   - *Sheets*: `backend/sheets/ticket_repo.py`
+   - *Supabase*: `backend/supabase/ticket_repo.py`
+3. **`UserRepository` & `CurrentUser`**: Resolves identity, RBAC checks, and strict tenant company isolation.
+   - *Local*: `backend/local/user_repo.py`
+   - *Supabase*: `backend/supabase/user_repo.py`
+4. **`DocumentRepository` & `FileStorage`**: Handles uploading raw machine documents, compiling review drafts, and saving approved knowledge.
+   - *Local*: `backend/local/document_repo.py` and `LocalFileStorage` (disk)
+   - *Supabase/Production*: `backend/supabase/document_repo.py` and `DriveFileStorage` (Google Drive API)
+5. **`PartsRepository`**: Tracks spare parts, consumables, and automated reorder loops.
+6. **`CustomKpiRepository`**: Accesses daily metrics, backlog velocity, and cost ratios.
 
-- Public pages
-- Login
-- Dashboard
-- Machines
-- Tickets
-- Technician
-- Support
-- Records
-- QR Gateway
-- Team
-- Settings
-- Shutdown Planner
-- Assistant
+## Integration & Communication Channels
 
-## Main data groups
-
-- Machines: identity, status, people, PM, parts, consumables, history
-- Tickets: issue, stage, urgency, evidence, verification, closure
-- Team: user, role, company, responsibility
-- Records: uploads, drafts, approvals, trusted knowledge
-- Support: exceptions, approvals, escalations
-- Audit: important state changes
+- **Supabase Edge Functions**: Host-privileged, secure operations and AI pipelines (located under `supabase/functions/`):
+  - `ai_assistant`: Maintenance Q&A using approved machine records context.
+  - `ai_diagnostics`: Automated root-cause analysis based on photo evidence and history.
+  - `whatsapp_webhook`: Entry point for operators reporting issues over WhatsApp.
+- **WhatsApp CRM Integration (`backend/wacrm_client.py`)**: Thin client with automatic exponential backoff retry to route template notifications (e.g. `turbofix_escalation`, `turbofix_new_ticket`) through WaCRM/Meta.
 
 ## How data moves
 

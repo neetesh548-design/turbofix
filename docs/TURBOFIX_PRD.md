@@ -22,14 +22,30 @@ TurboFix helps a factory keep machines running by making it easy to report probl
 - Owner
 - Support reviewer
 
-## Main flows
+## Closed-Loop Maintenance Lifecycle
 
-- QR Gateway: scan → speak → listen back → review → submit
-- Technician: accept → repair → evidence → verify → close
-- Support: review exception → approve, return, or escalate
-- Machines: open a machine and see the active loop first
-- Dashboard: click a KPI or chart to see what is behind it
-- Records: upload old records, review the draft, approve useful knowledge
+TurboFix runs on a strictly defined, closed-loop maintenance lifecycle:
+1. **Detect**: Operators scan machine QR codes and capture issues using voice, text, or photo.
+2. **Understand**: The backend uses LLM parsing to analyze voice transcripts/texts into a structured `IssueBrief`.
+3. **Prioritize**: Automatically categorizes urgency and checks against active breakdown logs.
+4. **Assign**: Routes work orders to the least-loaded technician or specific skill sets.
+5. **Execute**: Technicians perform repair tasks guided by step-by-step checklists.
+6. **Verify**: Repairs are validated via supervisor review or photographic evidence.
+7. **Close**: Records closed loop resolution metrics (downtime, spare parts costs).
+8. **Learn**: Converts resolved technician work records into permanent machine knowledge context.
+
+## 1-Hour Developer Onboarding Map
+
+To understand TurboFix in under 1 hour, trace these core concepts from UI to Database:
+
+| Business Concept | Frontend Module / Component | Backend Repository Interface | Database Tables (Supabase) |
+| :--- | :--- | :--- | :--- |
+| **Operator Reporting** | `src/pages/QRGateway.jsx` | `TicketRepository` | `public.tickets` (voice_note_media_id) |
+| **Technician Repair** | `src/pages/Technician.jsx` | `TechnicianWorkRepository` | `public.technician_work` (checklist, notes) |
+| **Machine Context** | `src/pages/Machines.jsx` | `MachineRepository` | `public.machines` (has_open_ticket) |
+| **Escalations & Alerts**| `src/pages/Support.jsx` | `EscalationConfigRepository`| `public.escalation_config` (timers, channels) |
+| **Machine Knowledge** | `src/pages/Records.jsx` | `MachineRecordRepository` | `public.machine_records` (approved_knowledge) |
+| **Dashboard KPIs** | `src/pages/Dashboard.jsx` | `CustomKpiRepository` | `public.custom_kpi_entries` (metric logs) |
 
 ## What the app must support
 
