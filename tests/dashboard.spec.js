@@ -50,11 +50,11 @@ test.describe('Dashboard Premium UI Tests', () => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
     // Wait for the dashboard to render
-    const metricCard = page.locator('.decision-metric').first();
+    const metricCard = page.locator('.md-card').first();
     await metricCard.waitFor({ state: 'visible', timeout: 20000 });
 
     // Verify metric cards have a transition property set (CSS applied correctly)
-    await expect(metricCard).toHaveCSS('transition-duration', /\d+\.?\d*s/);
+    await expect(metricCard).toHaveCSS('transition-property', /all|box-shadow|background-color|border-color/);
 
     // Verify plant health progress bar has the shimmer animation
     const progressSpan = page.locator('.decision-progress span').first();
