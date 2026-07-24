@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AppShell from '../components/AppShell';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '../supabaseClient';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
@@ -78,6 +79,7 @@ export default function Tickets() {
   const [activeFilter, setActiveFilter] = useState(() => getParam('activeFilter', 'all'));
   const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [filterMachine, setFilterMachine] = useState(() => getParam('machine', 'all'));
   const [filterStatus, setFilterStatus] = useState(() => getParam('status', 'all'));
   const [filterStartDate, setFilterStartDate] = useState('');
@@ -377,8 +379,9 @@ export default function Tickets() {
               />
             </div>
 
-            {/* Advanced Multi-Faceted Filters */}
-            <div style={{
+            {/* ADVANCED FEATURES: Multi-Faceted Filters */}
+            <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+              <div style={{
               background: '#0e1722',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               borderRadius: '10px',
@@ -469,6 +472,7 @@ export default function Tickets() {
                 </button>
               </div>
             </div>
+            </AdvancedFeaturesDrilldown>
           </>
         )}
 

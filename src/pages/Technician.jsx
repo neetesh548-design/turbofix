@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, Square, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
 

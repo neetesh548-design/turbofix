@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 
 const WORKSPACE_TABS = [
@@ -82,6 +83,7 @@ export default function Machines() {
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [machineEdit, setMachineEdit] = useState(null);
   const [machineEditSaving, setMachineEditSaving] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
@@ -2204,8 +2206,8 @@ export default function Machines() {
               </nav>
 
               {/* Workspace Contents */}
-              
-              {/* TAB 1: ESCALATION & ASSIGNEES (Dynamically loaded off escalationPath) */}
+
+              {/* MVP: TAB 1: ESCALATION & ASSIGNEES (Dynamically loaded off escalationPath) */}
               {wsTab === 'info' && (
                 <div className="machine-overview-grid">
                   <section className="machine-overview-main">
@@ -2444,8 +2446,10 @@ export default function Machines() {
                 </div>
               )}
 
-              {/* TAB 2: MANUALS & DOCUMENTS */}
-              {wsTab === 'docs' && (
+              {/* ADVANCED FEATURES: Additional workspace tabs */}
+              <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+                {/* TAB 2: MANUALS & DOCUMENTS */}
+                {wsTab === 'docs' && (
                 <div>
                   <div style={{ marginBottom: '16px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(37, 211, 102, 0.25)', background: 'rgba(37, 211, 102, 0.06)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -3176,6 +3180,7 @@ export default function Machines() {
                   </button>
                 </div>
               )}
+              </AdvancedFeaturesDrilldown>
             </div>
           </div>
         )}
