@@ -280,7 +280,7 @@ export default function Kaizen() {
 
   return (
     <AppShell active="overview">
-      <div className="workspace-page kaizen-page" style={{ padding: '24px', color: '#e2e8f0', minHeight: '100vh', background: 'radial-gradient(circle at 10% 20%, #0b0f19 0%, #070a10 90%)' }}>
+      <main className="workspace-page kaizen-page" style={{ padding: '24px', color: '#e2e8f0', minHeight: '100vh', background: 'radial-gradient(circle at 10% 20%, #0b0f19 0%, #070a10 90%)' }}>
         
         {/* Header Section */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
@@ -376,7 +376,7 @@ export default function Kaizen() {
             <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Priority Action Panel</h4>
-                <select value={dashboardFilter} onChange={(e) => setDashboardFilter(e.target.value)} style={{ width: '180px', padding: '4px' }}>
+                <select aria-label="Filter action items" value={dashboardFilter} onChange={(e) => setDashboardFilter(e.target.value)} style={{ width: '180px', padding: '4px' }}>
                   <option value="all">Show All Items</option>
                   <option value="safety">Safety-Critical Opportunities</option>
                   <option value="overdue">Overdue Actions</option>
@@ -503,23 +503,23 @@ export default function Kaizen() {
 
             <form onSubmit={handleCreateKaizen} style={{ display: 'grid', gap: '14px' }}>
               <div className="vault-field">
-                <label>Related machine <strong aria-hidden="true">*</strong></label>
-                <select value={machineId} onChange={(e) => setMachineId(e.target.value)} required>
+                <label htmlFor="kzn-machine-select">Related machine <strong aria-hidden="true">*</strong></label>
+                <select id="kzn-machine-select" value={machineId} onChange={(e) => setMachineId(e.target.value)} required>
                   <option value="">Select Machine</option>
                   {machines.map((m) => <option key={m.id} value={m.machine_id}>{m.machine_id} — {m.machine_name}</option>)}
                 </select>
               </div>
 
               <div className="vault-field">
-                <label>Kaizen category</label>
-                <select value={kaizenType} onChange={(e) => setKaizenType(e.target.value)}>
+                <label htmlFor="kzn-cat-select">Kaizen category</label>
+                <select id="kzn-cat-select" value={kaizenType} onChange={(e) => setKaizenType(e.target.value)}>
                   {KAIZEN_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
 
               <div className="vault-field">
-                <label>Urgency level</label>
-                <select value={urgency} onChange={(e) => setUrgency(e.target.value)}>
+                <label htmlFor="kzn-urg-select">Urgency level</label>
+                <select id="kzn-urg-select" value={urgency} onChange={(e) => setUrgency(e.target.value)}>
                   <option value="normal">Normal (Routine)</option>
                   <option value="urgent">Urgent (Breakdown prevention)</option>
                   <option value="safety">Safety Critical</option>
@@ -550,7 +550,7 @@ export default function Kaizen() {
           </div>
         )}
 
-      </div>
+      </main>
     </AppShell>
   );
 }
