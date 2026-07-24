@@ -158,3 +158,34 @@ async def notify_closure(
             log.info("closure.sent", ticket_id=ticket_id, recipient=phone)
         except Exception as exc:
             log.error("closure.failed", ticket_id=ticket_id, recipient=phone, error=str(exc))
+
+
+async def notify_work_assigned(
+    technician_phone: str,
+    ticket_id: str,
+    machine: dict,
+    issue_description: str,
+) -> None:
+    """Notify technician that work has been assigned to them (I2 Repair Loop).
+    
+    Called automatically when a new ticket is created and assigned.
+    """
+    from app.infrastructure import whatsapp
+    from app.infrastructure.logging import get_logger
+
+    log = get_logger("turbofix.fanout")
+
+    if not config.WHATSAPP_ACCESS_TOKEN or not config.WHATSAPP_PHONE_NUMBER_ID:
+        log.info("work_assigned.skipped", reason="no_whatsapp_credentials", ticket_id=ticket_id)
+        return
+
+    machine_name = machine.get("machine_name", "Unknown Machine")
+    issue_short = (issue_description or "Unreported issue")[:100]
+
+    message = f"🔧 New work assigned to you:\n\n*{machine_name}*\n{issue_short}\n\nTicket: {ticket_id}\n\nTap to view details in the Technician app."
+
+    try:
+        await whatsapp.send_text_message(technician_phone, message)
+        log.info("work_assigned.notified", ticket_id=ticket_id, technician=technician_phone)
+    except Exception as exc:
+        log.error("work_assigned.notification_failed", ticket_id=ticket_id, technician=technician_phone, error=str(exc))

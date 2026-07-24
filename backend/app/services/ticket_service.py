@@ -243,6 +243,7 @@ async def handle_text_message(
     tickets: TicketRepository,
     machines: MachineRepository,
     events: EventRepository,
+    tech_work: "TechnicianWorkRepository" = None,
 ) -> None:
     """Handle an incoming text message — escalation commands, closure, or new ticket."""
     confirm_match = _CONFIRM_AI_RE.search(text)
@@ -374,6 +375,36 @@ async def handle_text_message(
     })
     sessions.open(phone, ticket_id, parsed.machine_id)
     log.info("ticket.created", ticket_id=ticket_id, machine_id=parsed.machine_id, phone=phone)
+
+    # Assign work to technician (I2 Repair Loop - Create & Assign)
+    if tech_work and machine:
+        technician_phone = machine.get("assigned_technician_phone", "").strip()
+        if technician_phone:
+            work_record = {
+                "ticket_id": ticket_id,
+                "machine_id": parsed.machine_id,
+                "company_code": machine.get("company_code", ""),
+                "assigned_to_phone": technician_phone,
+                "status": "open",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "issue_description": parsed.description or _PLACEHOLDER_DESCRIPTION,
+            }
+            try:
+                tech_work.upsert(work_record)
+                _log_event(
+                    events, parsed.machine_id, machine.get("company_code", ""),
+                    ticket_id, "work_assigned", "system",
+                    f"Assigned to technician {technician_phone}",
+                )
+                log.info("work.assigned", ticket_id=ticket_id, technician=technician_phone)
+
+                # Notify technician via WhatsApp
+                background_tasks.add_task(
+                    fanout_service.notify_work_assigned,
+                    technician_phone, ticket_id, machine, parsed.description or _PLACEHOLDER_DESCRIPTION,
+                )
+            except Exception as exc:
+                log.error("work.assignment_failed", ticket_id=ticket_id, error=str(exc))
 
     try:
         from app.services import escalation_service

@@ -12,9 +12,9 @@ import re
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 
-from app.dependencies import get_events, get_machines, get_tickets
+from app.dependencies import get_events, get_machines, get_tickets, get_technician_work
 from app.infrastructure.rate_limit import limiter
-from app.repositories.base import EventRepository, MachineRepository, TicketRepository
+from app.repositories.base import EventRepository, MachineRepository, TicketRepository, TechnicianWorkRepository
 from app.services import ticket_service
 from app.sessions import SessionStore
 from app import config
@@ -73,6 +73,7 @@ async def receive_webhook(
     tickets: TicketRepository = Depends(get_tickets),
     machines: MachineRepository = Depends(get_machines),
     events: EventRepository = Depends(get_events),
+    tech_work: TechnicianWorkRepository = Depends(get_technician_work),
 ):
     """Receive and dispatch an incoming WhatsApp message.
 
@@ -105,6 +106,7 @@ async def receive_webhook(
                 tickets=tickets,
                 machines=machines,
                 events=events,
+                tech_work=tech_work,
             )
         elif msg_type == "audio":
             await ticket_service.handle_audio_message(
