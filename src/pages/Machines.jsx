@@ -3020,9 +3020,14 @@ export default function Machines() {
                       <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities</h3>
                       <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Continuous improvement opportunities recorded for {selectedMachine.machine_name}.</p>
                     </div>
-                    <button type="button" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => setShowKznForm(!showKznForm)}>
-                      {showKznForm ? 'Cancel' : '+ Suggest Improvement'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="button" className="vault-btn vault-btn-ghost" style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'white', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => navigate('/kaizen.html')}>
+                        View Global Dashboard →
+                      </button>
+                      <button type="button" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => setShowKznForm(!showKznForm)}>
+                        {showKznForm ? 'Cancel' : '+ Suggest Improvement'}
+                      </button>
+                    </div>
                   </div>
 
                   {showKznForm && (
