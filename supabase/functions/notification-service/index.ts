@@ -1,3 +1,10 @@
+/**
+ * [UNUSED] Notification Service Edge Function
+ * Status: No callers found in codebase (as of 2026-07-24)
+ * Notifications are currently sent via fanout_service.py (WhatsApp) + email.
+ * If you're using this function, add a comment here with the caller.
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

@@ -2,9 +2,8 @@
   "config": {
     "argv": [
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Users/nkumarsoni/TurboFix/node_modules/.pnpm/@playwright+test@1.61.1/node_modules/@playwright/test/cli.js",
+      "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "qr-gateway",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,6 +147,654 @@
   },
   "suites": [
     {
+      "title": "accessibility.spec.js",
+      "file": "accessibility.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "TurboFix Accessibility Audits (axe-core)",
+          "file": "accessibility.spec.js",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kaizen Dashboard accessibility audit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11228,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "--- KAIZEN PAGE ACCESSIBILITY VIOLATIONS ---\n"
+                        },
+                        {
+                          "text": "[\n  {\n    \"id\": \"heading-order\",\n    \"impact\": \"moderate\",\n    \"tags\": [\n      \"cat.semantics\",\n      \"best-practice\"\n    ],\n    \"description\": \"Ensure the order of headings is semantically correct\",\n    \"help\": \"Heading levels should only increase by one\",\n    \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/heading-order?application=playwright\",\n    \"nodes\": [\n      {\n        \"any\": [\n          {\n            \"id\": \"heading-order\",\n            \"data\": null,\n            \"relatedNodes\": [],\n            \"impact\": \"moderate\",\n            \"message\": \"Heading order invalid\"\n          }\n        ],\n        \"all\": [],\n        \"none\": [],\n        \"impact\": \"moderate\",\n        \"html\": \"<h3 style=\\\"margin: 0px; font-size: 1.6rem; font-weight: 800; color: rgb(255, 255, 255); font-family: Rajdhani, sans-serif;\\\">2</h3>\",\n        \"target\": [\n          \"div:nth-child(1) > div:nth-child(2) > h3\"\n        ],\n        \"failureSummary\": \"Fix any of the following:\\n  Heading order invalid\"\n      }\n    ]\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:16.048Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d316df4bad39fab891ed-61f71a7d2f0bd793fbdc",
+              "file": "accessibility.spec.js",
+              "line": 28,
+              "column": 3
+            },
+            {
+              "title": "Main Dashboard accessibility audit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10657,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "[Axe Warning] Found 1 serious/critical accessibility warnings on main dashboard.\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:16.034Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d316df4bad39fab891ed-50ec4f46b76903e2f541",
+              "file": "accessibility.spec.js",
+              "line": 50,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard-framework.spec.js",
+      "file": "dashboard-framework.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard End-to-End Framework Tests",
+          "file": "dashboard-framework.spec.js",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should render the plant status pulse strip with core KPIs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 8003,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:15.988Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "59179e24e1d04585d126-ca26241ff4f833d318a4",
+              "file": "dashboard-framework.spec.js",
+              "line": 37,
+              "column": 3
+            },
+            {
+              "title": "should render the priority row with queue, reliability, and cost-impact cards",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 8003,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:15.982Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "59179e24e1d04585d126-70018eb3e696542a5a65",
+              "file": "dashboard-framework.spec.js",
+              "line": 47,
+              "column": 3
+            },
+            {
+              "title": "should expand a category tab and collapse it back on second click",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4720,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:24.249Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "59179e24e1d04585d126-43fd0b8f728f36fcbc4a",
+              "file": "dashboard-framework.spec.js",
+              "line": 59,
+              "column": 3
+            },
+            {
+              "title": "should open the priority queue drilldown on click",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 4405,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:24.292Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "59179e24e1d04585d126-e9d311c09860b9a9c169",
+              "file": "dashboard-framework.spec.js",
+              "line": 76,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard.spec.js",
+      "file": "dashboard.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard Premium UI Tests",
+          "file": "dashboard.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should verify new glassmorphic styles and animations on dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3902,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:27.151Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a1bb41a2bd6df77ed2f7-9f51043f0a1c6b99033f",
+              "file": "dashboard.spec.js",
+              "line": 4,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "kaizen-visual.spec.js",
+      "file": "kaizen-visual.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "capture Kaizen Dashboard screenshots and verify UX layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9616,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T08:12:27.714Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6dc25df0a8bd6d2e74bb-03e9ec23eb123312b144",
+          "file": "kaizen-visual.spec.js",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "lay-owner-dashboard.spec.js",
+      "file": "lay-owner-dashboard.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html)",
+          "file": "lay-owner-dashboard.spec.js",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-DASH-01: Plant status pulse strip shows availability and core KPIs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5009,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:28.853Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-52324ba446d5afdd1261",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 37,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-02: Reliability card surfaces MTBF, MTTR, and repeat-breakdown signal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4818,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:29.124Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-87def431025faeccfcf9",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-03: Financial impact card shows downtime and maintenance cost",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4883,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:31.213Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-83e03f129f7480efa302",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-04: Operational efficiency KPI cards render with benchmark hints",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3709,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:33.895Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-521db3d767cb505d2dcd",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 67,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-05: Cost management KPI cards render with RAV and emergency-cost ratios",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3913,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:33.983Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-af7c9935ad49261f77c0",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-06: Priority Queue Inspection & Drilldown Scroll",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3404,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:36.146Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-6dc74c783e4c15366157",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "TC-DASH-07: Strategic planning section renders the shift handover panel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3349,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:37.482Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b80885ab45873f2336ef-9674f530fa5cf5339eb9",
+              "file": "lay-owner-dashboard.spec.js",
+              "line": 108,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "machine-card.spec.js",
+      "file": "machine-card.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Machines Page Workspace & Sub-Tabs Tests",
+          "file": "machine-card.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load machines workspace and successfully click through all 9 sub-tabs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6016,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:12:37.715Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35ead203eb5d8280e2ac-4870da5e69004b209572",
+              "file": "machine-card.spec.js",
+              "line": 94,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "qr-gateway.spec.ts",
       "file": "qr-gateway.spec.ts",
       "column": 0,
@@ -173,15 +820,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 12558,
+                      "duration": 6589,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:41.363Z",
+                      "startTime": "2026-07-24T08:12:37.945Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -210,12 +857,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 11326,
+                      "duration": 8130,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:41.466Z",
+                      "startTime": "2026-07-24T08:12:39.642Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -241,15 +888,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 14393,
+                      "duration": 7152,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:41.510Z",
+                      "startTime": "2026-07-24T08:12:40.941Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -275,15 +922,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 12512,
+                      "duration": 6128,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:41.491Z",
+                      "startTime": "2026-07-24T08:12:43.828Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -309,15 +956,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 7119,
+                      "duration": 3711,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:54.801Z",
+                      "startTime": "2026-07-24T08:12:44.614Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -343,15 +990,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 9346,
+                      "duration": 4715,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:55.350Z",
+                      "startTime": "2026-07-24T08:12:47.800Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -380,12 +1027,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 9797,
+                      "duration": 5500,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:55.645Z",
+                      "startTime": "2026-07-24T08:12:48.152Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -411,15 +1058,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 6938,
+                      "duration": 3304,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:22:57.676Z",
+                      "startTime": "2026-07-24T08:12:48.355Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -445,15 +1092,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 16677,
+                      "duration": 6460,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:02.211Z",
+                      "startTime": "2026-07-24T08:12:49.972Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -482,12 +1129,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 9702,
+                      "duration": 3468,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:05.199Z",
+                      "startTime": "2026-07-24T08:12:51.693Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -513,15 +1160,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 10169,
+                      "duration": 3065,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:05.531Z",
+                      "startTime": "2026-07-24T08:12:52.529Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -547,15 +1194,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 10251,
+                      "duration": 3684,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:05.588Z",
+                      "startTime": "2026-07-24T08:12:53.664Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -584,12 +1231,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 13226,
+                      "duration": 4034,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:15.250Z",
+                      "startTime": "2026-07-24T08:12:55.181Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -615,15 +1262,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 12725,
+                      "duration": 3962,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:16.140Z",
+                      "startTime": "2026-07-24T08:12:55.605Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -649,15 +1296,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 14373,
+                      "duration": 5290,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:16.204Z",
+                      "startTime": "2026-07-24T08:12:56.469Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -683,15 +1330,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 16465,
+                      "duration": 9379,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:20.649Z",
+                      "startTime": "2026-07-24T08:12:57.372Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -720,12 +1367,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 8700,
+                      "duration": 5127,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:29.365Z",
+                      "startTime": "2026-07-24T08:12:59.240Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -751,19 +1398,19 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7582,
+                      "duration": 4159,
                       "errors": [],
                       "stdout": [],
                       "stderr": [
                         {
-                          "text": "(node:63310) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n"
+                          "text": "(node:10625) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
                         }
                       ],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:29.364Z",
+                      "startTime": "2026-07-24T08:12:59.579Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -789,15 +1436,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4227,
+                      "duration": 2428,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:31.547Z",
+                      "startTime": "2026-07-24T08:13:01.787Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -823,15 +1470,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7411,
+                      "duration": 3069,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:35.913Z",
+                      "startTime": "2026-07-24T08:13:03.761Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -860,12 +1507,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 8107,
+                      "duration": 4957,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:37.302Z",
+                      "startTime": "2026-07-24T08:13:04.231Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -891,15 +1538,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 2921,
+                      "duration": 2746,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:37.570Z",
+                      "startTime": "2026-07-24T08:13:04.382Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -925,15 +1572,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 10237,
+                      "duration": 4232,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:38.208Z",
+                      "startTime": "2026-07-24T08:13:06.770Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -962,12 +1609,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 10012,
+                      "duration": 4318,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:41.617Z",
+                      "startTime": "2026-07-24T08:13:06.849Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -993,15 +1640,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 7105,
+                      "duration": 3599,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:44.200Z",
+                      "startTime": "2026-07-24T08:13:07.163Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1030,12 +1677,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4964,
+                      "duration": 3458,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-23T05:23:46.040Z",
+                      "startTime": "2026-07-24T08:13:09.205Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1051,13 +1698,670 @@
           ]
         }
       ]
+    },
+    {
+      "title": "qrgateway.spec.js",
+      "file": "qrgateway.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "QR Gateway Issue Reporting Flow",
+          "file": "qrgateway.spec.js",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario 1: Reporter Mobile Identification (Phone Gate)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3689,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:10.791Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-ed3558162d54e020050d",
+              "file": "qrgateway.spec.js",
+              "line": 123,
+              "column": 3
+            },
+            {
+              "title": "Scenario 2 & 3: Voice recording, Gemini transcription, and Editing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4808,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:11.045Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-aa42be3e48a12879ae30",
+              "file": "qrgateway.spec.js",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "Scenario 4: Photo capture and attachment preview",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4267,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:11.218Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-102dd49d9bfb874385d0",
+              "file": "qrgateway.spec.js",
+              "line": 204,
+              "column": 3
+            },
+            {
+              "title": "Scenario 5: Duplicate ticket detection and merging",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 8713,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:12.705Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-f3226f833307f208553c",
+              "file": "qrgateway.spec.js",
+              "line": 232,
+              "column": 3
+            },
+            {
+              "title": "Scenario 6: Successful Ticket Submission and receipt visual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7794,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:14.531Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-c3404aa05d5319f1ad65",
+              "file": "qrgateway.spec.js",
+              "line": 308,
+              "column": 3
+            },
+            {
+              "title": "Scenario 7: Transcription Failure and Fallback to Manual Input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 9461,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [warning] Transient error, retrying ai_translation (attempt 1)...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [warning] Transient error, retrying ai_translation (attempt 2)...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [error] Error: Edge Function returned a non-2xx status code\n    at transcribeAudio (http://localhost:5173/src/pages/QRGateway.jsx:601:44)\n    at async transcribePendingAudio (http://localhost:5173/src/pages/QRGateway.jsx:673:3)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:15.548Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-f8f9ec4b8c4defd6ab72",
+              "file": "qrgateway.spec.js",
+              "line": 385,
+              "column": 3
+            },
+            {
+              "title": "Scenario 8: Language Translation Toggle updates UI labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6196,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:15.892Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-2dedff49e723b3e72492",
+              "file": "qrgateway.spec.js",
+              "line": 430,
+              "column": 3
+            },
+            {
+              "title": "Scenario 9: Empty Description validation prevention",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3668,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:21.577Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-e397b76cfea7f29b3dd1",
+              "file": "qrgateway.spec.js",
+              "line": 451,
+              "column": 3
+            },
+            {
+              "title": "Scenario 10: Microphone Access Denied Fallback",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3130,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [error] NotAllowedError: Permission denied\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:22.168Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "577637e0ad235267993b-78de8243fd167df67337",
+              "file": "qrgateway.spec.js",
+              "line": 480,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "screenshot.spec.js",
+      "file": "screenshot.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "capture dashboard screenshots",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 6864,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T08:13:22.413Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b6aa675bc40ab83f8367-9760d2171d1592e1b3cd",
+          "file": "screenshot.spec.js",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "smart-modules.spec.js",
+      "file": "smart-modules.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Settings - Smart Modules (Poka-Yoke Config)",
+          "file": "smart-modules.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display and allow toggling of Smart Modules overlays",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3326,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [debug] [vite] connected.\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        },
+                        {
+                          "text": "BROWSER LOG: [log] App ready to work offline\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T08:13:25.126Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9f4fb6795a894cfb09ce-19d5b89a1022ca41f0a6",
+              "file": "smart-modules.spec.js",
+              "line": 4,
+              "column": 3
+            }
+          ]
+        }
+      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-23T05:22:39.648Z",
-    "duration": 73346.935,
-    "expected": 26,
+    "startTime": "2026-07-24T08:12:14.190Z",
+    "duration": 75202.579,
+    "expected": 53,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

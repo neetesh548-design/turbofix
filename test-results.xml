@@ -1,60 +1,284 @@
-<testsuites id="" name="" tests="26" failures="0" skipped="0" errors="0" time="73.346935">
-<testsuite name="qr-gateway.spec.ts" timestamp="2026-07-23T05:22:39.716Z" hostname="chromium" tests="26" failures="0" skipped="0" time="258.843" errors="0">
-<testcase name="QRGateway - Worst Case Scenarios › Should handle offline submission and queue ticket locally" classname="qr-gateway.spec.ts" time="12.558">
+<testsuites id="" name="" tests="53" failures="0" skipped="0" errors="0" time="75.202579">
+<testsuite name="accessibility.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="2" failures="0" skipped="0" time="21.885" errors="0">
+<testcase name="TurboFix Accessibility Audits (axe-core) › Kaizen Dashboard accessibility audit" classname="accessibility.spec.js" time="11.228">
+<system-out>
+<![CDATA[--- KAIZEN PAGE ACCESSIBILITY VIOLATIONS ---
+[
+  {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [
+      "cat.semantics",
+      "best-practice"
+    ],
+    "description": "Ensure the order of headings is semantically correct",
+    "help": "Heading levels should only increase by one",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/heading-order?application=playwright",
+    "nodes": [
+      {
+        "any": [
+          {
+            "id": "heading-order",
+            "data": null,
+            "relatedNodes": [],
+            "impact": "moderate",
+            "message": "Heading order invalid"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "moderate",
+        "html": "<h3 style=\"margin: 0px; font-size: 1.6rem; font-weight: 800; color: rgb(255, 255, 255); font-family: Rajdhani, sans-serif;\">2</h3>",
+        "target": [
+          "div:nth-child(1) > div:nth-child(2) > h3"
+        ],
+        "failureSummary": "Fix any of the following:\n  Heading order invalid"
+      }
+    ]
+  }
+]
+]]>
+</system-out>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should retry on transient network failures" classname="qr-gateway.spec.ts" time="11.326">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle API timeout gracefully" classname="qr-gateway.spec.ts" time="14.393">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle microphone permission denied" classname="qr-gateway.spec.ts" time="12.512">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle camera permission denied for photo upload" classname="qr-gateway.spec.ts" time="7.119">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle no speech detected error" classname="qr-gateway.spec.ts" time="9.346">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle transcription API failure" classname="qr-gateway.spec.ts" time="9.797">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle SpeechRecognition API unavailable" classname="qr-gateway.spec.ts" time="6.938">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should validate phone number format on phone gate" classname="qr-gateway.spec.ts" time="16.677">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very long issue descriptions" classname="qr-gateway.spec.ts" time="9.702">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle special characters in input" classname="qr-gateway.spec.ts" time="10.169">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle empty/whitespace-only submission" classname="qr-gateway.spec.ts" time="10.251">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle corrupted image file" classname="qr-gateway.spec.ts" time="13.226">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very large image file (&gt;50MB)" classname="qr-gateway.spec.ts" time="12.725">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle storage upload failure" classname="qr-gateway.spec.ts" time="14.373">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid form submissions" classname="qr-gateway.spec.ts" time="16.465">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle language change during submission" classname="qr-gateway.spec.ts" time="8.7">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle localStorage quota exceeded" classname="qr-gateway.spec.ts" time="7.582">
+<testcase name="TurboFix Accessibility Audits (axe-core) › Main Dashboard accessibility audit" classname="accessibility.spec.js" time="10.657">
 <system-err>
-<![CDATA[(node:63310) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+<![CDATA[[Axe Warning] Found 1 serious/critical accessibility warnings on main dashboard.
 ]]>
 </system-err>
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle speechSynthesis API failure" classname="qr-gateway.spec.ts" time="4.227">
+</testsuite>
+<testsuite name="dashboard-framework.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="4" failures="0" skipped="0" time="25.131" errors="0">
+<testcase name="Dashboard End-to-End Framework Tests › should render the plant status pulse strip with core KPIs" classname="dashboard-framework.spec.js" time="8.003">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle back button during phone gate" classname="qr-gateway.spec.ts" time="7.411">
+<testcase name="Dashboard End-to-End Framework Tests › should render the priority row with queue, reliability, and cost-impact cards" classname="dashboard-framework.spec.js" time="8.003">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should persist reporter phone across page reload" classname="qr-gateway.spec.ts" time="8.107">
+<testcase name="Dashboard End-to-End Framework Tests › should expand a category tab and collapse it back on second click" classname="dashboard-framework.spec.js" time="4.72">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle machine details fetch failure" classname="qr-gateway.spec.ts" time="2.921">
+<testcase name="Dashboard End-to-End Framework Tests › should open the priority queue drilldown on click" classname="dashboard-framework.spec.js" time="4.405">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle duplicate check failure gracefully" classname="qr-gateway.spec.ts" time="10.237">
+</testsuite>
+<testsuite name="dashboard.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.902" errors="0">
+<testcase name="Dashboard Premium UI Tests › should verify new glassmorphic styles and animations on dashboard" classname="dashboard.spec.js" time="3.902">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle ticket log failure with fallback" classname="qr-gateway.spec.ts" time="10.012">
+</testsuite>
+<testsuite name="kaizen-visual.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="1" failures="0" skipped="0" time="9.616" errors="0">
+<testcase name="capture Kaizen Dashboard screenshots and verify UX layout" classname="kaizen-visual.spec.js" time="9.616">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid language switches without state corruption" classname="qr-gateway.spec.ts" time="7.105">
+</testsuite>
+<testsuite name="lay-owner-dashboard.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="7" failures="0" skipped="0" time="29.085" errors="0">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-01: Plant status pulse strip shows availability and core KPIs" classname="lay-owner-dashboard.spec.js" time="5.009">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle zero-width screen edge case" classname="qr-gateway.spec.ts" time="4.964">
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-02: Reliability card surfaces MTBF, MTTR, and repeat-breakdown signal" classname="lay-owner-dashboard.spec.js" time="4.818">
+</testcase>
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-03: Financial impact card shows downtime and maintenance cost" classname="lay-owner-dashboard.spec.js" time="4.883">
+</testcase>
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-04: Operational efficiency KPI cards render with benchmark hints" classname="lay-owner-dashboard.spec.js" time="3.709">
+</testcase>
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-05: Cost management KPI cards render with RAV and emergency-cost ratios" classname="lay-owner-dashboard.spec.js" time="3.913">
+</testcase>
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-06: Priority Queue Inspection &amp; Drilldown Scroll" classname="lay-owner-dashboard.spec.js" time="3.404">
+</testcase>
+<testcase name="Lay Owner Dashboard User Journey &amp; Feature Suite (/dashboard.html) › TC-DASH-07: Strategic planning section renders the shift handover panel" classname="lay-owner-dashboard.spec.js" time="3.349">
+</testcase>
+</testsuite>
+<testsuite name="machine-card.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="1" failures="0" skipped="0" time="6.016" errors="0">
+<testcase name="Machines Page Workspace &amp; Sub-Tabs Tests › should load machines workspace and successfully click through all 9 sub-tabs" classname="machine-card.spec.js" time="6.016">
+</testcase>
+</testsuite>
+<testsuite name="qr-gateway.spec.ts" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="26" failures="0" skipped="0" time="122.664" errors="0">
+<testcase name="QRGateway - Worst Case Scenarios › Should handle offline submission and queue ticket locally" classname="qr-gateway.spec.ts" time="6.589">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should retry on transient network failures" classname="qr-gateway.spec.ts" time="8.13">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle API timeout gracefully" classname="qr-gateway.spec.ts" time="7.152">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle microphone permission denied" classname="qr-gateway.spec.ts" time="6.128">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle camera permission denied for photo upload" classname="qr-gateway.spec.ts" time="3.711">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle no speech detected error" classname="qr-gateway.spec.ts" time="4.715">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle transcription API failure" classname="qr-gateway.spec.ts" time="5.5">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle SpeechRecognition API unavailable" classname="qr-gateway.spec.ts" time="3.304">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should validate phone number format on phone gate" classname="qr-gateway.spec.ts" time="6.46">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle very long issue descriptions" classname="qr-gateway.spec.ts" time="3.468">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle special characters in input" classname="qr-gateway.spec.ts" time="3.065">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle empty/whitespace-only submission" classname="qr-gateway.spec.ts" time="3.684">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle corrupted image file" classname="qr-gateway.spec.ts" time="4.034">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle very large image file (&gt;50MB)" classname="qr-gateway.spec.ts" time="3.962">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle storage upload failure" classname="qr-gateway.spec.ts" time="5.29">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid form submissions" classname="qr-gateway.spec.ts" time="9.379">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle language change during submission" classname="qr-gateway.spec.ts" time="5.127">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle localStorage quota exceeded" classname="qr-gateway.spec.ts" time="4.159">
+<system-err>
+<![CDATA[(node:10625) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle speechSynthesis API failure" classname="qr-gateway.spec.ts" time="2.428">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle back button during phone gate" classname="qr-gateway.spec.ts" time="3.069">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should persist reporter phone across page reload" classname="qr-gateway.spec.ts" time="4.957">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle machine details fetch failure" classname="qr-gateway.spec.ts" time="2.746">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle duplicate check failure gracefully" classname="qr-gateway.spec.ts" time="4.232">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle ticket log failure with fallback" classname="qr-gateway.spec.ts" time="4.318">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid language switches without state corruption" classname="qr-gateway.spec.ts" time="3.599">
+</testcase>
+<testcase name="QRGateway - Worst Case Scenarios › Should handle zero-width screen edge case" classname="qr-gateway.spec.ts" time="3.458">
+</testcase>
+</testsuite>
+<testsuite name="qrgateway.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="9" failures="0" skipped="0" time="51.726" errors="0">
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 1: Reporter Mobile Identification (Phone Gate)" classname="qrgateway.spec.js" time="3.689">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 2 &amp; 3: Voice recording, Gemini transcription, and Editing" classname="qrgateway.spec.js" time="4.808">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 4: Photo capture and attachment preview" classname="qrgateway.spec.js" time="4.267">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 5: Duplicate ticket detection and merging" classname="qrgateway.spec.js" time="8.713">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 6: Successful Ticket Submission and receipt visual" classname="qrgateway.spec.js" time="7.794">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 7: Transcription Failure and Fallback to Manual Input" classname="qrgateway.spec.js" time="9.461">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: [warning] Transient error, retrying ai_translation (attempt 1)...
+BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: [warning] Transient error, retrying ai_translation (attempt 2)...
+BROWSER LOG: [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+BROWSER LOG: [error] Error: Edge Function returned a non-2xx status code
+    at transcribeAudio (http://localhost:5173/src/pages/QRGateway.jsx:601:44)
+    at async transcribePendingAudio (http://localhost:5173/src/pages/QRGateway.jsx:673:3)
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 8: Language Translation Toggle updates UI labels" classname="qrgateway.spec.js" time="6.196">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 9: Empty Description validation prevention" classname="qrgateway.spec.js" time="3.668">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
+</testcase>
+<testcase name="QR Gateway Issue Reporting Flow › Scenario 10: Microphone Access Denied Fallback" classname="qrgateway.spec.js" time="3.13">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [error] NotAllowedError: Permission denied
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="screenshot.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="1" failures="0" skipped="0" time="6.864" errors="0">
+<testcase name="capture dashboard screenshots" classname="screenshot.spec.js" time="6.864">
+</testcase>
+</testsuite>
+<testsuite name="smart-modules.spec.js" timestamp="2026-07-24T08:12:15.354Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.326" errors="0">
+<testcase name="Settings - Smart Modules (Poka-Yoke Config) › should display and allow toggling of Smart Modules overlays" classname="smart-modules.spec.js" time="3.326">
+<system-out>
+<![CDATA[BROWSER LOG: [debug] [vite] connecting...
+BROWSER LOG: [debug] [vite] connected.
+BROWSER LOG: [info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] Service Worker registered via vite-plugin-pwa
+BROWSER LOG: [log] App ready to work offline
+BROWSER LOG: [log] App ready to work offline
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

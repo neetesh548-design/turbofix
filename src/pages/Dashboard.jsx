@@ -1,3 +1,36 @@
+/**
+ * Dashboard Page — Factory KPI & Maintenance Overview
+ *
+ * @api
+ *   GET /api/v1/dashboard?company_code=C001 - Fetch all KPIs and overview charts
+ *     @response {
+ *       company_name: string,
+ *       kpis: { machines_down, urgent_open, open_tickets, plant_health_pct, ... },
+ *       dashboard_overview: { status_mix, type_mix, cost_by_month, ... },
+ *       tickets_by_assignee: [...],
+ *       custom_kpis: [{ kpi_id, label, value, trend, ... }],
+ *       machine_highlights: [{ machine_id, status, issues, ... }]
+ *     }
+ *   POST /api/v1/dashboard/ask - AI-powered question about maintenance data
+ *   GET  /api/v1/dashboard/root-cause?ticket_id=T001 - Analyze ticket root cause
+ *   POST /api/v1/dashboard/custom-kpi - Create/update custom KPI config
+ *
+ * @edgeFunctions
+ *   POST supabase.functions.invoke('ai_assistant') - Ask questions about machines
+ *
+ * @caching
+ *   KPIs cached for 5 minutes in Redis
+ *   Charts calculated daily at 00:30 UTC
+ *
+ * @workflow
+ *   1. Page loads → fetch /api/v1/dashboard
+ *   2. Render KPI cards (machines down, urgent tickets, plant health %)
+ *   3. Render charts (cost trends, ticket status mix, type breakdown)
+ *   4. Render machine highlights (top issues, assigned technicians)
+ *   5. User can click → drilldown to Machines/Tickets pages
+ *   6. User can ask AI → /api/v1/dashboard/ask edge function
+ */
+
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp } from 'lucide-react';
 import AppShell from '../components/AppShell';

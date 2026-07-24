@@ -1,3 +1,25 @@
+/**
+ * AI Assistant Edge Function
+ *
+ * @route POST https://<project>.supabase.co/functions/v1/ai_assistant
+ * @callers
+ *   - src/components/AppShell.jsx:118 (machine context assistant)
+ *   - src/pages/Assistant.jsx:42 (standalone assistant page)
+ * @auth Required (JWT in Authorization header)
+ * @body {
+ *   question: string,           // User question (max 2000 chars)
+ *   machine?: { id, name, ... }, // Optional machine context
+ *   company_code: string         // Tenant isolation
+ * }
+ * @response {
+ *   answer: string,              // AI-generated response
+ *   sources?: string[],          // Related machine records
+ *   confidence: number           // 0.0-1.0
+ * }
+ * @rateLimit 20 per user/hour, 100 per company/day
+ * @security Validates against prompt injection, SSRF, XSS patterns
+ */
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 

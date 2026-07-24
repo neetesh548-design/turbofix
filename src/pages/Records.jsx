@@ -1,3 +1,27 @@
+/**
+ * Records Page — Machine Record Upload & Approval Workflow
+ *
+ * @api
+ *   GET  /api/v1/records?company_code=C001&machine_id=M001 - List records
+ *   POST /api/v1/records - Upload new machine record (multipart/form-data)
+ *   GET  /api/v1/records/:record_id/download - Download record file
+ *   POST /api/v1/records/:record_id/approve - Approve record (supervisor+)
+ *   POST /api/v1/records/:record_id/reject - Reject record with comments
+ *   DELETE /api/v1/records/:record_id - Delete record (owner only)
+ *   POST /api/records/export - Backup all company records (CSV)
+ *
+ * @supabaseStorage
+ *   Bucket: machine_records
+ *   Path: {company_code}/{machine_id}/{record_id}/{filename}
+ *
+ * @workflow
+ *   1. User uploads file (PDF, image, spreadsheet, etc.)
+ *   2. AI extracts structured data (specifications, parts, tasks, risks)
+ *   3. Supervisor/Maintenance Head reviews extraction
+ *   4. Approved records merge into MachineRecordRepository
+ *   5. Technicians use for guided maintenance planning (QRGateway)
+ */
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArchiveRestore, Check, CheckCircle2, ChevronRight, ClipboardCheck, CloudUpload,

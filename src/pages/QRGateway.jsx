@@ -1,3 +1,55 @@
+/**
+ * QR Gateway — Machine Ticket Creation Flow (Primary Technician Interface)
+ *
+ * Workflow:
+ *   1. Scan machine QR code (contains machine_id)
+ *   2. Enter phone number or auto-detect from session
+ *   3. Describe issue (text, voice, or photo)
+ *   4. System optionally suggests spare parts
+ *   5. Submit ticket → real-time WhatsApp notification to supervisor
+ *   6. Offline fallback: queue locally, sync when online
+ *
+ * @api
+ *   POST /api/v1/tickets - Create new ticket (text/voice/photo)
+ *     @body {
+ *       machine_id: string,
+ *       issue_text: string,
+ *       issue_voice_media_id?: string (Supabase File Storage path),
+ *       issue_photo_media_id?: string,
+ *       reported_by_phone: string,
+ *       reported_by_technician_id?: string,
+ *       company_code: string,
+ *       language: string (ISO 639-1: 'en', 'hi', 'mr', ...)
+ *     }
+ *     @response { ticket_id: string, created_at: ISO8601 }
+ *
+ *   GET /api/v1/machines/:machine_id/checklist - Retrieve machine checklist
+ *     @response { checklist_items: [...], spare_parts: [...] }
+ *
+ * @supabaseStorage
+ *   Bucket: ticket_media
+ *   Paths: {company_code}/tickets/{ticket_id}/{voice|photo}.{ext}
+ *
+ * @features
+ *   - Offline first: queue tickets in localStorage, sync on reconnect
+ *   - Multi-language support (9 languages: EN, HI, MR, etc.)
+ *   - Voice recording & transcription
+ *   - Photo attachment & metadata extraction
+ *   - Smart part suggestions via AI
+ *   - Real-time WhatsApp fanout to supervisor & maintenance head
+ *   - Technician presence (who reported, when, device type)
+ *
+ * @whatsappIntegration
+ *   - Ticket creation → immediate WhatsApp message to supervisor
+ *   - Escalation at N hours → WhatsApp reminder
+ *   - Closure notification → WhatsApp to all stakeholders
+ *
+ * @permissions
+ *   - Any technician can create tickets for their assigned machines
+ *   - Cross-machine tickets require supervisor override
+ *   - Session-based rate limiting (20 tickets/hour/technician)
+ */
+
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';

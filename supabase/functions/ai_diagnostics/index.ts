@@ -1,3 +1,10 @@
+/**
+ * [UNUSED] AI Diagnostics Edge Function
+ * Status: No callers found in codebase (as of 2026-07-24)
+ * Candidate for removal or integration into ai_assistant.
+ * If using this function, add a comment here with the caller details.
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { requireServiceRole } from '../_shared/security.ts'
