@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Machines Page Workspace & Kaizen Tab Tests', () => {
+test.describe('Machines Page Workspace & Sub-Tabs Tests', () => {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
   const payload = Buffer.from(JSON.stringify({ exp: 9999999999, sub: 'mock-user' })).toString('base64');
   const fakeJwt = `${header}.${payload}.fake-signature`;
@@ -27,8 +27,7 @@ test.describe('Machines Page Workspace & Kaizen Tab Tests', () => {
           body: JSON.stringify([
             {
               id: 'm1',
-              machine_id: 'M001',
-              machine_name: 'CNC Lathe 1',
+              name: 'CNC Lathe 1',
               location: 'Zone A',
               status: 'healthy',
               hourly_downtime_cost: 150,
@@ -92,7 +91,7 @@ test.describe('Machines Page Workspace & Kaizen Tab Tests', () => {
     });
   });
 
-  test('should load machines page and open Kaizen workspace tab', async ({ page }) => {
+  test('should load machines workspace and successfully click through all 9 sub-tabs', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/machines.html', { waitUntil: 'networkidle' });
 
@@ -106,19 +105,30 @@ test.describe('Machines Page Workspace & Kaizen Tab Tests', () => {
     // Click on Open Workspace
     await openWorkspaceBtn.click();
 
-    // Verify the Kaizen top-level tab is visible in the workspace navigation row
-    const kaizenTab = page.locator('button:has-text("Kaizen")').first();
-    await expect(kaizenTab).toBeVisible({ timeout: 10000 });
+    // Define all tabs to test sequentially (name and an expected heading or content marker)
+    const tabsToTest = [
+      { name: 'Overview', markerText: 'Machine profile' },
+      { name: 'Documents', markerText: 'Machine knowledge file' },
+      { name: 'Spare parts', markerText: 'Keep the parts this machine depends on' },
+      { name: 'Consumables', markerText: 'Add only the few supply items this machine depends on' },
+      { name: 'Preventive', markerText: 'Keep the routine checks visible so this machine stays ahead' },
+      { name: 'Reliability', markerText: 'Reliability improvement' },
+      { name: 'Kaizen', markerText: 'Kaizen Opportunities' },
+      { name: 'Calendar', markerText: 'Replenishment markers are dynamically computed' },
+      { name: 'QR tag', markerText: 'CNC Lathe 1 Tag' }
+    ];
 
-    // Click on the Kaizen workspace tab
-    await kaizenTab.click();
+    for (const tab of tabsToTest) {
+      // Find the tab button by text inside the workspace tabs row and click it
+      const tabButton = page.locator('.machine-workspace-tabs button', { hasText: tab.name }).first();
+      await expect(tabButton).toBeVisible();
+      await tabButton.click();
 
-    // Verify Kaizen Opportunities panel content is rendered
-    await expect(page.locator('h3', { hasText: 'Kaizen Opportunities' })).toBeVisible();
-    await expect(page.locator('text=Relocate Scrap Bin')).toBeVisible();
+      // Verify that the tab becomes active
+      await expect(tabButton).toHaveClass(/active/);
 
-    // Verify "+ Suggest Improvement" and "View Global Dashboard →" buttons render
-    await expect(page.locator('button:has-text("+ Suggest Improvement")')).toBeVisible();
-    await expect(page.locator('button:has-text("View Global Dashboard →")')).toBeVisible();
+      // Verify that the corresponding panel content renders the expected heading or content marker
+      await expect(page.locator(`text=${tab.markerText}`).first()).toBeVisible({ timeout: 5000 });
+    }
   });
 });
