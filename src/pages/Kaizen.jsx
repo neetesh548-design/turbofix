@@ -6,6 +6,7 @@ import {
   Coins, ArrowRight, ShieldAlert, Sparkles, CheckSquare, Eye, RefreshCw
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 
 const KAIZEN_CATEGORIES = [
@@ -110,10 +111,11 @@ export default function Kaizen() {
   const [kaizens, setKaizens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeSubTab, setActiveSubTab] = useState('dashboard'); // 'dashboard' | 'list' | 'add'
+  const [activeSubTab, setActiveSubTab] = useState('list'); // 'dashboard' | 'list' | 'add'
   const [machines, setMachines] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Form State
   const [machineId, setMachineId] = useState('');
@@ -293,9 +295,6 @@ export default function Kaizen() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className={`vault-btn ${activeSubTab === 'dashboard' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setActiveSubTab('dashboard')} style={{ background: activeSubTab === 'dashboard' ? 'var(--brand)' : 'transparent', color: activeSubTab === 'dashboard' ? '#000' : 'var(--slate)' }}>
-              <TrendingUp size={16} /> Summary
-            </button>
             <button className={`vault-btn ${activeSubTab === 'list' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setActiveSubTab('list')} style={{ background: activeSubTab === 'list' ? 'var(--brand)' : 'transparent', color: activeSubTab === 'list' ? '#000' : 'var(--slate)' }}>
               <ClipboardList size={16} /> All Kaizens
             </button>
@@ -305,8 +304,8 @@ export default function Kaizen() {
           </div>
         </div>
 
-        {/* SUBTAB 1: DASHBOARD SUMMARY */}
-        {activeSubTab === 'dashboard' && (
+        <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+          {/* SUBTAB 1: DASHBOARD SUMMARY - ADVANCED ANALYTICS */}
           <div>
             {/* Top summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
@@ -410,7 +409,7 @@ export default function Kaizen() {
               )}
             </div>
           </div>
-        )}
+        </AdvancedFeaturesDrilldown>
 
         {/* SUBTAB 2: ALL KAIZENS LIST */}
         {activeSubTab === 'list' && (

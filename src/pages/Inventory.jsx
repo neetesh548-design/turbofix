@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import AppShell from '../components/AppShell';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { Package, Plus, Search, AlertTriangle, CheckCircle2, Clock, Factory, Loader2, ArrowRight, DollarSign, Filter, ChevronRight, LayoutGrid, List } from 'lucide-react';
 
 const Inventory = () => {
@@ -12,6 +13,7 @@ const Inventory = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' or 'list' for POs
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -89,13 +91,13 @@ const Inventory = () => {
         {/* Header & Controls */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm">
           <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50">
-            {['parts', 'consumables', 'pos'].map((tab) => (
+            {['parts', 'consumables'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm scale-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 scale-95 hover:scale-100'}`}
               >
-                {tab === 'pos' ? 'Purchase Orders' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
@@ -111,12 +113,6 @@ const Inventory = () => {
                 className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm shadow-sm"
               />
             </div>
-            {activeTab === 'pos' && (
-              <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50 mr-2">
-                <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'kanban' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><LayoutGrid size={18} /></button>
-                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><List size={18} /></button>
-              </div>
-            )}
             <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 shrink-0">
               <Plus size={18} />
               <span>Add New</span>
@@ -124,8 +120,8 @@ const Inventory = () => {
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className={`min-h-[500px] ${activeTab === 'pos' && viewMode === 'kanban' ? '' : 'bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden'}`}>
+        {/* Content Area - MVP */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-3">
               <Loader2 className="animate-spin text-blue-500" size={32} />
@@ -138,7 +134,7 @@ const Inventory = () => {
               <p className="text-sm text-red-400">{error}</p>
               <button onClick={fetchInventory} className="mt-4 px-6 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-sm font-semibold transition-colors">Retry Sync</button>
             </div>
-          ) : activeTab === 'parts' || activeTab === 'consumables' ? (
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -200,118 +196,137 @@ const Inventory = () => {
                 </tbody>
               </table>
             </div>
-          ) : viewMode === 'list' ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-100">
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">PO Code</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Est. Cost</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100/50">
-                  {filteredPOs.length === 0 ? (
-                    <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-400">No purchase orders found.</td></tr>
-                  ) : filteredPOs.map(po => (
-                    <tr key={po.id} className="hover:bg-blue-50/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="font-mono font-bold text-gray-900">{po.po_code}</div>
-                        <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                          <Clock size={12} />
-                          {new Date(po.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-900">{po.item_name}</div>
-                        {po.item_number && <div className="text-xs text-gray-500 font-mono mt-0.5">{po.item_number}</div>}
-                        {po.auto_generated && (
-                          <div className="inline-flex items-center gap-1 mt-1.5 text-[10px] uppercase font-bold tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
-                            Auto-Generated
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-lg font-bold text-gray-900">{po.qty}</div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 font-medium">
-                        {po.estimated_cost ? <span className="flex items-center"><DollarSign size={14} className="text-gray-400"/>{po.estimated_cost}</span> : '-'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(po.status)}`}>
-                          {po.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        {po.status === 'pending' && (
-                          <button onClick={() => updatePOStatus(po.id, 'approved')} className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-colors">Approve</button>
-                        )}
-                        {po.status === 'approved' && (
-                          <button onClick={() => updatePOStatus(po.id, 'ordered')} className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-colors">Mark Ordered</button>
-                        )}
-                         {po.status === 'ordered' && (
-                          <button onClick={() => updatePOStatus(po.id, 'received')} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-colors">Receive</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            /* Kanban View for POs */
-            <div className="flex gap-6 overflow-x-auto pb-4 snap-x">
-              {poStatuses.map(status => {
-                const columnPOs = filteredPOs.filter(po => po.status === status);
-                return (
-                  <div key={status} className="flex-shrink-0 w-80 bg-gray-50/80 backdrop-blur rounded-2xl border border-gray-200/60 flex flex-col snap-start">
-                    <div className="p-4 border-b border-gray-200/60 flex justify-between items-center bg-white/50 rounded-t-2xl">
-                      <h3 className="font-bold text-gray-700 uppercase tracking-wider text-xs">{status}</h3>
-                      <span className="bg-white text-gray-500 text-xs font-bold px-2 py-1 rounded-full shadow-sm border border-gray-100">{columnPOs.length}</span>
-                    </div>
-                    <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[300px]">
-                      {columnPOs.map(po => (
-                        <div key={po.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group relative overflow-hidden">
-                          {po.auto_generated && <div className="absolute top-0 right-0 w-2 h-full bg-gradient-to-b from-indigo-400 to-indigo-500"></div>}
-                          
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-mono text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded">{po.po_code}</span>
-                            <span className="text-xs text-gray-400 font-medium flex items-center gap-1"><Clock size={12}/>{new Date(po.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
-                          </div>
-                          
-                          <h4 className="font-bold text-gray-900 text-sm mb-1">{po.item_name}</h4>
-                          <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500 font-medium">Qty:</span>
-                              <span className="text-sm font-bold text-gray-900">{po.qty}</span>
-                            </div>
-                            <div className="font-semibold text-gray-700 text-sm flex items-center">
-                              {po.estimated_cost ? <><DollarSign size={14} className="text-green-600 mr-0.5"/>{po.estimated_cost}</> : '-'}
-                            </div>
-                          </div>
-
-                          <div className="mt-4 pt-3 border-t border-gray-50 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {status === 'pending' && <button onClick={() => updatePOStatus(po.id, 'approved')} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Approve PO</button>}
-                            {status === 'approved' && <button onClick={() => updatePOStatus(po.id, 'ordered')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Mark Ordered</button>}
-                            {status === 'ordered' && <button onClick={() => updatePOStatus(po.id, 'received')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Receive Stock</button>}
-                          </div>
-                        </div>
-                      ))}
-                      {columnPOs.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-xl">
-                          <p className="text-xs font-medium">No {status} POs</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
+
+        {/* Advanced Features: Purchase Orders Management */}
+        <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+          <div>
+            {/* PO Header Controls */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm mb-6">
+              <h3 className="text-lg font-bold text-gray-900">Purchase Orders</h3>
+              <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50">
+                <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'kanban' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><LayoutGrid size={18} /></button>
+                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}><List size={18} /></button>
+              </div>
+            </div>
+
+            {/* PO Content */}
+            <div className={`${viewMode === 'kanban' ? '' : 'bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden'}`}>
+              {viewMode === 'list' ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-100">
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">PO Code</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Est. Cost</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100/50">
+                      {filteredPOs.length === 0 ? (
+                        <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-400">No purchase orders found.</td></tr>
+                      ) : filteredPOs.map(po => (
+                        <tr key={po.id} className="hover:bg-blue-50/30 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="font-mono font-bold text-gray-900">{po.po_code}</div>
+                            <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                              <Clock size={12} />
+                              {new Date(po.created_at).toLocaleDateString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-gray-900">{po.item_name}</div>
+                            {po.item_number && <div className="text-xs text-gray-500 font-mono mt-0.5">{po.item_number}</div>}
+                            {po.auto_generated && (
+                              <div className="inline-flex items-center gap-1 mt-1.5 text-[10px] uppercase font-bold tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                                Auto-Generated
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-lg font-bold text-gray-900">{po.qty}</div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 font-medium">
+                            {po.estimated_cost ? <span className="flex items-center"><DollarSign size={14} className="text-gray-400"/>{po.estimated_cost}</span> : '-'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(po.status)}`}>
+                              {po.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right space-x-2">
+                            {po.status === 'pending' && (
+                              <button onClick={() => updatePOStatus(po.id, 'approved')} className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-colors">Approve</button>
+                            )}
+                            {po.status === 'approved' && (
+                              <button onClick={() => updatePOStatus(po.id, 'ordered')} className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-colors">Mark Ordered</button>
+                            )}
+                             {po.status === 'ordered' && (
+                              <button onClick={() => updatePOStatus(po.id, 'received')} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-colors">Receive</button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                /* Kanban View for POs */
+                <div className="flex gap-6 overflow-x-auto pb-4 snap-x">
+                  {poStatuses.map(status => {
+                    const columnPOs = filteredPOs.filter(po => po.status === status);
+                    return (
+                      <div key={status} className="flex-shrink-0 w-80 bg-gray-50/80 backdrop-blur rounded-2xl border border-gray-200/60 flex flex-col snap-start">
+                        <div className="p-4 border-b border-gray-200/60 flex justify-between items-center bg-white/50 rounded-t-2xl">
+                          <h3 className="font-bold text-gray-700 uppercase tracking-wider text-xs">{status}</h3>
+                          <span className="bg-white text-gray-500 text-xs font-bold px-2 py-1 rounded-full shadow-sm border border-gray-100">{columnPOs.length}</span>
+                        </div>
+                        <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[300px]">
+                          {columnPOs.map(po => (
+                            <div key={po.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group relative overflow-hidden">
+                              {po.auto_generated && <div className="absolute top-0 right-0 w-2 h-full bg-gradient-to-b from-indigo-400 to-indigo-500"></div>}
+
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="font-mono text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded">{po.po_code}</span>
+                                <span className="text-xs text-gray-400 font-medium flex items-center gap-1"><Clock size={12}/>{new Date(po.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+                              </div>
+
+                              <h4 className="font-bold text-gray-900 text-sm mb-1">{po.item_name}</h4>
+                              <div className="flex items-center justify-between mt-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500 font-medium">Qty:</span>
+                                  <span className="text-sm font-bold text-gray-900">{po.qty}</span>
+                                </div>
+                                <div className="font-semibold text-gray-700 text-sm flex items-center">
+                                  {po.estimated_cost ? <><DollarSign size={14} className="text-green-600 mr-0.5"/>{po.estimated_cost}</> : '-'}
+                                </div>
+                              </div>
+
+                              <div className="mt-4 pt-3 border-t border-gray-50 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {status === 'pending' && <button onClick={() => updatePOStatus(po.id, 'approved')} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Approve PO</button>}
+                                {status === 'approved' && <button onClick={() => updatePOStatus(po.id, 'ordered')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Mark Ordered</button>}
+                                {status === 'ordered' && <button onClick={() => updatePOStatus(po.id, 'received')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors w-full">Receive Stock</button>}
+                              </div>
+                            </div>
+                          ))}
+                          {columnPOs.length === 0 && (
+                            <div className="h-full flex flex-col items-center justify-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-xl">
+                              <p className="text-xs font-medium">No {status} POs</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </AdvancedFeaturesDrilldown>
       </div>
     </AppShell>
   );

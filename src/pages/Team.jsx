@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '../components/AppShell';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import ContactReveal from '../components/ContactReveal';
 import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
@@ -15,6 +16,7 @@ export default function Team() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [editingMember, setEditingMember] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -202,100 +204,102 @@ export default function Team() {
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
 
-        {editingMember && <form className="vault-card team-edit-card" onSubmit={saveMemberEdit}>
-          <div className="team-edit-heading"><div><span>Owner edit</span><h2>Edit {editingMember.name}</h2><p>Changes apply across the shared company workspace.</p></div><button type="button" onClick={() => setEditingMember(null)}>Cancel</button></div>
-          <div className="team-edit-grid">
-            <label><span>Full name</span><input value={editingMember.name} onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })} required /></label>
-            <label><span>Role</span><select value={editingMember.role} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}>{editingMember.role === 'owner' && <option value="owner">Owner / Plant Director</option>}{allAvailableRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-            <label><span>Mobile number</span><input value={editingMember.phone || ''} onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })} placeholder="+91 98765 43210" /></label>
-            <label><span>Email</span><input type="email" value={editingMember.email || ''} onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })} /></label>
-            <label><span>Department</span><input value={editingMember.department || ''} onChange={(e) => setEditingMember({ ...editingMember, department: e.target.value })} /></label>
-            <label><span>Plant / work area</span><input value={editingMember.plant_location || ''} onChange={(e) => setEditingMember({ ...editingMember, plant_location: e.target.value })} /></label>
-            <label><span>Shift</span><input value={editingMember.shift || ''} onChange={(e) => setEditingMember({ ...editingMember, shift: e.target.value })} /></label>
-            {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
-          </div>
-          <label className="team-edit-access"><input type="checkbox" checked={editingMember.portal_access !== false} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, portal_access: e.target.checked })} /><span>Portal access enabled</span></label>
-          {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
-          <button className="vault-btn vault-btn-primary" disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
-        </form>}
-
         {!loading && team.length > 0 && <section className="postlogin-summary" aria-label="Team summary filters">
           {[['all', team.length, 'All members'], ['technicians', techniciansCount, 'Technicians'], ['portal', portalCount, 'Portal access'], ['alerts', responseCount, 'Can receive alerts']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View people →</small></button>)}
         </section>}
 
-        {showAddForm && (
-          <div className="vault-card" style={{ marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
-            <form onSubmit={handleAddSubmit}>
-              <div className="team-onboard-grid">
-                <p className="team-onboard-legend">Identity &amp; role</p>
-                <div className="vault-field">
-                  <label htmlFor="supName">Full name</label>
-                  <input type="text" id="supName" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Anil Sharma" required />
-                </div>
-                <div className="vault-field">
-                  <label htmlFor="supRole">Role</label>
-                  <select id="supRole" value={role} onChange={(e) => setRole(e.target.value)}>
-                    {allAvailableRoles.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="vault-field">
-                  <label htmlFor="supManager">Reports to</label>
-                  <select id="supManager" value={managerUserId} onChange={(e) => setManagerUserId(e.target.value)} required={eligibleManagers.length > 0}>
-                    <option value="">Select reporting manager</option>
-                    {eligibleManagers.map((member) => (
-                      <option key={member.user_id} value={member.user_id}>{member.name} — {getLabel(member.role)}</option>
-                    ))}
-                  </select>
-                </div>
+        <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+          {editingMember && <form className="vault-card team-edit-card" onSubmit={saveMemberEdit}>
+            <div className="team-edit-heading"><div><span>Owner edit</span><h2>Edit {editingMember.name}</h2><p>Changes apply across the shared company workspace.</p></div><button type="button" onClick={() => setEditingMember(null)}>Cancel</button></div>
+            <div className="team-edit-grid">
+              <label><span>Full name</span><input value={editingMember.name} onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })} required /></label>
+              <label><span>Role</span><select value={editingMember.role} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}>{editingMember.role === 'owner' && <option value="owner">Owner / Plant Director</option>}{allAvailableRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              <label><span>Mobile number</span><input value={editingMember.phone || ''} onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })} placeholder="+91 98765 43210" /></label>
+              <label><span>Email</span><input type="email" value={editingMember.email || ''} onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })} /></label>
+              <label><span>Department</span><input value={editingMember.department || ''} onChange={(e) => setEditingMember({ ...editingMember, department: e.target.value })} /></label>
+              <label><span>Plant / work area</span><input value={editingMember.plant_location || ''} onChange={(e) => setEditingMember({ ...editingMember, plant_location: e.target.value })} /></label>
+              <label><span>Shift</span><input value={editingMember.shift || ''} onChange={(e) => setEditingMember({ ...editingMember, shift: e.target.value })} /></label>
+              {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
+            </div>
+            <label className="team-edit-access"><input type="checkbox" checked={editingMember.portal_access !== false} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, portal_access: e.target.checked })} /><span>Portal access enabled</span></label>
+            {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
+            <button className="vault-btn vault-btn-primary" disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
+          </form>}
 
-                <p className="team-onboard-legend">Workplace</p>
-                <div className="vault-field">
-                  <label htmlFor="supDepartment">Department</label>
-                  <input type="text" id="supDepartment" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Maintenance" />
-                </div>
-                <div className="vault-field">
-                  <label htmlFor="supLocation">Plant / work area</label>
-                  <input type="text" id="supLocation" value={plantLocation} onChange={(e) => setPlantLocation(e.target.value)} placeholder="e.g. Shop Floor A" />
-                </div>
-                <div className="vault-field">
-                  <label htmlFor="supShift">Shift</label>
-                  <input type="text" id="supShift" value={shift} onChange={(e) => setShift(e.target.value)} placeholder="e.g. General or Shift B" />
-                </div>
-
-                <p className="team-onboard-legend">Contact details</p>
-                <div className="vault-field wide">
-                  <label htmlFor="supPhone">Mobile number <span>Optional</span></label>
-                  <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +91 98765 43212" />
-                  <small>Shown as “not available” when left blank.</small>
-                </div>
-                <div className="vault-field wide">
-                  <label htmlFor="supEmail">Email address <span>Optional</span></label>
-                  <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
-                  <small>Shown as “not available” when left blank.</small>
-                </div>
-
-                <div className="team-onboard-access">
-                  <label className="team-portal-toggle">
-                    <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
-                    <span><strong>Enable TurboFix portal access</strong><small>Lets this member sign in. Requires a mobile number or email plus a password.</small></span>
-                  </label>
+          {showAddForm && (
+            <div className="vault-card" style={{ marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
+              <form onSubmit={handleAddSubmit}>
+                <div className="team-onboard-grid">
+                  <p className="team-onboard-legend">Identity &amp; role</p>
                   <div className="vault-field">
-                    <label htmlFor="supPassword">Sign-in password {portalAccess ? <span>Required</span> : <span>Not needed for offline staff</span>}</label>
-                    <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" minLength="8" required={portalAccess} disabled={!portalAccess} />
+                    <label htmlFor="supName">Full name</label>
+                    <input type="text" id="supName" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Anil Sharma" required />
+                  </div>
+                  <div className="vault-field">
+                    <label htmlFor="supRole">Role</label>
+                    <select id="supRole" value={role} onChange={(e) => setRole(e.target.value)}>
+                      {allAvailableRoles.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="vault-field">
+                    <label htmlFor="supManager">Reports to</label>
+                    <select id="supManager" value={managerUserId} onChange={(e) => setManagerUserId(e.target.value)} required={eligibleManagers.length > 0}>
+                      <option value="">Select reporting manager</option>
+                      {eligibleManagers.map((member) => (
+                        <option key={member.user_id} value={member.user_id}>{member.name} — {getLabel(member.role)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <p className="team-onboard-legend">Workplace</p>
+                  <div className="vault-field">
+                    <label htmlFor="supDepartment">Department</label>
+                    <input type="text" id="supDepartment" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Maintenance" />
+                  </div>
+                  <div className="vault-field">
+                    <label htmlFor="supLocation">Plant / work area</label>
+                    <input type="text" id="supLocation" value={plantLocation} onChange={(e) => setPlantLocation(e.target.value)} placeholder="e.g. Shop Floor A" />
+                  </div>
+                  <div className="vault-field">
+                    <label htmlFor="supShift">Shift</label>
+                    <input type="text" id="supShift" value={shift} onChange={(e) => setShift(e.target.value)} placeholder="e.g. General or Shift B" />
+                  </div>
+
+                  <p className="team-onboard-legend">Contact details</p>
+                  <div className="vault-field wide">
+                    <label htmlFor="supPhone">Mobile number <span>Optional</span></label>
+                    <input type="text" id="supPhone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +91 98765 43212" />
+                    <small>Shown as "not available" when left blank.</small>
+                  </div>
+                  <div className="vault-field wide">
+                    <label htmlFor="supEmail">Email address <span>Optional</span></label>
+                    <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
+                    <small>Shown as "not available" when left blank.</small>
+                  </div>
+
+                  <div className="team-onboard-access">
+                    <label className="team-portal-toggle">
+                      <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
+                      <span><strong>Enable TurboFix portal access</strong><small>Lets this member sign in. Requires a mobile number or email plus a password.</small></span>
+                    </label>
+                    <div className="vault-field">
+                      <label htmlFor="supPassword">Sign-in password {portalAccess ? <span>Required</span> : <span>Not needed for offline staff</span>}</label>
+                      <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" minLength="8" required={portalAccess} disabled={!portalAccess} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
-              <div className="team-onboard-actions">
-                <button type="submit" className="vault-btn vault-btn-primary">Onboard Member</button>
-                <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
-              </div>
-            </form>
-          </div>
-        )}
+                {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
+                <div className="team-onboard-actions">
+                  <button type="submit" className="vault-btn vault-btn-primary">Onboard Member</button>
+                  <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </AdvancedFeaturesDrilldown>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading team directory...</div>
