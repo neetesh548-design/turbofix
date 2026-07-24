@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.auth import CurrentUser, get_current_user
-from app.dependencies import get_custom_kpis, get_events, get_machines, get_tickets, get_users
-from app.repositories.base import CustomKpiRepository, EventRepository, MachineRepository, TicketRepository, UserRepository
+from app.dependencies import get_custom_kpis, get_events, get_machines, get_tickets, get_users, get_technician_work
+from app.repositories.base import CustomKpiRepository, EventRepository, MachineRepository, TicketRepository, UserRepository, TechnicianWorkRepository
 from app.services import ai_service
 from app.services.dashboard_service import build_custom_kpi_values, compute_kpis
 from app.services.machine_data_service import read_machine_data
@@ -106,6 +106,7 @@ def get_dashboard(
     machines: MachineRepository = Depends(get_machines),
     users: UserRepository = Depends(get_users),
     kpi_repo: CustomKpiRepository = Depends(get_custom_kpis),
+    tech_work: TechnicianWorkRepository = Depends(get_technician_work),
 ):
     """Return live KPI dashboard for the authenticated user's company."""
     company = users.get_company(user.company_code)
@@ -134,6 +135,39 @@ def get_dashboard(
     except (TypeError, ValueError):
         result["machine_quota"] = 0
     result["machines_used"] = result.get("kpis", {}).get("total_machines", 0)
+
+    # Closed-loop control: fetch open work assignments and detect gaps
+    try:
+        all_work = tech_work.list_company(user.company_code)
+        open_work = [work for work in all_work if work.get("status") == "open"]
+
+        # Detect loop gaps:
+        # - "open work" gap: tickets exist but no work assignment
+        # - "technician owner" gap: work exists but no assigned technician
+        loop_gaps = []
+        all_tickets = tickets.list_tickets()
+        company_tickets = [t for t in all_tickets if t.get("company_code") == user.company_code]
+        open_tickets = [t for t in company_tickets if str(t.get("status") or "Open").lower() == "open"]
+
+        # Gap 1: Open work tracking
+        if open_tickets and not open_work:
+            loop_gaps.append("open work")
+
+        # Gap 2: Technician ownership
+        unassigned_work = [w for w in open_work if not w.get("assigned_to_phone")]
+        if unassigned_work:
+            loop_gaps.append("technician owner")
+
+        result["open_work"] = open_work
+        result["loop_gaps"] = loop_gaps
+        result["open_work_count"] = len(open_work)
+        result["loop_gap_count"] = len(loop_gaps)
+    except Exception as exc:
+        log.error("dashboard.closed_loop_fetch_failed", company_code=user.company_code, error=str(exc))
+        result["open_work"] = []
+        result["loop_gaps"] = []
+        result["open_work_count"] = 0
+        result["loop_gap_count"] = 0
 
     return result
 

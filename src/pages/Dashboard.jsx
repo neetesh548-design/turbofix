@@ -146,6 +146,10 @@ const fallback = {
   backlog_velocity: { opened_7d: 24, resolved_7d: 12, net_7d: 12 },
   recent_activity: [],
   weekly_trend: [],
+  loop_gaps: [],
+  open_work: [],
+  open_work_count: 0,
+  loop_gap_count: 0,
   monthly_trend: [
     { key: '2025-08', label: 'Aug', issues: 75, resolved: 60, downtime_hours: 70000 },
     { key: '2025-09', label: 'Sept', issues: 80, resolved: 65, downtime_hours: 72000 },
@@ -831,6 +835,46 @@ export default function Dashboard() {
         </header>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
+
+        {/* CLOSED-LOOP CONTROL — track work assignment and system gaps */}
+        {(data.loop_gap_count > 0 || data.open_work_count > 0) && (
+          <section className="md-closed-loop-card" style={{
+            marginBottom: '24px', padding: '20px', borderRadius: '8px',
+            background: 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(168,85,247,0.05) 100%)',
+            border: '2px solid rgba(239,68,68,0.3)', position: 'relative', overflow: 'hidden'
+          }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div>
+                  <span style={{ textTransform: 'uppercase', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', color: '#EF4444', display: 'block', marginBottom: '6px' }}>CLOSED-LOOP NEXT ACTION</span>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 600, color: '#1F2937' }}>Control open work</h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
+                    {data.open_work_count} active ticket{data.open_work_count === 1 ? '' : 's'} need{data.open_work_count === 1 ? 's' : ''} update or repair.
+                  </p>
+                </div>
+                <a
+                  href="technician.html"
+                  style={{
+                    padding: '12px 24px', borderRadius: '24px', background: '#EF4444', color: 'white',
+                    border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
+                    fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = '#DC2626'}
+                  onMouseLeave={(e) => e.target.style.background = '#EF4444'}
+                >
+                  Take action
+                  <span style={{ fontSize: '16px' }}>›</span>
+                </a>
+              </div>
+              {data.loop_gaps && data.loop_gaps.length > 0 && (
+                <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 500, marginTop: '12px' }}>
+                  {data.loop_gaps.length} loop gap{data.loop_gaps.length === 1 ? '' : 's'}: {data.loop_gaps.join(', ')}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* PULSE STRIP — the one-glance plant status row */}
         <section className="md-pulse" aria-label="Plant status at a glance">
