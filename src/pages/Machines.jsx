@@ -84,6 +84,7 @@ export default function Machines() {
   const [machineEdit, setMachineEdit] = useState(null);
   const [machineEditSaving, setMachineEditSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showMachineDetails, setShowMachineDetails] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
@@ -2211,7 +2212,29 @@ export default function Machines() {
               {wsTab === 'info' && (
                 <div className="machine-overview-grid">
                   <section className="machine-overview-main">
-                    {(() => {
+                    {/* MVP: Compact Machine Status */}
+                    {!showMachineDetails && (() => {
+                      const m = selectedMachine;
+                      const statusLabels = { healthy: 'Running', running: 'Running', under_maintenance: 'Under maintenance', maintenance: 'Under maintenance', breakdown: 'Breakdown', down: 'Down', waiting_spare: 'Waiting for spare', waiting_vendor: 'Waiting for vendor', shutdown: 'Shutdown', decommissioned: 'Decommissioned' };
+                      const critColors = { low: 'var(--slate)', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' };
+                      return (
+                        <div className="machine-section-heading" style={{ display: 'block', marginBottom: '18px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                              <span><ShieldCheck /></span>
+                              <div><h3>{m.name || m.machine_id}</h3><p>Machine status and health</p></div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
+                              {m.criticality && <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: critColors[m.criticality] || 'var(--slate)', border: `1px solid ${critColors[m.criticality] || 'var(--slate)'}` }}>{m.criticality}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* ADVANCED: Full Machine Profile (drill-down) */}
+                    {showMachineDetails && (() => {
                       const m = selectedMachine;
                       const statusLabels = { healthy: 'Running', running: 'Running', under_maintenance: 'Under maintenance', maintenance: 'Under maintenance', breakdown: 'Breakdown', down: 'Down', waiting_spare: 'Waiting for spare', waiting_vendor: 'Waiting for vendor', shutdown: 'Shutdown', decommissioned: 'Decommissioned' };
                       const critColors = { low: 'var(--slate)', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' };
@@ -2285,7 +2308,16 @@ export default function Machines() {
                       </button>
                       <span>{loopGaps.length ? `${loopGaps.length} loop gap${loopGaps.length === 1 ? '' : 's'}: ${loopGaps.slice(0, 3).join(', ')}${loopGaps.length > 3 ? '…' : ''}` : 'All critical loops closed'}</span>
                     </section>
-                    <section className="machine-loop-status">
+
+                    {/* Drill-down toggle button */}
+                    <div style={{ marginBottom: '18px', textAlign: 'center' }}>
+                      <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowMachineDetails(!showMachineDetails)} style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                        {showMachineDetails ? 'Hide machine details' : 'Show machine details'} <ChevronRight size={14} style={{ marginLeft: '4px', transform: showMachineDetails ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                      </button>
+                    </div>
+
+                    {/* ADVANCED: Machine loop status (drill-down) */}
+                    {showMachineDetails && <section className="machine-loop-status">
                       <div className="machine-section-heading">
                         <div><span><ShieldCheck /></span><div><h3>Machine loop status</h3><p>Shows whether this machine’s work loop is open, blocked, or closed.</p></div></div>
                       </div>
@@ -2321,8 +2353,10 @@ export default function Machines() {
                           <span>{openCapaCount ? 'Verify corrective action' : repeatSignalCount ? 'RCA/CAPA should close the learning loop' : machineData?.dirty ? 'Approve knowledge before AI uses it' : 'Machine knowledge feeds AI and KPIs'}</span>
                         </button>
                       </div>
-                    </section>
-                    <section className="machine-ticket-snapshot">
+                    </section>}
+
+                    {/* ADVANCED: Machine tickets snapshot (drill-down) */}
+                    {showMachineDetails && <section className="machine-ticket-snapshot">
                       <div className="machine-section-heading">
                         <div><span><ClipboardList /></span><div><h3>Machine tickets</h3><p>Open work and closed history for this machine.</p></div></div>
                         <a href={`tickets.html?machine=${encodeURIComponent(selectedMachine.machine_id)}&activeFilter=all`}>View all tickets <ChevronRight /></a>
@@ -2351,8 +2385,10 @@ export default function Machines() {
                           </div>
                         </div>
                       </div>
-                    </section>
-                    <details className="machine-workspace-more">
+                    </section>}
+
+                    {/* ADVANCED: More machine context - Knowledge vault and response path (drill-down) */}
+                    {showMachineDetails && <details className="machine-workspace-more">
                       <summary>More machine context <span>Knowledge vault and response path</span></summary>
                       <div style={{ display: 'grid', gap: '18px', marginTop: '14px' }}>
                         <div className="machine-section-heading" style={{ display: 'block', marginBottom: '0' }}>
@@ -2414,7 +2450,7 @@ export default function Machines() {
                           </div>
                         </div>
                       </div>
-                    </details>
+                    </details>}
                   </section>
 
                   <aside className="machine-overview-side">
