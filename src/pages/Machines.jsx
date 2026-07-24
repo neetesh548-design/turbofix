@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2,
+  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2, Sparkles,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -17,8 +17,33 @@ const WORKSPACE_TABS = [
   { id: 'consumables', label: 'Consumables', hint: 'Usage and stock', Icon: Droplets },
   { id: 'pm', label: 'Preventive', hint: 'PM schedule and compliance', Icon: ShieldCheck },
   { id: 'reliability', label: 'Reliability', hint: 'Repeat failures, RCA and CAPA', Icon: Activity },
+  { id: 'kaizen', label: 'Kaizen', hint: 'Continuous improvement', Icon: Sparkles },
   { id: 'calendar', label: 'Calendar', hint: 'Order and replace', Icon: CalendarDays },
   { id: 'qr', label: 'QR tag', hint: 'Report from machine', Icon: QrCode },
+];
+
+const KAIZEN_CATEGORIES = [
+  { value: 'safety', label: 'Safety' },
+  { value: 'quality', label: 'Quality' },
+  { value: 'productivity', label: 'Productivity' },
+  { value: 'cost_reduction', label: 'Cost Reduction' },
+  { value: 'energy_saving', label: 'Energy Saving' },
+  { value: 'material_saving', label: 'Material Saving' },
+  { value: 'breakdown_prevention', label: 'Breakdown Prevention' },
+  { value: 'ergonomics', label: 'Ergonomics' },
+  { value: '5s', label: '5S' },
+  { value: 'simplification', label: 'Process Simplification' }
+];
+
+const LEAN_WASTES = [
+  { value: 'transportation', label: 'Transportation' },
+  { value: 'inventory', label: 'Inventory' },
+  { value: 'motion', label: 'Motion' },
+  { value: 'waiting', label: 'Waiting' },
+  { value: 'overproduction', label: 'Overproduction' },
+  { value: 'overprocessing', label: 'Over-processing' },
+  { value: 'defects', label: 'Defects' },
+  { value: 'talent', label: 'Unutilised Human Talent' }
 ];
 
 const PRE_SEEDED_KAIZENS = [
@@ -2853,23 +2878,10 @@ export default function Machines() {
               {/* TAB: RELIABILITY — Repeat failures → RCA → CAPA → PM revision (P2) */}
               {wsTab === 'reliability' && (
                 <div>
-                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <div>
-                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
-                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px' }}>
-                      <button type="button" className={`vault-btn ${relSubTab === 'rca' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setRelSubTab('rca')} style={{ background: relSubTab === 'rca' ? 'var(--brand)' : 'transparent', color: relSubTab === 'rca' ? '#000' : 'var(--slate)', padding: '4px 12px', fontSize: '0.78rem' }}>
-                        RCA & CAPA
-                      </button>
-                      <button type="button" className={`vault-btn ${relSubTab === 'kaizen' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setRelSubTab('kaizen')} style={{ background: relSubTab === 'kaizen' ? 'var(--brand)' : 'transparent', color: relSubTab === 'kaizen' ? '#000' : 'var(--slate)', padding: '4px 12px', fontSize: '0.78rem' }}>
-                        Kaizen Opportunities ({machineKaizens.length})
-                      </button>
-                    </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
+                    <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
                   </div>
-
-                  {relSubTab === 'rca' && (
-                    <>
 
                   {/* Repeat-failure signal */}
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -2997,98 +3009,84 @@ export default function Machines() {
                       })}
                     </div>
                   )}
-                  </>
-                  )}
+                </div>
+              )}
 
-                  {relSubTab === 'kaizen' && (
+              {/* TAB 8: KAIZEN OPPORTUNITIES */}
+              {wsTab === 'kaizen' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <h4 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities ({selectedMachine.machine_name})</h4>
-                        <button type="button" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => setShowKznForm(!showKznForm)}>
-                          {showKznForm ? 'Cancel' : '+ Suggest Improvement'}
-                        </button>
+                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities</h3>
+                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Continuous improvement opportunities recorded for {selectedMachine.machine_name}.</p>
+                    </div>
+                    <button type="button" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => setShowKznForm(!showKznForm)}>
+                      {showKznForm ? 'Cancel' : '+ Suggest Improvement'}
+                    </button>
+                  </div>
+
+                  {showKznForm && (
+                    <form onSubmit={handleAddKaizen} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '18px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                        <div className="vault-field">
+                          <label>Idea title <strong aria-hidden="true">*</strong></label>
+                          <input value={kznTitle} onChange={(e) => setKznTitle(e.target.value)} placeholder="e.g. Relocate unloading table" required />
+                        </div>
+                        <div className="vault-field">
+                          <label>Kaizen category</label>
+                          <select value={kznCategory} onChange={(e) => setKznCategory(e.target.value)}>
+                            {KAIZEN_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                          </select>
+                        </div>
+                        <div className="vault-field">
+                          <label>Lean waste category</label>
+                          <select value={kznWaste} onChange={(e) => setKznWaste(e.target.value)}>
+                            {LEAN_WASTES.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
+                          </select>
+                        </div>
                       </div>
 
-                      {showKznForm && (
-                        <form onSubmit={handleAddKaizen} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '18px', display: 'grid', gap: '12px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-                            <div className="vault-field">
-                              <label>Idea title <strong aria-hidden="true">*</strong></label>
-                              <input value={kznTitle} onChange={(e) => setKznTitle(e.target.value)} placeholder="e.g. Relocate unloading table" required />
+                      <div className="vault-field">
+                        <label>Proposal details <strong aria-hidden="true">*</strong></label>
+                        <textarea value={kznProposal} onChange={(e) => setKznProposal(e.target.value)} rows={3} placeholder="Describe the current issue and the proposed solution..." required />
+                      </div>
+
+                      <div>
+                        <button type="submit" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000' }} disabled={relSaving}>
+                          {relSaving ? 'Saving…' : 'Submit Opportunity'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {machineKaizens.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>
+                      No Kaizen opportunities suggested for this machine yet. Suggest an idea to optimize movement, safety, energy, or breakdown prevention.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      {machineKaizens.map((k) => (
+                        <div key={k.id} style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <strong style={{ color: 'white' }}>{k.title}</strong>
+                              <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#60A5FA', border: '1px solid #60A5FA' }}>{k.category}</span>
+                              <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#FBBF24', border: '1px solid #FBBF24' }}>{k.status}</span>
                             </div>
-                            <div className="vault-field">
-                              <label>Kaizen category</label>
-                              <select value={kznCategory} onChange={(e) => setKznCategory(e.target.value)}>
-                                <option value="safety">Safety</option>
-                                <option value="quality">Quality</option>
-                                <option value="productivity">Productivity</option>
-                                <option value="cost_reduction">Cost Reduction</option>
-                                <option value="energy_saving">Energy Saving</option>
-                                <option value="material_saving">Material Saving</option>
-                                <option value="breakdown_prevention">Breakdown Prevention</option>
-                                <option value="ergonomics">Ergonomics</option>
-                                <option value="5s">5S</option>
-                                <option value="simplification">Process Simplification</option>
-                              </select>
-                            </div>
-                            <div className="vault-field">
-                              <label>Lean waste category</label>
-                              <select value={kznWaste} onChange={(e) => setKznWaste(e.target.value)}>
-                                <option value="transportation">Transportation</option>
-                                <option value="inventory">Inventory</option>
-                                <option value="motion">Motion</option>
-                                <option value="waiting">Waiting</option>
-                                <option value="overproduction">Overproduction</option>
-                                <option value="overprocessing">Over-processing</option>
-                                <option value="defects">Defects</option>
-                                <option value="talent">Unutilised Human Talent</option>
-                              </select>
+                            <p style={{ color: '#cbd5e1', fontSize: '0.8rem', marginTop: '6px', marginInline: 0 }}>{k.proposal}</p>
+                            <div style={{ color: 'var(--slate)', fontSize: '0.75rem', marginTop: '6px' }}>
+                              Waste: <strong>{k.waste_category}</strong> · Proposed by: <strong>{k.created_by_name}</strong>
                             </div>
                           </div>
-
-                          <div className="vault-field">
-                            <label>Proposal details <strong aria-hidden="true">*</strong></label>
-                            <textarea value={kznProposal} onChange={(e) => setKznProposal(e.target.value)} rows={3} placeholder="Describe the current issue and the proposed solution..." required />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'center' }}>
+                            {isOwner && (
+                              <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.72rem' }} onClick={() => handleDeleteKaizen(k.id)}>
+                                Delete
+                              </button>
+                            )}
                           </div>
-
-                          <div>
-                            <button type="submit" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000' }} disabled={relSaving}>
-                              {relSaving ? 'Saving…' : 'Submit Opportunity'}
-                            </button>
-                          </div>
-                        </form>
-                      )}
-
-                      {machineKaizens.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>
-                          No Kaizen opportunities suggested for this machine yet. Suggest an idea to optimize movement, safety, energy, or breakdown prevention.
                         </div>
-                      ) : (
-                        <div style={{ display: 'grid', gap: '12px' }}>
-                          {machineKaizens.map((k) => (
-                            <div key={k.id} style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <strong style={{ color: 'white' }}>{k.title}</strong>
-                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#60A5FA', border: '1px solid #60A5FA' }}>{k.category}</span>
-                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#FBBF24', border: '1px solid #FBBF24' }}>{k.status}</span>
-                                </div>
-                                <p style={{ color: '#cbd5e1', fontSize: '0.8rem', marginTop: '6px', marginInline: 0 }}>{k.proposal}</p>
-                                <div style={{ color: 'var(--slate)', fontSize: '0.75rem', marginTop: '6px' }}>
-                                  Waste: <strong>{k.waste_category}</strong> · Proposed by: <strong>{k.created_by_name}</strong>
-                                </div>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'center' }}>
-                                {isOwner && (
-                                  <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.72rem' }} onClick={() => handleDeleteKaizen(k.id)}>
-                                    Delete
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      ))}
                     </div>
                   )}
                 </div>
