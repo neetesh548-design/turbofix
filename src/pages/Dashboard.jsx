@@ -37,6 +37,7 @@ import AppShell from '../components/AppShell';
 import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import AntDKPICard from '../components/AntDKPICard';
 import { AntDChartCard, AntDDetailList, AntDEmptyState } from '../components/AntDDashboardComponents';
+import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
 
@@ -703,6 +704,7 @@ export default function Dashboard() {
   const [activeBoard, setActiveBoard] = useState('overview');
   const [trendWindow, setTrendWindow] = useState('12m');
   const [trendMetric, setTrendMetric] = useState('issues');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -967,24 +969,26 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <div className="dashboard-filter-row" aria-label="Dashboard filters">
-          {[
-            ['equipment', 'Equipment-wise'],
-            ['maintenance', 'Maintenance-wise'],
-            ['frequency', 'Frequency-wise'],
-            ['technician', 'Technician-wise'],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={activeBoard === key ? 'active' : ''}
-              onClick={() => toggleBoard(key)}
-              aria-pressed={activeBoard === key}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* ADVANCED FEATURES DRILL-DOWN */}
+        <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+          <div className="dashboard-filter-row" aria-label="Dashboard filters">
+            {[
+              ['equipment', 'Equipment-wise'],
+              ['maintenance', 'Maintenance-wise'],
+              ['frequency', 'Frequency-wise'],
+              ['technician', 'Technician-wise'],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={activeBoard === key ? 'active' : ''}
+                onClick={() => toggleBoard(key)}
+                aria-pressed={activeBoard === key}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         {activeBoard === 'overview' && (
           <p className="md-filter-hint">Pick a category above to drill into its detailed KPIs, charts, and breakdowns.</p>
         )}
@@ -1263,6 +1267,7 @@ export default function Dashboard() {
           </section>
         </section>
         )}
+        </AdvancedFeaturesDrilldown>
 
         <details className="dashboard-secondary-kpis">
           <summary>
