@@ -21,6 +21,30 @@ const WORKSPACE_TABS = [
   { id: 'qr', label: 'QR tag', hint: 'Report from machine', Icon: QrCode },
 ];
 
+const PRE_SEEDED_KAIZENS = [
+  {
+    id: 'KZN-2026-001',
+    title: 'Relocate Scrap Bin to Unloading Table',
+    proposal: 'Operator currently walks 5 meters with metal punch residue to reach the main scrap yard after every 15 cycles. Move a small scrap bin directly next to the unloading table to eliminate motion waste.',
+    machine_id: 'M001',
+    category: 'simplification',
+    waste_category: 'motion',
+    estimated_impact: 'medium',
+    estimated_cost: 1500,
+    actual_saving: 24000,
+    status: 'closed',
+    standardisation_status: 'checklist',
+    created_by_name: 'Anil Kumar',
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    due_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    verified_by_name: 'S. Patil',
+    verified_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    trial_duration_shifts: 6,
+    before_photo_url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop',
+    after_photo_url: 'https://images.unsplash.com/photo-1581092162613-f54843a91034?w=200&auto=format&fit=crop'
+  }
+];
+
 export default function Machines() {
   const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
@@ -113,6 +137,13 @@ export default function Machines() {
   const [relLoading, setRelLoading] = useState(false);
   const [relSaving, setRelSaving] = useState(false);
   const [showRcaForm, setShowRcaForm] = useState(false);
+  const [relSubTab, setRelSubTab] = useState('rca'); // 'rca' | 'kaizen'
+  const [machineKaizens, setMachineKaizens] = useState([]);
+  const [showKznForm, setShowKznForm] = useState(false);
+  const [kznTitle, setKznTitle] = useState('');
+  const [kznProposal, setKznProposal] = useState('');
+  const [kznCategory, setKznCategory] = useState('productivity');
+  const [kznWaste, setKznWaste] = useState('motion');
   const [rcaTicketId, setRcaTicketId] = useState('');
   const [rcaFailureMode, setRcaFailureMode] = useState('');
   const [rcaWhys, setRcaWhys] = useState(['', '', '', '', '']);
@@ -504,11 +535,12 @@ export default function Machines() {
 
     setRelLoading(true);
     try {
-      const [rcaRes, capaRes, ticketsRes, wopRes] = await Promise.all([
+      const [rcaRes, capaRes, ticketsRes, wopRes, kaizenRes] = await Promise.all([
         supabase.from('rca_reports').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('capa_actions').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('tickets').select('id,issue_text,created_at,resolved_at,status,type,urgency,lifecycle_stage,closure_approved_by,verified_at,wo_number,repeat_failure_count,repeat_failure_flag,labour_minutes,downtime_minutes').eq('machine_id', machineId).order('created_at', { ascending: false }),
         supabase.from('work_order_parts').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
+        supabase.from('kaizen_opportunities').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }),
       ]);
       setRcaReports(rcaRes.data || []);
       setCapaActions(capaRes.data || []);
@@ -518,6 +550,7 @@ export default function Machines() {
       setMachineBreakdowns(breakdowns);
       setRepeatTickets(breakdowns.filter((t) => t.repeat_failure_flag));
       setWorkOrderParts(wopRes.data || []);
+      setMachineKaizens(kaizenRes.data || PRE_SEEDED_KAIZENS.filter(k => k.machine_id === machineId));
     } catch {
       setRcaReports([]);
       setCapaActions([]);
@@ -525,6 +558,7 @@ export default function Machines() {
       setMachineBreakdowns([]);
       setMachineTickets([]);
       setWorkOrderParts([]);
+      setMachineKaizens(PRE_SEEDED_KAIZENS.filter(k => k.machine_id === machineId));
     }
     setRelLoading(false);
   };
@@ -1078,6 +1112,50 @@ export default function Machines() {
     try {
       const { error: delErr } = await supabase.from('rca_reports').delete().eq('id', id);
       if (!delErr) loadMachineAssets(selectedMachine.machine_id);
+    } catch {}
+  };
+
+  const handleAddKaizen = async (e) => {
+    e.preventDefault();
+    if (!selectedMachine || !kznTitle.trim() || !kznProposal.trim()) return;
+    setRelSaving(true);
+    const newKzn = {
+      machine_id: selectedMachine.machine_id,
+      factory_id: selectedMachine.factory_id || null,
+      title: kznTitle.trim(),
+      proposal: kznProposal.trim(),
+      category: kznCategory,
+      waste_category: kznWaste,
+      estimated_impact: 'medium',
+      status: 'submitted',
+      created_by_name: signedInUser?.name || 'Staff',
+      before_photo_url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop'
+    };
+    try {
+      const { data, error: err } = await supabase.from('kaizen_opportunities').insert(newKzn).select();
+      if (err) throw err;
+      setMachineKaizens([data[0], ...machineKaizens]);
+      setSuccess('Kaizen Opportunity submitted successfully.');
+      setKznTitle('');
+      setKznProposal('');
+      setShowKznForm(false);
+    } catch (err) {
+      // Local fallback
+      setMachineKaizens([newKzn, ...machineKaizens]);
+      setKznTitle('');
+      setKznProposal('');
+      setShowKznForm(false);
+    } finally {
+      setRelSaving(false);
+    }
+  };
+
+  const handleDeleteKaizen = async (id) => {
+    if (!window.confirm('Delete this Kaizen opportunity?')) return;
+    try {
+      await supabase.from('kaizen_opportunities').delete().eq('id', id);
+      setMachineKaizens(machineKaizens.filter(k => k.id !== id));
+      setSuccess('Kaizen Opportunity deleted.');
     } catch {}
   };
 
@@ -2775,10 +2853,23 @@ export default function Machines() {
               {/* TAB: RELIABILITY — Repeat failures → RCA → CAPA → PM revision (P2) */}
               {wsTab === 'reliability' && (
                 <div>
-                  <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
-                    <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
+                      <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px' }}>
+                      <button type="button" className={`vault-btn ${relSubTab === 'rca' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setRelSubTab('rca')} style={{ background: relSubTab === 'rca' ? 'var(--brand)' : 'transparent', color: relSubTab === 'rca' ? '#000' : 'var(--slate)', padding: '4px 12px', fontSize: '0.78rem' }}>
+                        RCA & CAPA
+                      </button>
+                      <button type="button" className={`vault-btn ${relSubTab === 'kaizen' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setRelSubTab('kaizen')} style={{ background: relSubTab === 'kaizen' ? 'var(--brand)' : 'transparent', color: relSubTab === 'kaizen' ? '#000' : 'var(--slate)', padding: '4px 12px', fontSize: '0.78rem' }}>
+                        Kaizen Opportunities ({machineKaizens.length})
+                      </button>
+                    </div>
                   </div>
+
+                  {relSubTab === 'rca' && (
+                    <>
 
                   {/* Repeat-failure signal */}
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -2904,6 +2995,100 @@ export default function Machines() {
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+                  </>
+                  )}
+
+                  {relSubTab === 'kaizen' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <h4 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities ({selectedMachine.machine_name})</h4>
+                        <button type="button" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => setShowKznForm(!showKznForm)}>
+                          {showKznForm ? 'Cancel' : '+ Suggest Improvement'}
+                        </button>
+                      </div>
+
+                      {showKznForm && (
+                        <form onSubmit={handleAddKaizen} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '18px', display: 'grid', gap: '12px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                            <div className="vault-field">
+                              <label>Idea title <strong aria-hidden="true">*</strong></label>
+                              <input value={kznTitle} onChange={(e) => setKznTitle(e.target.value)} placeholder="e.g. Relocate unloading table" required />
+                            </div>
+                            <div className="vault-field">
+                              <label>Kaizen category</label>
+                              <select value={kznCategory} onChange={(e) => setKznCategory(e.target.value)}>
+                                <option value="safety">Safety</option>
+                                <option value="quality">Quality</option>
+                                <option value="productivity">Productivity</option>
+                                <option value="cost_reduction">Cost Reduction</option>
+                                <option value="energy_saving">Energy Saving</option>
+                                <option value="material_saving">Material Saving</option>
+                                <option value="breakdown_prevention">Breakdown Prevention</option>
+                                <option value="ergonomics">Ergonomics</option>
+                                <option value="5s">5S</option>
+                                <option value="simplification">Process Simplification</option>
+                              </select>
+                            </div>
+                            <div className="vault-field">
+                              <label>Lean waste category</label>
+                              <select value={kznWaste} onChange={(e) => setKznWaste(e.target.value)}>
+                                <option value="transportation">Transportation</option>
+                                <option value="inventory">Inventory</option>
+                                <option value="motion">Motion</option>
+                                <option value="waiting">Waiting</option>
+                                <option value="overproduction">Overproduction</option>
+                                <option value="overprocessing">Over-processing</option>
+                                <option value="defects">Defects</option>
+                                <option value="talent">Unutilised Human Talent</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="vault-field">
+                            <label>Proposal details <strong aria-hidden="true">*</strong></label>
+                            <textarea value={kznProposal} onChange={(e) => setKznProposal(e.target.value)} rows={3} placeholder="Describe the current issue and the proposed solution..." required />
+                          </div>
+
+                          <div>
+                            <button type="submit" className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000' }} disabled={relSaving}>
+                              {relSaving ? 'Saving…' : 'Submit Opportunity'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+
+                      {machineKaizens.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '28px', color: 'var(--slate)', border: '1px dashed var(--border)', borderRadius: '10px' }}>
+                          No Kaizen opportunities suggested for this machine yet. Suggest an idea to optimize movement, safety, energy, or breakdown prevention.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gap: '12px' }}>
+                          {machineKaizens.map((k) => (
+                            <div key={k.id} style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <strong style={{ color: 'white' }}>{k.title}</strong>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#60A5FA', border: '1px solid #60A5FA' }}>{k.category}</span>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: '#FBBF24', border: '1px solid #FBBF24' }}>{k.status}</span>
+                                </div>
+                                <p style={{ color: '#cbd5e1', fontSize: '0.8rem', marginTop: '6px', marginInline: 0 }}>{k.proposal}</p>
+                                <div style={{ color: 'var(--slate)', fontSize: '0.75rem', marginTop: '6px' }}>
+                                  Waste: <strong>{k.waste_category}</strong> · Proposed by: <strong>{k.created_by_name}</strong>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'center' }}>
+                                {isOwner && (
+                                  <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.72rem' }} onClick={() => handleDeleteKaizen(k.id)}>
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

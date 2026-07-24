@@ -19,6 +19,7 @@ const Records = lazy(() => import('./pages/Records'));
 const Support = lazy(() => import('./pages/Support'));
 const QRGateway = lazy(() => import('./pages/QRGateway'));
 const Inventory = lazy(() => import('./pages/Inventory'));
+const Kaizen = lazy(() => import('./pages/Kaizen'));
 
 function SearchMetadata() {
   const { pathname } = useLocation();
@@ -73,6 +74,8 @@ function App() {
           <Route path="/support.html" element={<Support />} />
           <Route path="/qr-gateway.html" element={<QRGateway />} />
           <Route path="/inventory.html" element={<Inventory />} />
+          <Route path="/kaizen.html" element={<Kaizen />} />
+          <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
           <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
