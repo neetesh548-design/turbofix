@@ -32,7 +32,7 @@
   --md-line: rgba(250, 245, 238, 0.08);
   --md-line-strong: rgba(250, 245, 238, 0.14);
   --md-ink: #F2ECE3;
-  --md-ink-dim: #A39C90;
+  --md-ink-dim: #cbd5e1;
   --md-shadow: 0 10px 26px -16px rgba(15, 10, 5, 0.5), 0 1px 3px rgba(0, 0, 0, 0.22);
   position: relative;
   isolation: isolate;
@@ -804,7 +804,7 @@
   --md-line: rgba(46, 34, 24, 0.09);
   --md-line-strong: rgba(46, 34, 24, 0.16);
   --md-ink: #2A2420;
-  --md-ink-dim: #83786A;
+  --md-ink-dim: #5c5347;
   --md-shadow: 0 10px 24px -16px rgba(70, 50, 30, 0.16), 0 1px 2px rgba(70, 50, 30, 0.05);
 }
 [data-theme="light"] .md-dashboard { background: #FBF9F4; }

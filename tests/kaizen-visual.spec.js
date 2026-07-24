@@ -73,7 +73,7 @@ test('capture Kaizen Dashboard screenshots and verify UX layout', async ({ page 
   await page.goto('http://localhost:5173/kaizen.html', { waitUntil: 'networkidle' });
 
   // Basic assertions
-  await expect(page.locator('h2')).toContainText('Kaizen');
+  await expect(page.locator('h1')).toContainText('Kaizen');
   await expect(page.locator('text=Open Kaizens')).toBeVisible();
   await expect(page.locator('text=Estimated Annual Saving')).toBeVisible();
 

@@ -287,7 +287,7 @@ export default function Kaizen() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Bot style={{ color: 'var(--brand)', filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.5))' }} />
-              <h2 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'white' }}>Kaizen Improvement portal</h2>
+              <h1 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'white' }}>Kaizen Improvement portal</h1>
             </div>
             <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.86rem' }}>Voice-first, closed-loop continuous improvement dashboard with zero unnecessary documentation.</p>
           </div>
@@ -334,7 +334,7 @@ export default function Kaizen() {
             {/* Middle Section: Funnel & Wastes */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
               {/* Funnel */}
-              <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
+              <div className="glass-panel" style={{ padding: '20px' }}>
                 <h4 style={{ margin: '0 0 14px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Kaizen Pipeline Funnel</h4>
                 <div style={{ display: 'grid', gap: '8px' }}>
                   {[
@@ -356,7 +356,7 @@ export default function Kaizen() {
               </div>
 
               {/* Lean Waste analysis */}
-              <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
+              <div className="glass-panel" style={{ padding: '20px' }}>
                 <h4 style={{ margin: '0 0 14px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Seven Wastes Addressed</h4>
                 <div style={{ display: 'grid', gap: '6px' }}>
                   {LEAN_WASTES.map((w) => {
@@ -373,7 +373,7 @@ export default function Kaizen() {
             </div>
 
             {/* Bottom Section: Priority Action Panel */}
-            <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px' }}>
+            <div className="glass-panel" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Priority Action Panel</h4>
                 <select aria-label="Filter action items" value={dashboardFilter} onChange={(e) => setDashboardFilter(e.target.value)} style={{ width: '180px', padding: '4px' }}>
@@ -416,7 +416,7 @@ export default function Kaizen() {
         {activeSubTab === 'list' && (
           <div style={{ display: 'grid', gap: '16px' }}>
             {kaizens.map((k) => (
-              <div id={k.id} key={k.id} style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              <div id={k.id} key={k.id} className="glass-panel" style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                 {/* Left Side: Meta & Before/After Images */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -489,7 +489,7 @@ export default function Kaizen() {
 
         {/* SUBTAB 3: ADD NEW KAIZEN FORM */}
         {activeSubTab === 'add' && (
-          <div style={{ maxWidth: '520px', margin: '0 auto', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+          <div className="glass-panel" style={{ maxWidth: '520px', margin: '0 auto', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Suggest New Kaizen Opportunity</h3>
             
             {/* Voice suggestion helper */}

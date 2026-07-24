@@ -138,8 +138,8 @@
   --navy-3: #2d3748; /* Premium steel grey */
 
   --ink: #f8fafc; /* Premium off-white text */
-  --slate: #a0aec0; /* Premium slate grey */
-  --slate-light: #718096;
+  --slate: #cbd5e1; /* Premium slate grey (WCAG AA compliant) */
+  --slate-light: #94a3b8;
   --border: rgba(255, 255, 255, 0.08); /* Subtle borders */
 
   --amber: #FBBF24;
@@ -222,6 +222,22 @@ input:focus, select:focus, textarea:focus {
   max-width: var(--container);
   margin: 0 auto;
   padding: 0 24px;
+}
+
+/* Glassmorphism Unified Helper */
+.glass-panel {
+  background: rgba(26, 31, 38, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  transition: all 0.3s var(--ease);
+}
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
 }
 
 /* AI maintenance decision center */
@@ -8395,7 +8411,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   border: 1px solid rgba(130, 151, 174, .14);
   border-radius: 14px;
   padding: 11px 12px;
-  color: #899caf;
+  color: #cbd5e1;
   background:
     linear-gradient(180deg, rgba(27, 37, 49, .92), rgba(18, 26, 36, .96));
   text-align: left;
@@ -8422,7 +8438,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .machine-workspace-tabs button.active .machine-tab-icon { color: #4ade80; background: rgba(20, 83, 45, .42); }
 .machine-workspace-tabs button > span:nth-child(2) { display: grid; min-width: 0; gap: 2px; }
 .machine-workspace-tabs button strong { overflow: hidden; color: inherit; font-size: .69rem; text-overflow: ellipsis; white-space: nowrap; }
-.machine-workspace-tabs button small { overflow: hidden; color: #71859a; font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
+.machine-workspace-tabs button small { overflow: hidden; color: #94a3b8; font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
 .machine-workspace-tabs button.active small { color: #94bba3; }
 .machine-workspace-tabs button > b { display: grid; min-width: 20px; height: 20px; margin-left: auto; place-items: center; border-radius: 999px; color: #9eb1c3; background: #27384a; font-size: .58rem; }
 .machine-workspace-tabs button.active > b { color: #d9ffe6; background: rgba(22, 101, 52, .55); }
