@@ -56,6 +56,7 @@ export default function ShutdownPlanner() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reviewMode, setReviewMode] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [estimationRules, setEstimationRules] = useState(loadEstimationRules);
   const [hourOverrides, setHourOverrides] = useState({});
 
@@ -155,73 +156,80 @@ export default function ShutdownPlanner() {
 
   return <AppShell active="shutdown"><div className="planner-page shutdown-page">
     <div className="decision-heading shutdown-heading">
-      <div><span className="eyebrow eyebrow-light">Shutdown planner</span><h1>Plan the next maintenance stop</h1><p>Set the available window, choose the right work, and leave with a clear sequence for your team.</p></div>
+      <div><span className="eyebrow eyebrow-light">Shutdown planner</span><h1>Next maintenance stop</h1><p>{formatDate(date)}</p></div>
       <a className="btn btn-ghost btn-sm" href="machines.html">Manage machine data</a>
     </div>
 
-    <nav className="shutdown-steps" aria-label="Shutdown planning steps">
-      <span className="complete"><b>1</b> Set the window</span>
-      <span className={selectedIds.length ? 'complete' : 'active'}><b>2</b> Choose work</span>
-      <span className={reviewMode ? 'complete' : ''}><b>3</b> Review plan</span>
-    </nav>
-
     {loadError && <div className="decision-alert" role="alert">{loadError}</div>}
 
-    <section className="shutdown-window-card" aria-labelledby="shutdown-window-title">
-      <div className="shutdown-section-heading"><span>1</span><div><h2 id="shutdown-window-title">When can maintenance work?</h2><p>TurboFix compares the selected work with this shutdown window.</p></div></div>
-      <div className="shutdown-window-fields">
-        <label className="shutdown-field"><span>Shutdown date</span><input type="date" min={toDateInput(new Date())} value={date} onChange={(event) => updatePlan(() => setDate(event.target.value))} /><small>Suggested: next Sunday</small></label>
-        <label className="shutdown-field"><span>Maintenance hours available</span><input type="number" min="1" max="48" value={hours} onChange={(event) => updatePlan(() => setHours(event.target.value))} /><small>Total time the machines can remain stopped</small></label>
-        <div className="shutdown-window-summary"><span>Planned window</span><strong>{formatDate(date)}</strong><small>{availableHours || 0} working hour{availableHours === 1 ? '' : 's'} available</small></div>
-      </div>
-      <details className="shutdown-estimator">
-        <summary><span><strong>Customize hour calculation</strong><small>{estimationRules.preventiveHours} hr preventive · {estimationRules.hoursPerIssue} hr per open issue · {estimationRules.maxHoursPerMachine} hr maximum</small></span><b>Adjust rules</b></summary>
-        <div className="shutdown-estimator-body">
-          <label><span>Preventive service</span><input aria-label="Preventive service hours" type="number" min="0.5" max="24" step="0.5" value={estimationRules.preventiveHours} onChange={(event) => updateEstimationRule('preventiveHours', event.target.value)} /><small>Hours for a machine with no open issue</small></label>
-          <label><span>Each open issue</span><input aria-label="Hours per open issue" type="number" min="0.5" max="24" step="0.5" value={estimationRules.hoursPerIssue} onChange={(event) => updateEstimationRule('hoursPerIssue', event.target.value)} /><small>Multiplied by the number of open issues</small></label>
-          <label><span>Maximum per machine</span><input aria-label="Maximum hours per machine" type="number" min="0.5" max="48" step="0.5" value={estimationRules.maxHoursPerMachine} onChange={(event) => updateEstimationRule('maxHoursPerMachine', event.target.value)} /><small>Caps the automatic estimate</small></label>
-          <button type="button" onClick={resetEstimates}>Reset default hours</button>
-        </div>
-        <p>These rules are saved in this browser. Individual machine hours below take priority.</p>
-      </details>
-    </section>
-
-    <div className="shutdown-layout">
-      <section className="shutdown-work-card" aria-labelledby="shutdown-work-title">
-        <div className="shutdown-work-header">
-          <div className="shutdown-section-heading"><span>2</span><div><h2 id="shutdown-work-title">Choose work for this shutdown</h2><p>Machines are already sorted by business risk.</p></div></div>
-          {plan.length > 0 && <button className="shutdown-select-all" type="button" onClick={toggleAll}>{allSelected ? 'Clear all' : 'Select all'}</button>}
-        </div>
-
-        {loading && <div className="shutdown-empty">Checking machines and open tickets…</div>}
-        {!loading && !plan.length && <div className="shutdown-empty"><strong>No machines found</strong><span>Register machines before creating a shutdown plan.</span><a href="machines.html">Register a machine</a></div>}
-        {!loading && plan.map((machine) => {
-          const selected = selectedIds.includes(machine.machine_id);
-          const sequence = selectedPlan.findIndex((item) => item.machine_id === machine.machine_id) + 1;
-          return <div className={`shutdown-work-row ${selected ? 'selected' : ''}`} key={machine.machine_id}>
-            <label className="shutdown-machine-check"><input aria-label={`Include ${machine.machine_name} in shutdown`} type="checkbox" checked={selected} onChange={() => toggleMachine(machine.machine_id)} /><span className="shutdown-sequence">{selected ? sequence : '—'}</span></label>
-            <span className="shutdown-work-main"><strong>{machine.machine_name}</strong><small>{machine.location || machine.machine_id} · {machine.reason}</small>{machine.issues[0]?.description && <em>{machine.issues[0].description}</em>}</span>
-            <span className={`shutdown-risk ${machine.priority.toLowerCase()}`}>{machine.priority}</span>
-            <label className="shutdown-effort"><span>Hours</span><input aria-label={`${machine.machine_name} planned hours`} type="number" min="0.5" max="48" step="0.5" value={machine.estimate} onChange={(event) => updateMachineHours(machine.machine_id, event.target.value)} /><small>{machine.customized ? 'custom' : 'estimated'}</small></label>
-          </div>;
-        })}
-      </section>
-
-      <aside className={`shutdown-review-card ${fitsWindow ? 'fits' : 'over'}`} id="shutdown-review">
-        <div className="shutdown-section-heading"><span>3</span><div><h2>{reviewMode ? 'Confirm the worklist' : 'Your plan at a glance'}</h2><p>{reviewMode ? 'Use this summary in the shutdown meeting.' : 'Review capacity before sharing the plan.'}</p></div></div>
-        <div className="shutdown-review-date"><span>Shutdown</span><strong>{formatDate(date)}</strong></div>
-        <div className="shutdown-review-metrics"><button type="button" onClick={() => document.getElementById('shutdown-work-title')?.scrollIntoView({ behavior: 'smooth' })}><strong>{selectedPlan.length}</strong><span>machines</span><small>View selected →</small></button><button type="button" onClick={() => document.getElementById('shutdown-work-title')?.scrollIntoView({ behavior: 'smooth' })}><strong>{priorityCount}</strong><span>priority jobs</span><small>View priority →</small></button><button type="button" onClick={() => document.querySelector('.shutdown-capacity')?.scrollIntoView({ behavior: 'smooth' })}><strong>{plannedHours}</strong><span>hours planned</span><small>View capacity →</small></button></div>
-        <div className="shutdown-capacity"><div><span>Planned capacity</span><strong>{plannedHours} of {availableHours || 0} hr</strong></div><div className="shutdown-capacity-track"><span style={{ width: `${Math.min(100, availableHours ? (plannedHours / availableHours) * 100 : 100)}%` }} /></div><p>{capacityMessage}</p></div>
-        {!selectedPlan.length && <div className="shutdown-review-warning">Select at least one machine to continue.</div>}
-        {reviewMode ? <>
-          <div className="shutdown-ready"><strong>Worklist ready for team review</strong><span>Confirm permits, isolation, people, spares, and manuals before the shutdown starts.</span></div>
-          <button className="btn shutdown-primary-action" type="button" onClick={() => window.print()}>Print or save worklist</button>
-          <a className="shutdown-secondary-action" href="tickets.html">Open tickets and work orders</a>
-          <button className="shutdown-edit-action" type="button" onClick={() => setReviewMode(false)}>Back to edit plan</button>
-        </> : <button className="btn shutdown-primary-action" type="button" disabled={!date || !selectedPlan.length} onClick={reviewPlan}>{fitsWindow ? 'Review selected work' : 'Review capacity issue'}</button>}
-      </aside>
+    <div style={{ maxWidth: '600px', margin: '32px auto' }}>
+      <div className="shutdown-window-summary" style={{ marginBottom: '24px' }}><span>Shutdown window</span><strong>{formatDate(date)}</strong><small>{availableHours || 0} working hour{availableHours === 1 ? '' : 's'} available</small></div>
+      <button className="btn btn-primary" type="button" onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ width: '100%' }}>Reschedule / Plan work</button>
     </div>
 
-    <div className="shutdown-safety-note"><strong>Before approval:</strong><span>Verify lockout/tagout, permits, technician availability, required spares, and the latest MachineData for every selected asset.</span></div>
+    {showMoreOptions && <>
+      <nav className="shutdown-steps" aria-label="Shutdown planning steps">
+        <span className="complete"><b>1</b> Set the window</span>
+        <span className={selectedIds.length ? 'complete' : 'active'}><b>2</b> Choose work</span>
+        <span className={reviewMode ? 'complete' : ''}><b>3</b> Review plan</span>
+      </nav>
+
+      <section className="shutdown-window-card" aria-labelledby="shutdown-window-title">
+        <div className="shutdown-section-heading"><span>1</span><div><h2 id="shutdown-window-title">When can maintenance work?</h2><p>TurboFix compares the selected work with this shutdown window.</p></div></div>
+        <div className="shutdown-window-fields">
+          <label className="shutdown-field"><span>Shutdown date</span><input type="date" min={toDateInput(new Date())} value={date} onChange={(event) => updatePlan(() => setDate(event.target.value))} /><small>Suggested: next Sunday</small></label>
+          <label className="shutdown-field"><span>Maintenance hours available</span><input type="number" min="1" max="48" value={hours} onChange={(event) => updatePlan(() => setHours(event.target.value))} /><small>Total time the machines can remain stopped</small></label>
+          <div className="shutdown-window-summary"><span>Planned window</span><strong>{formatDate(date)}</strong><small>{availableHours || 0} working hour{availableHours === 1 ? '' : 's'} available</small></div>
+        </div>
+        <details className="shutdown-estimator">
+          <summary><span><strong>Customize hour calculation</strong><small>{estimationRules.preventiveHours} hr preventive · {estimationRules.hoursPerIssue} hr per open issue · {estimationRules.maxHoursPerMachine} hr maximum</small></span><b>Adjust rules</b></summary>
+          <div className="shutdown-estimator-body">
+            <label><span>Preventive service</span><input aria-label="Preventive service hours" type="number" min="0.5" max="24" step="0.5" value={estimationRules.preventiveHours} onChange={(event) => updateEstimationRule('preventiveHours', event.target.value)} /><small>Hours for a machine with no open issue</small></label>
+            <label><span>Each open issue</span><input aria-label="Hours per open issue" type="number" min="0.5" max="24" step="0.5" value={estimationRules.hoursPerIssue} onChange={(event) => updateEstimationRule('hoursPerIssue', event.target.value)} /><small>Multiplied by the number of open issues</small></label>
+            <label><span>Maximum per machine</span><input aria-label="Maximum hours per machine" type="number" min="0.5" max="48" step="0.5" value={estimationRules.maxHoursPerMachine} onChange={(event) => updateEstimationRule('maxHoursPerMachine', event.target.value)} /><small>Caps the automatic estimate</small></label>
+            <button type="button" onClick={resetEstimates}>Reset default hours</button>
+          </div>
+          <p>These rules are saved in this browser. Individual machine hours below take priority.</p>
+        </details>
+      </section>
+
+      <div className="shutdown-layout">
+        <section className="shutdown-work-card" aria-labelledby="shutdown-work-title">
+          <div className="shutdown-work-header">
+            <div className="shutdown-section-heading"><span>2</span><div><h2 id="shutdown-work-title">Choose work for this shutdown</h2><p>Machines are already sorted by business risk.</p></div></div>
+            {plan.length > 0 && <button className="shutdown-select-all" type="button" onClick={toggleAll}>{allSelected ? 'Clear all' : 'Select all'}</button>}
+          </div>
+
+          {loading && <div className="shutdown-empty">Checking machines and open tickets…</div>}
+          {!loading && !plan.length && <div className="shutdown-empty"><strong>No machines found</strong><span>Register machines before creating a shutdown plan.</span><a href="machines.html">Register a machine</a></div>}
+          {!loading && plan.map((machine) => {
+            const selected = selectedIds.includes(machine.machine_id);
+            const sequence = selectedPlan.findIndex((item) => item.machine_id === machine.machine_id) + 1;
+            return <div className={`shutdown-work-row ${selected ? 'selected' : ''}`} key={machine.machine_id}>
+              <label className="shutdown-machine-check"><input aria-label={`Include ${machine.machine_name} in shutdown`} type="checkbox" checked={selected} onChange={() => toggleMachine(machine.machine_id)} /><span className="shutdown-sequence">{selected ? sequence : '—'}</span></label>
+              <span className="shutdown-work-main"><strong>{machine.machine_name}</strong><small>{machine.location || machine.machine_id} · {machine.reason}</small>{machine.issues[0]?.description && <em>{machine.issues[0].description}</em>}</span>
+              <span className={`shutdown-risk ${machine.priority.toLowerCase()}`}>{machine.priority}</span>
+              <label className="shutdown-effort"><span>Hours</span><input aria-label={`${machine.machine_name} planned hours`} type="number" min="0.5" max="48" step="0.5" value={machine.estimate} onChange={(event) => updateMachineHours(machine.machine_id, event.target.value)} /><small>{machine.customized ? 'custom' : 'estimated'}</small></label>
+            </div>;
+          })}
+        </section>
+
+        <aside className={`shutdown-review-card ${fitsWindow ? 'fits' : 'over'}`} id="shutdown-review">
+          <div className="shutdown-section-heading"><span>3</span><div><h2>{reviewMode ? 'Confirm the worklist' : 'Your plan at a glance'}</h2><p>{reviewMode ? 'Use this summary in the shutdown meeting.' : 'Review capacity before sharing the plan.'}</p></div></div>
+          <div className="shutdown-review-date"><span>Shutdown</span><strong>{formatDate(date)}</strong></div>
+          <div className="shutdown-review-metrics"><button type="button" onClick={() => document.getElementById('shutdown-work-title')?.scrollIntoView({ behavior: 'smooth' })}><strong>{selectedPlan.length}</strong><span>machines</span><small>View selected →</small></button><button type="button" onClick={() => document.getElementById('shutdown-work-title')?.scrollIntoView({ behavior: 'smooth' })}><strong>{priorityCount}</strong><span>priority jobs</span><small>View priority →</small></button><button type="button" onClick={() => document.querySelector('.shutdown-capacity')?.scrollIntoView({ behavior: 'smooth' })}><strong>{plannedHours}</strong><span>hours planned</span><small>View capacity →</small></button></div>
+          <div className="shutdown-capacity"><div><span>Planned capacity</span><strong>{plannedHours} of {availableHours || 0} hr</strong></div><div className="shutdown-capacity-track"><span style={{ width: `${Math.min(100, availableHours ? (plannedHours / availableHours) * 100 : 100)}%` }} /></div><p>{capacityMessage}</p></div>
+          {!selectedPlan.length && <div className="shutdown-review-warning">Select at least one machine to continue.</div>}
+          {reviewMode ? <>
+            <div className="shutdown-ready"><strong>Worklist ready for team review</strong><span>Confirm permits, isolation, people, spares, and manuals before the shutdown starts.</span></div>
+            <button className="btn shutdown-primary-action" type="button" onClick={() => window.print()}>Print or save worklist</button>
+            <a className="shutdown-secondary-action" href="tickets.html">Open tickets and work orders</a>
+            <button className="shutdown-edit-action" type="button" onClick={() => setReviewMode(false)}>Back to edit plan</button>
+          </> : <button className="btn shutdown-primary-action" type="button" disabled={!date || !selectedPlan.length} onClick={reviewPlan}>{fitsWindow ? 'Review selected work' : 'Review capacity issue'}</button>}
+        </aside>
+      </div>
+
+      <div className="shutdown-safety-note"><strong>Before approval:</strong><span>Verify lockout/tagout, permits, technician availability, required spares, and the latest MachineData for every selected asset.</span></div>
+    </>}
   </div></AppShell>;
 }

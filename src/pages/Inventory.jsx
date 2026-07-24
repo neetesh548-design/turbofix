@@ -60,6 +60,13 @@ const Inventory = () => {
   const filteredConsumables = consumables.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()));
   const filteredPOs = purchaseOrders.filter(po => po.po_code?.toLowerCase().includes(search.toLowerCase()) || po.item_name?.toLowerCase().includes(search.toLowerCase()));
 
+  // Critical stock items (RED = low or out of stock)
+  const allItems = [...parts, ...consumables];
+  const criticalItems = allItems.filter(item => {
+    const available = item.stock_qty - (item.reserved_qty || 0);
+    return available <= (item.reorder_level || 0);
+  });
+
   const renderStockStatus = (stock, minLevel) => {
     if (stock === 0) return <span className="inline-flex items-center gap-1 text-red-600 bg-red-50/80 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border border-red-100"><AlertTriangle size={12} /> Out of Stock</span>;
     if (stock <= minLevel) return <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50/80 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border border-amber-100"><AlertTriangle size={12} /> Low Stock</span>;
@@ -84,124 +91,179 @@ const Inventory = () => {
     <AppShell active="inventory">
       <div className="inventory-page max-w-7xl mx-auto space-y-6">
         <header className="inventory-page-heading">
-          <div><span>Supply readiness</span><h1>Inventory &amp; Supply Chain</h1><p>TurboFix manages the supply workflow here; analytics keeps the stock and reorder signals current underneath so work can continue without clutter.</p></div>
-          <div className="inventory-live-chip"><i />Live stock view</div>
+          <div><span>Supply readiness</span><h1>Inventory Alerts</h1><p>Critical stock items needing immediate reorder. Quick reorder → receive workflow.</p></div>
+          <div className="inventory-live-chip"><i />Live stock</div>
         </header>
-        
-        {/* Header & Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm">
-          <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50">
-            {['parts', 'consumables'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm scale-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 scale-95 hover:scale-100'}`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search items, POs..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm shadow-sm"
-              />
-            </div>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 shrink-0">
-              <Plus size={18} />
-              <span>Add New</span>
-            </button>
+        {error && (
+          <div className="flex flex-col items-center justify-center h-32 text-red-500 gap-3 p-8 text-center bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm">
+            <AlertTriangle size={48} className="opacity-50" />
+            <p className="font-semibold">{error}</p>
+            <button onClick={fetchInventory} className="px-6 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-sm font-semibold transition-colors">Retry</button>
           </div>
-        </div>
+        )}
 
-        {/* Content Area - MVP */}
+        {/* CORE WORKFLOW - Critical Stock Items Only */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
           {loading ? (
-            <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-3">
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
               <Loader2 className="animate-spin text-blue-500" size={32} />
-              <p className="font-medium animate-pulse">Syncing Inventory...</p>
+              <p className="font-medium">Loading critical stock items...</p>
             </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center h-96 text-red-500 gap-3 p-8 text-center">
-              <AlertTriangle size={48} className="opacity-50" />
-              <p className="font-semibold text-lg">Failed to load data</p>
-              <p className="text-sm text-red-400">{error}</p>
-              <button onClick={fetchInventory} className="mt-4 px-6 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-sm font-semibold transition-colors">Retry Sync</button>
+          ) : criticalItems.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500 opacity-50" />
+              <p className="text-gray-600 font-medium">All stock levels healthy. No urgent reorders needed.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100">
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Availability</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Reserved</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Reorder At</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Item</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Level</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100/50">
-                  {(activeTab === 'parts' ? filteredParts : filteredConsumables).length === 0 ? (
-                    <tr><td colSpan="6" className="px-6 py-16 text-center text-gray-400">
-                      <Package size={48} className="mx-auto mb-4 opacity-20" />
-                      <p>No items found matching your criteria.</p>
-                    </td></tr>
-                  ) : (activeTab === 'parts' ? filteredParts : filteredConsumables).map(item => (
-                    <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50 flex items-center justify-center text-gray-500 shadow-inner">
-                            <Package size={20} />
+                  {criticalItems.map(item => {
+                    const available = item.stock_qty - (item.reserved_qty || 0);
+                    return (
+                      <tr key={item.id} className="hover:bg-red-50/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-100 to-red-200 border border-red-200 flex items-center justify-center text-red-600 shadow-inner">
+                              <Package size={20} />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-900">{item.name}</div>
+                              {item.part_number && <div className="text-xs text-gray-500 font-mono mt-0.5">{item.part_number}</div>}
+                            </div>
                           </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{item.name}</div>
-                            {item.part_number && <div className="text-xs text-gray-500 font-mono mt-0.5">{item.part_number}</div>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-gray-900">{available}</span>
+                            <span className="text-xs text-gray-500 font-medium">available</span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-xl font-bold text-gray-900">{item.stock_qty}</span>
-                          <span className="text-xs text-gray-500 font-medium">in stock</span>
-                        </div>
-                        <div className="text-xs text-blue-600/80 font-medium mt-0.5">
-                          {item.stock_qty - (item.reserved_qty || 0)} available
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 hidden md:table-cell">
-                        <div className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-sm font-semibold">
-                          {item.reserved_qty || 0}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 hidden sm:table-cell text-gray-600 font-medium">
-                        {item.reorder_level || 0}
-                      </td>
-                      <td className="px-6 py-4">
-                        {renderStockStatus(item.stock_qty - (item.reserved_qty || 0), item.reorder_level || 0)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                          <ChevronRight size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4">
+                          {renderStockStatus(available, item.reorder_level || 0)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">Reorder</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
 
-        {/* Advanced Features: Purchase Orders Management */}
+        {/* More Options Button */}
+        <div className="text-center">
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all"
+          >
+            More options (Full inventory, PO management)
+          </button>
+        </div>
+
+        {/* ADVANCED FEATURES DRILL-DOWN */}
         <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
           <div>
+            {/* Full Inventory Table */}
+            <div className="mb-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm mb-6">
+                <div className="flex bg-gray-100/50 p-1 rounded-xl border border-gray-200/50">
+                  {['parts', 'consumables'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm scale-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 scale-95 hover:scale-100'}`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search items..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm shadow-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-100">
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Availability</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Reserved</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Reorder At</th>
+                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100/50">
+                      {(activeTab === 'parts' ? filteredParts : filteredConsumables).length === 0 ? (
+                        <tr><td colSpan="5" className="px-6 py-16 text-center text-gray-400">
+                          <Package size={48} className="mx-auto mb-4 opacity-20" />
+                          <p>No items found.</p>
+                        </td></tr>
+                      ) : (activeTab === 'parts' ? filteredParts : filteredConsumables).map(item => (
+                        <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50 flex items-center justify-center text-gray-500 shadow-inner">
+                                <Package size={20} />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900">{item.name}</div>
+                                {item.part_number && <div className="text-xs text-gray-500 font-mono mt-0.5">{item.part_number}</div>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-xl font-bold text-gray-900">{item.stock_qty}</span>
+                              <span className="text-xs text-gray-500 font-medium">in stock</span>
+                            </div>
+                            <div className="text-xs text-blue-600/80 font-medium mt-0.5">
+                              {item.stock_qty - (item.reserved_qty || 0)} available
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 hidden md:table-cell">
+                            <div className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-sm font-semibold">
+                              {item.reserved_qty || 0}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 hidden sm:table-cell text-gray-600 font-medium">
+                            {item.reorder_level || 0}
+                          </td>
+                          <td className="px-6 py-4">
+                            {renderStockStatus(item.stock_qty - (item.reserved_qty || 0), item.reorder_level || 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             {/* PO Header Controls */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-gray-200/50 shadow-sm mb-6">
               <h3 className="text-lg font-bold text-gray-900">Purchase Orders</h3>

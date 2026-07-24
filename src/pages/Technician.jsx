@@ -32,6 +32,7 @@ export default function Technician() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [recordingContext, setRecordingContext] = useState('');
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const recorderRef = useRef(null);
   const voiceChunksRef = useRef([]);
   const user = useMemo(() => {
@@ -385,6 +386,7 @@ export default function Technician() {
             </section>
             <section className="technician-workspace">
               {!selectedTicket ? <div className="technician-empty large"><Wrench className="size-10" /><strong>Select a work item</strong><span>Choose a ticket from your queue to begin.</span></div> : <>
+                {/* MVP VIEW: Minimal task header */}
                 <div className="technician-work-header" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                   {(selectedTicket.machine_image_url || window.localStorage.getItem(`tf_machine_photo_${selectedTicket.machine_id}`)) && (
                     <div style={{ width: '56px', height: '56px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
@@ -398,51 +400,69 @@ export default function Technician() {
                   </div>
                   <span className={`technician-state ${selectedWork.status}`}>{selectedWork.status.replace('_', ' ')}</span>
                 </div>
-                {selectedTicket.ai_summary?.photo_url && (
-                  <div style={{ margin: '16px 0', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
-                    <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Issue Photo</small>
-                    <a href={selectedTicket.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
-                      <img src={selectedTicket.ai_summary.photo_url} alt="Reported issue" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} />
-                    </a>
-                  </div>
-                )}
+
+                {/* MVP: Progress bar and quick actions */}
                 <button type="button" className="technician-progress postlogin-progress-button" onClick={() => document.querySelector('.technician-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><div><span>Repair progress</span><strong>{completedCount}/{checklist.length} checks complete</strong></div><div className="technician-progress-bar"><span style={{ width: `${(completedCount / checklist.length) * 100}%` }} /></div><small>View checklist →</small></button>
+
                 <div className="technician-actions">
                   <button className="btn btn-primary" onClick={startWork} disabled={saving || isLocked}><Play className="size-4" />{selectedWork.status === 'in_progress' ? 'Work in progress' : 'Start work'}</button>
-                  {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}
-                  <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Camera className="size-4" />Take photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', 'General repair update'); event.target.value = ''; }} /></label>
+                  {selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Verify &amp; close</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked || criticalBlocksSubmit}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : criticalBlocksSubmit ? 'Add photo to submit' : 'Submit for verification'}</button>}
+                  <button type="button" className={`btn btn-ghost${showMoreOptions ? ' active' : ''}`} onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ fontWeight: 600 }}>More options</button>
                 </div>
-                {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
-                {(() => {
-                  const priorFixes = history
-                    .filter((h) => h.machine_id === selectedTicket.machine_id && h.id !== selectedTicket.id)
-                    .slice(0, 3);
-                  if (priorFixes.length === 0) return null;
-                  return (
-                    <details className="technician-optional-details technician-prior-fixes">
-                      <summary>Proven fixes on this machine <span>What worked before — reuse it instead of re-diagnosing</span></summary>
-                      <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
-                        {priorFixes.map((h) => (
-                          <div key={h.id} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px 12px' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--slate)', marginBottom: '3px' }}>{h.resolved_at ? new Date(h.resolved_at).toLocaleDateString('en-IN') : ''}{h.wo_number ? ` · ${h.wo_number}` : ''}</div>
-                            {h.root_cause && <div style={{ fontSize: '0.85rem', color: '#cbd5e1' }}><b style={{ color: 'var(--slate)', fontWeight: 600 }}>Cause:</b> {h.root_cause}</div>}
-                            {h.repair_action && <div style={{ fontSize: '0.85rem', color: 'white' }}><b style={{ color: 'var(--slate)', fontWeight: 600 }}>Fix:</b> {h.repair_action}</div>}
-                            {h.parts_used && <div style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Parts: {h.parts_used}</div>}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  );
-                })()}
-                <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
-                <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div><div className="technician-field"><span><Wrench className="size-4" />Root cause</span><textarea value={selectedWork.root_cause} disabled={isLocked} onChange={(event) => updateDraft({ root_cause: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Why did it fail? Optional" />{captureActions('Root cause')}</div><div className="technician-field"><span><CheckCircle2 className="size-4" />Labour time (minutes)</span><input type="number" min="0" step="5" value={selectedWork.labour_minutes} disabled={isLocked} onChange={(event) => updateDraft({ labour_minutes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="e.g. 45" /></div></div></details>
-                {isCriticalJob && selectedWork.status !== 'closed' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: criticalBlocksSubmit ? 'rgba(239,68,68,0.12)' : 'rgba(37,211,102,0.1)', border: `1px solid ${criticalBlocksSubmit ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '10px 12px', marginBottom: '10px', fontSize: '0.82rem', color: criticalBlocksSubmit ? '#fca5a5' : '#25D366' }}>
-                    <ShieldCheck className="size-4" />
-                    <span>{criticalBlocksSubmit ? 'Critical job — a photo of the completed repair is required before it can be submitted and verified.' : 'Photo evidence attached. This critical repair will close only after supervisor verification.'}</span>
+
+                {/* DETAILED VIEW: Hidden by default, shown via "More options" */}
+                {showMoreOptions && <>
+                  {selectedTicket.ai_summary?.photo_url && (
+                    <div style={{ margin: '16px 0', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                      <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Issue Photo</small>
+                      <a href={selectedTicket.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
+                        <img src={selectedTicket.ai_summary.photo_url} alt="Reported issue" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} />
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="technician-actions">
+                    {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}
+                    <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Camera className="size-4" />Take photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', 'General repair update'); event.target.value = ''; }} /></label>
                   </div>
-                )}
-                <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : isCriticalJob ? 'Critical job: complete the checklist and attach a photo. Closure requires supervisor verification.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div>{selectedWork.status === 'submitted' && canApprove ? <button className="btn btn-primary" onClick={approveClosure} disabled={saving}>Verify &amp; close</button> : <button className="btn btn-primary" onClick={submitForApproval} disabled={saving || !readyToSubmit || isLocked || criticalBlocksSubmit}>{selectedWork.status === 'submitted' ? 'Awaiting approval' : criticalBlocksSubmit ? 'Add photo to submit' : 'Submit for verification'}</button>}</div>
+
+                  {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
+
+                  {(() => {
+                    const priorFixes = history
+                      .filter((h) => h.machine_id === selectedTicket.machine_id && h.id !== selectedTicket.id)
+                      .slice(0, 3);
+                    if (priorFixes.length === 0) return null;
+                    return (
+                      <details className="technician-optional-details technician-prior-fixes">
+                        <summary>Proven fixes on this machine <span>What worked before — reuse it instead of re-diagnosing</span></summary>
+                        <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+                          {priorFixes.map((h) => (
+                            <div key={h.id} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px 12px' }}>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--slate)', marginBottom: '3px' }}>{h.resolved_at ? new Date(h.resolved_at).toLocaleDateString('en-IN') : ''}{h.wo_number ? ` · ${h.wo_number}` : ''}</div>
+                              {h.root_cause && <div style={{ fontSize: '0.85rem', color: '#cbd5e1' }}><b style={{ color: 'var(--slate)', fontWeight: 600 }}>Cause:</b> {h.root_cause}</div>}
+                              {h.repair_action && <div style={{ fontSize: '0.85rem', color: 'white' }}><b style={{ color: 'var(--slate)', fontWeight: 600 }}>Fix:</b> {h.repair_action}</div>}
+                              {h.parts_used && <div style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Parts: {h.parts_used}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    );
+                  })()}
+
+                  <div className="technician-checklist"><div className="technician-card-heading"><ClipboardCheck className="size-5" /><div><h3>Next safe actions</h3><small>Generated automatically from this machine, issue and repair history.</small></div></div>{checklist.map((item) => <div key={item.id} className={`technician-check dynamic ${checklistStatus[item.id] || ''}`}><div className="technician-check-copy"><span>{item.label}</span><small>{item.source}{item.mandatory ? ' · Required' : ''}</small>{checklistStatus[item.id] === 'help' && captureActions(`Help: ${item.label}`, true)}</div><div className="technician-check-actions"><button type="button" className={checklistStatus[item.id] === 'done' ? 'active' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'done')}>Done</button>{!item.mandatory && <button type="button" className={checklistStatus[item.id] === 'not_needed' ? 'active muted' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'not_needed')}>Not needed</button>}<button type="button" className={checklistStatus[item.id] === 'help' ? 'active help' : ''} disabled={saving || isLocked} onClick={() => setChecklistItemStatus(item, 'help')}>Need help</button></div></div>)}</div>
+
+                  <details className="technician-optional-details"><summary>Add details <span>Type, speak or take a photo</span></summary><div className="technician-two-col"><div className="technician-field"><span><FileText className="size-4" />Repair result</span><textarea value={selectedWork.notes} disabled={isLocked} onChange={(event) => updateDraft({ notes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Repair result')}</div><div className="technician-field"><span><Package className="size-4" />Parts used</span><textarea value={selectedWork.parts_used} disabled={isLocked} onChange={(event) => updateDraft({ parts_used: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Optional—type only if faster" />{captureActions('Parts used')}</div><div className="technician-field"><span><Wrench className="size-4" />Root cause</span><textarea value={selectedWork.root_cause} disabled={isLocked} onChange={(event) => updateDraft({ root_cause: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="Why did it fail? Optional" />{captureActions('Root cause')}</div><div className="technician-field"><span><CheckCircle2 className="size-4" />Labour time (minutes)</span><input type="number" min="0" step="5" value={selectedWork.labour_minutes} disabled={isLocked} onChange={(event) => updateDraft({ labour_minutes: event.target.value })} onBlur={() => persistWork({ status: selectedWork.status === 'assigned' ? 'in_progress' : selectedWork.status }).catch(() => {})} placeholder="e.g. 45" /></div></div></details>
+
+                  {isCriticalJob && selectedWork.status !== 'closed' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: criticalBlocksSubmit ? 'rgba(239,68,68,0.12)' : 'rgba(37,211,102,0.1)', border: `1px solid ${criticalBlocksSubmit ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '10px 12px', marginBottom: '10px', fontSize: '0.82rem', color: criticalBlocksSubmit ? '#fca5a5' : '#25D366' }}>
+                      <ShieldCheck className="size-4" />
+                      <span>{criticalBlocksSubmit ? 'Critical job — a photo of the completed repair is required before it can be submitted and verified.' : 'Photo evidence attached. This critical repair will close only after supervisor verification.'}</span>
+                    </div>
+                  )}
+
+                  <div className="technician-close"><div><ShieldCheck className="size-5" /><span><strong>Close-loop check</strong><small>{selectedWork.status === 'submitted' ? 'Repair is waiting for an authorized reviewer.' : isCriticalJob ? 'Critical job: complete the checklist and attach a photo. Closure requires supervisor verification.' : 'Complete the checklist. Text, voice and photos are optional evidence.'}</small></span></div></div>
+                </>}
               </>}
             </section>
           </div>

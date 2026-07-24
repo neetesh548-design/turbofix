@@ -280,30 +280,128 @@ export default function Kaizen() {
     return true;
   });
 
+  // Filter for active kaizens (in core view)
+  const activeKaizens = kaizens.filter(k => k.status !== 'closed' && k.status !== 'rejected');
+
   return (
     <AppShell active="overview">
       <main className="workspace-page kaizen-page" style={{ padding: '24px', color: '#e2e8f0', minHeight: '100vh', background: 'radial-gradient(circle at 10% 20%, #0b0f19 0%, #070a10 90%)' }}>
-        
+
         {/* Header Section */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Bot style={{ color: 'var(--brand)', filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.5))' }} />
-              <h1 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'white' }}>Kaizen Improvement portal</h1>
+              <h1 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'white' }}>Kaizen Improvements</h1>
             </div>
-            <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.86rem' }}>Voice-first, closed-loop continuous improvement dashboard with zero unnecessary documentation.</p>
+            <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.86rem' }}>Track active improvements. Submit → Approve → Implement → Verify → Close.</p>
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className={`vault-btn ${activeSubTab === 'list' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setActiveSubTab('list')} style={{ background: activeSubTab === 'list' ? 'var(--brand)' : 'transparent', color: activeSubTab === 'list' ? '#000' : 'var(--slate)' }}>
-              <ClipboardList size={16} /> All Kaizens
+            <button className={`vault-btn vault-btn-primary`} onClick={() => setActiveSubTab('add')} style={{ background: 'var(--brand)', color: '#000' }}>
+              <Plus size={16} /> Submit Idea
             </button>
-            <button className={`vault-btn ${activeSubTab === 'add' ? 'vault-btn-primary' : 'vault-btn-ghost'}`} onClick={() => setActiveSubTab('add')} style={{ background: activeSubTab === 'add' ? 'var(--brand)' : 'transparent', color: activeSubTab === 'add' ? '#000' : 'var(--slate)' }}>
-              <Plus size={16} /> Submit Kaizen
+            <button className={`vault-btn vault-btn-ghost`} onClick={() => setShowAdvanced(!showAdvanced)} style={{ background: 'transparent', color: 'var(--slate)' }}>
+              More options
             </button>
           </div>
         </div>
 
+        {/* CORE WORKFLOW - Active Kaizens Only */}
+        {activeSubTab === 'list' && (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading kaizens...</div>
+            ) : activeKaizens.length === 0 ? (
+              <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--slate)' }}>No active improvements in progress.</div>
+            ) : activeKaizens.map((k) => (
+              <div id={k.id} key={k.id} className="glass-panel" style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem' }}>{k.id}: {k.title}</h3>
+                    <span style={{ background: k.status === 'closed' ? '#064e3b' : '#311005', color: k.status === 'closed' ? '#34d399' : '#f97316', fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{k.status.toUpperCase()}</span>
+                  </div>
+                  <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: '1.4' }}>{k.proposal}</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderLeft: '1px solid rgba(255,255,255,0.06)', paddingLeft: '20px' }}>
+                  <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem' }}>
+                    <div><span style={{ color: 'var(--slate)' }}>Submitted by:</span> <strong style={{ color: 'white' }}>{k.created_by_name}</strong></div>
+                    {k.due_date && <div><span style={{ color: 'var(--slate)' }}>Target date:</span> <strong style={{ color: 'white' }}>{k.due_date}</strong></div>}
+                    {k.verified_by_name && <div><span style={{ color: 'var(--slate)' }}>Verified by:</span> <strong style={{ color: 'white' }}>{k.verified_by_name}</strong></div>}
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                    {k.status === 'submitted' && (
+                      <>
+                        <button className="vault-btn vault-btn-primary" style={{ background: '#3b82f6', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'approved')}>Approve</button>
+                        <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'need_information')}>Request Info</button>
+                      </>
+                    )}
+                    {k.status === 'approved' && (
+                      <button className="vault-btn vault-btn-primary" style={{ background: '#f59e0b', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'in_progress')}>Start</button>
+                    )}
+                    {k.status === 'in_progress' && (
+                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => {
+                        const updated = kaizens.map((x) => x.id === k.id ? { ...x, status: 'implemented', after_photo_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=200&auto=format&fit=crop' } : x);
+                        setKaizens(updated);
+                      }}>Submit Evidence</button>
+                    )}
+                    {k.status === 'implemented' && (
+                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'verified')}>Verify</button>
+                    )}
+                    {k.status === 'verified' && (
+                      <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'closed')}>Close</button>
+                    )}
+                    <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.78rem', marginLeft: 'auto' }} onClick={() => handleDeleteKaizen(k.id)}><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* SUBMIT NEW KAIZEN FORM */}
+        {activeSubTab === 'add' && (
+          <div className="glass-panel" style={{ maxWidth: '520px', margin: '0 auto', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Suggest New Kaizen</h3>
+            <div style={{ background: 'rgba(74,222,128,0.06)', border: '1px dashed rgba(74,222,128,0.25)', borderRadius: '8px', padding: '14px', marginBottom: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', textAlign: 'center' }}>AI Voice Interpreter: Speak naturally in Hindi/English</div>
+              <button type="button" className={`vault-btn ${isVoiceRecording ? 'vault-btn-primary animate-pulse' : 'vault-btn-ghost'}`} onClick={simulateVoiceRecording} style={{ background: isVoiceRecording ? '#ef4444' : 'transparent', color: isVoiceRecording ? 'white' : 'var(--brand)', minWidth: '160px' }}>
+                <Mic size={16} /> {isVoiceRecording ? 'Listening...' : 'Record Voice'}
+              </button>
+              {audioUrl && <span style={{ fontSize: '0.72rem', color: '#25D366' }}>Voice parsed! Form filled.</span>}
+            </div>
+
+            <form onSubmit={handleCreateKaizen} style={{ display: 'grid', gap: '14px' }}>
+              <div className="vault-field">
+                <label htmlFor="kzn-machine-select">Related machine <strong aria-hidden="true">*</strong></label>
+                <select id="kzn-machine-select" value={machineId} onChange={(e) => setMachineId(e.target.value)} required>
+                  <option value="">Select Machine</option>
+                  {machines.map((m) => <option key={m.id} value={m.machine_id}>{m.machine_id} — {m.machine_name}</option>)}
+                </select>
+              </div>
+
+              <div className="vault-field">
+                <label>Idea title <strong aria-hidden="true">*</strong></label>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Relocate unloading trolley" required />
+              </div>
+
+              <div className="vault-field">
+                <label>Proposal details <strong aria-hidden="true">*</strong></label>
+                <textarea value={proposal} onChange={(e) => setProposal(e.target.value)} rows={3} placeholder="Describe the problem and solution..." required />
+              </div>
+
+              {error && <div style={{ color: '#F87171', fontSize: '0.8rem' }}>{error}</div>}
+
+              <button type="submit" className="vault-btn vault-btn-primary" disabled={submitting} style={{ background: 'var(--brand)', color: '#000', marginTop: '8px' }}>
+                {submitting ? 'Saving idea...' : 'Submit Kaizen'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ADVANCED FEATURES DRILL-DOWN */}
         <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
           {/* SUBTAB 1: DASHBOARD SUMMARY - ADVANCED ANALYTICS */}
           <div>
@@ -410,144 +508,6 @@ export default function Kaizen() {
             </div>
           </div>
         </AdvancedFeaturesDrilldown>
-
-        {/* SUBTAB 2: ALL KAIZENS LIST */}
-        {activeSubTab === 'list' && (
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {kaizens.map((k) => (
-              <div id={k.id} key={k.id} className="glass-panel" style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                {/* Left Side: Meta & Before/After Images */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem' }}>{k.id}: {k.title}</h3>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <span style={{ background: '#1e293b', color: '#94a3b8', fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{k.waste_category.toUpperCase()}</span>
-                      <span style={{ background: k.status === 'closed' ? '#064e3b' : '#311005', color: k.status === 'closed' ? '#34d399' : '#f97316', fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{k.status.toUpperCase()}</span>
-                    </div>
-                  </div>
-
-                  <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: '1.4' }}>{k.proposal}</p>
-                  
-                  {/* Photo displays before/after */}
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                      <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '4px' }}>Before Condition</small>
-                      <img src={k.before_photo_url} alt="Before improvement" style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.06)' }} />
-                    </div>
-                    {k.after_photo_url && (
-                      <div style={{ flex: 1 }}>
-                        <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '4px' }}>After Condition</small>
-                        <img src={k.after_photo_url} alt="After improvement" style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.06)' }} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Right Side: Implementations & Actions */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderLeft: '1px solid rgba(255,255,255,0.06)', paddingLeft: '20px' }}>
-                  <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem' }}>
-                    <div><span style={{ color: 'var(--slate)' }}>Submitted by:</span> <strong style={{ color: 'white' }}>{k.created_by_name}</strong> <small style={{ color: 'var(--slate)' }}>({new Date(k.created_at).toLocaleDateString('en-IN')})</small></div>
-                    {k.due_date && <div><span style={{ color: 'var(--slate)' }}>Target implementation date:</span> <strong style={{ color: 'white' }}>{k.due_date}</strong></div>}
-                    {k.verified_by_name && <div><span style={{ color: 'var(--slate)' }}>Verified by:</span> <strong style={{ color: 'white' }}>{k.verified_by_name}</strong> <small style={{ color: 'var(--slate)' }}>({new Date(k.verified_at).toLocaleDateString('en-IN')})</small></div>}
-                    {k.actual_saving > 0 && <div><span style={{ color: 'var(--slate)' }}>Validated annual savings:</span> <strong style={{ color: '#25D366' }}>₹{k.actual_saving.toLocaleString('en-IN')} / year</strong></div>}
-                    {k.status === 'closed' && <div><span style={{ color: 'var(--slate)' }}>Standardisation status:</span> <strong style={{ color: 'var(--brand)' }}>Checklist & SOP updated</strong></div>}
-                  </div>
-
-                  {/* Actions depending on status */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                    {k.status === 'submitted' && (
-                      <>
-                        <button className="vault-btn vault-btn-primary" style={{ background: '#3b82f6', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'approved')}>Approve Review</button>
-                        <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'need_information')}>Request Info</button>
-                      </>
-                    )}
-                    {k.status === 'approved' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#f59e0b', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'in_progress')}>Start Implementation</button>
-                    )}
-                    {k.status === 'in_progress' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => {
-                        // Simulate submitting evidence
-                        const updated = kaizens.map((x) => x.id === k.id ? { ...x, status: 'implemented', after_photo_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=200&auto=format&fit=crop' } : x);
-                        setKaizens(updated);
-                      }}>Submit Completion Evidence</button>
-                    )}
-                    {k.status === 'implemented' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'verified')}>Verify Effectiveness</button>
-                    )}
-                    {k.status === 'verified' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'closed')}>Complete Standardisation</button>
-                    )}
-
-                    <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.78rem', marginLeft: 'auto' }} onClick={() => handleDeleteKaizen(k.id)}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* SUBTAB 3: ADD NEW KAIZEN FORM */}
-        {activeSubTab === 'add' && (
-          <div className="glass-panel" style={{ maxWidth: '520px', margin: '0 auto', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 16px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Suggest New Kaizen Opportunity</h3>
-            
-            {/* Voice suggestion helper */}
-            <div style={{ background: 'rgba(74,222,128,0.06)', border: '1px dashed rgba(74,222,128,0.25)', borderRadius: '8px', padding: '14px', marginBottom: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', textAlign: 'center' }}>AI Voice Interpreter: Speak the problem and solution naturally in Hindi/English</div>
-              <button type="button" className={`vault-btn ${isVoiceRecording ? 'vault-btn-primary animate-pulse' : 'vault-btn-ghost'}`} onClick={simulateVoiceRecording} style={{ background: isVoiceRecording ? '#ef4444' : 'transparent', color: isVoiceRecording ? 'white' : 'var(--brand)', minWidth: '160px' }}>
-                <Mic size={16} /> {isVoiceRecording ? 'Listening...' : 'Record Voice'}
-              </button>
-              {audioUrl && <span style={{ fontSize: '0.72rem', color: '#25D366' }}>Voice successfully parsed! Form filled automatically.</span>}
-            </div>
-
-            <form onSubmit={handleCreateKaizen} style={{ display: 'grid', gap: '14px' }}>
-              <div className="vault-field">
-                <label htmlFor="kzn-machine-select">Related machine <strong aria-hidden="true">*</strong></label>
-                <select id="kzn-machine-select" value={machineId} onChange={(e) => setMachineId(e.target.value)} required>
-                  <option value="">Select Machine</option>
-                  {machines.map((m) => <option key={m.id} value={m.machine_id}>{m.machine_id} — {m.machine_name}</option>)}
-                </select>
-              </div>
-
-              <div className="vault-field">
-                <label htmlFor="kzn-cat-select">Kaizen category</label>
-                <select id="kzn-cat-select" value={kaizenType} onChange={(e) => setKaizenType(e.target.value)}>
-                  {KAIZEN_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
-              </div>
-
-              <div className="vault-field">
-                <label htmlFor="kzn-urg-select">Urgency level</label>
-                <select id="kzn-urg-select" value={urgency} onChange={(e) => setUrgency(e.target.value)}>
-                  <option value="normal">Normal (Routine)</option>
-                  <option value="urgent">Urgent (Breakdown prevention)</option>
-                  <option value="safety">Safety Critical</option>
-                </select>
-              </div>
-
-              <div className="vault-field">
-                <label>Idea title <strong aria-hidden="true">*</strong></label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Relocate unloading trolley" required />
-              </div>
-
-              <div className="vault-field">
-                <label>Proposal details <strong aria-hidden="true">*</strong></label>
-                <textarea value={proposal} onChange={(e) => setProposal(e.target.value)} rows={3} placeholder="Describe the current problem and how your change improves the operation..." required />
-              </div>
-
-              <div className="vault-field">
-                <label>Before photo URL (optional)</label>
-                <input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://unsplash.com/... or upload link" />
-              </div>
-
-              {error && <div style={{ color: '#F87171', fontSize: '0.8rem' }}>{error}</div>}
-
-              <button type="submit" className="vault-btn vault-btn-primary" disabled={submitting} style={{ background: 'var(--brand)', color: '#000', marginTop: '8px' }}>
-                {submitting ? 'Saving idea...' : 'Submit Kaizen Idea'}
-              </button>
-            </form>
-          </div>
-        )}
 
       </main>
     </AppShell>

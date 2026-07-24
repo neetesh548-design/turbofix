@@ -192,11 +192,11 @@ export default function Team() {
         <div className="workspace-page-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
-            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>TurboFix keeps people, roles, and approvals aligned here; analytics uses the stored team relationships behind the scenes without changing the workflow.</p>
+            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>See who's assigned to what now. Quick reassign or view more options.</p>
           </div>
           {isOwner && (
-            <button className="vault-btn vault-btn-ghost" onClick={() => setShowAddForm(!showAddForm)}>
-              {showAddForm ? 'Cancel' : '+ Onboard Staff'}
+            <button className="vault-btn vault-btn-primary" onClick={() => setShowAdvanced(!showAdvanced)} style={{ background: 'var(--brand)', color: '#000' }}>
+              More options
             </button>
           )}
         </div>
@@ -204,22 +204,71 @@ export default function Team() {
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
 
-        {!loading && team.length > 0 && <section className="postlogin-summary" aria-label="Team summary filters">
-          {[['all', team.length, 'All members'], ['technicians', techniciansCount, 'Technicians'], ['portal', portalCount, 'Portal access'], ['alerts', responseCount, 'Can receive alerts']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View people →</small></button>)}
-        </section>}
+        {/* CORE WORKFLOW - Current Team Assignments Only */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading team directory...</div>
+        ) : (
+          <div className="vault-card" style={{ padding: 0, overflowX: 'auto' }}>
+            <table className="vault-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Assigned to</th>
+                  {isOwner && <th>Action</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {team.length === 0 ? (
+                  <tr><td colSpan={isOwner ? 4 : 3} style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No team members found.</td></tr>
+                ) : team.map((u) => (
+                  <tr key={u.user_id}>
+                    <td>
+                      <div style={{ fontWeight: '600' }}>{u.name}</div>
+                    </td>
+                    <td>
+                      <span className={`vault-role-badge ${u.role === 'owner' ? '' : u.role === 'supervisor' ? 'read-only' : 'medium-badge'}`}
+                            style={
+                              u.role === 'owner' ? { background: '#D1FAE5', color: '#065F46' } :
+                              u.role === 'supervisor' ? { background: '#FEF3C7', color: '#92400E' } :
+                              u.role === 'maintenance_head' ? { background: '#DBEAFE', color: '#1E40AF' } :
+                              u.role === 'maintenance_engineer' ? { background: '#F3E8FF', color: '#6B21A8' } :
+                              { background: '#E2E8F0', color: '#334155' }
+                            }>
+                        {getLabel(u.role)}
+                      </span>
+                    </td>
+                    <td>{u.manager_name || (u.role === 'owner' ? 'Top level' : '—')}</td>
+                    {isOwner && <td><button type="button" className="team-edit-button" onClick={() => startMemberEdit(u)}>Reassign</button></td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
+        {/* ADVANCED FEATURES DRILL-DOWN */}
         <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+          <div>
+            {!editingMember && !showAddForm && isOwner && (
+              <button className="vault-btn vault-btn-primary" onClick={() => setShowAddForm(true)} style={{ marginBottom: '20px', background: 'var(--brand)', color: '#000' }}>
+                + Onboard New Staff Member
+              </button>
+            )}
+          </div>
+
+          {/* Edit Member Form */}
           {editingMember && <form className="vault-card team-edit-card" onSubmit={saveMemberEdit}>
-            <div className="team-edit-heading"><div><span>Owner edit</span><h2>Edit {editingMember.name}</h2><p>Changes apply across the shared company workspace.</p></div><button type="button" onClick={() => setEditingMember(null)}>Cancel</button></div>
+            <div className="team-edit-heading"><div><span>Team Member Edit</span><h2>Reassign {editingMember.name}</h2><p>Update role and reporting manager.</p></div><button type="button" onClick={() => setEditingMember(null)}>Cancel</button></div>
             <div className="team-edit-grid">
-              <label><span>Full name</span><input value={editingMember.name} onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })} required /></label>
               <label><span>Role</span><select value={editingMember.role} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}>{editingMember.role === 'owner' && <option value="owner">Owner / Plant Director</option>}{allAvailableRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
+              <label><span>Full name</span><input value={editingMember.name} onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })} required /></label>
               <label><span>Mobile number</span><input value={editingMember.phone || ''} onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })} placeholder="+91 98765 43210" /></label>
               <label><span>Email</span><input type="email" value={editingMember.email || ''} onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })} /></label>
               <label><span>Department</span><input value={editingMember.department || ''} onChange={(e) => setEditingMember({ ...editingMember, department: e.target.value })} /></label>
               <label><span>Plant / work area</span><input value={editingMember.plant_location || ''} onChange={(e) => setEditingMember({ ...editingMember, plant_location: e.target.value })} /></label>
               <label><span>Shift</span><input value={editingMember.shift || ''} onChange={(e) => setEditingMember({ ...editingMember, shift: e.target.value })} /></label>
-              {editingMember.role !== 'owner' && <label><span>Reports to</span><select value={editingMember.manager_user_id || ''} onChange={(e) => setEditingMember({ ...editingMember, manager_user_id: e.target.value })}><option value="">Not assigned</option>{team.filter((item) => item.user_id !== editingMember.user_id && ['owner','maintenance_head','maintenance_engineer','supervisor'].includes(item.role)).map((item) => <option key={item.user_id} value={item.user_id}>{item.name}</option>)}</select></label>}
             </div>
             <label className="team-edit-access"><input type="checkbox" checked={editingMember.portal_access !== false} disabled={editingMember.role === 'owner'} onChange={(e) => setEditingMember({ ...editingMember, portal_access: e.target.checked })} /><span>Portal access enabled</span></label>
             {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
@@ -300,56 +349,6 @@ export default function Team() {
             </div>
           )}
         </AdvancedFeaturesDrilldown>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading team directory...</div>
-        ) : (
-          <div className="vault-card" style={{ padding: 0, overflowX: 'auto' }}>
-            <table className="vault-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Reports to</th>
-                  <th>Contact Info</th>
-                  <th>Authorization Badge</th>
-                  <th>Access</th>
-                  {isOwner && <th>Action</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {visibleTeam.length === 0 ? (
-                  <tr><td colSpan={isOwner ? 6 : 5} style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>{team.length ? 'No team members match this view.' : 'No team members found for this plant.'}</td></tr>
-                ) : visibleTeam.map((u) => (
-                  <tr key={u.user_id}>
-                    <td>
-                      <div style={{ fontWeight: '600' }}>{u.name}</div>
-                      {[u.department, u.plant_location, u.shift].some(Boolean) && <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: '3px' }}>{[u.department, u.plant_location, u.shift].filter(Boolean).join(' · ')}</div>}
-                    </td>
-                    <td>{u.manager_name || (u.role === 'owner' ? 'Top level' : 'Not assigned')}</td>
-                    <td><ContactReveal member={u} compact /></td>
-                    <td>
-                      <span className={`vault-role-badge ${u.role === 'owner' ? '' : u.role === 'supervisor' ? 'read-only' : 'medium-badge'}`}
-                            style={
-                              u.role === 'owner' ? { background: '#D1FAE5', color: '#065F46' } :
-                              u.role === 'supervisor' ? { background: '#FEF3C7', color: '#92400E' } :
-                              u.role === 'maintenance_head' ? { background: '#DBEAFE', color: '#1E40AF' } :
-                              u.role === 'maintenance_engineer' ? { background: '#F3E8FF', color: '#6B21A8' } :
-                              { background: '#E2E8F0', color: '#334155' }
-                            }>
-                        {getLabel(u.role)}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`team-access-status ${u.portal_access ? 'active' : 'offline'}`}>{u.portal_access ? 'Portal access' : 'Offline staff'}</span>
-                      {!u.can_receive_alerts && <small className="team-alert-warning">Cannot receive mobile alerts</small>}
-                    </td>
-                    {isOwner && <td><button type="button" className="team-edit-button" onClick={() => startMemberEdit(u)}>Edit</button></td>}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </AppShell>
   );

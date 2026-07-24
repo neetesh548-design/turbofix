@@ -69,6 +69,7 @@ export default function Settings() {
   const [busyAction, setBusyAction] = useState('');
   const [escalationDirty, setEscalationDirty] = useState(false);
   const [knowledgeStats, setKnowledgeStats] = useState({ total: 0, ready: 0, gaps: 0 });
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [preferences, setPreferences] = useState(() => ({
     autoRefresh: window.localStorage.getItem('tf_settings_auto_refresh') !== 'false',
     approvalMode: window.localStorage.getItem('tf_settings_approval_mode') || 'always-ask',
@@ -195,7 +196,7 @@ export default function Settings() {
       const updatedRoles = [...customRoles, { role_name: roleName, role_label: roleLabel }];
       setCustomRoles(updatedRoles);
       window.localStorage.setItem('tf_settings_custom_roles', JSON.stringify(updatedRoles));
-      setSuccess(`Role “${roleLabel}” created locally.`);
+      setSuccess(`Role "${roleLabel}" created locally.`);
       setNewRoleLabel('');
       setShowAddRole(false);
     } catch (requestError) {
@@ -206,14 +207,14 @@ export default function Settings() {
   };
 
   const handleDeleteRole = async (roleName, roleLabel) => {
-    if (!window.confirm(`Delete the role “${roleLabel}”?`)) return;
+    if (!window.confirm(`Delete the role "${roleLabel}"?`)) return;
     setBusyAction(roleName);
     setError('');
     try {
       const updatedRoles = customRoles.filter((role) => role.role_name !== roleName);
       setCustomRoles(updatedRoles);
       window.localStorage.setItem('tf_settings_custom_roles', JSON.stringify(updatedRoles));
-      setSuccess(`Role “${roleLabel}” deleted.`);
+      setSuccess(`Role "${roleLabel}" deleted.`);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -240,110 +241,104 @@ export default function Settings() {
     {success && <Alert className="settings-alert settings-alert-success"><CheckCircle2 className="size-4" /><AlertTitle>Saved</AlertTitle><AlertDescription>{success}</AlertDescription></Alert>}
 
     {loading ? <div className="settings-loading"><span /><strong>Loading plant settings…</strong></div> : <div className="settings-layout">
-      <aside className="settings-subnav" aria-label="Settings sections">
-        <div className="settings-subnav-heading"><div className="settings-subnav-icon"><Settings2 /></div><div><p className="settings-kicker">Choose a section</p><h2>Plant settings</h2></div></div>
-        <p className="settings-subnav-copy">Only settings related to the selected task are shown.</p>
-        <div className="settings-subnav-list" role="tablist" aria-label="Settings sections">
-          {settingTabs.map(({ value, label, description, icon: Icon }) => <button key={value} type="button" role="tab" aria-selected={activeTab === value} onClick={() => selectTab(value)} className={`settings-subnav-item${activeTab === value ? ' active' : ''}`}><Icon /><span><strong>{label}</strong><small>{description}</small></span></button>)}
-        </div>
-        <div className="settings-subnav-note"><CheckCircle2 /><span>Changes are saved separately in each section.</span></div>
-      </aside>
+      <main className="settings-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
 
-      <main className="settings-content">
-        <div className="settings-mobile-tabs" role="tablist" aria-label="Settings sections">
-          {settingTabs.map(({ value, label }) => <button key={value} type="button" role="tab" aria-selected={activeTab === value} onClick={() => selectTab(value)} className={activeTab === value ? 'active' : ''}>{label}</button>)}
-        </div>
-
-        {activeTab === 'general' && <section className="settings-section" aria-labelledby="general-settings-title">
-          <SectionHeading icon={<Building2 />} eyebrow="General" title="Plant and workspace" id="general-settings-title" description="Review plant identity and choose how fresh data should behave on this browser." />
+        <section className="settings-section" aria-labelledby="general-settings-title" style={{ marginTop: "0" }}>
+          <SectionHeading icon={<Building2 />} eyebrow="Essential preferences" title="Personal settings" id="general-settings-title" description="Save your choices on this browser." />
           <div className="settings-general-grid">
-            <Card className="settings-company-card"><CardContent>
-              <div className="settings-card-title"><Building2 /><div><h3>Company details</h3><p>Read-only plant information</p></div></div>
-              <dl className="settings-company-facts"><div><dt>Company</dt><dd>{companyInfo?.name || '—'}</dd></div><div><dt>Plant code</dt><dd className="code">{companyInfo?.code || '—'}</dd></div><div><dt>Machine capacity</dt><dd>{companyInfo?.machinesUsed} of {companyInfo?.quota} used</dd></div></dl>
-              <div className="settings-usage-track"><span style={{ width: `${machineUsage}%` }} /></div>
-              <a className="settings-card-link" href="machines.html">Manage machines <ArrowUpRight /></a>
-            </CardContent></Card>
             <Card className="settings-preference-card"><CardContent>
               <div className="settings-card-title"><BellRing /><div><h3>Data refresh</h3><p>Applies only to this browser</p></div></div>
               <button type="button" aria-pressed={preferences.autoRefresh} onClick={() => updatePreference('autoRefresh', !preferences.autoRefresh)} className="settings-toggle-row"><span><strong>Refresh plant data automatically</strong><small>Show current dashboard information when you return to a page.</small></span><span className={`settings-switch${preferences.autoRefresh ? ' on' : ''}`}><i /></span></button>
               <div className="settings-local-note"><CheckCircle2 /><span>{preferences.autoRefresh ? 'Automatic refresh is on.' : 'Pages refresh only when you request new data.'}</span></div>
             </CardContent></Card>
+            <Card className="settings-preference-card"><CardContent>
+              <div className="settings-card-title"><Shield /><div><h3>Internet enrichment</h3><p>External reference data approval</p></div></div>
+              <label className="settings-select-field"><span>Approval rule</span><select value={preferences.approvalMode} onChange={(event) => updatePreference('approvalMode', event.target.value)}><option value="always-ask">Always ask before internet use</option><option value="disabled">Never use internet enrichment</option></select></label>
+            </CardContent></Card>
           </div>
-        </section>}
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <button type="button" className="settings-button secondary" onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ width: '100%', padding: '12px 16px', textAlign: 'left' }}>More options</button>
+            {showMoreOptions && <>
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<Building2 />} eyebrow="Plant info" title="Company details" description="Read-only plant information" />
+                <Card className="settings-company-card"><CardContent>
+                  <dl className="settings-company-facts"><div><dt>Company</dt><dd>{companyInfo?.name || '—'}</dd></div><div><dt>Plant code</dt><dd className="code">{companyInfo?.code || '—'}</dd></div><div><dt>Machine capacity</dt><dd>{companyInfo?.machinesUsed} of {companyInfo?.quota} used</dd></div></dl>
+                  <div className="settings-usage-track"><span style={{ width: `${machineUsage}%` }} /></div>
+                </CardContent></Card>
+              </div>
 
-        {activeTab === 'ai-data' && <section className="settings-section" aria-labelledby="ai-settings-title">
-          <SectionHeading icon={<BrainCircuit />} eyebrow="AI & machine data" title="Knowledge and approvals" id="ai-settings-title" description="See whether AI has enough machine context and control when external references may be used." />
-          <div className="settings-knowledge-grid">
-            <Card className="settings-knowledge-hero"><CardContent><div className="settings-card-title"><BrainCircuit /><div><h3>{knowledgeStats.gaps ? 'Machine knowledge needs attention' : 'Machine knowledge is ready'}</h3><p>{knowledgeStats.ready} of {knowledgeStats.total} machines have approved AI context.</p></div></div><div className="settings-knowledge-progress"><span style={{ width: `${knowledgeStats.total ? (knowledgeStats.ready / knowledgeStats.total) * 100 : 0}%` }} /></div><a className="settings-primary-link" href="machines.html">Review machine data <ArrowUpRight /></a></CardContent></Card>
-            <Card><CardContent><a className="settings-stat-card postlogin-number-link" href="records.html"><FileText /><span><strong>{knowledgeStats.ready}</strong><small>AI-ready machines</small><em>View approved knowledge →</em></span></a></CardContent></Card>
-            <Card className={knowledgeStats.gaps ? 'settings-gap-card' : ''}><CardContent><a className="settings-stat-card postlogin-number-link" href="records.html"><Wrench /><span><strong>{knowledgeStats.gaps}</strong><small>Need document review</small><em>Open review inbox →</em></span></a></CardContent></Card>
-          </div>
-          <Card className="settings-approval-card"><CardContent><div className="settings-card-title"><Shield /><div><h3>Internet enrichment approval</h3><p>TurboFix must receive permission before using external reference data.</p></div></div><label className="settings-select-field"><span>Approval rule</span><select value={preferences.approvalMode} onChange={(event) => updatePreference('approvalMode', event.target.value)}><option value="always-ask">Always ask before internet use</option><option value="disabled">Never use internet enrichment</option></select><small>Recommended: keep “Always ask” so the user stays in control.</small></label><a className="settings-card-link" href="assistant.html">Open AI Assistant <ArrowUpRight /></a></CardContent></Card>
-        </section>}
-
-        {activeTab === 'escalation' && <section className="settings-section" aria-labelledby="alert-settings-title">
-          <SectionHeading icon={<Shield />} eyebrow="Breakdown alerts" title="Who gets called and when" id="alert-settings-title" description="Set a simple response order for breakdowns that remain unresolved." status={escalationDirty ? 'Unsaved changes' : 'Saved'} />
-          <Card className="settings-response-card"><CardContent><form onSubmit={saveEscalationConfig}>
-            <div className="settings-response-list">
-              {escalationPath.map((step, index) => {
-                const isLast = index === escalationPath.length - 1;
-                return <div className="settings-response-row" key={`${step.role}-${index}`}>
-                  <div className="settings-response-order"><b>{index + 1}</b><span>{responseStepLabel(index, escalationPath.length)}</span></div>
-                  <label className="settings-response-role"><span>Responsible role</span><Select value={step.role} onValueChange={(value) => handleRoleChange(index, value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{allAvailableRoles.map((role) => <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>)}</SelectContent></Select></label>
-                  {!isLast ? <label className="settings-response-time"><span>Wait before next alert</span><span className="settings-hours-input"><Input aria-label={`Hours before escalation from ${getRoleLabel(step.role, customRoles)}`} type="number" step="0.5" min="0.5" value={step.threshold_hours ?? ''} onChange={(event) => handleThresholdChange(index, event.target.value)} required /><small>hours</small></span></label> : <div className="settings-response-final"><span>Final contact</span><strong>No further escalation</strong></div>}
-                  <div className="settings-response-actions"><Button type="button" variant="outline" size="icon-xs" aria-label={`Move ${getRoleLabel(step.role, customRoles)} up`} onClick={() => moveStep(index, -1)} disabled={index === 0}><ChevronUp /></Button><Button type="button" variant="outline" size="icon-xs" aria-label={`Move ${getRoleLabel(step.role, customRoles)} down`} onClick={() => moveStep(index, 1)} disabled={isLast}><ChevronDown /></Button><Button type="button" variant="destructive" size="icon-xs" aria-label={`Delete ${getRoleLabel(step.role, customRoles)}`} onClick={() => deleteStep(index)} disabled={escalationPath.length === 1}><Trash2 /></Button></div>
-                </div>;
-              })}
-              {!escalationPath.length && <div className="settings-empty"><Shield /><strong>No breakdown alert path</strong><span>Add the first contact to start the response chain.</span></div>}
-            </div>
-            <div className="settings-response-summary"><span>Time before final contact</span><strong>{totalHours} hour{totalHours === 1 ? '' : 's'}</strong></div>
-            <div className="settings-form-actions"><Button type="button" variant="outline" onClick={addStep}><Plus /> Add contact</Button><Button type="submit" disabled={!escalationDirty || busyAction === 'escalation'}><Save />{busyAction === 'escalation' ? 'Saving…' : 'Save response path'}</Button></div>
-          </form></CardContent></Card>
-        </section>}
-
-        {activeTab === 'roles' && <section className="settings-section" aria-labelledby="role-settings-title">
-          <SectionHeading icon={<Users />} eyebrow="Roles & access" title="Factory responsibilities" id="role-settings-title" description="Create role names used in team onboarding and breakdown alert assignments." action={<Button variant="outline" onClick={() => setShowAddRole((visible) => !visible)}>{showAddRole ? 'Cancel' : <><Plus /> Create role</>}</Button>} />
-          {showAddRole && <Card className="settings-create-role"><CardContent><form onSubmit={handleAddRoleSubmit}><label><Label htmlFor="roleLabel">Role display name</Label><Input id="roleLabel" value={newRoleLabel} onChange={(event) => setNewRoleLabel(event.target.value)} placeholder="Example: Safety Inspector" required /><small>TurboFix automatically creates the internal system code.</small></label><Button type="submit" disabled={busyAction === 'role'}>{busyAction === 'role' ? 'Creating…' : 'Create role'}</Button></form></CardContent></Card>}
-          <Card className="settings-role-card"><CardContent>
-            <div className="settings-standard-roles"><CheckCircle2 /><span><strong>{defaultRoles.length} standard roles are active</strong><small>Technician, Supervisor, Engineer, Maintenance Head, and Owner remain available.</small></span></div>
-            <div className="settings-role-list">
-              {customRoles.map((role) => <div className="settings-role-row" key={role.role_name}><div className="settings-role-avatar">{role.role_label.charAt(0).toUpperCase()}</div><span><strong>{role.role_label}</strong><small>{role.role_name}</small></span><Button variant="destructive" size="xs" disabled={busyAction === role.role_name} onClick={() => handleDeleteRole(role.role_name, role.role_label)}><Trash2 /> Delete</Button></div>)}
-              {!customRoles.length && <div className="settings-empty"><Users /><strong>No custom roles yet</strong><span>Create one only when the standard roles do not match your factory.</span></div>}
-            </div>
-            <a className="settings-card-link" href="team.html">Manage team members and access <ArrowUpRight /></a>
-          </CardContent></Card>
-        </section>}
-
-        {activeTab === 'smart-modules' && <section className="settings-section" aria-labelledby="smart-modules-title">
-          <SectionHeading icon={<Settings2 />} eyebrow="Smart Modules" title="Configurable Smart Modules" id="smart-modules-title" description="Enable Poka-Yoke overlays on top of the robust core system." />
-          <Card className="settings-role-card"><CardContent>
-            <div className="settings-role-list" style={{ marginTop: '1rem', gap: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-              {[
-                { id: 'iot', name: 'IoT Predictive Power-Signature', desc: 'Use machine amperage data to predict failures before they happen.' },
-                { id: 'cv', name: 'Visual Spare Part Deduction', desc: 'Scan replaced parts via camera and auto-deduct from inventory.' },
-                { id: 'erp', name: 'Dynamic Supply-Chain Sync', desc: 'Sync inventory counts and alerts with external ERP databases.' },
-                { id: 'mesh', name: 'Opportunistic Mesh Syncing', desc: 'Allow devices to sync logs with each other when fully offline.' },
-                { id: 'loc', name: 'Location Handshake Verification', desc: 'Require NFC or Bluetooth proximity to physically start a ticket.' }
-              ].map((mod) => (
-                <div key={mod.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <strong>{mod.name}</strong>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>{mod.desc}</p>
-                  </div>
-                  <Select defaultValue="disabled">
-                    <SelectTrigger style={{ width: '150px' }}>
-                      <SelectValue placeholder="Disabled" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="disabled">Disabled</SelectItem>
-                      <SelectItem value="enabled">Enabled</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<BrainCircuit />} eyebrow="AI & machine data" title="Knowledge and approvals" description="See whether AI has enough machine context." />
+                <div className="settings-knowledge-grid">
+                  <Card className="settings-knowledge-hero"><CardContent><div className="settings-card-title"><BrainCircuit /><div><h3>{knowledgeStats.gaps ? 'Machine knowledge needs attention' : 'Machine knowledge is ready'}</h3><p>{knowledgeStats.ready} of {knowledgeStats.total} machines have approved AI context.</p></div></div><div className="settings-knowledge-progress"><span style={{ width: `${knowledgeStats.total ? (knowledgeStats.ready / knowledgeStats.total) * 100 : 0}%` }} /></div></CardContent></Card>
+                  <Card><CardContent><a className="settings-stat-card postlogin-number-link" href="records.html"><FileText /><span><strong>{knowledgeStats.ready}</strong><small>AI-ready machines</small><em>View approved knowledge →</em></span></a></CardContent></Card>
+                  <Card className={knowledgeStats.gaps ? 'settings-gap-card' : ''}><CardContent><a className="settings-stat-card postlogin-number-link" href="records.html"><Wrench /><span><strong>{knowledgeStats.gaps}</strong><small>Need document review</small><em>Open review inbox →</em></span></a></CardContent></Card>
                 </div>
-              ))}
-            </div>
-          </CardContent></Card>
-        </section>}
+              </div>
+
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<Shield />} eyebrow="Breakdown alerts" title="Who gets called and when" description="Set a simple response order for breakdowns." status={escalationDirty ? 'Unsaved changes' : 'Saved'} />
+                <Card className="settings-response-card"><CardContent><form onSubmit={saveEscalationConfig}>
+                  <div className="settings-response-list">
+                    {escalationPath.map((step, index) => {
+                      const isLast = index === escalationPath.length - 1;
+                      return <div className="settings-response-row" key={`${step.role}-${index}`}>
+                        <div className="settings-response-order"><b>{index + 1}</b><span>{responseStepLabel(index, escalationPath.length)}</span></div>
+                        <label className="settings-response-role"><span>Responsible role</span><Select value={step.role} onValueChange={(value) => handleRoleChange(index, value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{allAvailableRoles.map((role) => <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>)}</SelectContent></Select></label>
+                        {!isLast ? <label className="settings-response-time"><span>Wait before next alert</span><span className="settings-hours-input"><Input aria-label={`Hours before escalation from ${getRoleLabel(step.role, customRoles)}`} type="number" step="0.5" min="0.5" value={step.threshold_hours ?? ''} onChange={(event) => handleThresholdChange(index, event.target.value)} required /><small>hours</small></span></label> : <div className="settings-response-final"><span>Final contact</span><strong>No further escalation</strong></div>}
+                        <div className="settings-response-actions"><Button type="button" variant="outline" size="icon-xs" aria-label={`Move ${getRoleLabel(step.role, customRoles)} up`} onClick={() => moveStep(index, -1)} disabled={index === 0}><ChevronUp /></Button><Button type="button" variant="outline" size="icon-xs" aria-label={`Move ${getRoleLabel(step.role, customRoles)} down`} onClick={() => moveStep(index, 1)} disabled={isLast}><ChevronDown /></Button><Button type="button" variant="destructive" size="icon-xs" aria-label={`Delete ${getRoleLabel(step.role, customRoles)}`} onClick={() => deleteStep(index)} disabled={escalationPath.length === 1}><Trash2 /></Button></div>
+                      </div>;
+                    })}
+                  </div>
+                  <div className="settings-response-summary"><span>Time before final contact</span><strong>{totalHours} hour{totalHours === 1 ? '' : 's'}</strong></div>
+                  <div className="settings-form-actions"><Button type="button" variant="outline" onClick={addStep}><Plus /> Add contact</Button><Button type="submit" disabled={!escalationDirty || busyAction === 'escalation'}><Save />{busyAction === 'escalation' ? 'Saving…' : 'Save response path'}</Button></div>
+                </form></CardContent></Card>
+              </div>
+
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<Users />} eyebrow="Roles & access" title="Factory responsibilities" description="Create custom role names." action={<Button variant="outline" onClick={() => setShowAddRole((visible) => !visible)}>{showAddRole ? 'Cancel' : <><Plus /> Create role</>}</Button>} />
+                {showAddRole && <Card className="settings-create-role"><CardContent><form onSubmit={handleAddRoleSubmit}><label><Label htmlFor="roleLabel">Role display name</Label><Input id="roleLabel" value={newRoleLabel} onChange={(event) => setNewRoleLabel(event.target.value)} placeholder="Example: Safety Inspector" required /><small>TurboFix automatically creates the internal system code.</small></label><Button type="submit" disabled={busyAction === 'role'}>{busyAction === 'role' ? 'Creating…' : 'Create role'}</Button></form></CardContent></Card>}
+                <Card className="settings-role-card"><CardContent>
+                  <div className="settings-standard-roles"><CheckCircle2 /><span><strong>{defaultRoles.length} standard roles are active</strong><small>Technician, Supervisor, Engineer, Maintenance Head, and Owner remain available.</small></span></div>
+                  <div className="settings-role-list">
+                    {customRoles.map((role) => <div className="settings-role-row" key={role.role_name}><div className="settings-role-avatar">{role.role_label.charAt(0).toUpperCase()}</div><span><strong>{role.role_label}</strong><small>{role.role_name}</small></span><Button variant="destructive" size="xs" disabled={busyAction === role.role_name} onClick={() => handleDeleteRole(role.role_name, role.role_label)}><Trash2 /> Delete</Button></div>)}
+                  </div>
+                </CardContent></Card>
+              </div>
+
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<Settings2 />} eyebrow="Smart Modules" title="Configurable Smart Modules" description="Enable Poka-Yoke overlays on top of the robust core system." />
+                <Card className="settings-role-card"><CardContent>
+                  <div className="settings-role-list" style={{ marginTop: '1rem', gap: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                    {[
+                      { id: 'iot', name: 'IoT Predictive Power-Signature', desc: 'Use machine amperage data to predict failures before they happen.' },
+                      { id: 'cv', name: 'Visual Spare Part Deduction', desc: 'Scan replaced parts via camera and auto-deduct from inventory.' },
+                      { id: 'erp', name: 'Dynamic Supply-Chain Sync', desc: 'Sync inventory counts and alerts with external ERP databases.' },
+                      { id: 'mesh', name: 'Opportunistic Mesh Syncing', desc: 'Allow devices to sync logs with each other when fully offline.' },
+                      { id: 'loc', name: 'Location Handshake Verification', desc: 'Require NFC or Bluetooth proximity to physically start a ticket.' }
+                    ].map((mod) => (
+                      <div key={mod.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <strong>{mod.name}</strong>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>{mod.desc}</p>
+                        </div>
+                        <Select defaultValue="disabled">
+                          <SelectTrigger style={{ width: '150px' }}>
+                            <SelectValue placeholder="Disabled" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="disabled">Disabled</SelectItem>
+                            <SelectItem value="enabled">Enabled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent></Card>
+              </div>
+            </>}
+          </div>
+        </section>
       </main>
     </div>}
   </div></AppShell>;

@@ -85,6 +85,7 @@ export default function Machines() {
   const [machineEditSaving, setMachineEditSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showMachineDetails, setShowMachineDetails] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
@@ -2195,21 +2196,30 @@ export default function Machines() {
                 <div className={machineData?.missing_sections?.length ? 'warning' : 'good'}><span><ShieldCheck /></span><p><small>AI knowledge</small><strong>{machineDataLoading ? 'Checking…' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} data gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready for decisions'}</strong></p></div>
               </section>
 
-              <nav className="machine-workspace-tabs" aria-label={`${selectedMachine.machine_name} workspace sections`}>
-                {WORKSPACE_TABS.map(({ id, label, hint, Icon }) => {
-                  const count = id === 'docs' ? docs.length : id === 'parts' ? parts.length : id === 'consumables' ? consumables.length : null;
-                  return <button key={id} type="button" className={wsTab === id ? 'active' : ''} onClick={() => setWsTab(id)}>
-                    <span className="machine-tab-icon"><Icon /></span>
-                    <span><strong>{label}</strong><small>{hint}</small></span>
-                    {count !== null && <b>{count}</b>}
-                  </button>;
-                })}
-              </nav>
+              {/* MVP: Show "More options" button instead of tabs initially */}
+              {!showMoreOptions ? (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '16px' }}>
+                  <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowMoreOptions(true)} style={{ fontSize: '0.95rem', fontWeight: 600, padding: '10px 20px' }}>
+                    More options (Docs, Parts, PM, Reliability, Kaizen, Calendar, QR)
+                  </button>
+                </div>
+              ) : (
+                <nav className="machine-workspace-tabs" aria-label={`${selectedMachine.machine_name} workspace sections`}>
+                  {WORKSPACE_TABS.map(({ id, label, hint, Icon }) => {
+                    const count = id === 'docs' ? docs.length : id === 'parts' ? parts.length : id === 'consumables' ? consumables.length : null;
+                    return <button key={id} type="button" className={wsTab === id ? 'active' : ''} onClick={() => setWsTab(id)}>
+                      <span className="machine-tab-icon"><Icon /></span>
+                      <span><strong>{label}</strong><small>{hint}</small></span>
+                      {count !== null && <b>{count}</b>}
+                    </button>;
+                  })}
+                </nav>
+              )}
 
               {/* Workspace Contents */}
 
-              {/* MVP: TAB 1: ESCALATION & ASSIGNEES (Dynamically loaded off escalationPath) */}
-              {wsTab === 'info' && (
+              {/* MVP: TAB 1: MACHINE OVERVIEW (Always visible) - show by default only if wsTab is 'info' OR if not showMoreOptions */}
+              {(wsTab === 'info' || !showMoreOptions) && (
                 <div className="machine-overview-grid">
                   <section className="machine-overview-main">
                     {/* MVP: Compact Machine Status */}
@@ -2482,8 +2492,8 @@ export default function Machines() {
                 </div>
               )}
 
-              {/* ADVANCED FEATURES: Additional workspace tabs */}
-              <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
+              {/* ADVANCED FEATURES: Additional workspace tabs - only visible in "More options" mode */}
+              {showMoreOptions && <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
                 {/* TAB 2: MANUALS & DOCUMENTS */}
                 {wsTab === 'docs' && (
                 <div>
@@ -3216,7 +3226,7 @@ export default function Machines() {
                   </button>
                 </div>
               )}
-              </AdvancedFeaturesDrilldown>
+              </AdvancedFeaturesDrilldown>}
             </div>
           </div>
         )}

@@ -74,6 +74,7 @@ export default function Assistant() {
   const [retrieval, setRetrieval] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const signedInUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; }
   }, []);
@@ -259,8 +260,8 @@ export default function Assistant() {
   return <AppShell active="assistant"><div className="assistant-page">
     <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Assistant</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language. TurboFix shapes the workflow; analytics stays the engine behind the answers.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
     <section className="assistant-layout">
-      <div className="assistant-chat">
-        <div className="assistant-orb">✦</div><h2>What do you need to decide?</h2><p className="assistant-helper">Choose the scope, then ask your question. TurboFix uses the matching machine data automatically.</p>
+      <div className="assistant-chat" style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div className="assistant-orb">✦</div><h2>Ask TurboFix</h2><p className="assistant-helper">Your maintenance question</p>
         <form onSubmit={ask} className="assistant-form">
           <label className="assistant-field">
             <span>Answer using</span>
@@ -272,44 +273,39 @@ export default function Assistant() {
             </select>
             <small>{scopeHelp}</small>
           </label>
-          <div className="assistant-suggestions" aria-label="Suggested questions">{suggestions.map((item) => <button key={item} type="button" onClick={() => changeQuestion(item)}>{item}</button>)}</div>
           <label className="assistant-field">
             <span>Your maintenance question</span>
             <textarea value={question} onChange={(event) => changeQuestion(event.target.value)} placeholder={isPlantWide ? 'For example: Which machines should we service this weekend?' : 'For example: What should the technician inspect first?'} rows="4" />
           </label>
-          <div className="assistant-input-tools" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
-            <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Camera className="size-4" /> Attach photo
-              <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
-            </label>
-            <button type="button" className={`btn btn-ghost btn-sm${listening ? ' recording' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={toggleVoice} disabled={transcribing}>
-              {listening ? <><Square className="size-4" /> Stop</> : <><Mic className="size-4" /> Speak</>}
-            </button>
-            {listening && <span style={{ color: 'var(--brand)', fontSize: '0.8rem' }}>Recording… tap Stop when done</span>}
-            {transcribing && <span style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Transcribing your question…</span>}
-          </div>
-          {imagePreview && (
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>
-              <img src={imagePreview} alt="Attached machine photo" style={{ maxWidth: '180px', maxHeight: '130px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
-              <button type="button" onClick={removeImage} aria-label="Remove photo" style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#000', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><X className="size-4" /></button>
-            </div>
-          )}
           <button className="btn btn-primary assistant-submit" disabled={loading || !question.trim()}>{loading ? 'Checking maintenance data…' : 'Get recommendation'}</button>
+          <button type="button" className="btn btn-ghost" onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ width: '100%', marginTop: '12px' }}>More options</button>
         </form>
+
+        {showMoreOptions && <>
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="assistant-suggestions" aria-label="Suggested questions" style={{ marginBottom: '20px' }}><strong style={{ display: 'block', marginBottom: '12px' }}>Suggested questions:</strong>{suggestions.map((item) => <button key={item} type="button" onClick={() => changeQuestion(item)}>{item}</button>)}</div>
+            <div className="assistant-input-tools" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Camera className="size-4" /> Attach photo
+                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
+              </label>
+              <button type="button" className={`btn btn-ghost btn-sm${listening ? ' recording' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={toggleVoice} disabled={transcribing}>
+                {listening ? <><Square className="size-4" /> Stop</> : <><Mic className="size-4" /> Speak</>}
+              </button>
+              {listening && <span style={{ color: 'var(--brand)', fontSize: '0.8rem' }}>Recording… tap Stop when done</span>}
+              {transcribing && <span style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Transcribing your question…</span>}
+            </div>
+            {imagePreview && (
+              <div style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>
+                <img src={imagePreview} alt="Attached machine photo" style={{ maxWidth: '180px', maxHeight: '130px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
+                <button type="button" onClick={removeImage} aria-label="Remove photo" style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#000', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><X className="size-4" /></button>
+              </div>
+            )}
+          </div>
+        </>}
+
         {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}{retrieval ? ` · ${retrieval.nodes_used} relevant facts · ~${retrieval.estimated_tokens} context tokens` : ''}</small>}</div>}
       </div>
-      <aside className="assistant-side">
-        {selected !== 'all' && (selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)) && (
-          <div style={{ width: '100%', height: '140px', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <img src={selectedMachine?.image_url || window.localStorage.getItem(`tf_machine_photo_${selected}`)} alt={`${selectedMachine?.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
-        )}
-        <div className="decision-card-kicker">How scope works</div>
-        <h2>Start broad, then focus</h2>
-        <div className="assistant-prompt"><strong>All machines</strong><span>Prioritize plant-wide risks, shutdown work, and open issues.</span></div>
-        <div className="assistant-prompt"><strong>One machine</strong><span>Diagnose symptoms, review history, manuals, and likely spares.</span></div>
-        <p className="assistant-disclaimer">Recommendations are decision support. Confirm isolation procedures and the approved machine manual before work begins.</p>
-      </aside>
     </section>
   </div></AppShell>;
 }
