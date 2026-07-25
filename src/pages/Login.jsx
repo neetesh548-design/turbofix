@@ -175,11 +175,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <Navbar />
-      <div className="flex-1 flex flex-col justify-center items-center p-4 py-8">
+      <div className="w-full flex-1 flex flex-col justify-center items-center p-4 py-8">
         {existingUser && (
-          <div className="w-full max-w-[460px] mb-4 bg-emerald-950/40 border border-emerald-700/50 rounded-xl p-3 flex items-center justify-between text-sm text-emerald-200 backdrop-blur-md">
+          <div className="w-[92vw] sm:w-[460px] max-w-[460px] mb-4 bg-emerald-950/40 border border-emerald-700/50 rounded-xl p-3 flex items-center justify-between text-sm text-emerald-200 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <UserCheck size={18} className="text-emerald-400" />
               <span>Signed in as <strong>{existingUser.name}</strong></span>
@@ -193,7 +193,7 @@ export default function Login() {
           </div>
         )}
 
-        <div className="w-full max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
+        <div className="w-[92vw] sm:w-[460px] max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
           <div className="p-8">
             {view === 'login' ? (
               <>
