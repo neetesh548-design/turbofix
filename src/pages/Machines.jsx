@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2, Sparkles,
+  ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import MachineCard from '../components/machines/MachineCard';
+import MachineFilterBar from '../components/machines/MachineFilterBar';
+import MachineDetailDrawer from '../components/machines/MachineDetailDrawer';
 import { supabase } from '@/supabaseClient';
 import { generateMachineQRUrl } from '../utils/urlEncryption';
+import { filterMachines, summarizeFleet, sortByHealth } from '../utils/machineHealth';
+import { DEMO_MACHINES } from '../utils/demoMachines';
+import './Machines.css';
 
 const WORKSPACE_TABS = [
   { id: 'info', label: 'Overview', hint: 'Status and response', Icon: Activity },
@@ -90,9 +96,25 @@ export default function Machines() {
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
   const [onboardPhotoFile, setOnboardPhotoFile] = useState(null);
-  const [directoryView, setDirectoryView] = useState(() => window.localStorage.getItem('tf_machines_directory_view') || 'list');
+  // The board only knows 'grid' and 'list'. Anything else in storage is a
+  // leftover from the old tile/table directory and falls back to grid.
+  const [directoryView, setDirectoryView] = useState(() => {
+    const stored = window.localStorage.getItem('tf_machines_directory_view');
+    return stored === 'list' ? 'list' : 'grid';
+  });
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'running' | 'breakdown'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'running' | 'issues' | 'down'
+
+  // Health-board drawer: the one-click-deeper view. `selectedMachine` stays
+  // reserved for the full workspace so the two levels never fight over state.
+  const [drawerMachine, setDrawerMachine] = useState(null);
+  const [quickEdit, setQuickEdit] = useState(null);
+  const [quickEditSaving, setQuickEditSaving] = useState(false);
+  // Whether the board is showing the sample fleet because the company has none yet.
+  const [showingDemo, setShowingDemo] = useState(false);
+  // The machine a "Report issue" click targeted. Lets the modal open straight
+  // from a card without first entering the workspace.
+  const [issueMachine, setIssueMachine] = useState(null);
   const [editSections, setEditSections] = useState({ basic: true, identity: true, people: true });
   const toggleEditSec = (key) => setEditSections(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -237,6 +259,8 @@ export default function Machines() {
         setShowAddForm(false);
         setShowRcaForm(false);
         setShowPmForm(false);
+        setDrawerMachine(null);
+        setQuickEdit(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -259,7 +283,7 @@ export default function Machines() {
     try {
       const [machinesRes, ticketsRes, directoryRes] = await Promise.all([
         supabase.from('machines').select('*'),
-        supabase.from('tickets').select('id,machine_id,status,issue_text,created_at'),
+        supabase.from('tickets').select('id,machine_id,status,issue_text,created_at,urgency'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
       ]);
 
@@ -273,18 +297,46 @@ export default function Machines() {
       const trackRecordByMachine = {};
       const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
       (ticketsRes.data || []).forEach(t => {
-        const record = trackRecordByMachine[t.machine_id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '' };
+        const record = trackRecordByMachine[t.machine_id] || {
+          total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '',
+          // The health board reads these two lists directly, so the drawer can
+          // show what is open and what was recently done without another query.
+          open_list: [], recent_closed: [],
+        };
         const status = String(t.status || '').toLowerCase();
         const createdAt = t.created_at ? new Date(t.created_at).getTime() : 0;
         record.total += 1;
-        if (status === 'open') record.open += 1;
-        if (['closed', 'resolved'].includes(status)) record.resolved += 1;
+        if (status === 'open') {
+          record.open += 1;
+          record.open_list.push({
+            id: t.id,
+            issue_text: t.issue_text || 'Maintenance issue',
+            urgency: t.urgency || 'medium',
+            created_at: t.created_at || '',
+          });
+        }
+        if (['closed', 'resolved'].includes(status)) {
+          record.resolved += 1;
+          record.recent_closed.push({
+            id: t.id,
+            issue_text: t.issue_text || 'Maintenance work',
+            urgency: t.urgency || 'medium',
+            created_at: t.created_at || '',
+          });
+        }
         if (createdAt >= recentCutoff) record.recent += 1;
         if (createdAt >= (record.last_issue_at ? new Date(record.last_issue_at).getTime() : 0)) {
           record.last_issue = t.issue_text || 'Maintenance issue';
           record.last_issue_at = t.created_at || '';
         }
         trackRecordByMachine[t.machine_id] = record;
+      });
+
+      // Newest first, and only the handful each surface actually renders.
+      const byNewest = (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      Object.values(trackRecordByMachine).forEach((record) => {
+        record.open_list.sort(byNewest);
+        record.recent_closed = record.recent_closed.sort(byNewest).slice(0, 3);
       });
 
       const teamById = Object.fromEntries(directoryMembers.map((member) => [member.user_id, {
@@ -309,7 +361,7 @@ export default function Machines() {
         location: m.location,
         status: m.status,
         has_open_tickets: (trackRecordByMachine[m.id]?.open || 0) > 0,
-        track_record: trackRecordByMachine[m.id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '' },
+        track_record: trackRecordByMachine[m.id] || { total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '', open_list: [], recent_closed: [] },
         assigned_technician_phone: m.assigned_technician_phone,
         supervisor_id: supervisorId,
         factory_id: m.factory_id,
@@ -353,8 +405,17 @@ export default function Machines() {
       const visibleMachines = isTechnician
         ? mData.filter((m) => String(m.technician_user_id || '') === String(signedInUser?.user_id || ''))
         : mData;
-      setMachines(visibleMachines);
       const queryParams = new URLSearchParams(window.location.search);
+
+      // A brand-new workspace has no machines. Rather than showing a blank
+      // board, seed the sample fleet so the health states are demonstrable —
+      // same pattern the Tickets page uses. `?demo=0` opts out and gives the
+      // genuine empty state, which is what the empty-state tests exercise.
+      const demoAllowed = queryParams.get('demo') !== '0';
+      const useDemo = visibleMachines.length === 0 && demoAllowed;
+      setShowingDemo(useDemo);
+      setMachines(useDemo ? DEMO_MACHINES : visibleMachines);
+
       const queryMachineId = queryParams.get('machine') || queryParams.get('machine_id');
       if (queryMachineId) {
         const found = visibleMachines.find(m => String(m.machine_id) === String(queryMachineId));
@@ -385,6 +446,117 @@ export default function Machines() {
       setError(err.message || 'An error occurred while loading data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  /* ---------------------------------------------------------
+     Health board handlers
+     --------------------------------------------------------- */
+
+  /** Card click / "View details" — open the lightweight drawer. */
+  const openDrawer = (machine) => {
+    setQuickEdit(null);
+    setDrawerMachine(machine);
+  };
+
+  const closeDrawer = () => {
+    setDrawerMachine(null);
+    setQuickEdit(null);
+  };
+
+  /** "Open full workspace" — the drill-down that still owns the nine tabs. */
+  const openWorkspace = (machine) => {
+    closeDrawer();
+    setSelectedMachine(machine);
+    setWsTab('info');
+    setShowMoreOptions(false);
+  };
+
+  /** Launch the voice/text report modal against any machine. */
+  const openReportIssue = (machine) => {
+    setIssueMachine(machine || null);
+    setIssueText('');
+    setIssueUrgency('medium');
+    setReportIssueError('');
+    setReportStep('capture');
+    setReportIssueOpen(true);
+  };
+
+  /** Jump to the Tickets page, optionally focused on one ticket. */
+  const openTicketsFor = (machine, ticket) => {
+    const params = new URLSearchParams({ machine: machine.machine_id });
+    if (ticket?.id) params.set('ticket', String(ticket.id));
+    else params.set('activeFilter', 'open');
+    navigate(`/tickets.html?${params.toString()}`);
+  };
+
+  /** Quick edit covers the three fields that actually go stale in the field. */
+  const openQuickEdit = (machine) => {
+    setError('');
+    setQuickEdit({
+      machine_id: machine.machine_id,
+      name: machine.machine_name || '',
+      location: machine.location || '',
+      technician_user_id: machine.technician_user_id || '',
+    });
+  };
+
+  const saveQuickEdit = async (event) => {
+    event.preventDefault();
+    if (!quickEdit || !drawerMachine) return;
+
+    // Demo machines are local fixtures with no row behind them.
+    if (drawerMachine.is_demo) {
+      setQuickEdit(null);
+      setSuccess('Sample machines cannot be edited. Register a machine to make changes.');
+      return;
+    }
+
+    setQuickEditSaving(true);
+    setError('');
+    try {
+      // Send the machine's existing values alongside the three edited fields so
+      // the shared `update_machine` action receives the shape it already expects.
+      const { data, error: updateError } = await supabase.functions.invoke('onboard_team_member', {
+        body: {
+          action: 'update_machine',
+          machine_id: drawerMachine.machine_id,
+          name: quickEdit.name,
+          location: quickEdit.location,
+          technician_user_id: quickEdit.technician_user_id,
+          status: drawerMachine.status || 'healthy',
+          hourly_downtime_cost: drawerMachine.hourly_downtime_cost ?? '',
+          maintenance_interval_days: drawerMachine.maintenance_interval_days || 90,
+          last_maintenance_date: drawerMachine.last_maintenance_date?.slice(0, 10) || '',
+          supervisor_id: drawerMachine.supervisor_id || '',
+          engineer_user_id: drawerMachine.engineer_user_id || '',
+          maintenance_head_user_id: drawerMachine.maintenance_head_user_id || '',
+        },
+      });
+      if (updateError || data?.error || !data?.machine) {
+        throw new Error(data?.error || updateError?.message || 'Machine details could not be updated.');
+      }
+
+      const updated = {
+        ...drawerMachine,
+        machine_name: data.machine.name,
+        location: data.machine.location,
+        technician_user_id: data.machine.technician_user_id,
+        assignments: {
+          ...drawerMachine.assignments,
+          technician: team.find((member) => member.user_id === data.machine.technician_user_id) || null,
+        },
+      };
+      setMachines((current) => current.map((machine) => (
+        machine.machine_id === updated.machine_id ? updated : machine
+      )));
+      setDrawerMachine(updated);
+      setQuickEdit(null);
+      setSuccess('Machine updated.');
+    } catch (saveError) {
+      setError(saveError.message || 'Machine details could not be updated.');
+    } finally {
+      setQuickEditSaving(false);
     }
   };
 
@@ -449,17 +621,26 @@ export default function Machines() {
   };
 
   const reportIssue = async () => {
-    if (!selectedMachine || !issueText.trim()) return;
+    // The modal can be launched from a card (issueMachine) or from inside the
+    // workspace (selectedMachine); the card path wins when both are set.
+    const target = issueMachine || selectedMachine;
+    if (!target || !issueText.trim()) return;
+
+    if (target.is_demo) {
+      setReportIssueError('This is a sample machine. Register a real machine before reporting an issue.');
+      return;
+    }
+
     setIssueSaving(true);
     setReportIssueError('');
     try {
-      let factoryId = selectedMachine.factory_id;
+      let factoryId = target.factory_id;
       if (!factoryId) {
         const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
         factoryId = factoryRows?.[0]?.id || null;
       }
       const payload = {
-        machine_id: selectedMachine.machine_id,
+        machine_id: target.machine_id,
         status: 'open',
         issue_text: issueText.trim(),
         urgency: issueUrgency,
@@ -471,7 +652,8 @@ export default function Machines() {
       if (insertErr) throw insertErr;
       setReportIssueOpen(false);
       setIssueText('');
-      const technicianName = selectedMachine.assignments?.technician?.name;
+      setIssueMachine(null);
+      const technicianName = target.assignments?.technician?.name;
       setSuccess(technicianName
         ? `Issue reported. ${technicianName} will see it in their work queue.`
         : 'Issue reported. The assigned technician will see it in their work queue.');
@@ -810,7 +992,6 @@ export default function Machines() {
   };
 
   const getAssignment = (machine, key) => machine?.assignments?.[key] || null;
-  const getAssignmentName = (machine, key) => getAssignment(machine, key)?.name || 'Not assigned';
   const assignable = (role) => team.filter((member) => (Array.isArray(role) ? role : [role]).includes(member.role));
   const technicians = assignable(['technician', 'maintenance_technician']);
   const supervisors = assignable('supervisor');
@@ -1482,6 +1663,24 @@ export default function Machines() {
       : null;
   };
 
+  /* ---------------------------------------------------------
+     Health board derived state
+     --------------------------------------------------------- */
+
+  // Counts feed the filter chips, so they always reflect the whole fleet
+  // rather than whatever the current filter happens to leave visible.
+  const fleetSummary = useMemo(() => summarizeFleet(machines), [machines]);
+
+  // Worst-first: a plant manager should never have to scroll to find the
+  // machine that is down.
+  const boardMachines = useMemo(
+    () => sortByHealth(filterMachines(machines, { search: searchTerm, status: statusFilter })),
+    [machines, searchTerm, statusFilter],
+  );
+
+  // The modal targets whichever machine the report was launched from.
+  const issueTarget = issueMachine || selectedMachine;
+
   return (
     <AppShell active="machines">
       {/* Dynamic embedded styles for calendar, pulsing badges, and custom forms */}
@@ -1622,99 +1821,32 @@ export default function Machines() {
         }
       ` }} />
 
-      <div className="vault-wrap workspace-page machines-page" style={{ maxWidth: selectedMachine ? '1380px' : '1100px', padding: '20px 24px 80px' }}>
+      {/* The board owns its own width via Machines.css; the workspace keeps the
+          legacy `vault-wrap` sizing so the nine-tab drill-down is untouched. */}
+      <div
+        className={selectedMachine ? 'vault-wrap workspace-page machines-page' : 'machines-board'}
+        style={selectedMachine ? { maxWidth: '1380px', padding: '20px 24px 80px' } : undefined}
+      >
         
         {/* VIEW 1: MACHINES DIRECTORY TABLE (when selectedMachine is null) */}
         {!selectedMachine ? (
           <>
-            <div className="machines-directory-header">
+            <div className="machines-board-head">
               <div>
-                <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Machines</h1>
-                <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>Open a machine to see its current loop first. Open work, closed work, PM, parts, learning, and people stay one click away.</p>
+                <h1>Machines</h1>
+                <p>Every machine, colour-coded by health. Green is running, amber needs a look, red is stopped. Open a card for the detail.</p>
               </div>
-              <div className="machines-directory-actions">
-                <div className="machines-view-toggle" role="group" aria-label="Machine directory view">
-                  <button type="button" className={directoryView === 'list' ? 'active' : ''} onClick={() => setDirectoryView('list')} aria-pressed={directoryView === 'list'} title="List view"><List /> <span>List</span></button>
-                  <button type="button" className={directoryView === 'tiles' ? 'active' : ''} onClick={() => setDirectoryView('tiles')} aria-pressed={directoryView === 'tiles'} title="Tile view"><LayoutGrid /> <span>Tiles</span></button>
-                </div>
-                <button className="vault-btn vault-btn-ghost machines-onboard-toggle" onClick={() => setShowAddForm(!showAddForm)}>
-                  {showAddForm ? 'Close Onboarding' : '+ Register New Machine'}
-                </button>
-              </div>
+              <button type="button" className="machines-add-btn" data-testid="machine-add" onClick={() => setShowAddForm(!showAddForm)}>
+                {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine</>}
+              </button>
             </div>
 
-            {/* Japanese TPS Monozukuri & Andon Board Plant Banner */}
-            <div style={{
-              background: 'rgba(134, 59, 255, 0.08)',
-              border: '1px solid rgba(134, 59, 255, 0.2)',
-              borderRadius: '10px',
-              padding: '12px 16px',
-              margin: '16px 0 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.2rem' }}>🇯🇵</span>
-                <div>
-                  <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
-                    Fleet health at a glance
-                  </strong>
-                  <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
-                    {machines.length} machines connected. Select a machine to review its current loop, history, parts, people, and next action.
-                  </div>
-                </div>
+            {showingDemo && (
+              <div className="machine-demo-note" data-testid="machine-demo-note">
+                <Sparkles size={15} aria-hidden="true" />
+                <span>These are sample machines so you can see how the board reads. Add your first machine to replace them.</span>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#25D366', background: 'rgba(37, 211, 102, 0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(37, 211, 102, 0.25)', fontFamily: 'monospace' }}>
-                  Live
-                </span>
-              </div>
-            </div>
-
-            {/* Interactive KPI Stat Badges & Search Filter Controls */}
-            {(() => {
-              const runningCount = machines.filter(m => !m.has_open_tickets).length;
-              const breakdownCount = machines.filter(m => m.has_open_tickets).length;
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                  <button type="button" onClick={() => setStatusFilter('all')} style={{ background: statusFilter === 'all' ? 'rgba(255,255,255,0.1)' : '#101a25', border: statusFilter === 'all' ? '1px solid #25D366' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
-                    <small style={{ color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Total Fleet</small>
-                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif' }}>{machines.length} Units</strong>
-                  </button>
-                  <button type="button" onClick={() => setStatusFilter('running')} style={{ background: statusFilter === 'running' ? 'rgba(37,211,102,0.15)' : '#101a25', border: statusFilter === 'running' ? '1px solid #25D366' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
-                    <small style={{ color: '#25D366', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Operational</small>
-                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif', color: '#25D366' }}>🟢 {runningCount} Running</strong>
-                  </button>
-                  <button type="button" onClick={() => setStatusFilter('breakdown')} style={{ background: statusFilter === 'breakdown' ? 'rgba(239,68,68,0.15)' : '#101a25', border: statusFilter === 'breakdown' ? '1px solid #F87171' : '1px solid rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '10px', color: 'white', textAlign: 'left', cursor: 'pointer' }}>
-                    <small style={{ color: '#F87171', fontSize: '0.68rem', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Line Stops</small>
-                    <strong style={{ fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif', color: '#F87171' }}>🔴 {breakdownCount} Down</strong>
-                  </button>
-                </div>
-              );
-            })()}
-
-            {/* High Performance Search Bar */}
-            <div style={{ margin: '0 0 20px' }}>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 Search machines by name, asset code, location, department, category..."
-                style={{
-                  width: '100%',
-                  background: '#0b1118',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
-                  color: 'white',
-                  fontSize: '0.95rem',
-                  height: '48px',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4)'
-                }}
-              />
-            </div>
+            )}
 
             {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
             {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
@@ -1905,135 +2037,63 @@ export default function Machines() {
               </div>
             )}
 
+            <MachineFilterBar
+              search={searchTerm}
+              onSearchChange={setSearchTerm}
+              status={statusFilter}
+              onStatusChange={setStatusFilter}
+              view={directoryView}
+              onViewChange={setDirectoryView}
+              summary={fleetSummary}
+            />
+
             {(() => {
-              const filteredMachines = machines.filter((m) => {
-                const matchSearch = !searchTerm.trim() || [
-                  m.machine_name,
-                  m.machine_id,
-                  m.asset_code,
-                  m.location,
-                  m.department,
-                  m.category
-                ].some(field => String(field || '').toLowerCase().includes(searchTerm.toLowerCase()));
-
-                const isDown = Boolean(m.has_open_tickets);
-                const matchStatus = statusFilter === 'all' 
-                  ? true 
-                  : statusFilter === 'running' ? !isDown : isDown;
-
-                return matchSearch && matchStatus;
-              });
-
               if (loading) {
-                return <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading machines...</div>;
+                return (
+                  <div className="machine-board-skeleton" aria-busy="true" aria-label="Loading machines">
+                    {[0, 1, 2, 3, 4, 5].map((slot) => <div key={slot} className="machine-skeleton-card" />)}
+                  </div>
+                );
               }
 
               if (machines.length === 0) {
                 return (
-                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines onboarded yet. Click "+ Register New Machine" to get started.</p>
+                  <div className="machine-board-message" data-testid="machine-board-empty">
+                    <h2>No machines yet</h2>
+                    <p>Register your first machine to start tracking its health, open tickets and preventive maintenance.</p>
+                    <button type="button" className="machines-add-btn" onClick={() => setShowAddForm(true)}>
+                      <Plus size={16} aria-hidden="true" /> Add your first machine
+                    </button>
                   </div>
                 );
               }
 
-              if (filteredMachines.length === 0) {
+              if (boardMachines.length === 0) {
                 return (
-                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines match your search/filter parameters. Try clearing the search query.</p>
+                  <div className="machine-board-message" data-testid="machine-board-no-results">
+                    <h2>Nothing matches</h2>
+                    <p>No machine matches that search or filter. Clear it to see the whole fleet again.</p>
+                    <button type="button" className="machines-add-btn" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}>
+                      Clear filters
+                    </button>
                   </div>
                 );
               }
 
-              return directoryView === 'tiles' ? (
-                <div className="machine-tile-grid">
-                  {filteredMachines.map((m) => {
-                    const photo = m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`);
-                    return (
-                      <article className="machine-tile" key={m.machine_id} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
-                        <div className="machine-tile-photo">
-                          {photo ? <img src={photo} alt={`${m.machine_name} machine`} /> : <div><LayoutGrid /><span>No machine photo</span></div>}
-                          <span className={`machine-tile-status ${m.has_open_tickets ? 'down' : 'healthy'}`}><i />{m.has_open_tickets ? 'Down' : 'Healthy'}</span>
-                        </div>
-                        <div className="machine-tile-content">
-                          <div><span className="machine-tile-id">{m.machine_id}</span><h2>{m.machine_name}</h2></div>
-                          <p><MapPin /> {m.location || 'Location not added'}</p>
-                          <div className="machine-track-record" aria-label={`${m.machine_name} track record`}>
-                            <span className="track-open" onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&status=open&activeFilter=open`); }}><strong>{m.track_record.open}</strong><small>Open issues</small></span>
-                            <span className="track-resolved" onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&status=closed&activeFilter=closed`); }}><strong>{m.track_record.resolved}</strong><small>Resolved</small></span>
-                            <span className="track-recent" onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&activeFilter=all`); }}><strong>{m.track_record.recent}</strong><small>Last 30 days</small></span>
-                          </div>
-                          <div className="machine-track-detail">
-                            <span className="track-issue" onClick={(e) => { e.stopPropagation(); navigate(`/tickets.html?machine=${m.machine_id}&activeFilter=all`); }}><small>Last reported issue</small><strong>{m.track_record.last_issue || 'No breakdown history'}</strong><em>{m.track_record.last_issue_at ? new Date(m.track_record.last_issue_at).toLocaleDateString() : 'Track record starts with the first ticket'}</em></span>
-                            <span className={`track-maintenance ${m.next_maintenance_due ? 'scheduled' : 'idle'}`} onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('pm'); }}><small>Next maintenance</small><strong>{m.next_maintenance_due ? new Date(m.next_maintenance_due).toLocaleDateString() : 'Not scheduled'}</strong></span>
-                          </div>
-                          <div className="machine-tile-team" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); setTimeout(() => { document.querySelector('.machine-response-team')?.scrollIntoView({behavior: 'smooth'}) }, 100); }}><Users /><span><small>Primary technician</small>{getAssignmentName(m, 'technician')}</span></div>
-                          <button className="vault-btn vault-btn-primary" onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>Open Workspace <ChevronRight /></button>
-                        </div>
-                      </article>
-                    );
-                  })}
+              return (
+                <div className={`machine-board${directoryView === 'list' ? ' is-list' : ''}`} data-testid="machine-board">
+                  {boardMachines.map((machine) => (
+                    <MachineCard
+                      key={machine.machine_id}
+                      machine={machine}
+                      onOpen={openDrawer}
+                      onReportIssue={openReportIssue}
+                      onViewDetails={openWorkspace}
+                    />
+                  ))}
                 </div>
-              ) : (
-                <div className="vault-card" style={{ padding: 0, overflowX: 'auto', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <table className="vault-table">
-                    <thead>
-                      <tr>
-                        <th>Machine ID</th>
-                        <th>Name</th>
-                        <th>Location</th>
-                        <th>Escalation Assignees</th>
-                        <th>Status</th>
-                        <th style={{ textAlign: 'right' }}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredMachines.map((m) => (
-                        <tr key={m.machine_id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedMachine(m); setWsTab('info'); }}>
-                          <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--brand)' }}>{m.machine_id}</td>
-                          <td style={{ fontWeight: '600', color: 'white' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '32px', height: '32px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                {m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`) ? (
-                                  <img src={m.image_url || window.localStorage.getItem(`tf_machine_photo_${m.machine_id}`)} alt={`${m.machine_name || 'Machine'} photo`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                ) : (
-                                  <span style={{ fontSize: '0.65rem', color: '#64748b' }}>No img</span>
-                                )}
-                              </div>
-                              <span>{m.machine_name}</span>
-                            </div>
-                          </td>
-                        <td style={{ color: '#cbd5e1' }}>{m.location || '—'}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className="chip mnt" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Tech: {getAssignmentName(m, 'technician')}</span>
-                            {getAssignment(m, 'supervisor') && <span className="chip sup" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Sup: {getAssignmentName(m, 'supervisor')}</span>}
-                            {getAssignment(m, 'engineer') && <span className="chip owner" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Eng: {getAssignmentName(m, 'engineer')}</span>}
-                            {getAssignment(m, 'maintenance_head') && <span className="chip ok" style={{ padding: '2px 8px', fontSize: '10.5px', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>Head: {getAssignmentName(m, 'maintenance_head')}</span>}
-                          </div>
-                        </td>
-                        <td>
-                          {m.has_open_tickets ? (
-                            <span className="vault-role-badge read-only" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(239, 68, 68, 0.12)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                              <span className="glow-dot down" /> Down
-                            </span>
-                          ) : (
-                            <span className="vault-role-badge" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(37, 211, 102, 0.12)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.2)' }}>
-                              <span className="glow-dot healthy" /> Healthy
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button className="vault-btn vault-btn-primary" style={{ padding: '6px 14px', fontSize: '0.78rem', background: 'var(--brand)', color: '#000' }} onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>
-                            Open Workspace →
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })()}
+              );
+            })()}
           </>
         ) : (
           /* VIEW 2: DEDICATED FULL-PAGE MACHINE WORKSPACE VIEW */
@@ -2464,7 +2524,7 @@ export default function Machines() {
                       <span className="machine-side-kicker">Recommended next action</span>
                       {selectedMachine.has_open_tickets ? <><CircleAlert /><h3>Review the open breakdown</h3><p>Confirm the assigned technician has started work and has the required manual and spares.</p><a href="tickets.html">Open breakdown tickets <ChevronRight /></a></> : machineData?.missing_sections?.length ? <><BookOpen /><h3>Complete machine knowledge</h3><p>Add {machineData.missing_sections[0]} so future AI guidance is safer and more specific.</p><button type="button" onClick={() => setWsTab('docs')}>Add missing document <ChevronRight /></button></> : <><ShieldCheck /><h3>Machine is ready</h3><p>Knowledge and response ownership are in place. Continue routine preventive maintenance.</p><a href="shutdown-planner.html">Review shutdown plan <ChevronRight /></a></>}
                     </section>
-                    <button type="button" className="vault-btn vault-btn-primary" style={{ width: '100%', marginTop: '12px', background: 'var(--brand)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }} onClick={() => { setIssueText(''); setIssueUrgency('medium'); setReportIssueError(''); setReportStep('capture'); setReportIssueOpen(true); }}>
+                    <button type="button" className="vault-btn vault-btn-primary" style={{ width: '100%', marginTop: '12px', background: 'var(--brand)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }} onClick={() => openReportIssue(selectedMachine)}>
                       <CircleAlert size={16} /> Report issue
                     </button>
                     <section className="machine-response-team">
@@ -3227,11 +3287,31 @@ export default function Machines() {
           </div>
         )}
 
-        {reportIssueOpen && selectedMachine && (
+        {drawerMachine && !selectedMachine && (
+          <MachineDetailDrawer
+            machine={drawerMachine}
+            technicians={technicians}
+            canEdit={!drawerMachine.is_demo}
+            quickEdit={quickEdit}
+            quickEditSaving={quickEditSaving}
+            photoSaving={photoSaving}
+            onClose={closeDrawer}
+            onReportIssue={openReportIssue}
+            onViewDetails={openWorkspace}
+            onOpenTickets={openTicketsFor}
+            onUploadPhoto={(file, machine) => uploadMachinePhoto(file, machine.machine_id)}
+            onQuickEditOpen={openQuickEdit}
+            onQuickEditChange={(patch) => setQuickEdit((current) => ({ ...current, ...patch }))}
+            onQuickEditCancel={() => setQuickEdit(null)}
+            onQuickEditSave={saveQuickEdit}
+          />
+        )}
+
+        {reportIssueOpen && issueTarget && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => !issueSaving && setReportIssueOpen(false)}>
             <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
               {(() => {
-                const techName = selectedMachine.assignments?.technician?.name;
+                const techName = issueTarget.assignments?.technician?.name;
                 const urgencyColor = { low: '#94a3b8', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' }[issueUrgency] || '#60A5FA';
                 const TechChip = (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: techName ? 'rgba(37,211,102,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${techName ? 'rgba(37,211,102,0.4)' : 'rgba(239,68,68,0.4)'}`, borderRadius: '10px', padding: '10px 14px' }}>
@@ -3248,7 +3328,7 @@ export default function Machines() {
                     <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>Please check this is correct before it goes to the technician.</p>
                     {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
                     <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '12px' }}>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>{issueTarget.machine_name} · {issueTarget.location || 'Plant floor'}</div>
                       <div style={{ color: 'white', fontSize: '0.95rem', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>{issueText.trim()}</div>
                       <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: urgencyColor, border: `1px solid ${urgencyColor}`, borderRadius: '999px', padding: '2px 10px' }}>{issueUrgency} priority</span>
                     </div>
@@ -3261,7 +3341,7 @@ export default function Machines() {
                 }
                 return (<>
                   <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
-                  <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{selectedMachine.machine_name} · {selectedMachine.location || 'Plant floor'}</p>
+                  <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{issueTarget.machine_name} · {issueTarget.location || 'Plant floor'}</p>
                   {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
                   <button type="button" onClick={toggleIssueVoice} disabled={issueTranscribing} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: issueListening ? 'rgba(239,68,68,0.15)' : 'rgba(37,211,102,0.12)', color: issueListening ? '#F87171' : '#25D366', border: `1px solid ${issueListening ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '12px', marginBottom: '12px', fontWeight: 600, cursor: 'pointer' }}>
                     {issueListening ? <><Square size={15} /> Stop &amp; transcribe</> : issueTranscribing ? 'Transcribing…' : <><Mic size={15} /> Speak the problem</>}
@@ -3277,7 +3357,7 @@ export default function Machines() {
                   </select>
                   <div style={{ marginBottom: '18px' }}>{TechChip}</div>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <button type="button" onClick={() => { if (issueListening) issueRecorderRef.current?.stop(); setReportIssueOpen(false); }} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
+                    <button type="button" onClick={() => { if (issueListening) issueRecorderRef.current?.stop(); setReportIssueOpen(false); setIssueMachine(null); }} disabled={issueSaving} style={{ background: 'transparent', color: 'var(--slate)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
                     <button type="button" onClick={() => { if (!issueText.trim()) { setReportIssueError('Please speak or type the problem first.'); return; } setReportIssueError(''); setReportStep('confirm'); }} disabled={issueSaving || issueTranscribing || !issueText.trim()} style={{ background: 'var(--brand)', color: '#000', border: 'none', borderRadius: '8px', padding: '9px 18px', fontWeight: 600, cursor: (!issueText.trim() || issueTranscribing) ? 'not-allowed' : 'pointer', opacity: (!issueText.trim() || issueTranscribing) ? 0.6 : 1 }}>Review &amp; confirm →</button>
                   </div>
                 </>);

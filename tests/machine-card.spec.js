@@ -1,111 +1,172 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Machines Page Workspace & Sub-Tabs Tests', () => {
+/**
+ * Machines — health board.
+ *
+ * The page leads with a card grid that answers "is this machine OK?" at a
+ * glance. The nine-tab workspace still exists, but it now sits behind
+ * "View details" rather than being the first thing a user meets.
+ */
+test.describe('Machines health board', () => {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
   const payload = Buffer.from(JSON.stringify({ exp: 9999999999, sub: 'mock-user' })).toString('base64');
   const fakeJwt = `${header}.${payload}.fake-signature`;
 
+  const DAY = 24 * 60 * 60 * 1000;
+  /** Local YYYY-MM-DD `offset` days from today — matches how the app compares dates. */
+  const dateFromNow = (offset) => {
+    const d = new Date(Date.now() + offset * DAY);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const stamp = (offset) => new Date(Date.now() + offset * DAY).toISOString();
+
   test.beforeEach(async ({ page }) => {
-    // 1. Inject auth token and mock user session
     await page.addInitScript((jwt) => {
       window.localStorage.setItem('tf_token', jwt);
       window.localStorage.setItem('tf_user', JSON.stringify({
-        role: 'maintenance_head',
-        name: 'Mock Engineer',
+        role: 'owner',
+        name: 'Mock Owner',
         user_id: 'mock-user-id',
-        company_name: 'Test Factory'
+        company_name: 'Test Factory',
       }));
+      // Start from a known board layout rather than a previous run's toggle.
+      window.localStorage.setItem('tf_machines_directory_view', 'grid');
     }, fakeJwt);
 
-    // 2. Mock REST API endpoints
     await page.route('**/rest/v1/**', (route) => {
       const url = route.request().url();
-      if (url.includes('machines')) {
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([
-            {
-              id: 'm1',
-              name: 'CNC Lathe 1',
-              location: 'Zone A',
-              status: 'healthy',
-              hourly_downtime_cost: 150,
-              created_at: new Date().toISOString()
-            }
-          ])
-        });
-      }
-      if (url.includes('tickets')) {
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([
-            {
-              id: 't1',
-              machine_id: 'M001',
-              status: 'open',
-              created_at: new Date().toISOString(),
-              issue_text: 'Spindle vibration',
-              ai_summary: { urgency: 'high', summary: 'Spindle vibration' }
-            }
-          ])
-        });
-      }
-      if (url.includes('kaizen_opportunities')) {
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([
-            {
-              id: 'KZN-2026-001',
-              machine_id: 'M001',
-              title: 'Relocate Scrap Bin',
-              proposal: 'Move bin next to machine unloading side to save 5 seconds of motion waste per cycle.',
-              category: 'simplification',
-              waste_category: 'motion',
-              status: 'submitted',
-              created_by_name: 'Anil Kumar',
-              created_at: new Date().toISOString()
-            }
-          ])
-        });
-      }
-      if (url.includes('factories')) {
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([{ name: 'Test Factory Plant' }])
-        });
-      }
-      return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
-    });
-
-    // Mock Supabase Edge Functions
-    await page.route('**/functions/v1/**', route => {
-      return route.fulfill({
+      const json = (body) => route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ members: [], machine_assignments: {} })
+        body: JSON.stringify(body),
       });
+
+      if (url.includes('machines')) {
+        // One machine per health state the board can show.
+        return json([
+          {
+            id: 'M001', name: 'CNC Lathe 1', location: 'Zone A', status: 'healthy',
+            last_maintenance_date: dateFromNow(-28), next_maintenance_due: dateFromNow(2),
+            technician_user_id: 'u1',
+          },
+          {
+            id: 'M002', name: 'Hydraulic Press', location: 'Bay 1', status: 'breakdown',
+            last_maintenance_date: dateFromNow(-71), next_maintenance_due: dateFromNow(-11),
+            technician_user_id: 'u1',
+          },
+          {
+            id: 'M003', name: 'Air Compressor', location: 'Utility Room', status: 'healthy',
+            last_maintenance_date: dateFromNow(-40), next_maintenance_due: dateFromNow(60),
+            technician_user_id: 'u1',
+          },
+        ]);
+      }
+
+      if (url.includes('tickets')) {
+        return json([
+          // Two open tickets push M002 to "down".
+          { id: 't1', machine_id: 'M002', status: 'open', issue_text: 'Spindle vibration', urgency: 'high', created_at: stamp(-1) },
+          { id: 't2', machine_id: 'M002', status: 'open', issue_text: 'Oil seepage', urgency: 'medium', created_at: stamp(-4) },
+          // A single critical ticket puts M003 at "needs a look".
+          { id: 't3', machine_id: 'M003', status: 'open', issue_text: 'Discharge temperature alarm', urgency: 'critical', created_at: stamp(-2) },
+          { id: 't4', machine_id: 'M001', status: 'closed', issue_text: 'Coolant nozzle realigned', urgency: 'low', created_at: stamp(-12) },
+        ]);
+      }
+
+      if (url.includes('factories')) return json([{ id: 'f1', name: 'Test Factory Plant' }]);
+      return json([]);
     });
+
+    await page.route('**/functions/v1/**', (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        members: [{ user_id: 'u1', name: 'Anil Kumar', role: 'maintenance_technician', can_reveal_contact: true }],
+        machine_assignments: {},
+      }),
+    }));
   });
 
-  test('should load machines workspace and successfully click through all 9 sub-tabs', async ({ page }) => {
+  test('grades each machine and sorts the worst first', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/machines.html', { waitUntil: 'networkidle' });
+
+    const cards = page.locator('[data-testid="machine-card"]');
+    await expect(cards).toHaveCount(3);
+
+    // Worst-first: nobody should have to scroll to find the machine that is down.
+    await expect(cards.nth(0)).toHaveAttribute('data-health', 'down');
+    await expect(cards.nth(1)).toHaveAttribute('data-health', 'issues');
+    await expect(cards.nth(2)).toHaveAttribute('data-health', 'running');
+
+    // A PM merely due soon does not make a healthy machine look sick.
+    const healthy = page.locator('[data-machine-id="M001"]');
+    await expect(healthy).toHaveAttribute('data-health', 'running');
+
+    // The chip counts summarise the whole fleet, not the filtered view.
+    await expect(page.getByTestId('machine-filter-all')).toContainText('3');
+    await expect(page.getByTestId('machine-filter-down')).toContainText('1');
+    await expect(page.getByTestId('machine-filter-issues')).toContainText('1');
+    await expect(page.getByTestId('machine-filter-running')).toContainText('1');
+  });
+
+  test('filters by health and searches by name or location', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/machines.html', { waitUntil: 'networkidle' });
+
+    await page.getByTestId('machine-filter-down').click();
+    await expect(page.locator('[data-testid="machine-card"]')).toHaveCount(1);
+    await expect(page.locator('[data-machine-id="M002"]')).toBeVisible();
+
+    await page.getByTestId('machine-filter-all').click();
+    await page.getByTestId('machine-search').fill('utility');
+    await expect(page.locator('[data-testid="machine-card"]')).toHaveCount(1);
+    await expect(page.locator('[data-machine-id="M003"]')).toBeVisible();
+
+    await page.getByTestId('machine-search').fill('nothing-matches-this');
+    await expect(page.getByTestId('machine-board-no-results')).toBeVisible();
+  });
+
+  test('opens the detail drawer when a card is clicked', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/machines.html', { waitUntil: 'networkidle' });
+
+    await page.locator('[data-machine-id="M002"]').click();
+
+    const drawer = page.getByTestId('machine-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toContainText('Hydraulic Press');
+    // The open work is listed, not just counted.
+    await expect(drawer).toContainText('Spindle vibration');
+    await expect(drawer).toContainText('Oil seepage');
+    // Quick edit is three fields, reachable in one click.
+    await expect(page.getByTestId('machine-quick-edit-open')).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+
+  test('reports an issue straight from a card without entering the workspace', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/machines.html', { waitUntil: 'networkidle' });
+
+    await page.locator('[data-machine-id="M002"]').getByTestId('machine-report-issue').click();
+
+    await expect(page.getByRole('heading', { name: 'Report issue' })).toBeVisible();
+    await expect(page.getByText('Speak the problem')).toBeVisible();
+    // Still on the board — reporting never forced a detour through the workspace.
+    await expect(page.locator('.machine-workspace-page')).toHaveCount(0);
+  });
+
+  test('View details still reaches all nine workspace tabs', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/machines.html', { waitUntil: 'networkidle' });
 
-    // Verify page header
-    await expect(page.locator('h1', { hasText: 'MACHINES' })).toBeVisible();
-    
-    // Wait for the table rows / machines to load
-    const openWorkspaceBtn = page.locator('button:has-text("Open Workspace")').first();
-    await expect(openWorkspaceBtn).toBeVisible({ timeout: 10000 });
+    await page.locator('[data-machine-id="M001"]').getByTestId('machine-view-details').click();
+    await expect(page.locator('.machine-workspace-page')).toBeVisible();
 
-    // Click on Open Workspace
-    await openWorkspaceBtn.click();
+    await page.getByRole('button', { name: /More options/ }).click();
 
-    // Define all tabs to test sequentially (name and an expected heading or content marker)
     const tabsToTest = [
       { name: 'Overview', markerText: 'Machine profile' },
       { name: 'Documents', markerText: 'Machine knowledge file' },
@@ -115,20 +176,45 @@ test.describe('Machines Page Workspace & Sub-Tabs Tests', () => {
       { name: 'Reliability', markerText: 'Reliability improvement' },
       { name: 'Kaizen', markerText: 'Kaizen Opportunities' },
       { name: 'Calendar', markerText: 'Replenishment markers are dynamically computed' },
-      { name: 'QR tag', markerText: 'CNC Lathe 1 Tag' }
+      { name: 'QR tag', markerText: 'CNC Lathe 1 Tag' },
     ];
 
     for (const tab of tabsToTest) {
-      // Find the tab button by text inside the workspace tabs row and click it
       const tabButton = page.locator('.machine-workspace-tabs button', { hasText: tab.name }).first();
       await expect(tabButton).toBeVisible();
       await tabButton.click();
-
-      // Verify that the tab becomes active
       await expect(tabButton).toHaveClass(/active/);
-
-      // Verify that the corresponding panel content renders the expected heading or content marker
       await expect(page.locator(`text=${tab.markerText}`).first()).toBeVisible({ timeout: 5000 });
+    }
+  });
+
+  test('stacks to a single column on a phone', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/machines.html', { waitUntil: 'networkidle' });
+
+    const cards = page.locator('[data-testid="machine-card"]');
+    await expect(cards).toHaveCount(3);
+
+    // Same DOM at every width: one column means every card shares an x origin.
+    const boxes = await cards.all();
+    const lefts = [];
+    for (const card of boxes) lefts.push((await card.boundingBox()).x);
+    expect(new Set(lefts).size).toBe(1);
+
+    // The board must not push the page sideways. Asserted against the board's
+    // own subtree rather than the document, because the shared AppShell chrome
+    // already overflows by ~12px on every page at this width — that is a
+    // pre-existing layout bug and not something this board introduced.
+    const boardOverflow = await page.evaluate(() => {
+      const board = document.querySelector('.machines-board');
+      return { scrollWidth: board.scrollWidth, clientWidth: board.clientWidth };
+    });
+    expect(boardOverflow.scrollWidth).toBeLessThanOrEqual(boardOverflow.clientWidth);
+
+    // Cards themselves stay inside the viewport.
+    for (const card of boxes) {
+      const box = await card.boundingBox();
+      expect(box.x + box.width).toBeLessThanOrEqual(375);
     }
   });
 });
