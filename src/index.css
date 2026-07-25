@@ -9699,3 +9699,78 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   HUMAN-CENTERED DESIGN SYSTEM (Pillars 1-9 Audit Rules)
+   ========================================================================== */
+
+/* Accessibility Focus Ring (Pillar 7) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Touch Target Minimum (Pillar 7 & 8) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Unified Page Header Template (Pillar 3) */
+.workspace-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.workspace-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-header-title h1 {
+  margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground);
+}
+
+.workspace-header-subtitle {
+  margin: 4px 0 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.88rem;
+}
+
+/* Responsive Table Touch Scroll Container (Pillar 8) */
+.ui-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+}
+
+/* Hover elevation micro-animation (Pillar 5 & 8) */
+.ui-hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ui-hover-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 211, 102, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+

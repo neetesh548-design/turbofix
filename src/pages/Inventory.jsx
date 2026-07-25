@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import EmptyState from '../components/EmptyState';
 import { Package, Plus, Search, AlertTriangle, CheckCircle2, Clock, Factory, Loader2, ArrowRight, DollarSign, Filter, ChevronRight, LayoutGrid, List } from 'lucide-react';
 
 const Inventory = () => {
@@ -49,32 +50,39 @@ const Inventory = () => {
         .from('purchase_orders')
         .update({ status: newStatus, ...(newStatus === 'approved' ? { approved_at: new Date().toISOString() } : {}) })
         .eq('id', poId);
+
       if (error) throw error;
-      fetchInventory();
+      setPurchaseOrders(purchaseOrders.map(po => po.id === poId ? { ...po, status: newStatus } : po));
     } catch (err) {
-      alert('Failed to update PO: ' + err.message);
+      console.error('Error updating PO status:', err);
     }
   };
 
-  const filteredParts = parts.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.part_number?.toLowerCase().includes(search.toLowerCase()));
-  const filteredConsumables = consumables.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()));
-  const filteredPOs = purchaseOrders.filter(po => po.po_code?.toLowerCase().includes(search.toLowerCase()) || po.item_name?.toLowerCase().includes(search.toLowerCase()));
-
-  // Critical stock items (RED = low or out of stock)
-  const allItems = [...parts, ...consumables];
-  const criticalItems = allItems.filter(item => {
-    const available = item.stock_qty - (item.reserved_qty || 0);
-    return available <= (item.reorder_level || 0);
-  });
-
-  const renderStockStatus = (stock, minLevel) => {
-    if (stock === 0) return <span className="inline-flex items-center gap-1 text-red-600 bg-red-50/80 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border border-red-100"><AlertTriangle size={12} /> Out of Stock</span>;
-    if (stock <= minLevel) return <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50/80 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border border-amber-100"><AlertTriangle size={12} /> Low Stock</span>;
-    return <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50/80 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border border-emerald-100"><CheckCircle2 size={12} /> Healthy</span>;
+  const getCriticalItems = () => {
+    const criticalParts = parts.filter(p => (p.stock_qty - (p.reserved_qty || 0)) <= (p.reorder_level || 0));
+    const criticalConsumables = consumables.filter(c => (c.stock_qty - (c.reserved_qty || 0)) <= (c.reorder_level || 0));
+    return [...criticalParts.map(p => ({ ...p, type: 'part' })), ...criticalConsumables.map(c => ({ ...c, type: 'consumable' }))];
   };
 
-  const poStatuses = ['pending', 'approved', 'ordered', 'received'];
-  
+  const filteredItems = () => {
+    const list = activeTab === 'parts' ? parts : consumables;
+    if (!search.trim()) return list;
+    const q = search.toLowerCase();
+    return list.filter(item => item.name?.toLowerCase().includes(q) || item.part_number?.toLowerCase().includes(q));
+  };
+
+  const criticalItems = getCriticalItems();
+
+  const renderStockStatus = (available, reorderLevel) => {
+    if (available <= 0) {
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Out of Stock</span>;
+    }
+    if (available <= reorderLevel) {
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">Low Stock</span>;
+    }
+    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">Healthy</span>;
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       pending: 'border-amber-200 bg-amber-50/50 text-amber-800',
@@ -111,10 +119,11 @@ const Inventory = () => {
               <p className="font-medium">Loading critical stock items...</p>
             </div>
           ) : criticalItems.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500 opacity-50" />
-              <p className="text-gray-600 font-medium">All stock levels healthy. No urgent reorders needed.</p>
-            </div>
+            <EmptyState
+              icon={CheckCircle2}
+              title="All Stock Levels Healthy"
+              description="No critical spare parts or consumables require urgent reordering right now."
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">

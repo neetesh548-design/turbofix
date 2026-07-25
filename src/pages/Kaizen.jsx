@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import EmptyState from '../components/EmptyState';
 import { supabase } from '@/supabaseClient';
 
 const KAIZEN_CATEGORIES = [
@@ -308,7 +309,15 @@ export default function Kaizen() {
             {loading ? (
               <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading kaizens...</div>
             ) : activeKaizens.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--slate)' }}>No active improvements in progress.</div>
+              <EmptyState
+                icon={Sparkles}
+                title="No Active Kaizen Improvements"
+                description="Kaizen drives continuous plant efficiency. Have an idea to reduce downtime or safety risks? Submit a proposal!"
+                primaryAction={{
+                  label: 'Submit First Idea',
+                  onClick: () => setActiveSubTab('add')
+                }}
+              />
             ) : activeKaizens.map((k) => (
               <div id={k.id} key={k.id} className="glass-panel" style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                 <div>

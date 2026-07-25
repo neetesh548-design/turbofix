@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import ContactReveal from '../components/ContactReveal';
+import EmptyState from '../components/EmptyState';
+import { Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 
@@ -216,7 +218,15 @@ export default function Team() {
               </thead>
               <tbody>
                 {team.length === 0 ? (
-                  <tr><td colSpan={isOwner ? 4 : 3} style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No team members found.</td></tr>
+                  <tr>
+                    <td colSpan={isOwner ? 4 : 3} style={{ padding: '0' }}>
+                      <EmptyState
+                        icon={Users}
+                        title="No Team Members Found"
+                        description="Your team directory lists technicians, engineers, and supervisors assigned to plant equipment."
+                      />
+                    </td>
+                  </tr>
                 ) : team.map((u) => (
                   <tr key={u.user_id}>
                     <td>

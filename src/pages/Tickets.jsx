@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import QuickReportDialog from '../components/QuickReportDialog';
+import EmptyState from '../components/EmptyState';
+import { Ticket } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
@@ -647,7 +649,17 @@ export default function Tickets() {
                 </tr>
               </thead>
               <tbody>
-                {visibleTickets.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center', color: 'var(--slate)', padding: '32px' }}>No tickets match this view.</td></tr>}
+                {visibleTickets.length === 0 && (
+                  <tr>
+                    <td colSpan="8" style={{ padding: 0 }}>
+                      <EmptyState
+                        icon={Ticket}
+                        title="No Tickets Match This Search"
+                        description="Try clearing your filters or search terms to see open maintenance work orders."
+                      />
+                    </td>
+                  </tr>
+                )}
                 {visibleTickets.map((t) => {
                   const ticketId = t.ticket_id || t.id || '—';
                   const status = String(t.status || 'Open').toLowerCase();
