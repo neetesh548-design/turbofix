@@ -410,23 +410,25 @@ export default function Technician() {
                   <button type="button" className={`btn btn-ghost${showMoreOptions ? ' active' : ''}`} onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ fontWeight: 600 }}>More options</button>
                 </div>
 
+                {/* EVIDENCE CAPTURE: Always visible (critical for critical jobs) */}
+                {selectedTicket.ai_summary?.photo_url && (
+                  <div style={{ margin: '16px 0', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                    <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Issue Photo</small>
+                    <a href={selectedTicket.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
+                      <img src={selectedTicket.ai_summary.photo_url} alt="Reported issue" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} />
+                    </a>
+                  </div>
+                )}
+
+                <div className="technician-actions">
+                  {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}
+                  <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Camera className="size-4" />Take photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', 'General repair update'); event.target.value = ''; }} /></label>
+                </div>
+
+                {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
+
                 {/* DETAILED VIEW: Hidden by default, shown via "More options" */}
                 {showMoreOptions && <>
-                  {selectedTicket.ai_summary?.photo_url && (
-                    <div style={{ margin: '16px 0', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
-                      <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Issue Photo</small>
-                      <a href={selectedTicket.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
-                        <img src={selectedTicket.ai_summary.photo_url} alt="Reported issue" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} />
-                      </a>
-                    </div>
-                  )}
-
-                  <div className="technician-actions">
-                    {recordingContext === 'General repair update' ? <button className="btn btn-ghost recording" type="button" onClick={stopVoiceCapture}><Square className="size-4" />Stop &amp; save</button> : <button className="btn btn-ghost" type="button" disabled={!!recordingContext || saving || isLocked} onClick={() => startVoiceCapture('General repair update')}><Mic className="size-4" />Speak update</button>}
-                    <label className={`btn btn-ghost technician-upload${isLocked ? ' disabled' : ''}`}><Camera className="size-4" />Take photo<input type="file" accept="image/*" capture="environment" disabled={saving || isLocked} onChange={(event) => { uploadEvidence(event.target.files?.[0], 'photo', 'General repair update'); event.target.value = ''; }} /></label>
-                  </div>
-
-                  {selectedWork.evidence.length > 0 && <div className="technician-evidence"><strong>Repair evidence</strong><div>{selectedWork.evidence.map((item) => <button key={item.evidence_id} type="button" onClick={() => downloadEvidence(item)}><Download className="size-4" /><span>{item.context || item.file_name}</span><small>{item.kind}</small></button>)}</div></div>}
 
                   {(() => {
                     const priorFixes = history
