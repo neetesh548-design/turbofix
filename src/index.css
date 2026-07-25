@@ -7,7 +7,10 @@
 @import "./components/DashboardWidget.css";
 @import "./components/Localization.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark variant is keyed to the [data-theme] attribute set by ThemeProvider
+   (src/hooks/useTheme.jsx). It previously targeted a `.dark` class that nothing
+   ever applied, which made every `dark:` utility in the codebase dead code. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -46,6 +49,39 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Semantic state colors -> bg-success, text-warning, border-info, ... */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* Spacing scale on a 4px grid -> p-md, gap-lg, m-xl, ... */
+  --spacing-xs: 0.25rem;   /*  4px */
+  --spacing-sm: 0.5rem;    /*  8px */
+  --spacing-md: 0.75rem;   /* 12px */
+  --spacing-lg: 1rem;      /* 16px */
+  --spacing-xl: 1.5rem;    /* 24px */
+  --spacing-2xl: 2rem;     /* 32px */
+
+  /* Typography scale -> text-h1, text-body, text-sm-body, ... */
+  --text-h1: 2rem;         /* 32px */
+  --text-h1--line-height: 2.5rem;
+  --text-h1--font-weight: 700;
+  --text-h2: 1.5rem;       /* 24px */
+  --text-h2--line-height: 2rem;
+  --text-h2--font-weight: 700;
+  --text-h3: 1.25rem;      /* 20px */
+  --text-h3--line-height: 1.75rem;
+  --text-h3--font-weight: 600;
+  --text-body: 0.875rem;   /* 14px */
+  --text-body--line-height: 1.25rem;
+  --text-sm-body: 0.75rem; /* 12px */
+  --text-sm-body--line-height: 1rem;
 }
 
 /* shadcn/ui design tokens — mapped to TurboFix dark theme */
@@ -65,8 +101,20 @@
   --muted-foreground: #94a3b8;
   --accent: #334155;
   --accent-foreground: #f8fafc;
+  /* #0f172a on #F87171 = 6.45:1 (AA). Was #f8fafc = 2.77:1 (fail). */
   --destructive: #F87171;
-  --destructive-foreground: #f8fafc;
+  --destructive-foreground: #0f172a;
+
+  /* Semantic state colors — WCAG AA verified against their foregrounds */
+  --success: #047857;              /* emerald-700, 5.48:1 on white */
+  --success-foreground: #ffffff;
+  --warning: #b45309;              /* amber-700,   5.02:1 on white */
+  --warning-foreground: #ffffff;
+  --danger: #dc2626;               /* red-600,     4.83:1 on white */
+  --danger-foreground: #ffffff;
+  --info: #2563eb;                 /* blue-600,    5.17:1 on white */
+  --info-foreground: #ffffff;
+
   --ui-border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.1);
   --ring: #25D366;
@@ -93,16 +141,32 @@
   --card-foreground: #0f172a;
   --popover: #f8fafc;
   --popover-foreground: #0f172a;
+  /* Brand green is retained. The foreground flips to near-black because
+     #ffffff on #25D366 is 1.98:1 — a live AA failure on every element using
+     var(--primary)/var(--primary-foreground) (e.g. AppShell.jsx "Report Issue").
+     #0f172a on #25D366 = 9.00:1, matching the dark theme's existing pairing. */
   --primary: #25D366;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #0f172a;
   --secondary: #e2e8f0;
   --secondary-foreground: #0f172a;
   --muted: #cbd5e1;
   --muted-foreground: #475569;
   --accent: #cbd5e1;
   --accent-foreground: #0f172a;
-  --destructive: #EF4444;
+  /* #dc2626 (red-600) = 4.83:1 with white. Was #EF4444 = 3.76:1 (fail). */
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
+
+  /* Semantic state colors — light theme */
+  --success: #047857;
+  --success-foreground: #ffffff;
+  --warning: #b45309;
+  --warning-foreground: #ffffff;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+
   --ui-border: rgba(15, 23, 42, 0.12);
   --input: rgba(15, 23, 42, 0.08);
   --ring: #25D366;
@@ -114,7 +178,7 @@
   --sidebar: #f8fafc;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #25D366;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #0f172a;  /* 9.00:1; was #ffffff at 1.98:1 */
   --sidebar-accent: #e2e8f0;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: rgba(15, 23, 42, 0.08);
