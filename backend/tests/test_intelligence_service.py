@@ -1,360 +1,235 @@
-"""
-Integration tests for intelligence_service.py
+"""Unit tests for intelligence_service — technician load, repeat-failure detection.
 
-Tests AI-powered machine intelligence features:
-- Language detection for multilingual issues
-- Machine record extraction (specs, parts, risks)
-- Repeat failure detection
-- Inventory depletion alerts
-- Maintenance pattern analysis
+HISTORY: this file previously imported `detect_language`, `extract_machine_record`,
+`maintenance_assistant` and `check_inventory` from this module. None of them
+exist here (4 of its 5 imports were unresolvable), so the module failed to import
+and aborted collection for the entire backend suite. It has been rewritten
+against the functions that actually exist.
+
+These functions reach Supabase through the module-level `_client`, so each test
+patches `app.repositories.supabase_repo._client` — no network, no live data.
 """
+
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
 
 from app.services.intelligence_service import (
-    detect_language,
-    extract_machine_record,
-    maintenance_assistant,
     check_repeat_failure,
-    check_inventory,
+    flag_repeat_failure,
+    get_least_loaded_technician,
+    get_technician_load,
+    is_technician_overloaded,
 )
-from app.services.machine_record_service import (
-    analyze_image,
-    extract_machine_record as extract_via_service,
-)
 
 
-# ============================================================================
-# Language Detection Tests
-# ============================================================================
+class FakeClient:
+    """Minimal stand-in for the Supabase client used by intelligence_service."""
 
-def test_detect_language_english():
-    """Test detection of English text."""
-    text = "Motor is making a grinding noise and vibrating excessively"
-    lang = detect_language(text)
-    assert lang == 'en', f"Expected 'en', got '{lang}'"
+    def __init__(self, tickets=None, machines=None, fail_on_update=False):
+        self._tickets = tickets or []
+        self._machines = machines or {}
+        self._fail_on_update = fail_on_update
+        self.updates = []
 
+    def select(self, table, filters):
+        if table == "tickets":
+            return list(self._tickets)
+        return []
 
-def test_detect_language_hindi():
-    """Test detection of Hindi text (Devanagari script)."""
-    text = "मोटर तेल लीक हो रहा है और बहुत गर्म हो गया है"
-    lang = detect_language(text)
-    assert lang == 'hi', f"Expected 'hi', got '{lang}'"
+    def select_one(self, table, filters):
+        if table == "machines":
+            machine_id = str(filters.get("id", "")).replace("eq.", "")
+            return self._machines.get(machine_id)
+        return None
 
-
-def test_detect_language_marathi():
-    """Test detection of Marathi text."""
-    text = "पंप दाब कमी आहे आणि तेल गरम आहे"
-    lang = detect_language(text)
-    assert lang == 'mr', f"Expected 'mr', got '{lang}'"
-
-
-def test_detect_language_mixed_script_defaults_to_primary():
-    """Test mixed language text defaults to primary language."""
-    text = "Motor vibration bad, pressure = 150 bar, तापमान 85°C"
-    lang = detect_language(text)
-    # Should detect as English (primary) despite mixed Hindi numerals
-    assert lang in ['en', 'hi']
+    def update(self, table, filters, values):
+        if self._fail_on_update:
+            raise RuntimeError("supabase unavailable")
+        self.updates.append((table, filters, values))
+        return []
 
 
-@pytest.mark.asyncio
-async def test_detect_language_empty_text():
-    """Test language detection on empty or whitespace-only text."""
-    lang = detect_language("")
-    assert lang == 'en'  # Default fallback
-
-    lang = detect_language("   \n\t  ")
-    assert lang == 'en'  # Default fallback
+def with_client(client):
+    return patch("app.repositories.supabase_repo._client", client)
 
 
-# ============================================================================
-# Machine Record Extraction Tests
-# ============================================================================
+# ---------------------------------------------------------------------------
+# Technician load
+# ---------------------------------------------------------------------------
 
-@pytest.mark.asyncio
-async def test_extract_machine_record_from_text():
-    """Test extracting structured data from issue description."""
-    text = """
-    Model: ABB M2AA132S-4, 9.2kW motor assembly
-    Issue: Bearing noise during startup, takes 30sec to smooth out
-    Last service: 2026-03-15 (replaced seals)
-    Current: 15A, Voltage: 440V, Temperature: 68°C
-    Vibration: 4.5mm/s RMS (normal: <3mm/s)
-    """
-
-    extraction = await extract_machine_record(text)
-
-    assert extraction is not None
-    assert 'machine_identity' in extraction
-    assert 'maintenance_tasks' in extraction or 'specifications' in extraction
-
-    # Should extract:
-    # - Model: ABB M2AA132S-4
-    # - Issue classification: bearing-related
-    # - Last service date
-    # - Current electrical parameters
-    # - Vibration measurement
-
-
-@pytest.mark.asyncio
-async def test_extract_machine_record_from_photo():
-    """Test extracting data from machine photo (vision AI)."""
-    # Mock image analysis
-    image_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-
-    with patch('app.services.machine_record_service.analyze_image') as mock_analyze:
-        mock_analyze.return_value = {
-            'equipment': 'Electric Motor',
-            'visible_damage': ['oil_leak', 'corrosion_on_frame'],
-            'specifications': {'power_rating': '15kW', 'voltage': '440V'},
-            'parts_visible': ['bearing', 'fan_cover', 'terminal_box'],
-            'confidence': 0.85,
-        }
-
-        extraction = await extract_machine_record(
-            image=image_base64,
-            context_machine_id='M042'
-        )
-
-        mock_analyze.assert_called_once()
-        assert extraction is not None
-
-
-@pytest.mark.asyncio
-async def test_extract_prioritizes_confidence_over_volume():
-    """Test that high-confidence extractions are preferred over quantity."""
-    # Two extraction sources: photo (high confidence) vs OCR (low confidence)
-    # Should prioritize photo
-
-
-@pytest.mark.asyncio
-async def test_extract_normalizes_conflicting_data():
-    """Test handling when two sources give conflicting specs."""
-    # Source 1 (photo): Model ABB M2AA132S-4
-    # Source 2 (datasheet OCR): Model ABB M2AA132S-6
-    # Should flag as AMBIGUOUS and require confirmation
-
-
-# ============================================================================
-# Repeat Failure Detection Tests
-# ============================================================================
-
-def test_check_repeat_failure_first_occurrence():
-    """Test first occurrence of an issue (no repeat yet)."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
-
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,
-        threshold=2
+def test_technician_load_counts_open_tickets_per_technician():
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}, {"machine_id": "M1"}, {"machine_id": "M2"}],
+        machines={
+            "M1": {"assigned_technician_phone": "+911111111111"},
+            "M2": {"assigned_technician_phone": "+922222222222"},
+        },
     )
+    with with_client(client):
+        load = get_technician_load("F1")
 
-    assert result is False  # No previous occurrences
+    assert {item["phone"]: item["open_tickets"] for item in load} == {
+        "+911111111111": 2,
+        "+922222222222": 1,
+    }
 
 
-def test_check_repeat_failure_within_threshold():
-    """Test detecting repeat failure within threshold window."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
-
-    # Seed: create first ticket for this issue
-    # Then create second ticket
-    # check_repeat_failure should return True
-
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,
-        threshold=2
+def test_technician_load_is_sorted_least_loaded_first():
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}, {"machine_id": "M1"}, {"machine_id": "M2"}],
+        machines={
+            "M1": {"assigned_technician_phone": "+911111111111"},
+            "M2": {"assigned_technician_phone": "+922222222222"},
+        },
     )
+    with with_client(client):
+        load = get_technician_load("F1")
 
-    assert result is True
+    assert [item["open_tickets"] for item in load] == [1, 2]
 
 
-def test_check_repeat_failure_outside_threshold():
-    """Test repeat failure is NOT detected if outside time window."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
+def test_technician_load_skips_tickets_without_machine():
+    client = FakeClient(tickets=[{"machine_id": ""}, {}], machines={})
+    with with_client(client):
+        assert get_technician_load("F1") == []
 
-    # First occurrence 60 days ago
-    # Second occurrence today
-    # With days=30 threshold, should NOT detect repeat
 
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,  # Only look back 30 days
-        threshold=2
+def test_technician_load_skips_machines_without_assigned_technician():
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}],
+        machines={"M1": {"assigned_technician_phone": ""}},
     )
+    with with_client(client):
+        assert get_technician_load("F1") == []
 
-    assert result is False
+
+def test_technician_load_is_empty_with_no_tickets():
+    with with_client(FakeClient()):
+        assert get_technician_load("F1") == []
 
 
-def test_check_repeat_failure_similar_issues():
-    """Test that similar issues (not exact match) are grouped."""
-    machine_id = 'M042'
-    factory_id = 'F001'
+# ---------------------------------------------------------------------------
+# Delegation
+# ---------------------------------------------------------------------------
 
-    # Ticket 1: "Bearing making noise"
-    # Ticket 2: "Bearing squeaking sound"
-    # Should detect as repeat (semantic similarity)
-
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue="Bearing squeaking sound",
-        factory_id=factory_id,
-        days=30,
-        threshold=2
+def test_least_loaded_technician_picks_the_quietest_candidate():
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}, {"machine_id": "M1"}, {"machine_id": "M2"}],
+        machines={
+            "M1": {"assigned_technician_phone": "+91BUSY"},
+            "M2": {"assigned_technician_phone": "+91QUIET"},
+        },
     )
+    with with_client(client):
+        assert get_least_loaded_technician("F1", ["+91BUSY", "+91QUIET"]) == "+91QUIET"
 
-    assert result is True  # Semantic match to "bearing noise"
 
-
-def test_check_repeat_failure_different_machines_not_grouped():
-    """Test that issues on different machines are NOT grouped."""
-    machine_id_1 = 'M042'
-    machine_id_2 = 'M043'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
-
-    # Both machines have bearing issues, but should not cross-correlate
-    result = check_repeat_failure(
-        machine_id=machine_id_1,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,
-        threshold=2
+def test_least_loaded_technician_prefers_a_candidate_with_no_tickets_at_all():
+    """A technician absent from the load map has zero open tickets."""
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}],
+        machines={"M1": {"assigned_technician_phone": "+91BUSY"}},
     )
+    with with_client(client):
+        assert get_least_loaded_technician("F1", ["+91BUSY", "+91IDLE"]) == "+91IDLE"
 
-    # Should be False (no history on M042 yet)
-    assert result is False
+
+def test_least_loaded_technician_returns_none_without_candidates():
+    with with_client(FakeClient()):
+        assert get_least_loaded_technician("F1", []) is None
 
 
-# ============================================================================
-# Inventory Depletion Alert Tests
-# ============================================================================
-
-def test_check_inventory_sufficient_stock():
-    """Test no alert when spare parts stock is sufficient."""
-    part_id = 'P123'  # Bearing replacement kit
-    quantity_used = 2
-    factory_id = 'F001'
-
-    result = check_inventory(
-        part_id=part_id,
-        quantity_needed=quantity_used,
-        factory_id=factory_id,
-        days_ahead=7
+def test_least_loaded_technician_keeps_first_candidate_on_a_tie():
+    """Stable choice so repeated assignment is predictable."""
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}, {"machine_id": "M2"}],
+        machines={
+            "M1": {"assigned_technician_phone": "+91A"},
+            "M2": {"assigned_technician_phone": "+91B"},
+        },
     )
-
-    # Should return: { alert: False, stock: 15 }
-    assert result is not None
-    assert result.get('alert') is False
+    with with_client(client):
+        assert get_least_loaded_technician("F1", ["+91A", "+91B"]) == "+91A"
 
 
-def test_check_inventory_low_stock_alert():
-    """Test alert triggered when stock falls below safety threshold."""
-    part_id = 'P456'  # Hydraulic seal kit
-    quantity_used = 8
-    factory_id = 'F001'
-
-    # Suppose current stock = 10, after use = 2
-    result = check_inventory(
-        part_id=part_id,
-        quantity_needed=quantity_used,
-        factory_id=factory_id,
-        days_ahead=7
+@pytest.mark.parametrize("ticket_count,threshold,expected", [
+    (3, 3, True), (4, 3, True), (2, 3, False),
+])
+def test_is_technician_overloaded_at_threshold(ticket_count, threshold, expected):
+    client = FakeClient(
+        tickets=[{"machine_id": "M1"}] * ticket_count,
+        machines={"M1": {"assigned_technician_phone": "+91A"}},
     )
-
-    # Should return: { alert: True, stock: 2, threshold: 5 }
-    assert result is not None
-    assert result.get('alert') is True
+    with with_client(client):
+        assert is_technician_overloaded("+91A", "F1", threshold=threshold) is expected
 
 
-def test_check_inventory_predicts_future_need():
-    """Test inventory check predicts if stock will be depleted in N days."""
-    part_id = 'P789'  # Motor coupling
-    factory_id = 'F001'
-
-    # Current stock: 5
-    # Historical usage: 2 per week
-    # days_ahead: 14
-    # Predicted usage in 14 days: 4 units
-    # Predicted stock: 1 unit (below threshold)
-
-    result = check_inventory(
-        part_id=part_id,
-        quantity_needed=0,  # No immediate need
-        factory_id=factory_id,
-        days_ahead=14
-    )
-
-    if result.get('alert') is True:
-        assert result.get('projected_depletion_date') is not None
+def test_unknown_technician_is_not_overloaded():
+    with with_client(FakeClient()):
+        assert is_technician_overloaded("+91GHOST", "F1") is False
 
 
-# ============================================================================
-# Maintenance Assistant Tests
-# ============================================================================
+# ---------------------------------------------------------------------------
+# Repeat failure detection
+# ---------------------------------------------------------------------------
 
-@pytest.mark.asyncio
-async def test_maintenance_assistant_scoped_to_machine():
-    """Test AI assistant is scoped to machine-specific context."""
-    machine_id = 'M042'
-    factory_id = 'F001'
-    question = "What is the recommended bearing replacement interval?"
+def test_repeat_failure_triggers_above_threshold():
+    with with_client(FakeClient(tickets=[{"id": "T1"}, {"id": "T2"}, {"id": "T3"}])):
+        result = check_repeat_failure("F1", "M1", days=30, threshold=2)
 
-    with patch('app.services.machine_record_service.maintenance_assistant') as mock_ai:
-        mock_ai.return_value = {
-            'answer': '1000 operating hours for this bearing type',
-            'sources': ['machine_manual_P123', 'service_log_2026-03'],
-            'confidence': 0.92,
-        }
-
-        result = await maintenance_assistant(
-            machine_id=machine_id,
-            factory_id=factory_id,
-            question=question
-        )
-
-        mock_ai.assert_called_once()
-        # Verify context included machine specs, maintenance history
-        assert result is not None
+    assert result["is_repeat_failure"] is True
+    assert result["ticket_count_in_period"] == 3
+    assert result["period_days"] == 30
+    assert result["threshold"] == 2
 
 
-@pytest.mark.asyncio
-async def test_maintenance_assistant_prevents_cross_tenant_info_leak():
-    """Test that assistant cannot access other company's machine data."""
-    # Company A factory, Company B machine ID
-    # Should fail with PermissionError or return empty result
+def test_repeat_failure_is_strictly_greater_than_threshold():
+    """Exactly `threshold` tickets is not yet a repeat failure."""
+    with with_client(FakeClient(tickets=[{"id": "T1"}, {"id": "T2"}])):
+        assert check_repeat_failure("F1", "M1", threshold=2)["is_repeat_failure"] is False
 
 
-@pytest.mark.asyncio
-async def test_maintenance_assistant_rejects_invalid_questions():
-    """Test rejection of out-of-scope questions."""
-    machine_id = 'M042'
-    factory_id = 'F001'
-    out_of_scope = "What is the capital of France?"
+def test_repeat_failure_false_with_no_tickets():
+    with with_client(FakeClient()):
+        result = check_repeat_failure("F1", "M1")
 
-    with patch('app.services.machine_record_service.maintenance_assistant') as mock_ai:
-        mock_ai.return_value = {
-            'answer': 'Cannot answer: question is out of scope for machine maintenance',
-            'confidence': 1.0,
-        }
+    assert result["is_repeat_failure"] is False
+    assert result["ticket_count_in_period"] == 0
 
-        result = await maintenance_assistant(
-            machine_id=machine_id,
-            factory_id=factory_id,
-            question=out_of_scope
-        )
 
-        assert 'out of scope' in result.get('answer', '').lower()
+def test_repeat_failure_queries_the_requested_window():
+    """The cutoff must reflect the `days` argument, not a hardcoded 30."""
+    captured = {}
+
+    class CapturingClient(FakeClient):
+        def select(self, table, filters):
+            captured.update(filters)
+            return []
+
+    with with_client(CapturingClient()):
+        check_repeat_failure("F1", "M1", days=7)
+
+    cutoff = datetime.fromisoformat(captured["created_at"].replace("gte.", ""))
+    expected = datetime.now(timezone.utc) - timedelta(days=7)
+    assert abs((cutoff - expected).total_seconds()) < 60
+    assert captured["machine_id"] == "eq.M1"
+    assert captured["factory_id"] == "eq.F1"
+
+
+def test_flag_repeat_failure_writes_flag_and_count():
+    client = FakeClient()
+    with with_client(client):
+        assert flag_repeat_failure("T1", 4) is True
+
+    table, filters, values = client.updates[0]
+    assert table == "tickets"
+    assert filters == {"id": "eq.T1"}
+    assert values == {"repeat_failure_flag": True, "repeat_failure_count": 4}
+
+
+def test_flag_repeat_failure_returns_false_when_the_write_fails():
+    """A storage outage must not raise into the ticket-creation path."""
+    with with_client(FakeClient(fail_on_update=True)):
+        assert flag_repeat_failure("T1", 4) is False

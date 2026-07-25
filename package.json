@@ -8,7 +8,10 @@
     "build": "vite build && cp dist/index.html dist/404.html && cp dist/index.html dist/why-turbofix.html && cp dist/index.html dist/dashboard.html && cp dist/index.html dist/qr-generator.html && cp dist/index.html dist/reset-password.html && cp dist/index.html dist/machines.html && cp dist/index.html dist/tickets.html && cp dist/index.html dist/team.html && cp dist/index.html dist/settings.html && cp dist/index.html dist/assistant.html && cp dist/index.html dist/shutdown-planner.html && cp dist/index.html dist/technician.html && cp dist/index.html dist/records.html && cp dist/index.html dist/support.html && cp dist/index.html dist/qr-gateway.html && cp dist/index.html dist/login.html",
     "lint": "oxlint",
     "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.verification.json",
     "test:unit": "vitest",
+    "test:verification": "vitest run src/__tests__/verification",
+    "test:verification:e2e": "playwright test tests/verification-flow.spec.js",
     "test:dashboard": "vitest run src/__tests__/dashboard.test.js",
     "test:lay-owner": "playwright test tests/lay-owner-dashboard.spec.js",
     "test:e2e": "playwright test",
@@ -70,6 +73,7 @@
     "gh-pages": "^6.3.0",
     "jsdom": "^29.1.1",
     "oxlint": "^1.71.0",
+    "typescript": "^5.7.3",
     "vite": "^8.1.1",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.10"

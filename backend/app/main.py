@@ -27,6 +27,7 @@ from app.repositories.sheets.client import SheetsUnavailableError
 from app.routers.admin_router import router as admin_router
 from app.routers.report_router import router as report_router
 from app.routers.auth_router import router as auth_router
+from app.routers.analytics_router import router as analytics_router
 from app.routers.dashboard_router import router as dashboard_router
 from app.routers.kpi_router import router as kpi_router
 from app.routers.machine_records_router import router as machine_records_router
@@ -206,6 +207,7 @@ app.include_router(auth_router)
 app.include_router(vault_router)
 app.include_router(machine_records_router)
 app.include_router(dashboard_router)
+app.include_router(analytics_router)
 app.include_router(kpi_router)
 app.include_router(admin_router)
 app.include_router(report_router)

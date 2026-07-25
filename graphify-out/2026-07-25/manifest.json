@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1784982667.0444596,
-    "ast_hash": "127a684cb90556cd461115bfe396c35d",
+    "mtime": 1784983597.734254,
+    "ast_hash": "16a52d3a34a12ef3dacdc016cefe683d",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1784980867.016704,
-    "ast_hash": "bb3ee7bfbef3093ab6789d398dde5bb0",
+    "mtime": 1784983706.1406543,
+    "ast_hash": "b19b0739d057b965ffb0202b75099c60",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -1550,19 +1550,19 @@
     "semantic_hash": "40142e1dbc5ef10b9c9d119cb5d1bf24"
   },
   "docs/TURBOFIX_FEATURE_TICKET_LIST.md": {
-    "mtime": 1784873266.3703935,
-    "ast_hash": "549dd136061482c1c0269c782d450247",
-    "semantic_hash": "549dd136061482c1c0269c782d450247"
+    "mtime": 1784986483.9712865,
+    "ast_hash": "c3d94620df5c8c8c6f60435627cc73c8",
+    "semantic_hash": ""
   },
   "docs/TURBOFIX_FRONTEND_SPEC.md": {
-    "mtime": 1784873260.4127407,
-    "ast_hash": "580307358de78f5518f379eb1fa1e454",
-    "semantic_hash": "580307358de78f5518f379eb1fa1e454"
+    "mtime": 1784986316.8381197,
+    "ast_hash": "07740721b299f89b5dc589678ce9cf7d",
+    "semantic_hash": ""
   },
   "docs/TURBOFIX_PRD.md": {
-    "mtime": 1784873243.295514,
-    "ast_hash": "023f5982ddbcf5dc3e8a9e7203fb15b9",
-    "semantic_hash": "023f5982ddbcf5dc3e8a9e7203fb15b9"
+    "mtime": 1784986303.8689902,
+    "ast_hash": "725de3f7aaec7af4f4b555de14140be8",
+    "semantic_hash": ""
   },
   "docs/TURBOFIX_SECURITY_ACCESS.md": {
     "mtime": 1784873255.0793478,
@@ -2057,6 +2057,21 @@
   "DASHBOARD_FIXES_SUMMARY.md": {
     "mtime": 1784982705.0686371,
     "ast_hash": "38c49a1fb9bd3d9cf3e5705e086eb583",
+    "semantic_hash": ""
+  },
+  "SESSION_COMPLETION_REPORT.md": {
+    "mtime": 1784982741.8764284,
+    "ast_hash": "a41c0c4ca415e87e9f3bbc9dabe6834d",
+    "semantic_hash": ""
+  },
+  "REQUIREMENTS_VALIDATION_REPORT.md": {
+    "mtime": 1784989844.5989437,
+    "ast_hash": "dc419c59027a0b1edea8a0ba4c7fede8",
+    "semantic_hash": ""
+  },
+  "AGENT_DEPLOYMENT_TRACKER.md": {
+    "mtime": 1784989990.2316313,
+    "ast_hash": "161922e8f36cc361a2d4591e9e5835dc",
     "semantic_hash": ""
   }
 }

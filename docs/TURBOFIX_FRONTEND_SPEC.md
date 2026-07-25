@@ -61,6 +61,13 @@ To guarantee operation in signal-dead areas of a factory, TurboFix uses a Servic
 - Review before submit
 - Show WO number and technician name at success
 
+### Technician
+- Show only active work first
+- Put machine context on one screen
+- Keep voice, photo, QR, and typed notes available
+- Keep open work, evidence, and verification in the same flow
+- Avoid extra pages while the technician is on the shop floor
+
 ## Mobile behavior
 
 - Big enough tap targets

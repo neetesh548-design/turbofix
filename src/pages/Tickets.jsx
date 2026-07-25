@@ -6,6 +6,27 @@ import QuickReportDialog from '../components/QuickReportDialog';
 import EmptyState from '../components/EmptyState';
 import { Ticket } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import VerificationFlow from '../components/Verification/VerificationFlow';
+import { getGoverningVerification } from '../lib/verification/verificationApi';
+import { APPROVER_ROLES } from '../lib/verification/types';
+
+/**
+ * The signed-in user, shaped for the verification feature. Read from the same
+ * `tf_user` blob the rest of the app uses so there is one source of identity.
+ */
+function readCurrentActor() {
+  try {
+    const raw = localStorage.getItem('tf_user');
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      id: parsed?.id || parsed?.user_id || null,
+      name: parsed?.name || parsed?.email || 'Unknown user',
+      role: parsed?.role || 'maintenance_technician',
+    };
+  } catch {
+    return { id: null, name: 'Unknown user', role: 'maintenance_technician' };
+  }
+}
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
 const LIFECYCLE = {
@@ -92,6 +113,15 @@ export default function Tickets() {
   const [machinesList, setMachinesList] = useState([]);
   const [techniciansList, setTechniciansList] = useState([]);
   const [quickReportOpen, setQuickReportOpen] = useState(false);
+  const currentActor = React.useMemo(() => readCurrentActor(), []);
+  const currentCompanyId = React.useMemo(() => {
+    try {
+      const raw = localStorage.getItem('tf_user');
+      return raw ? (JSON.parse(raw)?.company_id ?? null) : null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     document.title = 'Tickets | TurboFix';
@@ -194,12 +224,28 @@ export default function Tickets() {
     }
   };
 
+  /**
+   * Closure is gated on an approved verification. The database refuses the
+   * update anyway (trg_enforce_verification_before_closure), but checking here
+   * lets us open the verification panel and explain, instead of surfacing a
+   * raw Postgres exception to a supervisor on the shop floor.
+   */
   const handleCloseTicket = async (ticketId) => {
-    if (!window.confirm('Close this work order directly? This bypasses the technician repair record and supervisor verification.')) return;
     setError('');
     setSuccess('');
     try {
-      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', ticketId);
+      const verification = await getGoverningVerification(ticketId);
+      if (!verification || verification.status !== 'approved') {
+        setExpandedId(ticketId);
+        setError(
+          'This work order cannot be closed without an approved verification. Use the Verification panel below to capture evidence and get sign-off.',
+        );
+        return;
+      }
+      const { error: updateErr } = await supabase
+        .from('tickets')
+        .update({ status: 'resolved', lifecycle_stage: 'closed' })
+        .eq('id', ticketId);
       if (updateErr) throw new Error(updateErr.message);
       setSuccess(`Ticket ${ticketId.substring(0, 8)} has been successfully closed.`);
       fetchTicketsAndEscalation();
@@ -456,7 +502,7 @@ export default function Tickets() {
                             <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.9rem' }}>{firstTicket.description || (firstTicket.ai_summary && firstTicket.ai_summary.predicted_issue) || '—'}</p>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', minWidth: '140px' }}>
-                            <button className="vault-btn vault-btn-primary" style={{ padding: '8px 14px', fontSize: '0.75rem' }} onClick={() => handleCloseTicket(ticketId)}>
+                            <button className="vault-btn vault-btn-primary" style={{ padding: '8px 14px', fontSize: '0.75rem' }} onClick={() => updateLifecycleStage(ticketId, 'work_started')}>
                               Start work
                             </button>
                             <button className="vault-btn vault-btn-secondary" style={{ padding: '8px 14px', fontSize: '0.75rem' }} onClick={() => setExpandedId(isExpanded ? null : ticketId)}>
@@ -484,6 +530,19 @@ export default function Tickets() {
                                 <span style={{ color: value ? 'white' : 'var(--slate)', fontSize: '0.85rem' }}>{value || '—'}</span>
                               </div>
                             ))}
+                          </div>
+
+                          {/* Closed-loop gate: no closure without evidence and sign-off. */}
+                          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                            <VerificationFlow
+                              ticketId={ticketId}
+                              actor={currentActor}
+                              companyId={currentCompanyId}
+                              workOrderLabel={`${firstTicket.wo_number || ''} ${firstTicket.machine_name || ''}`.trim()}
+                              ticketClosed={_status === 'closed' || _status === 'resolved'}
+                              allowOverride={APPROVER_ROLES.includes(currentActor.role)}
+                              onChange={fetchTicketsAndEscalation}
+                            />
                           </div>
                         </div>
                       )}
@@ -731,8 +790,14 @@ export default function Tickets() {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         {status === 'open' ? (
-                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); handleCloseTicket(ticketId); }}>
-                            Direct close
+                          <button
+                            className="vault-btn vault-btn-danger"
+                            style={{ padding: '6px 14px', fontSize: '0.75rem' }}
+                            title="Requires an approved verification"
+                            data-testid="ticket-close"
+                            onClick={(e) => { e.stopPropagation(); handleCloseTicket(ticketId); }}
+                          >
+                            Close
                           </button>
                         ) : (
                           <span style={{ fontSize: '0.8rem', color: 'var(--slate-light)' }}>
@@ -790,16 +855,24 @@ export default function Tickets() {
                               >
                                 ✓ Repair Completed
                               </button>
-                              <button
-                                type="button"
-                                className="vault-btn vault-btn-primary"
-                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'closed', 'resolved'); }}
-                              >
-                                Verify &amp; Close
-                              </button>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--slate)' }}>
+                                Closure happens in the Verification panel below.
+                              </span>
                             </div>
                           )}
+
+                          {/* Closed-loop gate: no closure without evidence and sign-off. */}
+                          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }} onClick={(e) => e.stopPropagation()}>
+                            <VerificationFlow
+                              ticketId={ticketId}
+                              actor={currentActor}
+                              companyId={currentCompanyId}
+                              workOrderLabel={`${t.wo_number || ''} ${t.machine_name || ''}`.trim()}
+                              ticketClosed={isClosed}
+                              allowOverride={APPROVER_ROLES.includes(currentActor.role)}
+                              onChange={fetchTicketsAndEscalation}
+                            />
+                          </div>
                           {t.ai_summary?.photo_url && (
                             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                               <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Photo</small>

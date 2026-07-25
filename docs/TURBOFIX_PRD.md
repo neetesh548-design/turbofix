@@ -13,6 +13,18 @@ TurboFix helps a factory keep machines running by making it easy to report probl
 - Let people review and correct important data.
 - Close the loop from issue to verified repair.
 
+## Technician requirement
+
+TurboFix must work for a technician standing beside the machine.
+
+- Show assigned jobs, urgent breakdowns, PM due today, approvals, and safety alerts first.
+- Let the technician scan QR, see full machine context, and start work in one flow.
+- Prefer voice, photos, QR, and auto-filled data over typing.
+- Show current issue, repair history, PM history, parts, manuals, drawings, and known failures on the machine page.
+- Suggest probable causes, checks, tools, spares, safety steps, and repair time.
+- Record work automatically and close the loop with verification, KPIs, and machine history.
+- Keep offline use, re-recording, and correction available when connectivity is poor.
+
 ## Main users
 
 - Operator

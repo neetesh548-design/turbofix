@@ -37,6 +37,13 @@
 - Mobile-friendly QR Gateway
 - Typed fallback when needed
 
+### 8. Technician requirements
+- Show assigned jobs, urgent breakdowns, PM due today, approvals, and safety alerts first.
+- Show full machine context on one screen after QR scan.
+- Prefer voice, photos, QR, and auto-filled data over typing.
+- Suggest probable cause, checks, tools, spares, and safety steps.
+- Record work automatically and keep verification in the same loop.
+
 ### 8. Data and analytics
 - Keep analytics as the engine
 - Keep TurboFix as the workflow layer
