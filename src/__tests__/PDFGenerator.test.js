@@ -251,7 +251,11 @@ describe('PDFGenerator Utility', () => {
   describe('generateCSVExport', () => {
     beforeEach(() => {
       // Mock DOM methods
-      global.Blob = vi.fn(() => ({}));
+      global.Blob = vi.fn(function(parts, options) {
+        this.size = parts ? parts.join('').length : 0;
+        this.type = options?.type || '';
+        this.slice = vi.fn();
+      });
       global.URL = {
         createObjectURL: vi.fn(() => 'blob:mock-url'),
         revokeObjectURL: vi.fn(),

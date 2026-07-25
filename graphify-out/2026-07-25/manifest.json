@@ -545,9 +545,9 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1784966397.593227,
-    "ast_hash": "a6f789001458b596a6cea1be588e798d",
-    "semantic_hash": "a6f789001458b596a6cea1be588e798d"
+    "mtime": 1784977919.582927,
+    "ast_hash": "2d70fcdffe5a3e6b2a4a333180b25190",
+    "semantic_hash": ""
   },
   "playwright.config.js": {
     "mtime": 1784880227.2622151,
@@ -595,9 +595,9 @@
     "semantic_hash": "5f626ebf66b993c0863124c5ad9a557b"
   },
   "src/__tests__/setup.js": {
-    "mtime": 1784549826.2650838,
-    "ast_hash": "b773519b212119f61372d38c3f5fa0d2",
-    "semantic_hash": "b773519b212119f61372d38c3f5fa0d2"
+    "mtime": 1784977425.4529955,
+    "ast_hash": "2e0cadbfabc1d43f114c25e012ba6607",
+    "semantic_hash": ""
   },
   "src/__tests__/translations.test.js": {
     "mtime": 1784549841.6300585,
@@ -785,9 +785,9 @@
     "semantic_hash": "79bf872e4a1be704118515dfd5674b87"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1784904179.8593402,
-    "ast_hash": "ca48b618162ea4790f368d53e90a8065",
-    "semantic_hash": "ca48b618162ea4790f368d53e90a8065"
+    "mtime": 1784978187.3731396,
+    "ast_hash": "a37d3560339b8faaab225808e3090f00",
+    "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
     "mtime": 1784836739.3028007,
@@ -880,9 +880,9 @@
     "semantic_hash": "ba4646de8f69f83cdd94aa2fb0437f37"
   },
   "src/utils/i18n.js": {
-    "mtime": 1784901376.8838634,
-    "ast_hash": "bbd08ff1a45a60d3ea03251a0d297e04",
-    "semantic_hash": "bbd08ff1a45a60d3ea03251a0d297e04"
+    "mtime": 1784978112.60796,
+    "ast_hash": "498e3dec64f79e51b6bf19826efb2972",
+    "semantic_hash": ""
   },
   "src/utils/performance.jsx": {
     "mtime": 1784575285.8857393,
@@ -1720,9 +1720,9 @@
     "semantic_hash": "5bb4259a8352860069c1b46a83572b9a"
   },
   "src/utils/i18n-provider.jsx": {
-    "mtime": 1784901371.1192145,
-    "ast_hash": "f3ad1f5cee2cf3cdbe4a8412d27e1425",
-    "semantic_hash": "f3ad1f5cee2cf3cdbe4a8412d27e1425"
+    "mtime": 1784977273.0593555,
+    "ast_hash": "4a232970e58965ccda50d58d7b0310da",
+    "semantic_hash": ""
   },
   "ANTD_FOUNDATION_SUMMARY.md": {
     "mtime": 1784901482.2789822,
@@ -1850,7 +1850,7 @@
     "semantic_hash": "1173e646503fcb98ae218dc4c0b46bb2"
   },
   "PLAYWRIGHT_UX_AUDIT.md": {
-    "mtime": 1784966196.5042043,
+    "mtime": 1784977221.1326377,
     "ast_hash": "bdb7856355bd377213134eacc80c8d41",
     "semantic_hash": "bdb7856355bd377213134eacc80c8d41"
   },
@@ -1928,5 +1928,105 @@
     "mtime": 1784971437.0884662,
     "ast_hash": "a83898c654a7fb7861a8a36ddab6c83f",
     "semantic_hash": "a83898c654a7fb7861a8a36ddab6c83f"
+  },
+  ".claude/workflows/RUN_TEST.sh": {
+    "mtime": 1784977221.1311512,
+    "ast_hash": "df0b3da411320397669a8c7d32fbbb54",
+    "semantic_hash": ""
+  },
+  ".claude/agents/approver.md": {
+    "mtime": 1784977221.1302006,
+    "ast_hash": "956cca36178643bf19c5ca472829a90f",
+    "semantic_hash": ""
+  },
+  ".claude/agents/creator.md": {
+    "mtime": 1784977221.1304748,
+    "ast_hash": "50d7bd8e4eac1fceb13d8b7beaea8af8",
+    "semantic_hash": ""
+  },
+  ".claude/agents/reviewer.md": {
+    "mtime": 1784977221.130681,
+    "ast_hash": "56e1e7c8f635d4c3b038aeb819c005bc",
+    "semantic_hash": ""
+  },
+  ".claude/workflows/EXAMPLES.md": {
+    "mtime": 1784977221.1309812,
+    "ast_hash": "24fcd3da376deb243c317d48f1fee151",
+    "semantic_hash": ""
+  },
+  ".claude/workflows/SETUP.md": {
+    "mtime": 1784977221.1313412,
+    "ast_hash": "dbba66e1a5755c48217dbdc8060643d0",
+    "semantic_hash": ""
+  },
+  ".claude/workflows/TEST_FEATURE.md": {
+    "mtime": 1784977221.1314607,
+    "ast_hash": "843e86c6d9615eb2b3c0706dbd859d26",
+    "semantic_hash": ""
+  },
+  ".claude/workflows/turbofix-create-review-approve.yaml": {
+    "mtime": 1784977221.1316676,
+    "ast_hash": "894361b0f15cb33179514a0f83e6d108",
+    "semantic_hash": ""
+  },
+  "PHASE_1_ACTION_PLAN.md": {
+    "mtime": 1784977221.1322954,
+    "ast_hash": "8e2d745cf40d0a22e07c34c92f601b57",
+    "semantic_hash": ""
+  },
+  "PHASE_1_TESTING_GUIDE.html": {
+    "mtime": 1784977221.132453,
+    "ast_hash": "c4a94de57b7f89eec6184df1688c4e2b",
+    "semantic_hash": ""
+  },
+  "src/__tests__/CounterWidget.e2e.js": {
+    "mtime": 1784977221.1721227,
+    "ast_hash": "ece471e2e7b3cc95c10b88b786a5e403",
+    "semantic_hash": ""
+  },
+  "src/__tests__/CounterWidget.test.jsx": {
+    "mtime": 1784977437.904351,
+    "ast_hash": "8f01743c89aff15cfb44852736b4ada8",
+    "semantic_hash": ""
+  },
+  "src/components/Counter/CounterWidget.jsx": {
+    "mtime": 1784977291.1595442,
+    "ast_hash": "a7d6f40e53735be55eccf34c32b05e19",
+    "semantic_hash": ""
+  },
+  "src/components/Counter/useCounter.js": {
+    "mtime": 1784977221.1729107,
+    "ast_hash": "65f1168fcd9b01a6bee6b565dd272000",
+    "semantic_hash": ""
+  },
+  "src/__tests__/ExportButton.test.jsx": {
+    "mtime": 1784978161.5885124,
+    "ast_hash": "9e098f2ae40cce2acbb5eac62e157d7e",
+    "semantic_hash": ""
+  },
+  "src/__tests__/PDFGenerator.test.js": {
+    "mtime": 1784978137.3775725,
+    "ast_hash": "6a8fbe0ffd8b1de65e40f01c0db32556",
+    "semantic_hash": ""
+  },
+  "src/components/Dashboard/ExportButton.jsx": {
+    "mtime": 1784978014.4227798,
+    "ast_hash": "17e2c1b6e5393226547caab23b8b17b2",
+    "semantic_hash": ""
+  },
+  "src/components/Dashboard/ExportDialog.jsx": {
+    "mtime": 1784978019.0753553,
+    "ast_hash": "71d70ee94a2b4e2f867a7442757400ba",
+    "semantic_hash": ""
+  },
+  "src/utils/PDFGenerator.js": {
+    "mtime": 1784977956.1575325,
+    "ast_hash": "48f8baae5b028661fd1134d1107d4e9d",
+    "semantic_hash": ""
+  },
+  ".claude/workflows/PRODUCTION_GUIDE.md": {
+    "mtime": 1784977763.420512,
+    "ast_hash": "53b3356d6fc2de6492f0805a45ff7631",
+    "semantic_hash": ""
   }
 }

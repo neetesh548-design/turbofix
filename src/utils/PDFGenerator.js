@@ -49,7 +49,6 @@ export function formatDate(date, locale = 'en-IN') {
 export function createPDFTemplate(dashboardData, companyName = 'TurboFix', options = {}) {
   const {
     includeKPIs = true,
-    includeCharts = true,
     includeMachines = true,
     exportedAt = new Date(),
   } = options;
