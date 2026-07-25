@@ -119,7 +119,7 @@ export default function Login() {
             {view === 'login' ? (
               <>
                 <div className="text-center mb-8">
-                  <h1 className="text-2xl font-bold text-white mb-2" style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>Staff Sign-In</h1>
+                  <h1 className="text-2xl font-bold text-white mb-2">Staff Sign-In</h1>
                   <p className="text-slate-400 text-sm">Access your TurboFix enterprise portal.</p>
                 </div>
 
@@ -171,7 +171,7 @@ export default function Login() {
             ) : (
               <>
                 <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold text-white mb-2" style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>Register Company</h1>
+                  <h1 className="text-2xl font-bold text-white mb-2">Register Company</h1>
                   <p className="text-slate-400 text-sm">Create an owner account for your factory.</p>
                 </div>
 
