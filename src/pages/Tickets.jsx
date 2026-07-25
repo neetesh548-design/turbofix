@@ -4,8 +4,9 @@ import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import QuickReportDialog from '../components/QuickReportDialog';
 import EmptyState from '../components/EmptyState';
-import { Ticket } from 'lucide-react';
+import { Ticket, Archive, Download } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '../utils/ticketArchive';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
 const LIFECYCLE = {
@@ -235,9 +236,11 @@ export default function Tickets() {
   };
 
   const isUrgent = (ticket) => ['high', 'critical'].includes(String(ticket.urgency).toLowerCase());
-  const openCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open').length;
-  const urgentCount = tickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket)).length;
-  const closedCount = tickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
+  const { activeTickets, archivedTickets } = partitionTickets(tickets);
+  const openCount = activeTickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open').length;
+  const urgentCount = activeTickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket)).length;
+  const recentClosedCount = activeTickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
+  const archivedCount = archivedTickets.length;
   
   const visibleTickets = tickets.filter((t) => {
     // 1. Text Search Filter (WO, machine name, issue text, phone, etc.)
@@ -254,14 +257,21 @@ export default function Tickets() {
     // 2. Machine Filter
     const matchesMachine = filterMachine === 'all' || String(t.machine_id) === String(filterMachine);
 
-    // 3. Status Filter (Tab status filter key: 'all', 'open', 'urgent', 'closed')
+    // 3. Status Filter (Tab status filter key: 'all', 'open', 'urgent', 'closed', 'archived')
     let matchesTabStatus = true;
-    if (activeFilter === 'open') {
-      matchesTabStatus = String(t.status).toLowerCase() === 'open';
-    } else if (activeFilter === 'urgent') {
-      matchesTabStatus = ['high', 'critical'].includes(String(t.urgency).toLowerCase()) && String(t.status).toLowerCase() === 'open';
-    } else if (activeFilter === 'closed') {
-      matchesTabStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
+    if (activeFilter === 'archived') {
+      matchesTabStatus = isEligibleForArchive(t);
+    } else {
+      // Keep main active tabs uncluttered from >90d closed tickets
+      if (isEligibleForArchive(t)) return false;
+
+      if (activeFilter === 'open') {
+        matchesTabStatus = String(t.status).toLowerCase() === 'open';
+      } else if (activeFilter === 'urgent') {
+        matchesTabStatus = ['high', 'critical'].includes(String(t.urgency).toLowerCase()) && String(t.status).toLowerCase() === 'open';
+      } else if (activeFilter === 'closed') {
+        matchesTabStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
+      }
     }
 
     // 4. Advanced Status Filter Dropdown
@@ -534,8 +544,51 @@ export default function Tickets() {
                 </button>
 
                 <section className="postlogin-summary" aria-label="Ticket summary filters">
-                  {[['all', tickets.length, 'All tickets'], ['open', openCount, 'Open work'], ['urgent', urgentCount, 'Urgent issues'], ['closed', closedCount, 'Closed tickets']].map(([key, value, label]) => <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}><strong>{value}</strong><span>{label}</span><small>View details →</small></button>)}
+                  {[
+                    ['all', activeTickets.length, 'Active Tickets'],
+                    ['open', openCount, 'Open Work'],
+                    ['urgent', urgentCount, 'Urgent Issues'],
+                    ['closed', recentClosedCount, 'Recent Closed (≤90d)'],
+                    ['archived', archivedCount, 'Archived (>90d)']
+                  ].map(([key, value, label]) => (
+                    <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}>
+                      <strong>{value}</strong>
+                      <span>{label}</span>
+                      <small>View details →</small>
+                    </button>
+                  ))}
                 </section>
+
+                {activeFilter === 'archived' && (
+                  <div style={{ background: 'rgba(51, 65, 85, 0.4)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '10px', padding: '14px 18px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
+                      <Archive style={{ color: '#38bdf8' }} size={20} />
+                      <div>
+                        <strong style={{ color: 'white', fontSize: '0.95rem' }}>Systematically Archived Tickets (Closed >3 Months)</strong>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Historical closed work orders are automatically partitioned to maintain maximum performance for daily plant operations.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => downloadArchivedCSV(archivedTickets)}
+                      style={{
+                        background: '#0284c7',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 14px',
+                        borderRadius: '6px',
+                        fontWeight: 600,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Download size={15} /> Export Archive (CSV)
+                    </button>
+                  </div>
+                )}
                 <div style={{ margin: '16px 0 16px', display: 'flex', gap: '12px' }}>
                   <input
                     type="text"
