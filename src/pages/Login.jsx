@@ -47,7 +47,7 @@ export default function Login() {
     const appUser = {
       user_id: `demo-${demo.role.toLowerCase().replace(/\s+/g, '-')}`,
       name: demo.name,
-      role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'technician',
+      role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'maintenance_technician',
       company_code: demo.company,
       email: demo.email,
     };
@@ -101,7 +101,7 @@ export default function Login() {
         } else if (cleanId.includes('lead') || cleanId.includes('manager') || cleanId.includes('supervisor')) {
           appUser = { user_id: 'usr-lead-01', name: 'Vikram Patil (Lead)', role: 'supervisor', company_code: 'PUNE-PLANT-01', email: 'lead@turbofix.co.in' };
         } else if (cleanId.includes('tech')) {
-          appUser = { user_id: 'usr-tech-01', name: 'Amit Kumar (Technician)', role: 'technician', company_code: 'PUNE-PLANT-01', email: 'tech@turbofix.co.in' };
+          appUser = { user_id: 'usr-tech-01', name: 'Amit Kumar (Technician)', role: 'maintenance_technician', company_code: 'PUNE-PLANT-01', email: 'tech@turbofix.co.in' };
         } else if (password.length >= 4) {
           // Allow login for custom entered credentials in demo mode
           appUser = {
