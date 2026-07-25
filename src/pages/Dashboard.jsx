@@ -842,39 +842,6 @@ export default function Dashboard() {
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
 
-        {/* ROLE SWITCHER BAR */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/80 border border-slate-700/60 rounded-xl mb-6 shadow-sm">
-          <div className="flex items-center gap-2 overflow-x-auto py-1">
-            <span className="text-xs font-bold text-teal-400 uppercase tracking-wider px-2">Role Perspective:</span>
-            {[
-              { id: 'all', label: 'Plant Control Board', icon: LayoutDashboard },
-              { id: 'owner', label: 'Owner 30-Sec View', icon: Factory },
-              { id: 'head', label: 'Maintenance Head', icon: BrainCircuit },
-              { id: 'supervisor', label: 'Supervisor', icon: UsersRound },
-              { id: 'technician', label: 'Technician Hub', icon: Wrench },
-              { id: 'operator', label: 'Operator QR Flow', icon: ScanLine },
-            ].map((role) => {
-              const Icon = role.icon;
-              const isActive = activeRoleView === role.id;
-              return (
-                <button
-                  key={role.id}
-                  type="button"
-                  onClick={() => setActiveRoleView(role.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all shrink-0 ${
-                    isActive
-                      ? 'bg-teal-600 text-white shadow-md shadow-teal-900/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{role.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          <span className="text-xs text-slate-400 px-2 hidden lg:inline">From Machine Stress to Maintenance Peace</span>
-        </div>
 
         {/* OWNER DASHBOARD VIEW */}
         {activeRoleView === 'owner' && (
