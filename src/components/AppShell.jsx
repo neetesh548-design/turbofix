@@ -448,9 +448,9 @@ export default function AppShell({ children, active }) {
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
 
-        {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) */}
+        {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) - Role-Filtered */}
         <nav className="app-bottom-nav" aria-label="Mobile navigation">
-          {NAV_LIVE.slice(0, 4).map((item) => (
+          {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).slice(0, 4).map((item) => (
             <a
               key={item.id}
               href={item.href}
