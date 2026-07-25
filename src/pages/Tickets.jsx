@@ -564,7 +564,7 @@ export default function Tickets() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
                       <Archive style={{ color: '#38bdf8' }} size={20} />
                       <div>
-                        <strong style={{ color: 'white', fontSize: '0.95rem' }}>Systematically Archived Tickets (Closed >3 Months)</strong>
+                        <strong style={{ color: 'white', fontSize: '0.95rem' }}>Systematically Archived Tickets (Closed &gt;3 Months)</strong>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Historical closed work orders are automatically partitioned to maintain maximum performance for daily plant operations.</p>
                       </div>
                     </div>
