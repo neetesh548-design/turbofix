@@ -6,7 +6,6 @@ openpyxl>=3.1
 gspread>=6.1
 google-auth>=2.30
 pytest>=8.2
-pytest-asyncio>=0.23    # test_escalation_service.py uses @pytest.mark.asyncio; without this its async tests error out
 
 # Phase 2 AI layer uses the raw Gemini/OpenAI HTTP API directly via httpx (no SDK dependency).
 

@@ -40,18 +40,3 @@ class MockResizeObserver {
   disconnect = vi.fn();
 }
 global.ResizeObserver = MockResizeObserver;
-
-// jsdom does not implement the Object URL store. The voice recorder creates
-// one per take and revokes it on re-record, so both must exist globally.
-if (typeof URL.createObjectURL !== 'function') {
-  URL.createObjectURL = vi.fn(() => `blob:turbofix/${Math.random().toString(36).slice(2)}`);
-}
-if (typeof URL.revokeObjectURL !== 'function') {
-  URL.revokeObjectURL = vi.fn();
-}
-
-// jsdom's HTMLMediaElement throws "not implemented" on play/pause.
-if (typeof window !== 'undefined' && window.HTMLMediaElement) {
-  window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
-  window.HTMLMediaElement.prototype.pause = vi.fn();
-}

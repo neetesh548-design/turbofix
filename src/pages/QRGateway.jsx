@@ -53,8 +53,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';
-import { VoiceRecorder } from '../components/Voice';
-import { blobToDataUrl } from '../services/speech';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 const ORB_ANIMATIONS = `
@@ -255,6 +253,7 @@ const GATEWAY_I18N = {
 export default function QRGateway() {
   const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
   const [lang, setLang] = useState(() => localStorage.getItem('tf_lang') || 'hi-IN'); // hi-IN, en-US, mr-IN
+  const [isListening, setIsListening] = useState(false);
   const [speakFeedback, setSpeakFeedback] = useState(true);
   const [assistantPrompt, setAssistantPrompt] = useState('');
   const [workflowStage, setWorkflowStage] = useState('capture');
@@ -282,6 +281,8 @@ export default function QRGateway() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [_uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submittedTicketInfo, setSubmittedTicketInfo] = useState(null);
+  const [pendingAudioBlob, setPendingAudioBlob] = useState(null);
+  const [pendingAudioUrl, setPendingAudioUrl] = useState('');
 
   // Reporter state (remembered)
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
@@ -381,9 +382,29 @@ export default function QRGateway() {
     return () => window.removeEventListener('online', handleOnline);
   }, []);
 
-  // Microphone capture, playback, permission handling, validation, and the
-  // speech-to-text call all live in <VoiceRecorder> / the speech service now.
-  // This page only consumes the finished transcript.
+  const recorderRef = useRef(null);
+  const micStreamRef = useRef(null);
+  const chunksRef = useRef([]);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  const getLiveMicStream = async () => {
+    const existing = micStreamRef.current;
+    const hasLiveTrack = existing?.getAudioTracks?.().some((track) => track.readyState === 'live');
+    if (hasLiveTrack) return existing;
+    micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return micStreamRef.current;
+  };
+
+  const releaseMicStream = () => {
+    micStreamRef.current?.getTracks?.().forEach((track) => track.stop());
+    micStreamRef.current = null;
+  };
+
+  const getRecorderOptions = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+    const mimeType = types.find((type) => window.MediaRecorder?.isTypeSupported?.(type));
+    return mimeType ? { mimeType } : undefined;
+  };
 
   useEffect(() => {
     if (!machine.id) return;
@@ -646,79 +667,104 @@ export default function QRGateway() {
     return 'running';
   };
 
-  /**
-   * Consume a finished transcript from <VoiceRecorder>.
-   *
-   * By the time this runs the recording has already been validated, played
-   * back, approved by the operator, and transcribed — so all that remains is
-   * turning the text into a reviewable draft ticket.
-   */
-  const handleVoiceTranscript = async ({ text, languageCode, blob, durationMs, confidence }) => {
+  const transcribeAudio = async (blob) => {
+    setIsTranscribing(true);
+    setWorkflowStage('transcribing');
+    setAssistantPrompt(t('transcribing'));
     setVoiceError('');
-    setTranscript(text);
-
-    const normalized = normalizeTranscriptForApproval({
-      rawText: text,
-      language: lang,
-      machineName: machine.name,
-      machineLocation: machine.loc
-    });
-
-    if (normalized.reporterName) {
-      setReporterName(normalized.reporterName);
-      localStorage.setItem('tf_reporter_name', normalized.reporterName);
-    }
-    setManualCondition(normalized.condition || suggestCondition(text));
-    setExtractedInfo(normalized);
-
-    // Retained for the audit trail alongside the AI draft. Failure to inline
-    // the audio must not block the ticket — the transcript is what matters.
-    let rawAudioDataUrl = null;
     try {
-      rawAudioDataUrl = await blobToDataUrl(blob);
-    } catch (err) {
-      console.warn('Could not inline voice audio for the audit trail:', err);
-    }
-
-    setVoiceArtifacts({
-      raw_audio_data_url: rawAudioDataUrl,
-      transcript: text,
-      language_code: languageCode || lang,
-      duration_ms: durationMs,
-      ai_output_snapshot: {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const { data, error } = await invokeWithRetry('ai_translation', {
+        body: { action: 'transcribe', audio: dataUrl }
+      });
+      if (error || !data || data.error) throw new Error(data?.error || error?.message || 'Transcription failed.');
+      const text = String(data.transcript || '').trim();
+      if (!text) {
+        const noSpeechMsg = t('noSpeechDetected');
+        setVoiceError(noSpeechMsg);
+        setAssistantPrompt(noSpeechMsg);
+        speak(noSpeechMsg);
+        setWorkflowStage('listenback');
+        return;
+      }
+      
+      setTranscript(text);
+      const normalized = normalizeTranscriptForApproval({
+        rawText: text,
+        language: lang,
+        machineName: machine.name,
+        machineLocation: machine.loc
+      });
+      if (normalized.reporterName) {
+        setReporterName(normalized.reporterName);
+        localStorage.setItem('tf_reporter_name', normalized.reporterName);
+      }
+      setManualCondition(normalized.condition || suggestCondition(text));
+      setExtractedInfo(normalized);
+      setVoiceArtifacts({
+        raw_audio_data_url: dataUrl,
         transcript: text,
-        language_code: languageCode || lang,
-        transcription_confidence: confidence ?? null,
-        normalized_issue: normalized.issue,
-        normalized_condition: normalized.condition,
-        normalized_urgency: normalized.urgency,
-        reporter_name: normalized.reporterName || reporterName || '',
-        approval_note: normalized.approvalNote || '',
-        ai_draft: true
-      },
-      review_snapshot: null,
-      final_submission_snapshot: null
-    });
-
-    setShowTextFallback(true);
-    setWorkflowStage('review');
-
-    const reviewMsg = machine.name
-      ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
-      : t('reviewConfirm');
-    setAssistantPrompt(reviewMsg);
-    speak(reviewMsg);
+        language_code: data.language_code || lang,
+        ai_output_snapshot: {
+          transcript: text,
+          language_code: data.language_code || lang,
+          normalized_issue: normalized.issue,
+          normalized_condition: normalized.condition,
+          normalized_urgency: normalized.urgency,
+          reporter_name: normalized.reporterName || reporterName || '',
+          approval_note: normalized.approvalNote || '',
+          ai_draft: true
+        },
+        review_snapshot: null,
+        final_submission_snapshot: null
+      });
+      setShowTextFallback(true);
+      clearPendingAudio();
+      setWorkflowStage('review');
+      
+      const reviewMsg = machine.name
+        ? `${t('reviewConfirm')} ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.`
+        : t('reviewConfirm');
+      setAssistantPrompt(reviewMsg);
+      speak(reviewMsg);
+    } catch (err) {
+      console.error(err);
+      const rawMsg = String(err?.message || '').trim();
+      const errMsg = /not configured|api key|secret/i.test(rawMsg)
+        ? 'Voice transcription is not configured right now.'
+        : /temporarily unavailable|quota|429|overloaded/i.test(rawMsg)
+          ? 'Voice transcription is temporarily unavailable. Please try again.'
+          : rawMsg || t('transcribeError');
+      setVoiceError(errMsg);
+      setAssistantPrompt(errMsg);
+      speak(errMsg);
+      setWorkflowStage('listenback');
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
-  /** Voice hit a dead end (or the operator chose to type) — open the form. */
-  const handleVoiceManualEntry = (reason) => {
-    setShowTextFallback(true);
-    setTranscript('');
-    setWorkflowStage('capture');
-    if (reason !== 'user-choice') {
-      console.info('Voice capture fell back to manual entry:', reason);
+  const clearPendingAudio = () => {
+    setPendingAudioBlob(null);
+    if (pendingAudioUrl) {
+      URL.revokeObjectURL(pendingAudioUrl);
+      setPendingAudioUrl('');
     }
-    setAssistantPrompt(t('troubleSpeaking'));
+  };
+
+  const transcribePendingAudio = async () => {
+    if (!pendingAudioBlob || pendingAudioBlob.size < 512) {
+      const msg = 'Recording is empty. Please re-record once.';
+      setVoiceError(msg);
+      setAssistantPrompt(msg);
+      return;
+    }
+    await transcribeAudio(pendingAudioBlob);
   };
 
   const handlePhotoChange = (e) => {
@@ -834,8 +880,7 @@ export default function QRGateway() {
     setTranscript('');
     setExtractedInfo(null);
     setVoiceArtifacts(null);
-    setVoiceError('');
-    setErrorAlert(null);
+    clearPendingAudio();
     setDuplicateTicket(null);
     setShowTextFallback(false);
     setManualCondition('running');
@@ -883,11 +928,90 @@ export default function QRGateway() {
     );
   };
 
-  /** Voice capture ran into a hard stop — surface it and open the text form. */
+  const stopVoiceInput = () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      try { recorderRef.current.stop(); } catch {}
+    }
+  };
+
   const fallBackToText = (title, desc) => {
+    setIsListening(false);
+    setIsTranscribing(false);
     setErrorAlert({ title, desc });
     setShowTextFallback(true);
     setAssistantPrompt(t('troubleSpeaking'));
+  };
+
+  useEffect(() => {
+    return () => {
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach((track) => track.stop());
+        micStreamRef.current = null;
+      }
+    };
+  }, []);
+
+  const startVoiceInput = async () => {
+    setErrorAlert(null);
+    if (recorderRef.current && recorderRef.current.state === 'recording') {
+      stopVoiceInput();
+      return;
+    }
+    
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setErrorAlert({
+        title: t('micBlockedTitle'),
+        desc: t('micBlockedDesc')
+      });
+      setShowTextFallback(true);
+      return;
+    }
+
+    setExtractedInfo(null);
+    setSuccess(false);
+    setTranscript('');
+    setWorkflowStage('listening');
+    setIsListening(true);
+
+    try {
+      setVoiceError('');
+      chunksRef.current = [];
+      const stream = await getLiveMicStream();
+      const recorder = new MediaRecorder(stream, getRecorderOptions());
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size) chunksRef.current.push(e.data);
+      };
+      
+      recorder.onstop = async () => {
+        setIsListening(false);
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        chunksRef.current = [];
+        recorderRef.current = null;
+        if (!blob.size) {
+          const msg = 'Recording is empty. Please re-record once.';
+          setVoiceError(msg);
+          setWorkflowStage('capture');
+          setAssistantPrompt(msg);
+          return;
+        }
+        clearPendingAudio();
+        const url = URL.createObjectURL(blob);
+        setPendingAudioBlob(blob);
+        setPendingAudioUrl(url);
+        setWorkflowStage('listenback');
+        setAssistantPrompt('Listen to your recording, then send it for transcription.');
+      };
+
+      recorderRef.current = recorder;
+      setAssistantPrompt(t('listening'));
+      recorder.start();
+    } catch (e) {
+      console.error(e);
+      setIsListening(false);
+      fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
+      setWorkflowStage('capture');
+    }
   };
 
   const submitTicket = async (bypassDuplicateCheck = false) => {
@@ -1312,6 +1436,60 @@ export default function QRGateway() {
             </button>
           </div>
         </div>
+      ) : workflowStage === 'listenback' && pendingAudioUrl ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '10px', zIndex: 10 }}>
+          <div className="qr-gateway-card qr-gateway-listenback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', display: 'grid', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Hear it back
+            </h3>
+            <div style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.45 }}>
+              Play once, re-record if needed, then send it for transcription.
+            </div>
+            <audio controls src={pendingAudioUrl} style={{ width: '100%' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  clearPendingAudio();
+                  releaseMicStream();
+                  setTranscript('');
+                  setExtractedInfo(null);
+                  setVoiceError('');
+                  setWorkflowStage('capture');
+                  setAssistantPrompt('Tap the mic and record again.');
+                }}
+                style={{ minHeight: '46px', background: 'transparent', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '12px', color: '#e5edf6', fontSize: '0.85rem', fontWeight: 750, cursor: 'pointer' }}
+              >
+                Re-record
+              </button>
+              <button
+                type="button"
+                onClick={transcribePendingAudio}
+                style={{ minHeight: '46px', background: 'linear-gradient(135deg, #863bff, #6d28d9)', border: 'none', borderRadius: '12px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 850, cursor: 'pointer', boxShadow: '0 8px 20px rgba(134,59,255,0.25)' }}
+              >
+                Send for transcription
+              </button>
+            </div>
+            {voiceError ? (
+              <div style={{ background: 'rgba(239, 68, 68, 0.14)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#fecaca', borderRadius: '12px', padding: '10px 12px', fontSize: '0.8rem', lineHeight: 1.45, textAlign: 'center' }}>
+                {voiceError}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                clearPendingAudio();
+                setShowTextFallback(true);
+                setVoiceError('');
+                setWorkflowStage('capture');
+                setAssistantPrompt(t('troubleSpeaking'));
+              }}
+              style={{ minHeight: '42px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', color: '#aab8c8', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              {t('troubleSpeaking')}
+            </button>
+          </div>
+        </div>
       ) : showTextFallback ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '8px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-text-fallback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1330,37 +1508,29 @@ export default function QRGateway() {
                 placeholder={t('issuePlaceholder')}
                 style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 42px 10px 10px', color: 'white', fontFamily: 'inherit', resize: 'none', fontSize: '0.85rem', boxSizing: 'border-box' }}
               />
-              {/* Escape hatch back to voice. Capture itself lives in
-                  <VoiceRecorder>, so this only switches the view. */}
               <button
                 type="button"
-                onClick={() => {
-                  setShowTextFallback(false);
-                  setErrorAlert(null);
-                  setVoiceError('');
-                  setWorkflowStage('capture');
-                  setAssistantPrompt(t('tapToSpeak'));
-                }}
-                className="qr-gateway-mic"
+                onClick={startVoiceInput}
+                disabled={isTranscribing}
+                className={`qr-gateway-mic ${isListening ? 'listening' : ''} ${isTranscribing ? 'transcribing' : ''}`}
                 style={{
                   position: 'absolute',
                   right: '8px',
                   top: '8px',
-                  background: '#863bff',
+                  background: isListening ? '#ef4444' : '#863bff',
                   border: 'none',
                   borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'white',
                   cursor: 'pointer'
                 }}
-                aria-label={t('tapToSpeak')}
-                title={t('tapToSpeak')}
+                title={isListening ? t('tapToStop') : t('tapToSpeak')}
               >
-                <Mic size={18} aria-hidden="true" />
+                <Mic size={16} />
               </button>
             </div>
 
@@ -1435,16 +1605,63 @@ export default function QRGateway() {
       ) : (
         <div className="qr-gateway-voice-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
           
-          {/* Capture, playback, re-record, permissions, offline handling and
-              transcription all live in <VoiceRecorder>. */}
-          <VoiceRecorder
-            languageCode={lang}
-            onTranscript={handleVoiceTranscript}
-            onManualEntry={handleVoiceManualEntry}
-            onError={(code) => setVoiceError(code)}
-            speak={speak}
-            data-testid="qr-voice-recorder"
-          />
+          {/* Glowing Orb ripple rings */}
+          {isListening && (
+            <>
+              <div style={{ position: 'absolute', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', animation: 'voice-ripple-1 2s infinite ease-out', zIndex: 1 }} />
+              <div style={{ position: 'absolute', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', animation: 'voice-ripple-2 2s infinite ease-out 1s', zIndex: 1 }} />
+            </>
+          )}
+
+          {/* Central Voice Orb (Auto-scaled for 4.5" screens) */}
+          <button
+            id="voice-mic-button"
+            type="button"
+            onClick={startVoiceInput}
+            disabled={isTranscribing}
+            className={`qr-gateway-mic qr-gateway-orb ${isListening ? 'listening' : ''} ${isTranscribing ? 'transcribing' : ''}`}
+            style={{
+              position: 'relative',
+              width: 'clamp(100px, 20vh, 130px)',
+              height: 'clamp(100px, 20vh, 130px)',
+              borderRadius: '50%',
+              background: isTranscribing
+                ? 'radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(109,40,217,1) 100%)'
+                : isListening 
+                ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
+                : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
+              border: '4px solid rgba(255,255,255,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: isTranscribing ? 'default' : 'pointer',
+              zIndex: 5,
+              outline: 'none',
+              animation: isTranscribing ? 'voice-listening-orb 1s infinite ease-in-out' : isListening ? 'voice-listening-orb 1.8s infinite ease-in-out' : 'voice-orb-pulse 2.5s infinite ease-in-out',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.5)'
+            }}
+          >
+            {isTranscribing ? (
+              <span style={{ color: 'white', display: 'inline-block', fontSize: '1.8rem' }}>⏳</span>
+            ) : (
+              <Mic size={40} color="white" />
+            )}
+          </button>
+
+          {/* Orb Hint */}
+          <span style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '12px', zIndex: 5, textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+            {isTranscribing ? t('transcribing') : isListening ? t('tapToStop') : t('tapToSpeak')}
+          </span>
+
+          <button 
+            type="button" 
+            onClick={() => { setShowTextFallback(true); setTranscript(''); }}
+            disabled={isTranscribing}
+            className="qr-gateway-text-toggle"
+            style={{ background: 'rgba(134,59,255,0.12)', border: '1px solid #863bff', borderRadius: '8px', color: '#a78bfa', fontSize: '0.8rem', cursor: 'pointer', padding: '8px 14px', marginTop: '12px', zIndex: 5, fontWeight: 'bold' }}
+          >
+            {t('troubleSpeaking')}
+          </button>
 
           {renderPhotoAttachment()}
 

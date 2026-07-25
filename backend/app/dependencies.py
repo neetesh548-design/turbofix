@@ -238,21 +238,6 @@ def get_technician_work() -> TechnicianWorkRepository:
 # ---------------------------------------------------------------------------
 
 @lru_cache(maxsize=1)
-def get_snapshots():
-    """Return the KPI snapshot time-series store for the active backend.
-
-    Falls back to an in-memory store for the local/sheets backends: snapshot
-    history is a Supabase-backed feature, and an in-memory series is still
-    useful in development even though it does not survive a restart.
-    """
-    if _should_use_supabase():
-        from app.repositories.snapshot_repo import SupabaseSnapshotRepository
-        return SupabaseSnapshotRepository()
-    from app.repositories.snapshot_repo import InMemorySnapshotRepository
-    return InMemorySnapshotRepository()
-
-
-@lru_cache(maxsize=1)
 def get_escalation_config():
     from app.repositories.supabase_repo import SupabaseEscalationConfigRepository
     return SupabaseEscalationConfigRepository()

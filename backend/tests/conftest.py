@@ -38,7 +38,6 @@ def _clear_di_caches():
     dependencies.get_parts.cache_clear()
     dependencies.get_settings.cache_clear()
     dependencies.get_technician_work.cache_clear()
-    dependencies.get_snapshots.cache_clear()
 
 
 @pytest.fixture(autouse=True)
