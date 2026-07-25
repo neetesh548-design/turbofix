@@ -585,12 +585,14 @@ async function fetchDashboardData() {
 
   const needsAttention = openTickets.map(t => {
     const summary = t.ai_summary || {};
+    const urgencyLevel = summary.urgency?.toLowerCase() || 'medium';
+    const capitalizedUrgency = urgencyLevel.charAt(0).toUpperCase() + urgencyLevel.slice(1);
     return {
       ticket_id: t.id,
       machine_id: t.machine_id,
       machine_name: machineMap[t.machine_id] || 'Unknown',
       description: t.issue_text || summary.summary || '',
-      urgency: (summary.urgency || 'Medium').charAt(0).toUpperCase() + (summary.urgency || 'medium').slice(1),
+      urgency: capitalizedUrgency,
       reported_at: t.created_at,
     };
   });
@@ -623,7 +625,8 @@ async function fetchDashboardData() {
   const costByMonth = monthlyTrend.map((month) => ({
     ...month,
     cost: tickets.reduce((total, ticket) => {
-      const opened = new Date(ticket.created_at || ticket.reported_at || '');
+      const opened = new Date(ticket.created_at || ticket.reported_at);
+      if (isNaN(opened.getTime())) return total;
       return monthKey(opened) === month.key ? total + ticketCost(ticket, partCostByTicket) : total;
     }, 0),
   }));
@@ -631,7 +634,7 @@ async function fetchDashboardData() {
     ticket_id: ticket.id,
     machine_id: ticket.machine_id,
     machine_name: machineMap[ticket.machine_id] || 'Unknown',
-    description: ticket.issue_text || (typeof ticket.ai_summary === 'object' ? ticket.ai_summary?.summary : ticket.ai_summary) || 'Maintenance work',
+    description: ticket.issue_text || (typeof ticket.ai_summary === 'object' ? ticket.ai_summary?.summary : null) || 'Maintenance work',
     hours: Math.round(ticketHours(ticket) * 10) / 10,
   }));
   const averageRepairHours = resolvedWork.length
@@ -712,7 +715,14 @@ export default function Dashboard() {
     let mounted = true;
     fetchDashboardData()
       .then((next) => {
-        if (mounted) setData({ ...fallback, ...next, kpis: { ...fallback.kpis, ...next.kpis }, auto_insights: { ...fallback.auto_insights, ...next.auto_insights } });
+        if (mounted) {
+          setData({
+            ...fallback,
+            ...next,
+            kpis: { ...fallback.kpis, ...next.kpis },
+            auto_insights: { ...fallback.auto_insights, ...next.auto_insights },
+          });
+        }
       })
       .catch((err) => mounted && setError(err.message))
       .finally(() => mounted && setLoading(false));

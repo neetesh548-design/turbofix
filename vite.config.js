@@ -12,9 +12,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module'
       },
       injectManifest: {
