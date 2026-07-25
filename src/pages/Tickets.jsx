@@ -4,6 +4,7 @@ import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import QuickReportDialog from '../components/QuickReportDialog';
 import EmptyState from '../components/EmptyState';
+import TicketCard from '../components/TicketCard';
 import { Ticket, Archive, Download } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '../utils/ticketArchive';
@@ -425,78 +426,26 @@ export default function Tickets() {
                   </span>
                 </div>
 
-                {/* SHOW ONLY FIRST URGENT TICKET */}
+                {/* COLLAPSIBLE TICKET CARDS LIST */}
                 {(() => {
-                  const urgentTickets = visibleTickets.filter(t => isUrgent(t) && String(t.status).toLowerCase() === 'open');
-                  const firstTicket = urgentTickets[0] || (visibleTickets.filter(t => String(t.status).toLowerCase() === 'open')[0]);
-
-                  if (!firstTicket) return (
-                    <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                      <p style={{ color: 'var(--slate)', margin: 0 }}>No open tickets. All maintenance is current.</p>
-                    </div>
-                  );
-
-                  const ticketId = firstTicket.ticket_id || firstTicket.id || '—';
-                  const status = String(firstTicket.status || 'Open').toLowerCase();
-                  const stage = stageInfo(firstTicket);
-                  const isExpanded = expandedId === ticketId;
+                  if (visibleTickets.length === 0) {
+                    return (
+                      <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
+                        <p style={{ color: 'var(--slate)', margin: 0 }}>No tickets found. All maintenance is current.</p>
+                      </div>
+                    );
+                  }
 
                   return (
-                    <div className="vault-card" style={{ padding: 0, marginBottom: '20px' }}>
-                      <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}>
-                          <div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white', fontSize: '0.9rem' }}>
-                                {firstTicket.wo_number || (ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId)}
-                              </span>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, padding: '3px 9px', borderRadius: '999px', color: stage.color, border: `1px solid ${stage.color}`, background: `${stage.color}1a`, whiteSpace: 'nowrap' }}>
-                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: stage.color }} /> {stage.label}
-                              </span>
-                              {(() => {
-                                const u = (firstTicket.urgency || '').toLowerCase();
-                                const c = u === 'critical' ? { background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.4)' }
-                                  : u === 'high' ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', border: '1px solid rgba(245,158,11,0.4)' }
-                                  : u === 'medium' ? { background: 'rgba(96,165,250,0.12)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.35)' }
-                                  : { background: 'rgba(148,163,184,0.12)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.3)' };
-                                return <span style={{ ...c, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', borderRadius: '999px', padding: '2px 9px', whiteSpace: 'nowrap' }}>{firstTicket.urgency || '—'}</span>;
-                              })()}
-                            </div>
-                            <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>{firstTicket.machine_name || firstTicket.machine_id}</h3>
-                            <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.9rem' }}>{firstTicket.description || (firstTicket.ai_summary && firstTicket.ai_summary.predicted_issue) || '—'}</p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', minWidth: '140px' }}>
-                            <button className="vault-btn vault-btn-primary" style={{ padding: '8px 14px', fontSize: '0.75rem' }} onClick={() => handleCloseTicket(ticketId)}>
-                              Start work
-                            </button>
-                            <button className="vault-btn vault-btn-secondary" style={{ padding: '8px 14px', fontSize: '0.75rem' }} onClick={() => setExpandedId(isExpanded ? null : ticketId)}>
-                              View details
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px 20px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px 20px' }}>
-                            {[
-                              ['Root cause', firstTicket.root_cause],
-                              ['Repair action', firstTicket.repair_action],
-                              ['Parts used', firstTicket.parts_used],
-                              ['Labour time', firstTicket.labour_minutes ? `${firstTicket.labour_minutes} min` : null],
-                              ['Machine downtime', firstTicket.downtime_minutes != null ? `${firstTicket.downtime_minutes} min` : null],
-                              ['Work started', firstTicket.started_at ? formatDateTime(firstTicket.started_at) : null],
-                              ['Closed', firstTicket.resolved_at ? formatDateTime(firstTicket.resolved_at) : null],
-                              ['Verified by', firstTicket.closure_approved_by],
-                            ].map(([label, value]) => (
-                              <div key={label}>
-                                <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
-                                <span style={{ color: value ? 'white' : 'var(--slate)', fontSize: '0.85rem' }}>{value || '—'}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                      {visibleTickets.map((ticket) => (
+                        <TicketCard
+                          key={ticket.id || ticket.ticket_id}
+                          ticket={ticket}
+                          onStartWork={(ticketId) => handleCloseTicket(ticketId)}
+                          onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
+                        />
+                      ))}
                     </div>
                   );
                 })()}
