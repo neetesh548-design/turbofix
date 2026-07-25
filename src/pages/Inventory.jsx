@@ -86,6 +86,23 @@ const Inventory = () => {
 
   const criticalItems = getCriticalItems();
 
+  const filteredParts = parts.filter(item => !search.trim() || item.name?.toLowerCase().includes(search.toLowerCase()) || item.part_number?.toLowerCase().includes(search.toLowerCase()));
+  const filteredConsumables = consumables.filter(item => !search.trim() || item.name?.toLowerCase().includes(search.toLowerCase()) || item.part_number?.toLowerCase().includes(search.toLowerCase()));
+
+  const filteredPOs = purchaseOrders.map(po => ({
+    id: po.id,
+    po_code: po.po_number || `PO-${String(po.id).slice(0, 6)}`,
+    item_name: po.vendor || 'Spare Parts Order',
+    item_number: po.vendor ? `Vendor: ${po.vendor}` : '',
+    qty: po.items_count || 1,
+    estimated_cost: po.total_amount,
+    status: po.status || 'pending',
+    auto_generated: true,
+    created_at: po.created_at || new Date().toISOString()
+  }));
+
+  const poStatuses = ['pending', 'approved', 'ordered', 'received'];
+
   const renderStockStatus = (available, reorderLevel) => {
     if (available <= 0) {
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">Out of Stock</span>;
