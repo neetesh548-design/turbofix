@@ -1,81 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import AppShell from '../components/AppShell';
-import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
-import QuickReportDialog from '../components/QuickReportDialog';
-import EmptyState from '../components/EmptyState';
-import TicketCard from '../components/TicketCard';
-import { Ticket, Archive, Download } from 'lucide-react';
-import { supabase } from '../supabaseClient';
-import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '../utils/ticketArchive';
-import { DEMO_TICKETS } from '../utils/demoTickets';
+import { Archive, Download, Ticket as TicketIcon, X, CheckCheck, UserPlus } from 'lucide-react';
 
-// Canonical 10-state work-order lifecycle (roadmap §3.4).
-const LIFECYCLE = {
-  reported: { label: 'Reported', color: '#F87171' },
-  acknowledged: { label: 'Acknowledged', color: '#FBBF24' },
-  assigned: { label: 'Assigned', color: '#FBBF24' },
-  work_started: { label: 'Work started', color: '#60A5FA' },
-  waiting_spare: { label: 'Waiting for spare', color: '#F59E0B' },
-  waiting_approval: { label: 'Waiting for approval', color: '#F59E0B' },
-  waiting_vendor: { label: 'Waiting for vendor', color: '#F59E0B' },
-  repair_completed: { label: 'Repair completed', color: '#34D399' },
-  verification_pending: { label: 'Verification pending', color: '#A78BFA' },
-  closed: { label: 'Closed', color: '#25D366' },
-};
-const stageInfo = (ticket) => {
-  const raw = String(ticket.lifecycle_stage || '').toLowerCase();
-  if (LIFECYCLE[raw]) return LIFECYCLE[raw];
-  // Fallback for legacy rows with no lifecycle_stage yet.
-  return ['closed', 'resolved'].includes(String(ticket.status || '').toLowerCase()) ? LIFECYCLE.closed : LIFECYCLE.reported;
-};
+import AppShell from '@/components/AppShell';
+import QuickReportDialog from '@/components/QuickReportDialog';
+import TicketKpiBar from '@/components/tickets/TicketKpiBar';
+import TicketToolbar from '@/components/tickets/TicketToolbar';
+import TicketRow from '@/components/tickets/TicketRow';
+import TicketDetailPanel from '@/components/tickets/TicketDetailPanel';
+import { supabase } from '@/supabaseClient';
 
-const getDirectCause = (t) => {
-  if (t.root_cause && t.root_cause.trim()) return t.root_cause;
-  if (t.ai_summary?.predicted_issue && t.ai_summary.predicted_issue.trim()) return t.ai_summary.predicted_issue;
+import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '@/utils/ticketArchive';
+import { downloadTicketsCSV } from '@/utils/ticketExport';
+import { DEMO_TICKETS } from '@/utils/demoTickets';
+import {
+  computeSla,
+  summarizeTickets,
+  ticketAgeHours,
+  isTicketClosed,
+  isTicketInProgress,
+} from '@/utils/ticketSla';
+import { urgencyRank } from '@/utils/ticketMeta';
+import { QUEUE_FILTERS } from '@/utils/ticketQueues';
+import './Tickets.css';
 
-  const mName = t.machine_name && t.machine_name !== 'Unknown' ? t.machine_name : 'Machine';
-  const text = ((t.issue_text || '') + ' ' + mName).toLowerCase();
-  
-  if (/leak|oil|fluid|seal|drop|तेल|गळती/.test(text)) {
-    return `${mName}: Hydraulic/Lubrication Seal Degradation or Fitting Pressure Drop`;
+/** How often the SLA clock re-renders. One minute is enough for hour-scale SLAs. */
+const CLOCK_INTERVAL_MS = 60_000;
+
+/** "Overdue" quick filter: open longer than this regardless of urgency target. */
+const OVERDUE_HOURS = 24;
+
+const idOf = (ticket) => ticket.ticket_id || ticket.id;
+
+function readSignedInUser() {
+  try {
+    return JSON.parse(localStorage.getItem('tf_user') || 'null');
+  } catch {
+    return null;
   }
-  if (/smoke|burn|heat|fire|hot|धुआं|गरम/.test(text)) {
-    return `${mName}: Thermal Overload Relay Trip or Motor Coil Resistance Failure`;
-  }
-  if (/noise|vibration|sound|vibrat|आवाज/.test(text)) {
-    return `${mName}: Spindle Shaft Bearing Misalignment or Drive Belt Friction`;
-  }
-  if (/sensor|limit|tripped|electric|switch/.test(text)) {
-    return `${mName}: Proximity Sensor Misalignment or Interlock Circuit Trip`;
-  }
+}
 
-  return `${mName}: Mechanical Drive Resistance & Actuator Operational Failure`;
-};
-
-const getRootCauseFix = (t) => {
-  if (t.repair_action && t.repair_action.trim()) return t.repair_action;
-  if (t.ai_summary?.recommended_action && t.ai_summary.recommended_action.trim()) return t.ai_summary.recommended_action;
-
-  const mName = t.machine_name && t.machine_name !== 'Unknown' ? t.machine_name : 'Machine';
-  const text = ((t.issue_text || '') + ' ' + mName).toLowerCase();
-
-  if (/leak|oil|fluid|seal|drop|तेल|गळती/.test(text)) {
-    return `Replace hydraulic cylinder seal rings, torque pipe fittings to specification, and top up ISO VG 68 oil.`;
-  }
-  if (/smoke|burn|heat|fire|hot|धुआं|गरम/.test(text)) {
-    return `Isolate main power, inspect motor windings resistance, clean cooling fins, and test thermal overload relay.`;
-  }
-  if (/noise|vibration|sound|vibrat|आवाज/.test(text)) {
-    return `Re-align drive pulleys, replace high-speed spindle bearings, and apply synthetic lithium grease.`;
-  }
-  
-  return `Perform full diagnostic check on safety interlocks, recalibrate proximity sensors, and test full stroke operation under load.`;
-};
-
+/**
+ * Tickets — the Work Order Control Board.
+ *
+ * A single surface for dispatch, monitoring and analytics:
+ *  - KPI strip (open / breached / in-progress / resolved today / avg resolution)
+ *  - search, queue filters, sort, advanced filters, CSV export
+ *  - rich rows carrying identity, issue + AI insight, status, urgency, SLA,
+ *    assignee, age and quick actions
+ *  - row drill-down for the repair record, AI diagnosis and lifecycle actions
+ *  - multi-select bulk assign / close
+ *
+ * SLA is derived client-side (see utils/ticketSla.js) because the tickets table
+ * carries no SLA column. Assignment writes to `machines.technician_user_id`,
+ * which is where this schema actually stores machine ownership.
+ */
 export default function Tickets() {
   const location = useLocation();
-  const getParam = (k, d) => new URLSearchParams(location.search).get(k) || d;
+  const getParam = useCallback(
+    (key, fallback) => new URLSearchParams(location.search).get(key) || fallback,
+    [location.search]
+  );
 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,37 +68,30 @@ export default function Tickets() {
   const [success, setSuccess] = useState('');
 
   const [activeFilter, setActiveFilter] = useState(() => getParam('activeFilter', 'all'));
-  const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortKey, setSortKey] = useState('priority');
+  const [sortDir, setSortDir] = useState('desc');
+  const [expandedId, setExpandedId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [filterMachine, setFilterMachine] = useState(() => getParam('machine', 'all'));
-  const [filterStatus, setFilterStatus] = useState(() => getParam('status', 'all'));
+  const [filterStage, setFilterStage] = useState(() => getParam('status', 'all'));
+  const [filterTechnician, setFilterTechnician] = useState('all');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
-  const [filterTechnician, setFilterTechnician] = useState('all');
+
   const [machinesList, setMachinesList] = useState([]);
   const [techniciansList, setTechniciansList] = useState([]);
   const [quickReportOpen, setQuickReportOpen] = useState(false);
 
-  useEffect(() => {
-    document.title = 'Tickets | TurboFix';
-    fetchTicketsAndEscalation();
+  // Ticking clock so age and SLA bars stay live without a full refetch.
+  const [now, setNow] = useState(() => new Date());
 
-    const channel = supabase
-      .channel('public:tickets_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
-        fetchTicketsAndEscalation();
-      })
-      .subscribe();
+  const signedInUser = useMemo(readSignedInUser, []);
+  const currentUserId = signedInUser?.user_id || signedInUser?.id || null;
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchTicketsAndEscalation = async () => {
-    setLoading(true);
+  const fetchTickets = useCallback(async () => {
     setError('');
     try {
       const [ticketsRes, machinesRes, directoryRes] = await Promise.all([
@@ -128,10 +106,14 @@ export default function Tickets() {
       const directoryMembers = directoryRes.data?.members || [];
       const teamMap = {};
       const techsOnly = [];
-      directoryMembers.forEach(m => {
-        teamMap[m.user_id] = m.name;
-        if (['maintenance_technician', 'technician', 'owner', 'supervisor', 'engineer'].includes(m.role)) {
-          techsOnly.push(m);
+      directoryMembers.forEach((member) => {
+        teamMap[member.user_id] = member.name;
+        if (
+          ['maintenance_technician', 'technician', 'owner', 'supervisor', 'engineer'].includes(
+            member.role
+          )
+        ) {
+          techsOnly.push(member);
         }
       });
       setTechniciansList(techsOnly);
@@ -139,22 +121,25 @@ export default function Tickets() {
       const machineMap = {};
       const machineTechMap = {};
       const machineTechNameMap = {};
-      const mList = (machinesRes.data || []).map(m => {
-        machineMap[m.id] = m.name;
-        const techId = m.technician_user_id;
-        machineTechMap[m.id] = techId || null;
-        machineTechNameMap[m.id] = techId ? (teamMap[techId] || 'Unassigned') : 'Unassigned';
-        return { id: m.id, name: m.name };
+      const mList = (machinesRes.data || []).map((machine) => {
+        machineMap[machine.id] = machine.name;
+        const techId = machine.technician_user_id;
+        machineTechMap[machine.id] = techId || null;
+        machineTechNameMap[machine.id] = techId ? teamMap[techId] || 'Unassigned' : 'Unassigned';
+        return { id: machine.id, name: machine.name };
       });
       setMachinesList(mList);
 
-      // Urgency can live on the ticket column (in-app / WhatsApp) or inside the
-      // AI summary. Normalise both to a single Title-case value.
+      // Urgency lives either on the ticket column (in-app / WhatsApp) or inside
+      // the AI summary. Normalise both to a single Title-case value.
       const normUrgency = (t) => {
-        const raw = String(t.urgency || (typeof t.ai_summary === 'object' ? t.ai_summary?.urgency : '') || '').toLowerCase();
+        const raw = String(
+          t.urgency || (typeof t.ai_summary === 'object' ? t.ai_summary?.urgency : '') || ''
+        ).toLowerCase();
         return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : '';
       };
-      const data = (ticketsRes.data || []).map(t => ({
+
+      const data = (ticketsRes.data || []).map((t) => ({
         ticket_id: t.id,
         machine_id: t.machine_id,
         machine_name: machineMap[t.machine_id] || 'Unknown',
@@ -180,724 +165,795 @@ export default function Tickets() {
         repeat_failure_flag: t.repeat_failure_flag,
         repeat_failure_count: t.repeat_failure_count,
         technician_id: machineTechMap[t.machine_id] || null,
-        technician_name: machineTechNameMap[t.machine_id] || 'Unassigned'
+        technician_name: machineTechNameMap[t.machine_id] || 'Unassigned',
       }));
-      // Open work first, then most-recent — the queue an owner actually scans.
-      data.sort((a, b) => {
-        const aOpen = String(a.status).toLowerCase() === 'open' ? 0 : 1;
-        const bOpen = String(b.status).toLowerCase() === 'open' ? 0 : 1;
-        if (aOpen !== bOpen) return aOpen - bOpen;
-        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-      });
 
-      // Use demo data as fallback when no real tickets exist (for demo purposes)
-      const ticketsToShow = data.length > 0 ? data : DEMO_TICKETS;
-      setTickets(ticketsToShow);
+      // Demo data keeps the board legible before a factory has logged anything.
+      setTickets(data.length > 0 ? data : DEMO_TICKETS);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleCloseTicket = async (ticketId) => {
-    if (!window.confirm('Close this work order directly? This bypasses the technician repair record and supervisor verification.')) return;
+  // `fetchTickets` is referentially stable (useCallback with no deps), so this
+  // subscribes once on mount rather than re-subscribing on every render.
+  useEffect(() => {
+    document.title = 'Tickets | TurboFix';
+    fetchTickets();
+
+    const channel = supabase
+      .channel('public:tickets_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
+        fetchTickets();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchTickets]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), CLOCK_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Transient success banners shouldn't linger.
+  useEffect(() => {
+    if (!success) return undefined;
+    const timer = setTimeout(() => setSuccess(''), 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
+  // ---------------------------------------------------------------------
+  // Mutations
+  // ---------------------------------------------------------------------
+
+  const updateLifecycleStage = useCallback(
+    async (ticketId, nextStage, nextStatus = null) => {
+      setError('');
+      try {
+        const patch = { lifecycle_stage: nextStage };
+        if (nextStatus) patch.status = nextStatus;
+        if (nextStage === 'work_started') patch.started_at = new Date().toISOString();
+        if (nextStage === 'repair_completed' || nextStatus === 'resolved') {
+          patch.resolved_at = new Date().toISOString();
+        }
+        const { error: updateErr } = await supabase.from('tickets').update(patch).eq('id', ticketId);
+        if (updateErr) throw new Error(updateErr.message);
+        setSuccess(`Work order ${String(ticketId).substring(0, 8)} updated.`);
+        await fetchTickets();
+      } catch (err) {
+        setError(err.message);
+      }
+    },
+    [fetchTickets]
+  );
+
+  const handleCloseTicket = useCallback(
+    async (ticketId) => {
+      if (
+        !window.confirm(
+          'Close this work order directly? This bypasses the technician repair record and supervisor verification.'
+        )
+      ) {
+        return;
+      }
+      await updateLifecycleStage(ticketId, 'closed', 'resolved');
+    },
+    [updateLifecycleStage]
+  );
+
+  const handleStart = useCallback(
+    (ticketId) => updateLifecycleStage(ticketId, 'work_started'),
+    [updateLifecycleStage]
+  );
+
+  /**
+   * Inline edit. Urgency is a ticket column; assignment is not — this schema
+   * stores machine ownership on `machines.technician_user_id`, so assigning a
+   * technician here re-points the machine and therefore every work order on it.
+   */
+  const handleFieldChange = useCallback(
+    async (ticketId, patch) => {
+      setError('');
+      const ticket = tickets.find((t) => idOf(t) === ticketId);
+      if (!ticket) return;
+
+      try {
+        if ('urgency' in patch) {
+          const { error: updateErr } = await supabase
+            .from('tickets')
+            .update({ urgency: patch.urgency || null })
+            .eq('id', ticketId);
+          if (updateErr) throw new Error(updateErr.message);
+          setSuccess('Urgency updated.');
+        }
+
+        if ('assigned_to' in patch) {
+          if (!ticket.machine_id) throw new Error('This ticket has no machine to assign.');
+          const { error: updateErr } = await supabase
+            .from('machines')
+            .update({ technician_user_id: patch.assigned_to })
+            .eq('id', ticket.machine_id);
+          if (updateErr) throw new Error(updateErr.message);
+          setSuccess(
+            `Technician updated for ${ticket.machine_name}. This applies to all work orders on that machine.`
+          );
+        }
+
+        await fetchTickets();
+      } catch (err) {
+        setError(err.message);
+      }
+    },
+    [tickets, fetchTickets]
+  );
+
+  /** Row-level "assign" shortcut: opens the drill-down where the picker lives. */
+  const handleAssign = useCallback((ticketId) => setExpandedId(ticketId), []);
+
+  // ---------------------------------------------------------------------
+  // Derived data
+  // ---------------------------------------------------------------------
+
+  const { activeTickets, archivedTickets } = useMemo(() => partitionTickets(tickets), [tickets]);
+
+  const summary = useMemo(() => summarizeTickets(activeTickets, now), [activeTickets, now]);
+
+  /** Text + advanced-panel filters. Queue filters are applied separately so the
+   *  queue tab counts can be computed from the same base. */
+  const baseFiltered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+
+    return tickets.filter((t) => {
+      if (term) {
+        const haystack = [
+          t.wo_number,
+          t.machine_name,
+          t.technician_name,
+          t.issue_text,
+          t.reporter_phone,
+          t.status,
+          t.urgency,
+          t.ticket_id,
+        ];
+        if (!haystack.some((field) => String(field || '').toLowerCase().includes(term))) {
+          return false;
+        }
+      }
+
+      if (filterMachine !== 'all' && String(t.machine_id) !== String(filterMachine)) return false;
+      if (filterTechnician !== 'all' && String(t.technician_id) !== String(filterTechnician)) {
+        return false;
+      }
+
+      if (filterStage !== 'all') {
+        if (filterStage === 'open') {
+          if (isTicketClosed(t)) return false;
+        } else if (filterStage === 'closed') {
+          if (!isTicketClosed(t)) return false;
+        } else if (String(t.lifecycle_stage || '').toLowerCase() !== filterStage.toLowerCase()) {
+          return false;
+        }
+      }
+
+      if (t.created_at && (filterStartDate || filterEndDate)) {
+        const ticketTime = new Date(t.created_at).getTime();
+        if (filterStartDate && ticketTime < new Date(`${filterStartDate}T00:00:00`).getTime()) {
+          return false;
+        }
+        if (filterEndDate && ticketTime > new Date(`${filterEndDate}T23:59:59`).getTime()) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [
+    tickets,
+    searchTerm,
+    filterMachine,
+    filterTechnician,
+    filterStage,
+    filterStartDate,
+    filterEndDate,
+  ]);
+
+  const matchesQueue = useCallback(
+    (ticket, queue) => {
+      const archived = isEligibleForArchive(ticket);
+      if (queue === 'archived') return archived;
+      // Long-closed work orders stay out of every live queue.
+      if (archived) return false;
+
+      switch (queue) {
+        case 'open':
+          return !isTicketClosed(ticket);
+        case 'breached':
+          return computeSla(ticket, now).state === 'breached';
+        case 'overdue': {
+          if (isTicketClosed(ticket)) return false;
+          const age = ticketAgeHours(ticket, now);
+          return age != null && age > OVERDUE_HOURS;
+        }
+        case 'in_progress':
+          return isTicketInProgress(ticket);
+        case 'resolved_today': {
+          if (!isTicketClosed(ticket)) return false;
+          const closedAt = ticket.resolved_at || ticket.closed_at || ticket.verified_at;
+          if (!closedAt) return false;
+          const d = new Date(String(closedAt).replace(' ', 'T'));
+          return (
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate()
+          );
+        }
+        case 'mine':
+          return currentUserId != null && String(ticket.technician_id) === String(currentUserId);
+        case 'all':
+        default:
+          return true;
+      }
+    },
+    [now, currentUserId]
+  );
+
+  const queueCounts = useMemo(() => {
+    const counts = {};
+    QUEUE_FILTERS.forEach(({ key }) => {
+      counts[key] = baseFiltered.filter((t) => matchesQueue(t, key)).length;
+    });
+    return counts;
+  }, [baseFiltered, matchesQueue]);
+
+  const visibleTickets = useMemo(() => {
+    const filtered = baseFiltered.filter((t) => matchesQueue(t, activeFilter));
+    const dir = sortDir === 'asc' ? 1 : -1;
+
+    const compare = (a, b) => {
+      switch (sortKey) {
+        case 'age': {
+          // Ascending = newest first, so oldest-first is the "desc" default.
+          const aAge = ticketAgeHours(a, now) ?? 0;
+          const bAge = ticketAgeHours(b, now) ?? 0;
+          return (aAge - bAge) * dir;
+        }
+        case 'sla': {
+          const aRatio = computeSla(a, now).ratio ?? 0;
+          const bRatio = computeSla(b, now).ratio ?? 0;
+          return (aRatio - bRatio) * dir;
+        }
+        case 'assignee':
+          return String(a.technician_name || '').localeCompare(String(b.technician_name || '')) * dir;
+        case 'machine':
+          return String(a.machine_name || '').localeCompare(String(b.machine_name || '')) * dir;
+        case 'priority':
+        default: {
+          // Lower rank = more urgent, so invert to keep "desc" = most urgent first.
+          const byUrgency = (urgencyRank(b) - urgencyRank(a)) * dir;
+          if (byUrgency !== 0) return byUrgency;
+          const aOpen = isTicketClosed(a) ? 1 : 0;
+          const bOpen = isTicketClosed(b) ? 1 : 0;
+          if (aOpen !== bOpen) return aOpen - bOpen;
+          return (ticketAgeHours(b, now) ?? 0) - (ticketAgeHours(a, now) ?? 0);
+        }
+      }
+    };
+
+    return [...filtered].sort(compare);
+  }, [baseFiltered, matchesQueue, activeFilter, sortKey, sortDir, now]);
+
+  // Drop selections that scrolled out of the current view.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(visibleTickets.map(idOf));
+      const next = new Set([...prev].filter((id) => visible.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [visibleTickets]);
+
+  // ---------------------------------------------------------------------
+  // Selection + bulk actions
+  // ---------------------------------------------------------------------
+
+  const toggleSelect = useCallback((ticketId) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(ticketId)) next.delete(ticketId);
+      else next.add(ticketId);
+      return next;
+    });
+  }, []);
+
+  const allVisibleSelected =
+    visibleTickets.length > 0 && visibleTickets.every((t) => selectedIds.has(idOf(t)));
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const visibleIds = visibleTickets.map(idOf);
+      const everySelected = visibleIds.length > 0 && visibleIds.every((id) => prev.has(id));
+      return everySelected ? new Set() : new Set(visibleIds);
+    });
+  }, [visibleTickets]);
+
+  const toggleExpand = useCallback(
+    (ticketId) => setExpandedId((prev) => (prev === ticketId ? null : ticketId)),
+    []
+  );
+
+  const bulkClose = useCallback(async () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    if (
+      !window.confirm(
+        `Close ${ids.length} work order${ids.length === 1 ? '' : 's'}? This bypasses technician repair records and supervisor verification.`
+      )
+    ) {
+      return;
+    }
+
     setError('');
-    setSuccess('');
     try {
-      const { error: updateErr } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', ticketId);
+      const { error: updateErr } = await supabase
+        .from('tickets')
+        .update({
+          status: 'resolved',
+          lifecycle_stage: 'closed',
+          resolved_at: new Date().toISOString(),
+        })
+        .in('id', ids);
       if (updateErr) throw new Error(updateErr.message);
-      setSuccess(`Ticket ${ticketId.substring(0, 8)} has been successfully closed.`);
-      fetchTicketsAndEscalation();
+      setSuccess(`Closed ${ids.length} work order${ids.length === 1 ? '' : 's'}.`);
+      setSelectedIds(new Set());
+      await fetchTickets();
     } catch (err) {
       setError(err.message);
     }
-  };
+  }, [selectedIds, fetchTickets]);
 
-  const updateLifecycleStage = async (ticketId, nextStage, nextStatus = null) => {
-    setError('');
-    setSuccess('');
-    try {
-      const updateData = { lifecycle_stage: nextStage };
-      if (nextStatus) updateData.status = nextStatus;
-      if (nextStage === 'repair_completed') updateData.resolved_at = new Date().toISOString();
-      const { error: updateErr } = await supabase.from('tickets').update(updateData).eq('id', ticketId);
-      if (updateErr) throw new Error(updateErr.message);
-      setSuccess(`Ticket updated to ${LIFECYCLE[nextStage]?.label || nextStage}.`);
-      fetchTicketsAndEscalation();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const bulkAssign = useCallback(
+    async (technicianUserId) => {
+      const ids = [...selectedIds];
+      if (ids.length === 0 || !technicianUserId) return;
 
-  const formatDateTime = (dtStr) => {
-    if (!dtStr) return '—';
-    try {
-      const d = new Date(dtStr.replace(' ', 'T'));
-      return d.toLocaleString();
-    } catch {
-      return dtStr;
-    }
-  };
-
-  const isUrgent = (ticket) => ['high', 'critical'].includes(String(ticket.urgency).toLowerCase());
-  const { activeTickets, archivedTickets } = partitionTickets(tickets);
-  const openCount = activeTickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open').length;
-  const urgentCount = activeTickets.filter((ticket) => String(ticket.status).toLowerCase() === 'open' && isUrgent(ticket)).length;
-  const recentClosedCount = activeTickets.filter((ticket) => ['closed', 'resolved'].includes(String(ticket.status).toLowerCase())).length;
-  const archivedCount = archivedTickets.length;
-  
-  const visibleTickets = tickets.filter((t) => {
-    // 1. Text Search Filter (WO, machine name, issue text, phone, etc.)
-    const matchesSearch = !searchTerm.trim() || [
-      t.wo_number,
-      t.machine_name,
-      t.issue_text,
-      t.reporter_phone,
-      t.status,
-      t.urgency,
-      t.ticket_id
-    ].some(field => String(field || '').toLowerCase().includes(searchTerm.toLowerCase()));
-
-    // 2. Machine Filter
-    const matchesMachine = filterMachine === 'all' || String(t.machine_id) === String(filterMachine);
-
-    // 3. Status Filter (Tab status filter key: 'all', 'open', 'urgent', 'closed', 'archived')
-    let matchesTabStatus = true;
-    if (activeFilter === 'archived') {
-      matchesTabStatus = isEligibleForArchive(t);
-    } else {
-      // Keep main active tabs uncluttered from >90d closed tickets
-      if (isEligibleForArchive(t)) return false;
-
-      if (activeFilter === 'open') {
-        matchesTabStatus = String(t.status).toLowerCase() === 'open';
-      } else if (activeFilter === 'urgent') {
-        matchesTabStatus = ['high', 'critical'].includes(String(t.urgency).toLowerCase()) && String(t.status).toLowerCase() === 'open';
-      } else if (activeFilter === 'closed') {
-        matchesTabStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
+      const machineIds = [
+        ...new Set(
+          tickets.filter((t) => ids.includes(idOf(t))).map((t) => t.machine_id).filter(Boolean)
+        ),
+      ];
+      if (machineIds.length === 0) {
+        setError('None of the selected work orders have a machine to assign.');
+        return;
       }
-    }
 
-    // 4. Advanced Status Filter Dropdown
-    let matchesStatus = true;
-    if (filterStatus !== 'all') {
-      if (filterStatus === 'open') {
-        matchesStatus = String(t.status).toLowerCase() === 'open';
-      } else if (filterStatus === 'closed') {
-        matchesStatus = ['closed', 'resolved'].includes(String(t.status).toLowerCase());
-      } else {
-        matchesStatus = String(t.lifecycle_stage || '').toLowerCase() === filterStatus.toLowerCase();
+      const techName =
+        techniciansList.find((t) => t.user_id === technicianUserId)?.name || 'technician';
+      if (
+        !window.confirm(
+          `Assign ${techName} to ${machineIds.length} machine${machineIds.length === 1 ? '' : 's'}? Ownership is stored per machine, so this affects every work order on them.`
+        )
+      ) {
+        return;
       }
-    }
 
-    // 5. Date Range Filter
-    let matchesDate = true;
-    if (t.created_at) {
-      const ticketTime = new Date(t.created_at).getTime();
-      if (filterStartDate) {
-        const startMs = new Date(filterStartDate + 'T00:00:00').getTime();
-        if (ticketTime < startMs) matchesDate = false;
+      setError('');
+      try {
+        const { error: updateErr } = await supabase
+          .from('machines')
+          .update({ technician_user_id: technicianUserId })
+          .in('id', machineIds);
+        if (updateErr) throw new Error(updateErr.message);
+        setSuccess(`Assigned ${techName} to ${machineIds.length} machine(s).`);
+        setSelectedIds(new Set());
+        await fetchTickets();
+      } catch (err) {
+        setError(err.message);
       }
-      if (filterEndDate) {
-        const endMs = new Date(filterEndDate + 'T23:59:59').getTime();
-        if (ticketTime > endMs) matchesDate = false;
-      }
+    },
+    [selectedIds, tickets, techniciansList, fetchTickets]
+  );
+
+  const resetFilters = useCallback(() => {
+    setFilterMachine('all');
+    setFilterStage('all');
+    setFilterTechnician('all');
+    setFilterStartDate('');
+    setFilterEndDate('');
+    setSearchTerm('');
+  }, []);
+
+  const handleExport = useCallback(() => {
+    if (visibleTickets.length === 0) {
+      setError('Nothing to export in the current view.');
+      return;
     }
+    downloadTicketsCSV(visibleTickets);
+    setSuccess(`Exported ${visibleTickets.length} work order(s) to CSV.`);
+  }, [visibleTickets]);
 
-    // 6. Technician Filter
-    const matchesTechnician = filterTechnician === 'all' || String(t.technician_id) === String(filterTechnician);
-
-    return matchesSearch && matchesMachine && matchesTabStatus && matchesStatus && matchesDate && matchesTechnician;
-  });
+  // ---------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------
 
   return (
     <AppShell active="tickets">
-      {/* Pulse Animations style tag */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .glow-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          display: inline-block;
-          margin-right: 8px;
-          box-shadow: 0 0 8px currentColor;
-        }
-        .glow-dot.healthy {
-          background-color: #25D366;
-          color: #25D366;
-          animation: pulse-green 2s infinite;
-        }
-        .glow-dot.down {
-          background-color: #EF4444;
-          color: #EF4444;
-          animation: pulse-red 2s infinite;
-        }
-        @keyframes pulse-green {
-          0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-          70% { box-shadow: 0 0 0 6px rgba(37, 211, 102, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-        }
-        @keyframes pulse-red {
-          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .vault-card {
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-      ` }} />
-
-      <div className="vault-wrap workspace-page tickets-page" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
-        <div className="workspace-page-heading" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="vault-wrap workspace-page tickets-page tickets-board">
+        <header className="tickets-heading">
           <div>
-            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Work Order Control Board</h1>
-            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>One ticket. One action. Done.</p>
+            <h1>Work Order Control Board</h1>
+            <p>
+              Dispatch, monitor and analyse every work order. SLA targets are derived from urgency:
+              Critical 4h · High 8h · Medium 24h · Low 72h.
+            </p>
           </div>
-          <button
-            onClick={() => setQuickReportOpen(true)}
+          <div className="tickets-heading-actions">
+            {archivedTickets.length > 0 && (
+              <button
+                type="button"
+                className="tickets-icon-btn"
+                onClick={() => downloadArchivedCSV(archivedTickets)}
+                title={`${archivedTickets.length} archived work orders (closed over 90 days ago)`}
+              >
+                <Archive size={14} />
+                Archive ({archivedTickets.length})
+              </button>
+            )}
+            <button
+              type="button"
+              className="tickets-icon-btn"
+              style={{
+                background: 'var(--brand)',
+                borderColor: 'var(--brand)',
+                color: '#052e16',
+                fontWeight: 700,
+              }}
+              onClick={() => setQuickReportOpen(true)}
+            >
+              <TicketIcon size={14} />
+              Quick report
+            </button>
+          </div>
+        </header>
+
+        {error && (
+          <div
+            role="alert"
             style={{
-              background: 'var(--brand)',
-              color: 'white',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '6px',
-              fontWeight: 600,
-              fontSize: '14px',
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 200ms ease',
-            }}
-            onMouseOver={(e) => {
-              e.target.style.background = '#1e7e34';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(34, 163, 90, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.background = 'var(--brand)';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
+              gap: 10,
+              background: 'rgba(248,113,113,0.12)',
+              border: '1px solid rgba(248,113,113,0.35)',
+              color: '#fecaca',
+              padding: '11px 15px',
+              borderRadius: 10,
+              marginBottom: 14,
+              fontSize: '0.86rem',
             }}
           >
-            <span>📱 Quick Report</span>
-          </button>
+            <span style={{ flex: 1 }}>{error}</span>
+            <button
+              type="button"
+              onClick={() => setError('')}
+              aria-label="Dismiss error"
+              style={{ background: 'none', border: 0, color: 'inherit', cursor: 'pointer' }}
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
+        {success && (
+          <div
+            role="status"
+            style={{
+              background: 'rgba(37,211,102,0.12)',
+              border: '1px solid rgba(37,211,102,0.35)',
+              color: '#bbf7d0',
+              padding: '11px 15px',
+              borderRadius: 10,
+              marginBottom: 14,
+              fontSize: '0.86rem',
+            }}
+          >
+            {success}
+          </div>
+        )}
+
+        <TicketKpiBar summary={summary} activeFilter={activeFilter} onSelect={setActiveFilter} />
+
+        <TicketToolbar
+          search={searchTerm}
+          onSearchChange={setSearchTerm}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          counts={queueCounts}
+          sortKey={sortKey}
+          onSortChange={setSortKey}
+          sortDir={sortDir}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          advancedOpen={showAdvanced}
+          onToggleAdvanced={() => setShowAdvanced((open) => !open)}
+          onExport={handleExport}
+        />
+
+        {showAdvanced && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+              gap: 12,
+              padding: 16,
+              marginBottom: 14,
+              background: '#0e1722',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+            }}
+          >
+            {[
+              {
+                label: 'Machine',
+                value: filterMachine,
+                onChange: setFilterMachine,
+                options: [
+                  { value: 'all', label: 'All machines' },
+                  ...machinesList.map((m) => ({ value: m.id, label: m.name })),
+                ],
+              },
+              {
+                label: 'Lifecycle stage',
+                value: filterStage,
+                onChange: setFilterStage,
+                options: [
+                  { value: 'all', label: 'All stages' },
+                  { value: 'open', label: 'Any open' },
+                  { value: 'closed', label: 'Any closed' },
+                  { value: 'reported', label: 'Reported' },
+                  { value: 'acknowledged', label: 'Acknowledged' },
+                  { value: 'assigned', label: 'Assigned' },
+                  { value: 'work_started', label: 'Work started' },
+                  { value: 'waiting_spare', label: 'Waiting for spare' },
+                  { value: 'repair_completed', label: 'Repair completed' },
+                  { value: 'verification_pending', label: 'Verification pending' },
+                ],
+              },
+              {
+                label: 'Technician',
+                value: filterTechnician,
+                onChange: setFilterTechnician,
+                options: [
+                  { value: 'all', label: 'All technicians' },
+                  ...techniciansList.map((t) => ({ value: t.user_id, label: t.name })),
+                ],
+              },
+            ].map(({ label, value, onChange, options }) => (
+              <label key={label} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color: 'var(--slate-light)',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {label}
+                </span>
+                <select
+                  className="tickets-select"
+                  value={value}
+                  onChange={(event) => onChange(event.target.value)}
+                >
+                  {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+
+            {[
+              ['Reported from', filterStartDate, setFilterStartDate],
+              ['Reported to', filterEndDate, setFilterEndDate],
+            ].map(([label, value, onChange]) => (
+              <label key={label} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color: 'var(--slate-light)',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {label}
+                </span>
+                <input
+                  type="date"
+                  className="tickets-select"
+                  value={value}
+                  onChange={(event) => onChange(event.target.value)}
+                />
+              </label>
+            ))}
+
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button
+                type="button"
+                className="tickets-icon-btn"
+                style={{ width: '100%', justifyContent: 'center', color: '#F87171' }}
+                onClick={resetFilters}
+              >
+                Reset filters
+              </button>
+            </div>
+          </div>
+        )}
+
+        {selectedIds.size > 0 && (
+          <div className="tickets-bulk-bar" role="region" aria-label="Bulk actions">
+            <strong>
+              {selectedIds.size} selected
+            </strong>
+            <div className="tickets-bulk-spacer" />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <UserPlus size={14} aria-hidden="true" style={{ color: 'var(--slate-light)' }} />
+              <select
+                className="tickets-select"
+                value=""
+                onChange={(event) => bulkAssign(event.target.value)}
+                aria-label="Assign selected work orders to a technician"
+              >
+                <option value="">Assign to…</option>
+                {techniciansList.map((tech) => (
+                  <option key={tech.user_id} value={tech.user_id}>
+                    {tech.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="tickets-icon-btn" onClick={bulkClose}>
+              <CheckCheck size={14} />
+              Close selected
+            </button>
+            <button
+              type="button"
+              className="tickets-icon-btn"
+              onClick={() =>
+                downloadTicketsCSV(visibleTickets.filter((t) => selectedIds.has(idOf(t))))
+              }
+            >
+              <Download size={14} />
+              Export selected
+            </button>
+            <button
+              type="button"
+              className="tickets-icon-btn"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              <X size={14} />
+              Clear
+            </button>
+          </div>
+        )}
+
+        {/* Column headers — hidden on mobile, where rows become cards. */}
+        <div className="tickets-list-header" aria-hidden="true">
+          <div className="tickets-col-select">
+            <input
+              type="checkbox"
+              className="tickets-checkbox"
+              checked={allVisibleSelected}
+              onChange={toggleSelectAll}
+              aria-label="Select all visible work orders"
+            />
+          </div>
+          <div className="tickets-col-identity">Work order / machine</div>
+          <div className="tickets-col-issue">Issue &amp; AI insight</div>
+          <div className="tickets-col-status">Status · urgency · SLA</div>
+          <div className="tickets-col-assignee">Assignee &amp; age</div>
+          <div className="tickets-col-actions" style={{ textAlign: 'right' }}>
+            Actions
+          </div>
         </div>
 
-        {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
-        {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
-
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading tickets...</div>
-        ) : tickets.length === 0 ? (
-          <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-            <p style={{ color: 'var(--slate)', margin: 0 }}>No tickets logged yet. Issues reported from the app or over WhatsApp appear here automatically.</p>
+          <div className="tickets-list" aria-busy="true" aria-label="Loading work orders">
+            {[0, 1, 2, 3, 4].map((index) => (
+              <div key={index} className="tickets-skeleton" />
+            ))}
+          </div>
+        ) : visibleTickets.length === 0 ? (
+          <div className="tickets-empty">
+            <TicketIcon size={30} style={{ margin: '0 auto 10px', color: 'var(--slate-light)' }} />
+            <strong style={{ display: 'block', color: 'var(--ink)', marginBottom: 6 }}>
+              {tickets.length === 0
+                ? 'No work orders logged yet'
+                : 'No work orders match these filters'}
+            </strong>
+            <p style={{ margin: 0, fontSize: '0.88rem' }}>
+              {tickets.length === 0
+                ? 'Issues reported from the app or over WhatsApp appear here automatically.'
+                : 'Try clearing the search or switching queue.'}
+            </p>
+            {tickets.length > 0 && (
+              <button
+                type="button"
+                className="tickets-icon-btn"
+                style={{ marginTop: 14 }}
+                onClick={() => {
+                  resetFilters();
+                  setActiveFilter('all');
+                }}
+              >
+                Reset all filters
+              </button>
+            )}
           </div>
         ) : (
-          <>
-            {/* === MVP MINIMAL VIEW: ONE URGENT TICKET === */}
-            {!showMoreOptions && (
-              <>
-                <div style={{
-                  background: openCount > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(37, 211, 102, 0.12)',
-                  border: `1px solid ${openCount > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(37, 211, 102, 0.3)'}`,
-                  borderRadius: '10px',
-                  padding: '12px 16px',
-                  marginBottom: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      background: openCount > 0 ? '#ef4444' : '#25D366',
-                      boxShadow: openCount > 0 ? '0 0 12px #ef4444' : '0 0 12px #25D366'
-                    }} />
-                    <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.5px' }}>
-                        {openCount > 0 ? `${openCount} active maintenance item${openCount === 1 ? '' : 's'} need attention` : 'All machines are clear right now'}
-                      </strong>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: openCount > 0 ? '#ef4444' : '#25D366', background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: '6px', fontFamily: 'monospace' }}>
-                    {openCount > 0 ? 'Needs action' : 'Running clear'}
-                  </span>
-                </div>
-
-                {/* COLLAPSIBLE TICKET CARDS LIST - TOP 5 BY PRIORITY */}
-                {(() => {
-                  if (visibleTickets.length === 0) {
-                    return (
-                      <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                        <p style={{ color: 'var(--slate)', margin: 0 }}>No tickets found. All maintenance is current.</p>
-                      </div>
-                    );
-                  }
-
-                  // Sort by priority: Critical > High > Medium > Low
-                  const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-                  const sortedByPriority = [...visibleTickets].sort((a, b) => {
-                    const aPriority = priorityOrder[String(a.urgency || '').toLowerCase()] ?? 4;
-                    const bPriority = priorityOrder[String(b.urgency || '').toLowerCase()] ?? 4;
-                    if (aPriority !== bPriority) return aPriority - bPriority;
-                    // If same priority, sort by status (open first)
-                    const aOpen = String(a.status).toLowerCase() === 'open' ? 0 : 1;
-                    const bOpen = String(b.status).toLowerCase() === 'open' ? 0 : 1;
-                    return aOpen - bOpen;
-                  });
-
-                  const topFiveTickets = sortedByPriority.slice(0, 5);
-                  const remainingCount = sortedByPriority.length - 5;
-
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                      {topFiveTickets.map((ticket) => (
-                        <TicketCard
-                          key={ticket.id || ticket.ticket_id}
-                          ticket={ticket}
-                          onStartWork={(ticketId) => handleCloseTicket(ticketId)}
-                          onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
-                        />
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                <button
-                  type="button"
-                  onClick={() => setShowMoreOptions(true)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '8px',
-                    color: '#cbd5e1',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
+          <div className="tickets-list">
+            {visibleTickets.map((ticket) => {
+              const ticketId = idOf(ticket);
+              const isExpanded = expandedId === ticketId;
+              return (
+                <TicketRow
+                  key={ticketId}
+                  ticket={ticket}
+                  ticketId={ticketId}
+                  expanded={isExpanded}
+                  selected={selectedIds.has(ticketId)}
+                  onToggleExpand={toggleExpand}
+                  onToggleSelect={toggleSelect}
+                  onStart={handleStart}
+                  onAssign={handleAssign}
+                  now={now}
                 >
-                  More options (filters, history, analytics) →
-                </button>
-              </>
-            )}
-
-            {/* === MORE OPTIONS DRILL-DOWN === */}
-            {showMoreOptions && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowMoreOptions(false)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '8px',
-                    color: '#cbd5e1',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    marginBottom: '20px'
-                  }}
-                >
-                  ← Back to one ticket view
-                </button>
-
-                <section className="postlogin-summary" aria-label="Ticket summary filters">
-                  {[
-                    ['all', activeTickets.length, 'Active Tickets'],
-                    ['open', openCount, 'Open Work'],
-                    ['urgent', urgentCount, 'Urgent Issues'],
-                    ['closed', recentClosedCount, 'Recent Closed (≤90d)'],
-                    ['archived', archivedCount, 'Archived (>90d)']
-                  ].map(([key, value, label]) => (
-                    <button type="button" className={activeFilter === key ? 'active' : ''} onClick={() => setActiveFilter(key)} key={key}>
-                      <strong>{value}</strong>
-                      <span>{label}</span>
-                      <small>View details →</small>
-                    </button>
-                  ))}
-                </section>
-
-                {activeFilter === 'archived' && (
-                  <div style={{ background: 'rgba(51, 65, 85, 0.4)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '10px', padding: '14px 18px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
-                      <Archive style={{ color: '#38bdf8' }} size={20} />
-                      <div>
-                        <strong style={{ color: 'white', fontSize: '0.95rem' }}>Systematically Archived Tickets (Closed &gt;3 Months)</strong>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Historical closed work orders are automatically partitioned to maintain maximum performance for daily plant operations.</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => downloadArchivedCSV(archivedTickets)}
-                      style={{
-                        background: '#0284c7',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 14px',
-                        borderRadius: '6px',
-                        fontWeight: 600,
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <Download size={15} /> Export Archive (CSV)
-                    </button>
-                  </div>
-                )}
-                <div style={{ margin: '16px 0 16px', display: 'flex', gap: '12px' }}>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="🔍 Search tickets by WO number, machine name, issue, phone..."
-                    style={{
-                      width: '100%',
-                      background: '#0b1118',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      borderRadius: '8px',
-                      padding: '10px 14px',
-                      color: 'white',
-                      fontSize: '0.85rem'
-                    }}
-                  />
-                </div>
-
-                {/* ADVANCED FEATURES: Multi-Faceted Filters */}
-                <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
-                  <div style={{
-                  background: '#0e1722',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '10px',
-                  padding: '16px',
-                  marginBottom: '20px',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Machine</label>
-                    <select
-                      value={filterMachine}
-                      onChange={(e) => setFilterMachine(e.target.value)}
-                      style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
-                    >
-                      <option value="all">All Machines</option>
-                      {machinesList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Status</label>
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="open">🟢 Open</option>
-                      <option value="closed">🔴 Closed</option>
-                      <option value="reported">Reported</option>
-                      <option value="acknowledged">Acknowledged</option>
-                      <option value="assigned">Assigned</option>
-                      <option value="work_started">Work Started</option>
-                      <option value="waiting_spare">Waiting for Spare</option>
-                      <option value="repair_completed">Repair Completed</option>
-                      <option value="verification_pending">Verification Pending</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Filter by Technician</label>
-                    <select
-                      value={filterTechnician}
-                      onChange={(e) => setFilterTechnician(e.target.value)}
-                      style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem' }}
-                    >
-                      <option value="all">All Technicians</option>
-                      {techniciansList.map(t => <option key={t.user_id} value={t.user_id}>{t.name} ({t.role.replace('maintenance_', '')})</option>)}
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Start Date</label>
-                    <input
-                      type="date"
-                      value={filterStartDate}
-                      onChange={(e) => setFilterStartDate(e.target.value)}
-                      style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem', colorScheme: 'dark' }}
+                  {isExpanded && (
+                    <TicketDetailPanel
+                      ticket={ticket}
+                      ticketId={ticketId}
+                      technicians={techniciansList}
+                      onStageChange={updateLifecycleStage}
+                      onClose={handleCloseTicket}
+                      onFieldChange={handleFieldChange}
+                      now={now}
                     />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>End Date</label>
-                    <input
-                      type="date"
-                      value={filterEndDate}
-                      onChange={(e) => setFilterEndDate(e.target.value)}
-                      style={{ height: '42px', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'white', padding: '0 8px', fontSize: '0.85rem', colorScheme: 'dark' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFilterMachine('all');
-                        setFilterStatus('all');
-                        setFilterStartDate('');
-                        setFilterEndDate('');
-                        setFilterTechnician('all');
-                        setSearchTerm('');
-                      }}
-                      style={{ height: '42px', width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#F87171', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
-                </div>
-                </AdvancedFeaturesDrilldown>
-
-                {/* FULL TABLE VIEW IN MORE OPTIONS */}
-                <div className="vault-card" style={{ padding: 0, overflowX: 'auto' }}>
-                  <table className="vault-table">
-              <thead>
-                <tr>
-                  <th>Work Order</th>
-                  <th>Machine Name</th>
-                  <th>Reported At</th>
-                  <th>Urgency</th>
-                  <th>Description / AI Summary</th>
-                  <th>Lifecycle Stage</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleTickets.length === 0 && (
-                  <tr>
-                    <td colSpan="8" style={{ padding: 0 }}>
-                      <EmptyState
-                        icon={Ticket}
-                        title="No Tickets Match This Search"
-                        description="Try clearing your filters or search terms to see open maintenance work orders."
-                      />
-                    </td>
-                  </tr>
-                )}
-                {visibleTickets.map((t) => {
-                  const ticketId = t.ticket_id || t.id || '—';
-                  const status = String(t.status || 'Open').toLowerCase();
-                  const stage = stageInfo(t);
-                  const isClosed = ['closed', 'resolved'].includes(status);
-                  const isExpanded = expandedId === ticketId;
-                  const hasRecord = t.root_cause || t.repair_action || t.parts_used || t.labour_minutes || t.downtime_minutes;
-
-                  return (
-                    <React.Fragment key={ticketId}>
-                    <tr onClick={() => setExpandedId(isExpanded ? null : ticketId)} style={{ cursor: 'pointer', background: isExpanded ? 'rgba(255,255,255,0.03)' : 'transparent' }} title="Click to view repair details">
-                      <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'white' }}>
-                        <span style={{ display: 'inline-block', width: '12px', color: 'var(--slate)', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>›</span> {t.wo_number || (ticketId !== '—' ? ticketId.split('-')[0] || ticketId : ticketId)}
-                      </td>
-                      <td style={{ fontWeight: '600', color: 'white' }}>
-                        <div>{t.machine_name || t.machine_id}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span>🔧 Assigned:</span>
-                          <span style={{ color: '#8deead', fontWeight: 'bold' }}>{t.technician_name}</span>
-                        </div>
-                        {t.repeat_failure_flag && <span title="Recurring failure — RCA recommended" style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.66rem', fontWeight: 700, textTransform: 'uppercase', color: '#F87171', border: '1px solid #F87171', borderRadius: '999px', padding: '1px 7px', whiteSpace: 'nowrap' }}>Repeat ×{(t.repeat_failure_count || 0) + 1}</span>}
-                      </td>
-                      <td style={{ whiteSpace: 'nowrap', color: '#cbd5e1' }}>{formatDateTime(t.reported_at)}</td>
-                      <td>
-                        {(() => {
-                          if (!t.urgency) return '—';
-                          const u = t.urgency.toLowerCase();
-                          const c = u === 'critical' ? { background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.4)' }
-                            : u === 'high' ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', border: '1px solid rgba(245,158,11,0.4)' }
-                            : u === 'medium' ? { background: 'rgba(96,165,250,0.12)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.35)' }
-                            : { background: 'rgba(148,163,184,0.12)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.3)' };
-                          return <span style={{ ...c, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', borderRadius: '999px', padding: '2px 9px', whiteSpace: 'nowrap' }}>{t.urgency}</span>;
-                        })()}
-                      </td>
-                      <td style={{ maxWidth: '260px', fontSize: '0.82rem', color: '#cbd5e1' }}>
-                        {t.description || (t.ai_summary && t.ai_summary.predicted_issue) || '—'}
-                      </td>
-                      <td>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, padding: '3px 9px', borderRadius: '999px', color: stage.color, border: `1px solid ${stage.color}`, background: `${stage.color}1a`, whiteSpace: 'nowrap' }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: stage.color }} /> {stage.label}
-                        </span>
-                      </td>
-                      <td>
-                        {status === 'open' ? (
-                          <span className="vault-role-badge read-only" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(239, 68, 68, 0.12)', color: '#F87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                            <span className="glow-dot down" /> Open
-                          </span>
-                        ) : (
-                          <span className="vault-role-badge" style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(37, 211, 102, 0.12)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.2)' }}>
-                            <span className="glow-dot healthy" /> Closed
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        {status === 'open' ? (
-                          <button className="vault-btn vault-btn-danger" style={{ padding: '6px 14px', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); handleCloseTicket(ticketId); }}>
-                            Direct close
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: '0.8rem', color: 'var(--slate-light)' }}>
-                            {t.closure_approved_by ? `Verified by ${t.closure_approved_by}` : 'Closed'}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan="8" style={{ background: 'rgba(0,0,0,0.25)', padding: '16px 20px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px 20px' }}>
-                            {[
-                              ['Root cause', t.root_cause],
-                              ['Repair action', t.repair_action],
-                              ['Parts used', t.parts_used],
-                              ['Labour time', t.labour_minutes ? `${t.labour_minutes} min` : null],
-                              ['Machine downtime', t.downtime_minutes != null ? `${t.downtime_minutes} min` : null],
-                              ['Work started', t.started_at ? formatDateTime(t.started_at) : null],
-                              ['Closed', t.resolved_at ? formatDateTime(t.resolved_at) : null],
-                              ['Verified by', t.closure_approved_by],
-                            ].map(([label, value]) => (
-                              <div key={label}>
-                                <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
-                                <span style={{ color: value ? 'white' : 'var(--slate)', fontSize: '0.85rem' }}>{value || '—'}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* 1-Tap Lifecycle Stage Quick Action Bar (Pillar 5 & Operator/Technician POV) */}
-                          {!isClosed && (
-                            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--slate)', fontWeight: 'bold', textTransform: 'uppercase' }}>1-Tap Stage Action:</span>
-                              <button
-                                type="button"
-                                className="vault-btn"
-                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.3)' }}
-                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'work_started'); }}
-                              >
-                                ▶ Start Repair
-                              </button>
-                              <button
-                                type="button"
-                                className="vault-btn"
-                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}
-                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'waiting_spare'); }}
-                              >
-                                ⏳ Waiting Spare
-                              </button>
-                              <button
-                                type="button"
-                                className="vault-btn"
-                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(52,211,153,0.15)', color: '#34D399', border: '1px solid rgba(52,211,153,0.3)' }}
-                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'repair_completed'); }}
-                              >
-                                ✓ Repair Completed
-                              </button>
-                              <button
-                                type="button"
-                                className="vault-btn vault-btn-primary"
-                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--primary)', color: 'var(--primary-foreground)' }}
-                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'closed', 'resolved'); }}
-                              >
-                                Verify &amp; Close
-                              </button>
-                            </div>
-                          )}
-                          {t.ai_summary?.photo_url && (
-                            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                              <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Photo</small>
-                              <a href={t.ai_summary.photo_url} target="_blank" rel="noopener noreferrer">
-                                <img src={t.ai_summary.photo_url} alt="Reported issue photo" style={{ maxWidth: '240px', maxHeight: '160px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', objectFit: 'cover' }} />
-                              </a>
-                            </div>
-                          )}
-
-                          {/* AI Machine Predictive Diagnosis & Historical Machine Intelligence Card */}
-                          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(59, 130, 246, 0.06)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                              <strong style={{ fontSize: '0.82rem', color: '#60A5FA', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Rajdhani, sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                🤖 AI MACHINE DIAGNOSIS — {t.machine_name || 'Unit'}
-                              </strong>
-                              <span style={{ fontSize: '0.68rem', color: '#60A5FA', background: 'rgba(59, 130, 246, 0.15)', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Predictive Diagnostics</span>
-                            </div>
-                            
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.8rem', color: '#e2e8f0', marginBottom: '10px' }}>
-                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>AI Predicted Root Cause</small>
-                                <span>{t.ai_summary?.predicted_issue || `${t.machine_name}: Inspection required for reported issue.`}</span>
-                              </div>
-                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>Recommended Repair Step</small>
-                                <span>{t.ai_summary?.recommended_action || 'Perform standard troubleshooting protocol and verify component interlocks.'}</span>
-                              </div>
-                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <small style={{ display: 'block', color: '#94a3b8', fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '2px' }}>Suggested Spare Parts</small>
-                                <span>{t.ai_summary?.recommended_parts || 'Standard maintenance spares & seal kits.'}</span>
-                              </div>
-                            </div>
-
-                            {/* Machine History Insight */}
-                            <div style={{ fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.08)', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.2)', fontStyle: 'italic' }}>
-                              {t.ai_summary?.historical_insights || `⚠️ ${t.machine_name} breakdown pattern tracked by TurboFix Machine Intelligence.`}
-                            </div>
-                          </div>
-
-                          {/* Japanese TPS Kaizen 5-Why RCA Standard Card */}
-                          <div style={{ marginTop: '12px', background: 'rgba(134,59,255,0.05)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(134,59,255,0.15)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                              <strong style={{ fontSize: '0.78rem', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Rajdhani, sans-serif' }}>
-                                🇯🇵 KAIZEN 5-WHY ROOT CAUSE DIAGNOSIS (改善)
-                              </strong>
-                              <span style={{ fontSize: '0.68rem', color: '#863bff', background: 'rgba(134,59,255,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Standard Work</span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 1 (Reported Symptom):</strong> {t.issue_text || '—'}</div>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 2 (Direct Cause):</strong> {getDirectCause(t)}</div>
-                              <div><strong style={{ color: '#94a3b8' }}>Why 3 (Root Cause & Fix):</strong> {getRootCauseFix(t)}</div>
-                            </div>
-                          </div>
-
-                          {!hasRecord && !isClosed && <div style={{ color: 'var(--slate)', fontSize: '0.82rem', marginTop: '10px' }}>The technician has not recorded manual repair logs yet. AI Predictive Diagnosis is active above.</div>}
-                        </td>
-                      </tr>
-                    )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                  )}
+                </TicketRow>
+              );
+            })}
           </div>
-          </>
         )}
-        </>
+
+        {!loading && visibleTickets.length > 0 && (
+          <p
+            style={{
+              marginTop: 14,
+              textAlign: 'center',
+              color: 'var(--slate-light)',
+              fontSize: '0.76rem',
+            }}
+          >
+            Showing {visibleTickets.length} of {tickets.length} work orders
+            {archivedTickets.length > 0 && ` · ${archivedTickets.length} archived (>90 days closed)`}
+          </p>
         )}
       </div>
+
       <QuickReportDialog
         open={quickReportOpen}
         onClose={() => setQuickReportOpen(false)}
         machines={machinesList}
         onTicketCreated={() => {
-          setSuccess('Ticket created! Supervisor has been notified via WhatsApp.');
+          setSuccess('Ticket created. Supervisor has been notified via WhatsApp.');
           setQuickReportOpen(false);
-          fetchTicketsAndEscalation();
+          fetchTickets();
         }}
       />
     </AppShell>

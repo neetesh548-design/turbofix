@@ -1,38 +1,18 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { stageInfo, urgencyBadgeStyle } from '@/utils/ticketMeta';
 
-const LIFECYCLE = {
-  reported: { label: 'Reported', color: '#F87171' },
-  acknowledged: { label: 'Acknowledged', color: '#FBBF24' },
-  assigned: { label: 'Assigned', color: '#FBBF24' },
-  work_started: { label: 'Work started', color: '#60A5FA' },
-  waiting_spare: { label: 'Waiting for spare', color: '#F59E0B' },
-  waiting_approval: { label: 'Waiting for approval', color: '#F59E0B' },
-  waiting_vendor: { label: 'Waiting for vendor', color: '#F59E0B' },
-  repair_completed: { label: 'Repair completed', color: '#34D399' },
-  verification_pending: { label: 'Verification pending', color: '#A78BFA' },
-  closed: { label: 'Closed', color: '#25D366' },
-};
-
-const stageInfo = (ticket) => {
-  const raw = String(ticket.lifecycle_stage || '').toLowerCase();
-  if (LIFECYCLE[raw]) return LIFECYCLE[raw];
-  return ['closed', 'resolved'].includes(String(ticket.status || '').toLowerCase()) ? LIFECYCLE.closed : LIFECYCLE.reported;
-};
-
-const getUrgencyBadgeStyle = (urgency) => {
-  const u = (urgency || '').toLowerCase();
-  if (u === 'critical') return { background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.4)' };
-  if (u === 'high') return { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', border: '1px solid rgba(245,158,11,0.4)' };
-  if (u === 'medium') return { background: 'rgba(96,165,250,0.12)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.35)' };
-  return { background: 'rgba(148,163,184,0.12)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.3)' };
-};
-
+/**
+ * TicketCard — compact expandable ticket summary.
+ *
+ * The lifecycle map and urgency palette live in `utils/ticketMeta` so this card
+ * and the Work Order Control Board cannot drift apart visually.
+ */
 export default function TicketCard({ ticket, onStartWork, onViewDetails }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const stage = stageInfo(ticket);
   const ticketId = ticket.wo_number || ticket.id || '—';
-  const urgencyStyle = getUrgencyBadgeStyle(ticket.urgency);
+  const urgencyStyle = urgencyBadgeStyle(ticket.urgency);
 
   return (
     <div style={{
