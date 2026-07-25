@@ -456,39 +456,16 @@ export default function Tickets() {
                   const remainingCount = sortedByPriority.length - 5;
 
                   return (
-                    <>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                        {topFiveTickets.map((ticket) => (
-                          <TicketCard
-                            key={ticket.id || ticket.ticket_id}
-                            ticket={ticket}
-                            onStartWork={(ticketId) => handleCloseTicket(ticketId)}
-                            onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
-                          />
-                        ))}
-                      </div>
-
-                      {remainingCount > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowMoreOptions(true)}
-                          style={{
-                            width: '100%',
-                            padding: '12px 16px',
-                            background: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            borderRadius: '8px',
-                            color: '#cbd5e1',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            marginBottom: '20px'
-                          }}
-                        >
-                          View all {remainingCount} other tickets →
-                        </button>
-                      )}
-                    </>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                      {topFiveTickets.map((ticket) => (
+                        <TicketCard
+                          key={ticket.id || ticket.ticket_id}
+                          ticket={ticket}
+                          onStartWork={(ticketId) => handleCloseTicket(ticketId)}
+                          onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
+                        />
+                      ))}
+                    </div>
                   );
                 })()}
 
