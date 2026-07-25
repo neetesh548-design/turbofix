@@ -718,16 +718,16 @@ export default function Dashboard() {
     return () => { mounted = false; };
   }, []);
 
-  const { kpis, auto_insights: insights, owner_impact: impact } = data;
+  const { kpis = fallback.kpis, auto_insights: insights = fallback.auto_insights, owner_impact: impact = fallback.owner_impact } = data;
   const overview = data.dashboard_overview || fallback.dashboard_overview;
   const efficiency = data.efficiency || fallback.efficiency;
   const costRatios = data.cost_ratios || fallback.cost_ratios;
   const backlog = data.backlog || fallback.backlog;
   const backlogVelocity = data.backlog_velocity || fallback.backlog_velocity;
   const companyName = data.company_name || 'TurboFix';
-  const topMachine = insights.top_problem_machines?.[0];
-  const healthTone = kpis.plant_health_pct >= 90 ? 'success' : kpis.plant_health_pct >= 70 ? 'warning' : 'danger';
-  const uptimePct = Math.max(0, Math.min(100, Math.round(impact.availability_pct ?? kpis.plant_health_pct ?? 0)));
+  const topMachine = insights?.top_problem_machines?.[0];
+  const healthTone = kpis?.plant_health_pct >= 90 ? 'success' : kpis?.plant_health_pct >= 70 ? 'warning' : 'danger';
+  const uptimePct = Math.max(0, Math.min(100, Math.round(impact?.availability_pct ?? kpis?.plant_health_pct ?? 0)));
   const urgencyRank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
   const mostCritical = [...(data.needs_attention || [])].sort(
     (a, b) => (urgencyRank[a.urgency] ?? 9) - (urgencyRank[b.urgency] ?? 9),
