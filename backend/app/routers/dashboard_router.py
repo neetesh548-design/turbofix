@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from app.auth import CurrentUser, get_current_user
 from app.dependencies import get_custom_kpis, get_events, get_machines, get_tickets, get_users, get_technician_work
 from app.repositories.base import CustomKpiRepository, EventRepository, MachineRepository, TicketRepository, UserRepository, TechnicianWorkRepository
-from app.services import ai_service
+from app.services import ai_service, analytics_service
 from app.services.dashboard_service import build_custom_kpi_values, compute_kpis
 from app.services.machine_data_service import read_machine_data
 from app.infrastructure.logging import get_logger
@@ -129,6 +129,20 @@ def get_dashboard(
         )
     else:
         result["custom_kpis"] = []
+
+    # Analytics Engine block — the six governance KPIs, computed by the same
+    # engine that feeds persisted snapshots so the dashboard tile and the trend
+    # chart can never disagree. Additive: existing `kpis` is left untouched, and
+    # a failure here degrades the block to null rather than the whole dashboard.
+    try:
+        result["analytics"] = analytics_service.compute_analytics(
+            company_code=user.company_code,
+            machines=machines.get_company_machines(user.company_code),
+            tickets=tickets.get_company_tickets(user.company_code),
+        )
+    except Exception as exc:
+        log.error("dashboard.analytics_failed", company_code=user.company_code, error=str(exc))
+        result["analytics"] = None
 
     try:
         result["machine_quota"] = int(str(company.get("machine_quota") or 0).strip())

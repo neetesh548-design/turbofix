@@ -134,6 +134,15 @@ SETTINGS_HEADER = [
     "company_code", "escalation_path_json", "custom_roles_json", "updated_at",
 ]
 
+ANALYTICS_SNAPSHOT_HEADER = [
+    "factory_id", "period_kind", "period_start", "period_end",
+    "plant_health_pct", "machines_down", "urgent_tickets",
+    "avg_repair_hours", "cost_total", "pm_compliance_pct",
+    "payload", "captured_at", "captured_by",
+]
+
+ANALYTICS_PERIOD_KINDS = ["daily", "weekly", "monthly"]
+
 TECHNICIAN_WORK_HEADER = [
     "ticket_id", "company_code", "machine_id", "technician_user_id", "status",
     "checklist_json", "notes", "parts_used", "evidence_json", "started_at",
@@ -407,6 +416,36 @@ class CustomKpiRepository(ABC):
     @abstractmethod
     def add_data(self, row: dict) -> None:
         """Append a new KPI data entry row."""
+
+
+class AnalyticsSnapshotRepository(ABC):
+    """Persistent KPI snapshots that power trend analysis.
+
+    Snapshots are an append-only audit record with one row per
+    (factory, period_kind, period_start). Re-running a capture for a period
+    that already exists must overwrite it, never duplicate — which is why the
+    write method is `upsert` rather than `add`.
+    """
+
+    @abstractmethod
+    def upsert(self, row: dict) -> dict:
+        """Create or replace the snapshot for one (factory, kind, period_start).
+
+        Keys must match ANALYTICS_SNAPSHOT_HEADER. Returns the stored row.
+        """
+
+    @abstractmethod
+    def list_snapshots(
+        self,
+        factory_id: str,
+        period_kind: str = "daily",
+        limit: int = 30,
+    ) -> List[dict]:
+        """Return recent snapshots for a factory, newest first."""
+
+    @abstractmethod
+    def latest(self, factory_id: str, period_kind: str = "daily") -> Optional[dict]:
+        """Return the most recent snapshot for a factory, or None."""
 
 
 class SettingsRepository(ABC):

@@ -26,6 +26,7 @@ from functools import lru_cache
 
 from app import config
 from app.repositories.base import (
+    AnalyticsSnapshotRepository,
     CustomKpiRepository,
     DocumentRepository,
     EventRepository,
@@ -203,6 +204,18 @@ def get_custom_kpis() -> CustomKpiRepository:
         return SheetsCustomKpiRepository(config.GOOGLE_SERVICE_ACCOUNT_FILE, config.GOOGLE_SHEET_ID)
     from app.repositories.local.kpi_repo import LocalCustomKpiRepository
     return LocalCustomKpiRepository()
+
+
+@lru_cache(maxsize=1)
+def get_analytics_snapshots() -> AnalyticsSnapshotRepository:
+    """Return the configured AnalyticsSnapshotRepository (cached singleton)."""
+    if _should_use_supabase():
+        from app.repositories.snapshot_repo import SupabaseAnalyticsSnapshotRepository
+        return SupabaseAnalyticsSnapshotRepository()
+    # Sheets has no snapshot table; the in-memory store is the correct
+    # fallback for both local and sheets modes.
+    from app.repositories.snapshot_repo import LocalAnalyticsSnapshotRepository
+    return LocalAnalyticsSnapshotRepository()
 
 
 @lru_cache(maxsize=1)

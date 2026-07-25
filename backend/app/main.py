@@ -25,6 +25,7 @@ from app.infrastructure.rate_limit import limiter
 from app.infrastructure.logging import configure_logging, get_logger
 from app.repositories.sheets.client import SheetsUnavailableError
 from app.routers.admin_router import router as admin_router
+from app.routers.analytics_router import router as analytics_router
 from app.routers.report_router import router as report_router
 from app.routers.auth_router import router as auth_router
 from app.routers.dashboard_router import router as dashboard_router
@@ -210,6 +211,7 @@ app.include_router(kpi_router)
 app.include_router(admin_router)
 app.include_router(report_router)
 app.include_router(technician_router)
+app.include_router(analytics_router)
 
 
 @app.get("/health", tags=["ops"])
