@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -8,13 +8,7 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
-
-/**
- * AppShell — the unified authenticated layout (Redesign P1).
- * Persistent left rail + top bar wrapping Dashboard & Vault.
- * Auth-aware: pre-auth it renders children bare (login/register);
- * once a valid token exists it renders the full shell chrome.
- */
+import QuickReportDialog from '@/components/QuickReportDialog';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -78,17 +72,19 @@ function readAuth() {
   try { user = JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch {}
   return { authed: true, user };
 }
+
+/* Frequency-Driven Navigation Matrix (Pillars 1-9 & Minimal Effort Plan) */
 const NAV_LIVE = [
   { id: 'overview', label: 'Dashboard', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
-  { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
-  { id: 'records', label: 'AI Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
   { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
-  { id: 'assistant', label: 'AI Assistant', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
-  { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: 'M12 3v9l6 3M12 21a9 9 0 100-18 9 9 0 000 18z' },
   { id: 'technician', label: 'Technician', href: BASE + 'technician.html', icon: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 002.4-8.4z' },
+  { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
   { id: 'inventory', label: 'Inventory', href: BASE + 'inventory.html', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96L12 12.01l8.73-5.05M12 22.08V12' },
+  { id: 'kaizen', label: 'Kaizen', href: BASE + 'kaizen.html', icon: 'M9 12l2 2 4-4M7.833 4.667H16.17c.92 0 1.667.746 1.667 1.666v11.334c0 .92-.746 1.666-1.667 1.666H7.833c-.92 0-1.666-.746-1.666-1.666V6.333c0-.92.746-1.666 1.666-1.666z' },
+  { id: 'assistant', label: 'AI Assistant', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
+  { id: 'records', label: 'AI Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
+  { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: 'M12 3v9l6 3M12 21a9 9 0 100-18 9 9 0 000 18z' },
   { id: 'support', label: 'Support & Decisions', href: BASE + 'support.html', icon: 'M12 22a10 10 0 110-20 10 10 0 010 20zm-1-6h2v2h-2v-2zm1-10a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 2-3 5h2c0-2 3-2 3-5a4 4 0 00-4-4z' },
-  { id: 'kaizen', label: 'Kaizen Opportunities', href: BASE + 'kaizen.html', icon: 'M9 12l2 2 4-4M7.833 4.667H16.17c.92 0 1.667.746 1.667 1.666v11.334c0 .92-.746 1.666-1.667 1.666H7.833c-.92 0-1.666-.746-1.666-1.666V6.333c0-.92.746-1.666 1.666-1.666z' },
   { id: 'team', label: 'Team', href: BASE + 'team.html', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
   { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
 ];
@@ -98,6 +94,7 @@ const NAV_SOON = [];
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
+  const [showQuickReport, setShowQuickReport] = useState(false);
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -106,9 +103,19 @@ export default function AppShell({ children, active }) {
     window.addEventListener('storage', refresh);
     enableKeyboardNavigation();
 
+    // Global Shortcut: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Win) for Quick Report
+    const handleGlobalKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        setShowQuickReport((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+
     return () => {
       window.removeEventListener('authChanged', refresh);
       window.removeEventListener('storage', refresh);
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, [refresh]);
 
@@ -382,6 +389,29 @@ export default function AppShell({ children, active }) {
             <span className="app-live"><span className="app-live-dot" />Live</span>
           </div>
           <div className="app-topbar-right">
+            <button
+              type="button"
+              className="app-quick-report-btn"
+              onClick={() => setShowQuickReport(true)}
+              title="Report Breakdown / Ticket (Cmd+Shift+R)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: 'var(--primary)',
+                color: 'var(--primary-foreground)',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Plus size={16} />
+              <span>Report Issue</span>
+            </button>
             <ThemeToggle />
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
             <div className="app-user" title={user?.name || ''}>
@@ -390,6 +420,13 @@ export default function AppShell({ children, active }) {
             </div>
           </div>
         </header>
+
+        {showQuickReport && (
+          <QuickReportDialog
+            open={showQuickReport}
+            onClose={() => setShowQuickReport(false)}
+          />
+        )}
 
         <nav className="app-h-nav" aria-label="Main navigation">
           {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).map((item) => (
@@ -410,6 +447,20 @@ export default function AppShell({ children, active }) {
         </nav>
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
+
+        {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) */}
+        <nav className="app-bottom-nav" aria-label="Mobile navigation">
+          {NAV_LIVE.slice(0, 4).map((item) => (
+            <a
+              key={item.id}
+              href={item.href}
+              className={`app-bottom-nav-item${active === item.id ? ' active' : ''}`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </nav>
       </div>
 
       {/* Persistent Floating AI Assistant Trigger */}

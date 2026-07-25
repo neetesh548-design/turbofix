@@ -4,6 +4,7 @@ import { NotificationProvider } from './components/NotificationCenter';
 import { I18nProvider } from './utils/i18n-provider';
 import AntDProvider from './components/AntDProvider';
 import { ViewModeProvider } from './ViewModeContext';
+import { MachineProvider } from './MachineContext';
 import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -56,37 +57,39 @@ function App() {
     <I18nProvider>
       <AntDProvider>
         <ViewModeProvider>
-          <NotificationProvider>
-            <BrowserRouter basename={basename}>
-            <SearchMetadata />
-            <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
-              <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
-              <Route path="/qr-generator.html" element={<QRGenerator />} />
-              <Route path="/login.html" element={<Login />} />
-              <Route path="/login" element={<Navigate to="/login.html" replace />} />
-              <Route path="/dashboard.html" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
-              <Route path="/reset-password.html" element={<ResetPassword />} />
-              <Route path="/machines.html" element={<Machines />} />
-              <Route path="/tickets.html" element={<Tickets />} />
-              <Route path="/team.html" element={<Team />} />
-              <Route path="/settings.html" element={<Settings />} />
-              <Route path="/assistant.html" element={<Assistant />} />
-              <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
-              <Route path="/technician.html" element={<Technician />} />
-              <Route path="/records.html" element={<Records />} />
-              <Route path="/support.html" element={<Support />} />
-              <Route path="/qr-gateway.html" element={<QRGateway />} />
-              <Route path="/inventory.html" element={<Inventory />} />
-              <Route path="/kaizen.html" element={<Kaizen />} />
-              <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
-              <Route path="*" element={<Home />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-          </NotificationProvider>
+          <MachineProvider>
+            <NotificationProvider>
+              <BrowserRouter basename={basename}>
+              <SearchMetadata />
+              <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
+                <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
+                <Route path="/qr-generator.html" element={<QRGenerator />} />
+                <Route path="/login.html" element={<Login />} />
+                <Route path="/login" element={<Navigate to="/login.html" replace />} />
+                <Route path="/dashboard.html" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
+                <Route path="/reset-password.html" element={<ResetPassword />} />
+                <Route path="/machines.html" element={<Machines />} />
+                <Route path="/tickets.html" element={<Tickets />} />
+                <Route path="/team.html" element={<Team />} />
+                <Route path="/settings.html" element={<Settings />} />
+                <Route path="/assistant.html" element={<Assistant />} />
+                <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
+                <Route path="/technician.html" element={<Technician />} />
+                <Route path="/records.html" element={<Records />} />
+                <Route path="/support.html" element={<Support />} />
+                <Route path="/qr-gateway.html" element={<QRGateway />} />
+                <Route path="/inventory.html" element={<Inventory />} />
+                <Route path="/kaizen.html" element={<Kaizen />} />
+                <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
+                <Route path="*" element={<Home />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+            </NotificationProvider>
+          </MachineProvider>
         </ViewModeProvider>
       </AntDProvider>
     </I18nProvider>

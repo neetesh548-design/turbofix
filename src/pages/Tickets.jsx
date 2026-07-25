@@ -208,6 +208,22 @@ export default function Tickets() {
     }
   };
 
+  const updateLifecycleStage = async (ticketId, nextStage, nextStatus = null) => {
+    setError('');
+    setSuccess('');
+    try {
+      const updateData = { lifecycle_stage: nextStage };
+      if (nextStatus) updateData.status = nextStatus;
+      if (nextStage === 'repair_completed') updateData.resolved_at = new Date().toISOString();
+      const { error: updateErr } = await supabase.from('tickets').update(updateData).eq('id', ticketId);
+      if (updateErr) throw new Error(updateErr.message);
+      setSuccess(`Ticket updated to ${LIFECYCLE[nextStage]?.label || nextStage}.`);
+      fetchTicketsAndEscalation();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const formatDateTime = (dtStr) => {
     if (!dtStr) return '—';
     try {
@@ -745,6 +761,45 @@ export default function Tickets() {
                               </div>
                             ))}
                           </div>
+
+                          {/* 1-Tap Lifecycle Stage Quick Action Bar (Pillar 5 & Operator/Technician POV) */}
+                          {!isClosed && (
+                            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--slate)', fontWeight: 'bold', textTransform: 'uppercase' }}>1-Tap Stage Action:</span>
+                              <button
+                                type="button"
+                                className="vault-btn"
+                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.3)' }}
+                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'work_started'); }}
+                              >
+                                ▶ Start Repair
+                              </button>
+                              <button
+                                type="button"
+                                className="vault-btn"
+                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}
+                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'waiting_spare'); }}
+                              >
+                                ⏳ Waiting Spare
+                              </button>
+                              <button
+                                type="button"
+                                className="vault-btn"
+                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(52,211,153,0.15)', color: '#34D399', border: '1px solid rgba(52,211,153,0.3)' }}
+                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'repair_completed'); }}
+                              >
+                                ✓ Repair Completed
+                              </button>
+                              <button
+                                type="button"
+                                className="vault-btn vault-btn-primary"
+                                style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+                                onClick={(e) => { e.stopPropagation(); updateLifecycleStage(ticketId, 'closed', 'resolved'); }}
+                              >
+                                Verify &amp; Close
+                              </button>
+                            </div>
+                          )}
                           {t.ai_summary?.photo_url && (
                             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                               <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Reported Photo</small>

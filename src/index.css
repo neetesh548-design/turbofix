@@ -9774,3 +9774,59 @@ a:focus-visible,
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
+/* Mobile Floating Action Button (FAB) & Mobile Bottom Nav Bar (Pillar 8 & Mobile-First Plan) */
+@media (max-width: 768px) {
+  .app-quick-report-btn {
+    position: fixed;
+    bottom: 76px;
+    right: 20px;
+    z-index: 999;
+    border-radius: 50% !important;
+    width: 56px;
+    height: 56px;
+    padding: 0 !important;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+  }
+
+  .app-quick-report-btn span {
+    display: none;
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #12171d;
+    border-top: 1px solid var(--ui-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 998;
+    backdrop-filter: blur(16px);
+  }
+
+  .app-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--muted-foreground);
+    font-size: 0.68rem;
+    text-decoration: none;
+    padding: 6px;
+  }
+
+  .app-bottom-nav-item.active {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .app-content {
+    padding-bottom: 80px !important;
+  }
+}
+
+
