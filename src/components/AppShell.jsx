@@ -13,15 +13,19 @@ import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 
 const BASE = import.meta.env.BASE_URL;
 
-function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
-  const visibleMachineIds = new Set(machines.map(m => m.machine_id));
-  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
+function getLiveDataAnswer(machines = [], tickets = [], events = [], selectedMachineId) {
+  const safeMachines = machines || [];
+  const safeTickets = tickets || [];
+  const safeEvents = events || [];
+
+  const visibleMachineIds = new Set(safeMachines.map(m => m.machine_id));
+  const openTickets = safeTickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
   
   if (selectedMachineId && selectedMachineId !== 'all') {
-    const machine = machines.find(m => m.machine_id === selectedMachineId);
+    const machine = safeMachines.find(m => m.machine_id === selectedMachineId);
     if (!machine) return 'Machine not found.';
     const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
-    const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
+    const machineEvents = safeEvents.filter(e => e.machine_id === selectedMachineId);
     const machineLabel = `${machine.machine_name} [${machine.machine_id.slice(0, 8)}]`;
     if (machineOpen.length === 0) {
       return `${machineLabel} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}.`;
@@ -38,7 +42,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
   }
   
   if (openTickets.length === 0) {
-    return `All ${machines.length} machines are currently clear with no open maintenance tickets.`;
+    return `All ${safeMachines.length} machines are currently clear with no open maintenance tickets.`;
   }
   const sorted = [...openTickets].sort((a, b) => {
     const urgencyMap = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -47,10 +51,10 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     return aVal - bVal;
   });
   const top = sorted[0];
-  const machineObj = machines.find(m => m.machine_id === top.machine_id);
+  const machineObj = safeMachines.find(m => m.machine_id === top.machine_id);
   const machineName = machineObj ? `${machineObj.machine_name} [${machineObj.machine_id.slice(0, 8)}]` : (top.machine_id ? top.machine_id.slice(0, 8) : 'Machine');
   const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
-  return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
+  return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${safeMachines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
 }
 
 function isTokenExpired(token) {
@@ -204,7 +208,7 @@ export default function AppShell({ children, active }) {
   }, [authed, sidebarOpen]);
 
   const _selectedMachine = useMemo(
-    () => machines.find((machine) => machine.machine_id === selected),
+    () => (machines || []).find((machine) => machine.machine_id === selected),
     [machines, selected]
   );
   const isPlantWide = selected === 'all';

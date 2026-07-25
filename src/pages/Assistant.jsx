@@ -15,19 +15,23 @@ const machineSuggestions = [
   'Summarize this machine’s recent maintenance history.',
 ];
 
-function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
+function getLiveDataAnswer(machines = [], tickets = [], events = [], selectedMachineId) {
+  const safeMachines = machines || [];
+  const safeTickets = tickets || [];
+  const safeEvents = events || [];
+
   // Only consider tickets for machines the current user can see (machines is
   // already scoped to the user's role/assignments), so the fallback answer
   // matches the same scope as the dropdown and the edge function.
-  const visibleMachineIds = new Set(machines.map(m => m.machine_id));
-  const openTickets = tickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
+  const visibleMachineIds = new Set(safeMachines.map(m => m.machine_id));
+  const openTickets = safeTickets.filter(t => String(t.status || 'Open').toLowerCase() === 'open' && visibleMachineIds.has(t.machine_id));
   
   if (selectedMachineId && selectedMachineId !== 'all') {
-    const machine = machines.find(m => m.machine_id === selectedMachineId);
+    const machine = safeMachines.find(m => m.machine_id === selectedMachineId);
     if (!machine) return 'Machine not found.';
     
     const machineOpen = openTickets.filter(t => t.machine_id === selectedMachineId);
-    const machineEvents = events.filter(e => e.machine_id === selectedMachineId);
+    const machineEvents = safeEvents.filter(e => e.machine_id === selectedMachineId);
     
     if (machineOpen.length === 0) {
       return `${machine.machine_name || machine.machine_id} has no open maintenance tickets. TurboFix found ${machineEvents.length} recorded events. Primary technician: ${machine.primary_technician_name || 'not assigned'}. Add manuals and service history if you need a deeper recommendation.`;
@@ -47,7 +51,7 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
   
   // Plant-wide
   if (openTickets.length === 0) {
-    return `All ${machines.length} machines are currently clear with no open maintenance tickets. Use preventive schedules and complete MachineData files to keep plant-wide recommendations reliable.`;
+    return `All ${safeMachines.length} machines are currently clear with no open maintenance tickets. Use preventive schedules and complete MachineData files to keep plant-wide recommendations reliable.`;
   }
   
   const sorted = [...openTickets].sort((a, b) => {
@@ -57,9 +61,9 @@ function getLiveDataAnswer(machines, tickets, events, selectedMachineId) {
     return aVal - bVal;
   });
   const top = sorted[0];
-  const machineName = machines.find(m => m.machine_id === top.machine_id)?.machine_name || top.machine_id || 'Machine';
+  const machineName = safeMachines.find(m => m.machine_id === top.machine_id)?.machine_name || top.machine_id || 'Machine';
   const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
-  return `Plant-wide view: ${openTickets.length} open ticket(s) across ${machines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Review the remaining open tickets after this risk is controlled.`;
+  return `Plant-wide view: ${openTickets.length} open ticket(s) across ${safeMachines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}). Review the remaining open tickets after this risk is controlled.`;
 }
 
 export default function Assistant() {
@@ -127,7 +131,7 @@ export default function Assistant() {
   }, [machines, selected]);
 
   const selectedMachine = useMemo(
-    () => machines.find((machine) => machine.machine_id === selected),
+    () => (machines || []).find((machine) => machine.machine_id === selected),
     [machines, selected],
   );
   const isPlantWide = selected === 'all';

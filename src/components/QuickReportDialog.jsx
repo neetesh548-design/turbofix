@@ -39,7 +39,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
 
   if (!open) return null;
 
-  const selectedMachine = machines.find(m => m.machine_id === selectedMachineId);
+  const selectedMachine = (machines || []).find(m => m.machine_id === selectedMachineId);
 
   const startRecording = async () => {
     try {
