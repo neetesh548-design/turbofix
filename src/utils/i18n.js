@@ -32,6 +32,13 @@ const TRANSLATIONS = {
     'common.warning': 'Warning',
     'common.info': 'Information',
 
+    // Export
+    'export.button_label': 'Export',
+    'export.dialog_title': 'Export Dashboard',
+    'export.filename': 'Dashboard',
+    'export.success': 'PDF exported successfully',
+    'export.error': 'Failed to export PDF',
+
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.machines': 'Machines',
@@ -80,6 +87,12 @@ const TRANSLATIONS = {
     'common.warning': 'Advertencia',
     'common.info': 'Información',
 
+    'export.button_label': 'Exportar',
+    'export.dialog_title': 'Exportar Panel de Control',
+    'export.filename': 'Panel_de_Control',
+    'export.success': 'PDF exportado exitosamente',
+    'export.error': 'Error al exportar PDF',
+
     'nav.dashboard': 'Panel de Control',
     'nav.machines': 'Máquinas',
     'nav.tickets': 'Tickets',
@@ -122,6 +135,12 @@ const TRANSLATIONS = {
     'common.success': 'Succès',
     'common.warning': 'Avertissement',
     'common.info': 'Information',
+
+    'export.button_label': 'Exporter',
+    'export.dialog_title': 'Exporter le Tableau de bord',
+    'export.filename': 'Tableau_de_bord',
+    'export.success': 'PDF exporté avec succès',
+    'export.error': 'Échec de l\'export du PDF',
 
     'nav.dashboard': 'Tableau de bord',
     'nav.machines': 'Machines',
@@ -177,6 +196,12 @@ const TRANSLATIONS = {
     'common.warning': 'Warnung',
     'common.info': 'Information',
 
+    'export.button_label': 'Exportieren',
+    'export.dialog_title': 'Dashboard exportieren',
+    'export.filename': 'Dashboard',
+    'export.success': 'PDF erfolgreich exportiert',
+    'export.error': 'PDF-Export fehlgeschlagen',
+
     'nav.dashboard': 'Dashboard',
     'nav.machines': 'Maschinen',
     'nav.tickets': 'Tickets',
@@ -231,6 +256,12 @@ const TRANSLATIONS = {
     'common.warning': 'Aviso',
     'common.info': 'Informação',
 
+    'export.button_label': 'Exportar',
+    'export.dialog_title': 'Exportar Painel',
+    'export.filename': 'Painel',
+    'export.success': 'PDF exportado com sucesso',
+    'export.error': 'Falha ao exportar PDF',
+
     'nav.dashboard': 'Painel',
     'nav.machines': 'Máquinas',
     'nav.tickets': 'Tickets',
@@ -284,6 +315,12 @@ const TRANSLATIONS = {
     'common.success': '成功',
     'common.warning': '警告',
     'common.info': '情報',
+
+    'export.button_label': 'エクスポート',
+    'export.dialog_title': 'ダッシュボードをエクスポート',
+    'export.filename': 'ダッシュボード',
+    'export.success': 'PDFが正常にエクスポートされました',
+    'export.error': 'PDFのエクスポートに失敗しました',
 
     'nav.dashboard': 'ダッシュボード',
     'nav.machines': 'マシン',
@@ -378,6 +415,12 @@ const TRANSLATIONS = {
     'counter.range_info': '范围: {min}到{max}',
     'counter.min_info': '最小值: {min}',
     'counter.max_info': '最大值: {max}',
+
+    'export.button_label': 'Export',
+    'export.dialog_title': 'Export Dashboard',
+    'export.filename': 'Dashboard',
+    'export.success': 'PDF exported successfully',
+    'export.error': 'Failed to export PDF',
   },
 
   ar: {
@@ -392,6 +435,12 @@ const TRANSLATIONS = {
     'common.success': 'نجح',
     'common.warning': 'تحذير',
     'common.info': 'معلومات',
+
+    'export.button_label': 'تصدير',
+    'export.dialog_title': 'تصدير لوحة التحكم',
+    'export.filename': 'لوحة_التحكم',
+    'export.success': 'تم تصدير PDF بنجاح',
+    'export.error': 'فشل تصدير PDF',
 
     'nav.dashboard': 'لوحة التحكم',
     'nav.machines': 'الآلات',
@@ -447,6 +496,12 @@ const TRANSLATIONS = {
     'common.warning': 'चेतावनी',
     'common.info': 'जानकारी',
 
+    'export.button_label': 'निर्यात',
+    'export.dialog_title': 'डैशबोर्ड निर्यात करें',
+    'export.filename': 'डैशबोर्ड',
+    'export.success': 'PDF सफलतापूर्वक निर्यात किया गया',
+    'export.error': 'PDF निर्यात विफल',
+
     'nav.dashboard': 'डैशबोर्ड',
     'nav.machines': 'मशीनें',
     'nav.tickets': 'टिकट',
@@ -500,6 +555,12 @@ const TRANSLATIONS = {
     'common.success': 'यश',
     'common.warning': 'सावधानी',
     'common.info': 'माहिती',
+
+    'export.button_label': 'निर्यात करा',
+    'export.dialog_title': 'डॅशबोर्ड निर्यात करा',
+    'export.filename': 'डॅशबोर्ड',
+    'export.success': 'PDF यशस्वीरित्या निर्यात केला',
+    'export.error': 'PDF निर्यात अयशस्वी',
 
     'nav.dashboard': 'डॅशबोर्ड',
     'nav.machines': 'मशीन्स',

@@ -38,6 +38,7 @@ import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import AntDKPICard from '../components/AntDKPICard';
 import { AntDChartCard, AntDDetailList, AntDEmptyState } from '../components/AntDDashboardComponents';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import ExportButton from '../components/Dashboard/ExportButton';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
 
@@ -834,6 +835,15 @@ export default function Dashboard() {
             <p>Maintenance command center · reliability, efficiency, cost &amp; planning, live.</p>
           </div>
           <div className="decision-actions">
+            <ExportButton
+              dashboardData={{
+                kpis: data.kpis,
+                dashboard_overview: data.dashboard_overview,
+                drilldown: data.drilldown,
+              }}
+              companyName={companyName}
+              showLabel={true}
+            />
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
             <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
           </div>
