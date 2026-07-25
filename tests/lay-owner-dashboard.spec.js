@@ -34,15 +34,20 @@ test.describe('Lay Owner Dashboard User Journey & Feature Suite (/dashboard.html
     });
   });
 
-  test('TC-DASH-01: Plant status pulse strip shows availability and core KPIs', async ({ page }) => {
+  // The pulse strip was replaced by the role-aware Owner board: the same
+  // "how is the plant doing right now" question, answered in the four
+  // business KPIs plus the fleet health map. Same intent, new structure.
+  test('TC-DASH-01: Owner board shows the core business KPIs and fleet health', async ({ page }) => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    const pulse = page.locator('.md-pulse');
-    await expect(pulse).toBeVisible({ timeout: 10000 });
-    await expect(pulse).toContainText('Machines down');
-    await expect(pulse).toContainText('Urgent issues');
-    await expect(pulse).toContainText('Open backlog');
-    await expect(pulse).toContainText('Downtime cost');
+    const board = page.getByTestId('owner-dashboard');
+    await expect(board).toBeVisible({ timeout: 10000 });
+    await expect(board).toContainText('Fleet value at risk');
+    await expect(board).toContainText('SLA compliance');
+    await expect(board).toContainText('Downtime cost');
+    await expect(board).toContainText('Fleet health map');
+    // Machines-down now reads off the health map rather than a flat counter.
+    await expect(board).toContainText('Down');
   });
 
   test('TC-DASH-02: Reliability card surfaces MTBF, MTTR, and repeat-breakdown signal', async ({ page }) => {

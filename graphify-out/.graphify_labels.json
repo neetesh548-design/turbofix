@@ -240,7 +240,6 @@
   "238": "🚀 Quick Start",
   "239": "🎯 Next Steps",
   "240": "✅ Session Accomplishments",
-  "241": "📁 Files Delivered",
   "242": "📈 Execution Timeline",
   "243": "🎉 Summary",
   "244": "📋 Session Overview",
@@ -254,17 +253,14 @@
   "252": "badge.jsx",
   "253": "FakeAuthClient",
   "254": "DriveFileStorage",
-  "255": "Support.jsx",
   "256": "SupabaseCustomKpiRepository",
   "257": "demoTickets.js",
   "258": "LocalTechnicianWorkRepository",
   "259": "LocalSettingsRepository",
   "260": ".get_company_machines",
-  "261": "admin_list_companies",
   "262": "handle_confirm_ai_command",
   "263": "handle_override_ai_command",
   "264": "Prerequisites",
   "265": "AntDNavigationLayout.jsx",
-  "268": "test_machine_records.py",
-  "272": "Support & Help"
+  "268": "test_machine_records.py"
 }

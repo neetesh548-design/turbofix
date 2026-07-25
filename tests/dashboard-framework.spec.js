@@ -34,14 +34,17 @@ test.describe('Dashboard End-to-End Framework Tests', () => {
     });
   });
 
-  test('should render the plant status pulse strip with core KPIs', async ({ page }) => {
+  // Replaces the old pulse-strip check: the plant-status question is now
+  // answered by the role-aware Owner board (business KPIs + fleet health),
+  // with MTTR living on the reliability card in the priority row below it.
+  test('should render the owner board with core plant KPIs', async ({ page }) => {
     await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
 
-    const pulse = page.locator('.md-pulse');
-    await expect(pulse).toBeVisible({ timeout: 10000 });
-    await expect(pulse).toContainText('Machines down');
-    await expect(pulse).toContainText('Urgent issues');
-    await expect(pulse).toContainText('MTTR');
+    const board = page.getByTestId('owner-dashboard');
+    await expect(board).toBeVisible({ timeout: 10000 });
+    await expect(board).toContainText('Fleet value at risk');
+    await expect(board).toContainText('Fleet health map');
+    await expect(page.locator('.md-reliability-card')).toContainText('MTTR');
   });
 
   test('should render the priority row with queue, reliability, and cost-impact cards', async ({ page }) => {

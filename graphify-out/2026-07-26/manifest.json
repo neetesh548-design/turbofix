@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785013947.268061,
-    "ast_hash": "e5d1a86833dfc1f39cb89df2e6e90894",
+    "mtime": 1785020788.9843524,
+    "ast_hash": "1c0e7330bc8582065141fdb3a63b7656",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -1310,9 +1310,9 @@
     "semantic_hash": "7fce8a4a33d6acdf773d43816ed21f37"
   },
   "tests/machine-card.spec.js": {
-    "mtime": 1784877827.87061,
-    "ast_hash": "933516875b3f1cceebd04167a35f5d0b",
-    "semantic_hash": "933516875b3f1cceebd04167a35f5d0b"
+    "mtime": 1785020788.9851964,
+    "ast_hash": "9e4bba1106ef758f9964f5db6cc0a1c6",
+    "semantic_hash": ""
   },
   "tests/qr-gateway.spec.ts": {
     "mtime": 1785001667.5256982,
@@ -2177,6 +2177,41 @@
   "src/utils/ticketSla.js": {
     "mtime": 1785017545.5019417,
     "ast_hash": "c40c506d60d2d7e8bb8c8d6221f52dc5",
+    "semantic_hash": ""
+  },
+  "src/__tests__/machineHealth.test.js": {
+    "mtime": 1785020788.981986,
+    "ast_hash": "197ba69a74ea7d7391f19fbdb4a64883",
+    "semantic_hash": ""
+  },
+  "src/components/machines/MachineCard.jsx": {
+    "mtime": 1785020788.9822576,
+    "ast_hash": "2c8a5e4a87ea622473b358a6da1ad810",
+    "semantic_hash": ""
+  },
+  "src/components/machines/MachineDetailDrawer.jsx": {
+    "mtime": 1785020788.9824586,
+    "ast_hash": "4bc91457821dd9159562e3b4d60660e1",
+    "semantic_hash": ""
+  },
+  "src/components/machines/MachineFilterBar.jsx": {
+    "mtime": 1785020788.982788,
+    "ast_hash": "44fe5275fb865dbe37700d8e80bcd3a1",
+    "semantic_hash": ""
+  },
+  "src/components/machines/MachineHealthIndicator.jsx": {
+    "mtime": 1785020788.9830663,
+    "ast_hash": "f5dbe9b93a870115e69d91cbe9bc2d5f",
+    "semantic_hash": ""
+  },
+  "src/utils/demoMachines.js": {
+    "mtime": 1785020788.9846878,
+    "ast_hash": "90919fc18ea6a867a6218aa603b4f1ac",
+    "semantic_hash": ""
+  },
+  "src/utils/machineHealth.js": {
+    "mtime": 1785020788.984914,
+    "ast_hash": "e31fe130fd41d9e5135e8b6e3a0a0234",
     "semantic_hash": ""
   }
 }

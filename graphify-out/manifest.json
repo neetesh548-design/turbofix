@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "src/lib/roles.js": {
-    "mtime": 1785007659.9466908,
-    "ast_hash": "7772bd7e82cff4c5440e71ce0f09b193",
+    "mtime": 1785023016.0958807,
+    "ast_hash": "bf4ff71dc75f06a835acc0f6fc13e2e6",
     "semantic_hash": ""
   },
   "src/lib/utils.js": {
@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785013364.9248447,
-    "ast_hash": "74a1337717e9fca45b82e86b0cbfabf0",
+    "mtime": 1785023016.09645,
+    "ast_hash": "470a41557cb4f74a5459eaa490024535",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -805,7 +805,7 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785019714.7751825,
+    "mtime": 1785020788.9843524,
     "ast_hash": "1c0e7330bc8582065141fdb3a63b7656",
     "semantic_hash": ""
   },
@@ -1285,9 +1285,9 @@
     "semantic_hash": "f9ea55a914463c27dc0cab6eddac8bcd"
   },
   "tests/dashboard-framework.spec.js": {
-    "mtime": 1784754708.8178744,
-    "ast_hash": "36ac6a22d78f121c211f846f6902d465",
-    "semantic_hash": "36ac6a22d78f121c211f846f6902d465"
+    "mtime": 1785023016.09668,
+    "ast_hash": "eda3e1a97f8c8bcef06cea0f94a557f6",
+    "semantic_hash": ""
   },
   "tests/dashboard.spec.js": {
     "mtime": 1784877247.8759873,
@@ -1305,12 +1305,12 @@
     "semantic_hash": "d202ab48a3148602ee1784186515a63d"
   },
   "tests/lay-owner-dashboard.spec.js": {
-    "mtime": 1784754727.7665315,
-    "ast_hash": "7fce8a4a33d6acdf773d43816ed21f37",
-    "semantic_hash": "7fce8a4a33d6acdf773d43816ed21f37"
+    "mtime": 1785023016.0968904,
+    "ast_hash": "8a7097fc6f498a836ffdb2ce4b86d23b",
+    "semantic_hash": ""
   },
   "tests/machine-card.spec.js": {
-    "mtime": 1785020414.9045923,
+    "mtime": 1785020788.9851964,
     "ast_hash": "9e4bba1106ef758f9964f5db6cc0a1c6",
     "semantic_hash": ""
   },
@@ -2180,38 +2180,98 @@
     "semantic_hash": ""
   },
   "src/__tests__/machineHealth.test.js": {
-    "mtime": 1785019774.9576957,
+    "mtime": 1785020788.981986,
     "ast_hash": "197ba69a74ea7d7391f19fbdb4a64883",
     "semantic_hash": ""
   },
   "src/components/machines/MachineCard.jsx": {
-    "mtime": 1785019255.58558,
+    "mtime": 1785020788.9822576,
     "ast_hash": "2c8a5e4a87ea622473b358a6da1ad810",
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
-    "mtime": 1785019919.0458908,
+    "mtime": 1785020788.9824586,
     "ast_hash": "4bc91457821dd9159562e3b4d60660e1",
     "semantic_hash": ""
   },
   "src/components/machines/MachineFilterBar.jsx": {
-    "mtime": 1785019268.17689,
+    "mtime": 1785020788.982788,
     "ast_hash": "44fe5275fb865dbe37700d8e80bcd3a1",
     "semantic_hash": ""
   },
   "src/components/machines/MachineHealthIndicator.jsx": {
-    "mtime": 1785019235.556336,
+    "mtime": 1785020788.9830663,
     "ast_hash": "f5dbe9b93a870115e69d91cbe9bc2d5f",
     "semantic_hash": ""
   },
   "src/utils/demoMachines.js": {
-    "mtime": 1785019928.5142238,
+    "mtime": 1785020788.9846878,
     "ast_hash": "90919fc18ea6a867a6218aa603b4f1ac",
     "semantic_hash": ""
   },
   "src/utils/machineHealth.js": {
-    "mtime": 1785019197.8561745,
+    "mtime": 1785020788.984914,
     "ast_hash": "e31fe130fd41d9e5135e8b6e3a0a0234",
+    "semantic_hash": ""
+  },
+  "src/__tests__/dashboardMetrics.test.js": {
+    "mtime": 1785023016.1190386,
+    "ast_hash": "2092da137183051519fafcaa9696574a",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/AdvancedAnalyticsBoard.jsx": {
+    "mtime": 1785023016.1197803,
+    "ast_hash": "830924a649bb0994bd5bc4af0b70a88e",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/DashboardChart.jsx": {
+    "mtime": 1785023016.1200604,
+    "ast_hash": "62574efab04fa3b3dea21a5ec98b0b4a",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/DashboardKpiCard.jsx": {
+    "mtime": 1785023016.1202376,
+    "ast_hash": "781f6009e896f07792c587570d10d083",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/EngineerDashboard.jsx": {
+    "mtime": 1785023016.120517,
+    "ast_hash": "84394a691bb3247660f0005ce6a0aebf",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/OwnerDashboard.jsx": {
+    "mtime": 1785023016.1207786,
+    "ast_hash": "da9f8d2c5d958a3ed72412c5ecf675a2",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/SupervisorDashboard.jsx": {
+    "mtime": 1785023016.1211886,
+    "ast_hash": "40d8bfa99b59cab6711e24995b45baa1",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/TechnicianDashboard.jsx": {
+    "mtime": 1785023016.1214905,
+    "ast_hash": "cc432d46fd87df3302a30d57dfc9a79a",
+    "semantic_hash": ""
+  },
+  "src/lib/dashboardData.js": {
+    "mtime": 1785023016.1217852,
+    "ast_hash": "9bb67fa5821f3800440353d661d1872a",
+    "semantic_hash": ""
+  },
+  "src/utils/dashboardMetrics.js": {
+    "mtime": 1785023016.1220782,
+    "ast_hash": "76ab0fecb84791432f0eb5b2295e540c",
+    "semantic_hash": ""
+  },
+  "src/utils/demoDashboard.js": {
+    "mtime": 1785023016.1222742,
+    "ast_hash": "d4729466e2d6a18525e17bbbcd2e1bc9",
+    "semantic_hash": ""
+  },
+  "tests/role-dashboards.spec.js": {
+    "mtime": 1785023016.122461,
+    "ast_hash": "3105e43bb3a634b371ab9e38decf88c3",
     "semantic_hash": ""
   }
 }

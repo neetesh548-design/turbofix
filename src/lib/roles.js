@@ -21,7 +21,10 @@ export function getRoleLabel(roleVal, customRoles = []) {
 
 const ROLE_NAV = {
   operator: ['machines', 'assistant', 'support'],
-  maintenance_technician: ['machines', 'records', 'assistant', 'technician', 'support'],
+  // 'overview' is the technician's own dashboard (their queue and machines),
+  // not the business board — the Dashboard page renders per role. Without it
+  // AppShell would gate technicians out of the view built for them.
+  maintenance_technician: ['overview', 'machines', 'records', 'assistant', 'technician', 'support'],
   maintenance_engineer: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support'],
   supervisor: ['overview', 'machines', 'tickets', 'assistant', 'shutdown', 'technician', 'support'],
   maintenance_head: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings'],
