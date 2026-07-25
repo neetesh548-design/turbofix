@@ -222,8 +222,8 @@ test.describe('Responsive Images', () => {
     const images = await page.locator('img').all();
 
     for (const img of images) {
-      const srcset = await img.getAttribute('srcset');
-      const sizes = await img.getAttribute('sizes');
+      const _srcset = await img.getAttribute('srcset');
+      const _sizes = await img.getAttribute('sizes');
 
       // Decorative images might not have srcset
       // But important images should

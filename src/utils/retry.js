@@ -59,7 +59,7 @@ export class OfflineQueue {
     for (const request of this.queue) {
       try {
         await processor(request);
-      } catch (error) {
+      } catch {
         failed.push(request);
       }
     }

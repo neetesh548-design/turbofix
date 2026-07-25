@@ -427,7 +427,7 @@ export default function Tickets() {
                   );
 
                   const ticketId = firstTicket.ticket_id || firstTicket.id || '—';
-                  const status = String(firstTicket.status || 'Open').toLowerCase();
+                  const _status = String(firstTicket.status || 'Open').toLowerCase();
                   const stage = stageInfo(firstTicket);
                   const isExpanded = expandedId === ticketId;
 

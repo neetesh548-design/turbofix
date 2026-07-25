@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Activity, AlertCircle, BookOpen, ChevronDown, ChevronUp, Edit2, Eye, EyeOff,
-  MapPin, Package, Phone, Plus, Search, Settings, Sliders, X, CheckCircle, AlertTriangle,
-  Clock, DollarSign, Zap, User, CalendarDays, Shield, Sparkles, Users
+  Activity, BookOpen, ChevronDown, ChevronUp,
+  MapPin, Package, Plus, Search, Settings, Sliders, X
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
@@ -25,7 +24,7 @@ import { supabase } from '@/supabaseClient';
  */
 
 export default function MachinesRefactored() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
   // ===== GROUPED STATE MANAGEMENT (Clean & Performant) =====
 
@@ -73,7 +72,7 @@ export default function MachinesRefactored() {
   });
 
   // Team directory
-  const [team, setTeam] = useState([]);
+  const [_team, _setTeam] = useState([]);
   const [user, setUser] = useState(null);
 
   // ===== LIFECYCLE =====
@@ -149,7 +148,7 @@ export default function MachinesRefactored() {
   const loadMachineDetails = async (machineId) => {
     setMachineDetails(p => ({ ...p, loading: true }));
     try {
-      const [specs, tickets, parts, schedule, docs, assignments] = await Promise.all([
+      const [specs, tickets, parts, schedule, docs, _assignments] = await Promise.all([
         supabase.from('machines').select('*').eq('id', machineId).single(),
         supabase.from('tickets').select('*').eq('machine_id', machineId).order('created_at', { ascending: false }).limit(5),
         supabase.from('parts').select('*').eq('machine_id', machineId).limit(10),
@@ -474,7 +473,7 @@ function MachineOverview({ machine, details, onQuickAction }) {
   );
 }
 
-function AccordionSections({ machine, details, expandedSections, onToggle, onQuickAction }) {
+function AccordionSections({ _machine, details, expandedSections, onToggle, _onQuickAction }) {
   const sections = [
     {
       id: 'active-work',

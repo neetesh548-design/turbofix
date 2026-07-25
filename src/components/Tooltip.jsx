@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './Tooltip.css';
 
 export function Tooltip({ children, content, position = 'top', delay = 0 }) {
@@ -6,13 +6,13 @@ export function Tooltip({ children, content, position = 'top', delay = 0 }) {
   const tooltipRef = useRef(null);
   const triggerRef = useRef(null);
 
-  const showTooltip = () => {
+  const showTooltip = useCallback(() => {
     setTimeout(() => setIsVisible(true), delay);
-  };
+  }, [delay]);
 
-  const hideTooltip = () => {
+  const hideTooltip = useCallback(() => {
     setIsVisible(false);
-  };
+  }, []);
 
   useEffect(() => {
     const trigger = triggerRef.current;
@@ -29,7 +29,7 @@ export function Tooltip({ children, content, position = 'top', delay = 0 }) {
       trigger.removeEventListener('focus', showTooltip);
       trigger.removeEventListener('blur', hideTooltip);
     };
-  }, [delay]);
+  }, [delay, showTooltip, hideTooltip]);
 
   return (
     <div className="tooltip-wrapper" ref={triggerRef}>

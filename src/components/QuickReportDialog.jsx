@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, Mic, Square, Camera, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
@@ -18,7 +18,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const [selectedMachineId, setSelectedMachineId] = useState('');
   const [issueText, setIssueText] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [photoFile, setPhotoFile] = useState(null);
+  const [_photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +50,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = async () => {
         setIsListening(false);
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const _blob = new Blob(chunksRef.current, { type: 'audio/webm' });
 
         // For now, just show a note that voice was captured
         // In a real implementation, this would transcribe via speech-to-text API
@@ -61,7 +61,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
 
       recorder.start();
       mediaRecorderRef.current = recorder;
-    } catch (err) {
+    } catch {
       setError('Microphone access denied. Please use text instead.');
     }
   };

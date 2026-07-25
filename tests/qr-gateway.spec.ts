@@ -1,4 +1,4 @@
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe('QRGateway - Worst Case Scenarios', () => {
   let page: Page;
@@ -516,7 +516,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
         localStorage[key] = 'x'.repeat(10000);
         keys.push(key);
       }
-    } catch (e) {
+    } catch {
       // Expected to fail at some point
     }
 

@@ -11,7 +11,7 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    const { machine_id, amperage, timestamp, threshold } = payload;
+    const { machine_id, amperage, _timestamp, threshold } = payload;
 
     if (!machine_id || amperage === undefined) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });

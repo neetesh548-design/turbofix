@@ -256,7 +256,7 @@ test.describe('Performance - Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     // Simple animation performance check
-    const startTime = performance.now();
+    const _startTime = performance.now();
 
     const fps = await page.evaluate(async () => {
       return new Promise((resolve) => {

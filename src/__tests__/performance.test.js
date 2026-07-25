@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useMemoCallback, useMemoValue } from '../utils/performance.jsx';
+import { useMemoValue } from '../utils/performance.jsx';
 import React from 'react';
 
 // Mock React
@@ -9,9 +9,9 @@ vi.mock('react', () => {
       let val = typeof initial === 'function' ? initial() : initial;
       return [val, vi.fn()];
     },
-    useCallback: vi.fn((cb, deps) => cb),
-    useMemo: vi.fn((cb, deps) => cb()),
-    useEffect: vi.fn((cb, deps) => {}),
+    useCallback: vi.fn((_cb, _deps) => _cb),
+    useMemo: vi.fn((_cb, _deps) => _cb()),
+    useEffect: vi.fn((_cb, _deps) => {}),
   };
   return {
     ...mock,

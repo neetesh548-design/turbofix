@@ -1457,17 +1457,6 @@ function FleetStrip({ downMachines, onlineCount, totalCount, onClick }) {
   );
 }
 
-// A category-section KPI tile — label, value, and the benchmark/context hint.
-function KpiCard({ label, value, hint, tone = '', onClick }) {
-  return (
-    <button type="button" className={`md-kpi-card ${tone}`} onClick={onClick}>
-      <span className="md-kpi-label">{label}</span>
-      <strong className="md-kpi-value">{value}</strong>
-      {hint && <small className="md-kpi-hint">{hint}</small>}
-    </button>
-  );
-}
-
 function ScoreTile({ label, value, detail, tone = '', onClick }) {
   return (
     <button type="button" className={`dashboard-score-tile dashboard-click-card ${tone}`} onClick={onClick}>

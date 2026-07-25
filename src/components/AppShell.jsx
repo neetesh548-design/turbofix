@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Plus } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -89,7 +89,7 @@ const NAV_LIVE = [
   { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
 ];
 
-const NAV_SOON = [];
+const _NAV_SOON = [];
 
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
@@ -292,7 +292,7 @@ export default function AppShell({ children, active }) {
       setSidebarError('');
       setListening(true);
       recorder.start();
-    } catch (_err) {
+    } catch {
       setListening(false);
       setSidebarError('Microphone not available.');
     }
@@ -330,7 +330,7 @@ export default function AppShell({ children, active }) {
         const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
         setAnswer(liveAnswer);
         setAnswerSource('live_data');
-      } catch (_fallbackError) {
+      } catch {
         setSidebarError(requestError.message);
       }
     } finally {

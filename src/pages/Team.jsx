@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
-import ContactReveal from '../components/ContactReveal';
 import EmptyState from '../components/EmptyState';
 import { Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
@@ -15,7 +14,7 @@ export default function Team() {
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [_activeFilter, _setActiveFilter] = useState('all');
   const [editingMember, setEditingMember] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -161,10 +160,10 @@ export default function Team() {
   };
 
   const isOwner = currentUser && currentUser.role === 'owner';
-  const techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
-  const portalCount = team.filter((member) => member.portal_access).length;
-  const responseCount = team.filter((member) => member.can_receive_alerts).length;
-  const visibleTeam = team.filter((member) => activeFilter === 'all'
+  const _techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
+  const _portalCount = team.filter((member) => member.portal_access).length;
+  const _responseCount = team.filter((member) => member.can_receive_alerts).length;
+  const _visibleTeam = team.filter((member) => activeFilter === 'all'
     || (activeFilter === 'technicians' && member.role === 'maintenance_technician')
     || (activeFilter === 'portal' && member.portal_access)
     || (activeFilter === 'alerts' && member.can_receive_alerts));

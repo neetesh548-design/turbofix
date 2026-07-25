@@ -99,8 +99,8 @@ test.describe('Keyboard Navigation & Accessibility', () => {
 
       // Get all headings
       const h1s = await page.locator('h1').count();
-      const h2s = await page.locator('h2').count();
-      const h3s = await page.locator('h3').count();
+      const _h2s = await page.locator('h2').count();
+      const _h3s = await page.locator('h3').count();
 
       // Should have at least one h1 per page
       expect(h1s).toBeGreaterThan(0);
@@ -129,7 +129,7 @@ test.describe('Keyboard Navigation & Accessibility', () => {
 
       for (const img of images) {
         const alt = await img.getAttribute('alt');
-        const src = await img.getAttribute('src');
+        const _src = await img.getAttribute('src');
 
         // Decorative images should have empty alt, others should have descriptive alt
         // For now, just verify the attribute exists
@@ -176,12 +176,12 @@ test.describe('Keyboard Navigation & Accessibility', () => {
       for (const elem of textElements) {
         if (!await elem.isVisible()) continue;
 
-        const { textColor, bgColor, contrastRatio } = await elem.evaluate(() => {
+        const { _textColor, _bgColor, contrastRatio } = await elem.evaluate(() => {
           const el = document.activeElement as HTMLElement;
           const style = window.getComputedStyle(el);
 
           // Simple hex to RGB converter
-          const hexToRgb = (hex: string) => {
+          const _hexToRgb = (hex: string) => {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? [
               parseInt(result[1], 16),
@@ -191,7 +191,7 @@ test.describe('Keyboard Navigation & Accessibility', () => {
           };
 
           // WCAG contrast ratio calculator
-          const getContrast = (r1: number, g1: number, b1: number, r2: number, g2: number, b2: number) => {
+          const _getContrast = (r1: number, g1: number, b1: number, r2: number, g2: number, b2: number) => {
             const L1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1;
             const L2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2;
             return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
@@ -258,7 +258,7 @@ test.describe('Screen Reader Support', () => {
     await page.goto('/');
 
     // Check for semantic elements
-    const main = page.locator('main');
+    const _main = page.locator('main');
     const nav = page.locator('nav');
     const header = page.locator('header');
 

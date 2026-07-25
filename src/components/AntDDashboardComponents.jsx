@@ -113,7 +113,7 @@ export const AntDStatusBadge = ({ status, count, color }) => {
  * EmptyState — Consistent empty state display
  */
 export const AntDEmptyState = ({ message, type = 'default', icon = null }) => {
-  const iconMap = {
+  const _iconMap = {
     alert: <AlertOutlined style={{ fontSize: '48px', color: '#FAAD14' }} />,
     success: <CheckCircleOutlined style={{ fontSize: '48px', color: '#52C41A' }} />,
     pending: <ClockCircleOutlined style={{ fontSize: '48px', color: '#1890FF' }} />,
@@ -135,7 +135,7 @@ export const AntDEmptyState = ({ message, type = 'default', icon = null }) => {
  * MachineListItem — Render a machine with status and metrics
  */
 export const AntDMachineListItem = ({
-  machineId,
+  _machineId,
   machineName,
   location,
   status,
@@ -187,8 +187,8 @@ export const AntDHealthRing = ({
   percent = 0,
   label,
   size = 120,
-  strokeWidth = 4,
-  color = '#52C41A',
+  _strokeWidth = 4,
+  _color = '#52C41A',
 }) => {
   const getColor = (value) => {
     if (value >= 75) return '#52C41A';
@@ -211,7 +211,7 @@ export const AntDHealthRing = ({
   );
 };
 
-export default {
+const AntDDashboardComponentsExports = {
   AntDChartCard,
   AntDDetailList,
   AntDStatusBadge,
@@ -219,3 +219,5 @@ export default {
   AntDMachineListItem,
   AntDHealthRing,
 };
+
+export default AntDDashboardComponentsExports;

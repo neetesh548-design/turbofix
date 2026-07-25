@@ -1,3 +1,4 @@
+/* eslint-disable react/only-export-components */
 import { createContext, useContext, useState, useCallback } from 'react';
 import { X, Check, AlertCircle, Info } from 'lucide-react';
 
@@ -19,6 +20,7 @@ export function NotificationProvider({ children }) {
     }
 
     return id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const removeNotification = useCallback((id) => {

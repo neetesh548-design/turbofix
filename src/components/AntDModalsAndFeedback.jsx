@@ -2,6 +2,7 @@
  * Ant Design Modals & Feedback Components
  * Comprehensive feedback system: modals, notifications, messages, confirmations
  */
+/* eslint-disable react/only-export-components */
 
 import React from 'react';
 import { Modal, Drawer, Popconfirm, notification, message, Tooltip, Spin, Skeleton, Empty } from 'antd';
@@ -319,7 +320,7 @@ export const AntDTooltip = ({
   );
 };
 
-export default {
+const AntDModalsAndFeedbackExports = {
   AntDConfirmDialog,
   AntDAlertDialog,
   AntDModalDialog,
@@ -332,3 +333,5 @@ export default {
   AntDEmptyMessage,
   AntDTooltip,
 };
+
+export default AntDModalsAndFeedbackExports;

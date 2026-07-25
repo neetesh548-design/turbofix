@@ -249,7 +249,7 @@ export default function Assistant() {
         const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
         setAnswer(liveAnswer);
         setAnswerSource('live_data');
-      } catch (fallbackError) {
+      } catch {
         setError(requestError.message);
       }
     } finally {

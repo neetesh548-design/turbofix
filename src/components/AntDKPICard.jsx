@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Statistic, Card, Space } from 'antd';
+import { Card, Space } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 export const AntDKPICard = ({

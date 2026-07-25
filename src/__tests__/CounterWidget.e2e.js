@@ -209,16 +209,16 @@ test.describe('Counter Widget E2E Tests', () => {
   });
 
   test('E2E-13: Tooltips appear on button hover', async ({ page }) => {
-    const incrementBtn = page.getByTestId('counter-increment-btn');
+    const _incrementBtn = page.getByTestId('counter-increment-btn');
 
     // Hover over increment button
-    await incrementBtn.hover();
+    await _incrementBtn.hover();
 
     // Wait for tooltip to appear
     await page.waitForTimeout(300);
 
     // Verify tooltip is visible (check for tooltip element)
-    const tooltip = page.locator('.ant-tooltip-inner');
+    const _tooltip = page.locator('.ant-tooltip-inner');
     // Tooltip may or may not be visible depending on implementation
     // This is a flexible check
   });
@@ -241,8 +241,8 @@ test.describe('Counter Widget E2E Tests', () => {
   test('E2E-15: Counter widget layout remains intact with long numbers', async ({
     page,
   }) => {
-    const incrementBtn = page.getByTestId('counter-increment-btn');
-    const counterWidget = page.getByTestId('counter-widget');
+    const _incrementBtn = page.getByTestId('counter-increment-btn');
+    const _counterWidget = page.getByTestId('counter-widget');
 
     // Increment to a relatively large number (assuming no max)
     // Use javascript to set counter to large value

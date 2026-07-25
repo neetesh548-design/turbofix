@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { Layout, Menu, Breadcrumb, Button, Dropdown, Space, Badge } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Badge } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, LogoutOutlined, BellOutlined, SettingOutlined } from '@ant-design/icons';
 import { useI18n } from '../utils/i18n';
 

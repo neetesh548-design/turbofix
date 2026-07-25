@@ -245,7 +245,7 @@ export class QRGatewayTestHelper {
     const fileInput = this.page.locator('input[type="file"]');
 
     // Create a simple test image
-    const canvas = await this.page.evaluateHandle(() => {
+    const _canvas = await this.page.evaluateHandle(() => {
       const c = document.createElement('canvas');
       c.width = 100;
       c.height = 100;

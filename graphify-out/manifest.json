@@ -545,8 +545,8 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1784977919.582927,
-    "ast_hash": "2d70fcdffe5a3e6b2a4a333180b25190",
+    "mtime": 1784978623.0847788,
+    "ast_hash": "5dad29d93f68d93f66cb8b4bb35f56df",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -2005,8 +2005,8 @@
     "semantic_hash": ""
   },
   "src/__tests__/PDFGenerator.test.js": {
-    "mtime": 1784978137.3775725,
-    "ast_hash": "6a8fbe0ffd8b1de65e40f01c0db32556",
+    "mtime": 1784978613.6668797,
+    "ast_hash": "ded1aaf5c650afcee3212917a83aef9b",
     "semantic_hash": ""
   },
   "src/components/Dashboard/ExportButton.jsx": {
@@ -2020,8 +2020,8 @@
     "semantic_hash": ""
   },
   "src/utils/PDFGenerator.js": {
-    "mtime": 1784977956.1575325,
-    "ast_hash": "48f8baae5b028661fd1134d1107d4e9d",
+    "mtime": 1784978616.9473255,
+    "ast_hash": "496b2ad4ac75e69c50c9cf36ed310479",
     "semantic_hash": ""
   },
   ".claude/workflows/PRODUCTION_GUIDE.md": {

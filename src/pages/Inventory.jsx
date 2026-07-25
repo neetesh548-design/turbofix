@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import EmptyState from '../components/EmptyState';
-import { Package, Plus, Search, AlertTriangle, CheckCircle2, Clock, Factory, Loader2, ArrowRight, DollarSign, Filter, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { Package, Search, AlertTriangle, CheckCircle2, Clock, Loader2, DollarSign, LayoutGrid, List } from 'lucide-react';
 
 const Inventory = () => {
   const [activeTab, setActiveTab] = useState('parts');
@@ -64,7 +64,7 @@ const Inventory = () => {
     return [...criticalParts.map(p => ({ ...p, type: 'part' })), ...criticalConsumables.map(c => ({ ...c, type: 'consumable' }))];
   };
 
-  const filteredItems = () => {
+  const _filteredItems = () => {
     const list = activeTab === 'parts' ? parts : consumables;
     if (!search.trim()) return list;
     const q = search.toLowerCase();

@@ -2,9 +2,10 @@
  * Ant Design Performance Optimizations & Polish
  * Final optimization layer for production deployment
  */
+/* eslint-disable react/only-export-components */
 
 import React, { useMemo, useCallback } from 'react';
-import { Spin, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 
 /**
  * MemoizedCard — Prevents unnecessary re-renders
@@ -215,7 +216,7 @@ export const useResponsiveValue = (values) => {
   return values[screenSize] || values.desktop;
 };
 
-export default {
+const AntDPerformanceOptimizationsExports = {
   MemoizedCard,
   LazyComponent,
   OptimizedList,
@@ -228,3 +229,5 @@ export default {
   useAccessibility,
   useResponsiveValue,
 };
+
+export default AntDPerformanceOptimizationsExports;

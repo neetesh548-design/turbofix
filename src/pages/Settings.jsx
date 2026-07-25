@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   AlertCircle,
-  ArrowUpRight,
   BellRing,
   BrainCircuit,
   Building2,
@@ -63,7 +62,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [_activeTab, setActiveTab] = useState(initialTab);
   const [showAddRole, setShowAddRole] = useState(false);
   const [newRoleLabel, setNewRoleLabel] = useState('');
   const [busyAction, setBusyAction] = useState('');
@@ -124,7 +123,7 @@ export default function Settings() {
     fetchSettings();
   }, [fetchSettings]);
 
-  const selectTab = (value) => {
+  const _selectTab = (value) => {
     setActiveTab(value);
     setSuccess('');
     window.history.replaceState(null, '', `${window.location.pathname}#${value}`);

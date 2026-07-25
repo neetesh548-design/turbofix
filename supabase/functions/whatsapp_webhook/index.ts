@@ -144,7 +144,7 @@ async function fanoutTicket(
         ticket?.reporter_phone || '',
       ]);
       console.log('fanout.sent', ticketId, phone);
-    } catch (e) {
+    } catch {
       // Fallback to text message if template fails
       try {
         const msg = `🔧 TurboFix Alert\nMachine: ${machine.name}\nIssue: ${brief}\nUrgency: ${urgency}\nReporter: ${ticket?.reporter_phone || 'Unknown'}`;

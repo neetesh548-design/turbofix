@@ -184,7 +184,7 @@ class StorageManager {
       }
 
       return data.value;
-    } catch (err) {
+    } catch {
       return null;
     }
   }
@@ -267,10 +267,12 @@ export const lazyLoadComponent = (importFn, fallback = null) => {
 
 // Memoization helper for expensive computations
 export function useMemoCallback(callback, dependencies = []) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return React.useCallback(callback, dependencies);
 }
 
 export function useMemoValue(factory, dependencies = []) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return React.useMemo(factory, dependencies);
 }
 
@@ -362,7 +364,7 @@ export function useBatchedUpdates() {
 
     const timer = setTimeout(() => {
       // Process batched updates
-      const combined = queue.reduce((acc, update) => ({ ...acc, ...update }), {});
+      const _combined = queue.reduce((acc, update) => ({ ...acc, ...update }), {});
       queue.length = 0; // Clear queue
     }, 16); // One frame
 

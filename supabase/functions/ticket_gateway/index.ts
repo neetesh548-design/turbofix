@@ -349,7 +349,7 @@ serve(async (req) => {
     if (action === 'get_ticket') {
       const { ticket_id } = body
       if (!ticket_id) return reply(req, { error: 'Invalid ticket ID.' }, 400)
-      const { data, error } = await admin
+      const { data, _error } = await admin
         .from('tickets')
         .select('ai_summary')
         .eq('id', ticket_id)

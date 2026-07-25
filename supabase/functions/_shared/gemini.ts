@@ -235,7 +235,7 @@ Text: "${text}"`;
   try {
     const rawText = await _callGemini(contents);
     let cleanText = rawText.trim();
-    if (cleanText.startsWith('\`\`\`json')) {
+    if (cleanText.startsWith('``json')) {
       cleanText = cleanText.substring(7, cleanText.length - 3).trim();
     }
     const parsed = JSON.parse(cleanText);

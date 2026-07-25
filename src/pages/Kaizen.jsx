@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
-  ClipboardList, Droplets, FileCheck2, MessageSquare, Mic,
-  Play, Plus, ShieldCheck, TrendingUp, Trash2, CheckCircle2, User,
-  Coins, ArrowRight, ShieldAlert, Sparkles, CheckSquare, Eye, RefreshCw
+  Bot, ClipboardList, Mic, Plus, Trash2, CheckCircle2,
+  Coins, ShieldAlert, Sparkles, CheckSquare
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import EmptyState from '../components/EmptyState';
 import { supabase } from '@/supabaseClient';
 
-const KAIZEN_CATEGORIES = [
+const _KAIZEN_CATEGORIES = [
   { value: 'safety', label: 'Safety' },
   { value: 'quality', label: 'Quality' },
   { value: 'productivity', label: 'Productivity' },
@@ -34,7 +32,7 @@ const LEAN_WASTES = [
   { value: 'talent', label: 'Unutilised Human Talent' }
 ];
 
-const KAIZEN_STATUSES = [
+const _KAIZEN_STATUSES = [
   { value: 'submitted', label: 'Submitted' },
   { value: 'need_information', label: 'Need Info' },
   { value: 'approved', label: 'Approved' },
@@ -114,18 +112,18 @@ export default function Kaizen() {
   const [error, setError] = useState('');
   const [activeSubTab, setActiveSubTab] = useState('list'); // 'dashboard' | 'list' | 'add'
   const [machines, setMachines] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [_users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Form State
   const [machineId, setMachineId] = useState('');
   const [kaizenType, setKaizenType] = useState('productivity');
-  const [urgency, setUrgency] = useState('normal');
+  const [_urgency, _setUrgency] = useState('normal');
   const [title, setTitle] = useState('');
   const [proposal, setProposal] = useState('');
-  const [savingType, setSavingType] = useState('none');
-  const [savingValue, setSavingValue] = useState('');
+  const [_savingType, _setSavingType] = useState('none');
+  const [_savingValue, _setSavingValue] = useState('');
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [photoUrl, setPhotoUrl] = useState('');

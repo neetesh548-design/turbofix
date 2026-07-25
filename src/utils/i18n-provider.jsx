@@ -2,6 +2,7 @@
  * I18n React Provider Component
  * Separated from i18n.js to avoid JSX in .js files
  */
+/* eslint-disable react/only-export-components */
 
 import React from 'react';
 import { i18n } from './i18n.js';

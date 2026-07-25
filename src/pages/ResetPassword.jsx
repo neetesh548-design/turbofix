@@ -36,7 +36,7 @@ export default function ResetPassword() {
       } else {
         setRequestMsg('Reset link sent! Please check your inbox.');
       }
-    } catch (err) {
+    } catch {
       setRequestMsg('Failed to send reset link.');
     }
   };
@@ -61,7 +61,7 @@ export default function ResetPassword() {
           window.location.href = `${import.meta.env.BASE_URL}login.html`;
         }, 1500);
       }
-    } catch (err) {
+    } catch {
       setResetMsg('Failed to reset password.');
     }
   };

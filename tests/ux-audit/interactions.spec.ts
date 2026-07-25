@@ -247,7 +247,7 @@ test.describe('View Mode Toggle - Persistence & UX', () => {
       await toggle.click();
 
       // Content should be visible
-      const content = toggle.locator('xpath=./following::*[1][contains(@class, "drill-down") or contains(@class, "content")]');
+      const _content = toggle.locator('xpath=./following::*[1][contains(@class, "drill-down") or contains(@class, "content")]');
       // Simplified check - in real scenario would need better selector
     }
   });

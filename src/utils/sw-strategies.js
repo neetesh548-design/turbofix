@@ -48,7 +48,7 @@ export const CachingStrategies = {
       const cache = await caches.open(CACHE_NAMES.dynamic);
       cache.put(request, response.clone());
       return response;
-    } catch (err) {
+    } catch {
       const cached = await caches.match(request);
       if (cached) return cached;
 
@@ -82,7 +82,7 @@ export const CachingStrategies = {
         await trimCache(CACHE_NAMES.api, API_CACHE_SIZE);
       }
       return response;
-    } catch (err) {
+    } catch {
       const cached = await cache.match(request);
       return cached || new Response('Offline', { status: 503 });
     }
@@ -102,7 +102,7 @@ export const CachingStrategies = {
         await trimCache(CACHE_NAMES.images, IMAGE_CACHE_SIZE);
       }
       return response;
-    } catch (err) {
+    } catch {
       // Return placeholder for failed images
       return new Response(
         '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="#ddd" width="200" height="200"/></svg>',

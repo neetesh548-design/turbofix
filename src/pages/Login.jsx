@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { Mail, Lock, Building, User, Phone, Upload, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function Login() {
   const [view, setView] = useState('login'); // 'login' or 'register'

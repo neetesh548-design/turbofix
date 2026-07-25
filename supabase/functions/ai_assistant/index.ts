@@ -75,6 +75,7 @@ const INJECTION_PATTERNS = [
 
 function sanitizeInput(raw: string): { clean: string; blocked: boolean } {
   // Strip control characters (keep newlines/tabs for readability)
+  // eslint-disable-next-line no-control-regex
   let clean = raw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
   // Collapse excessive whitespace
   clean = clean.replace(/\s{5,}/g, '    ')

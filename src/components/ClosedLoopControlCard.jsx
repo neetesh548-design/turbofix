@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Alert, Badge, Button, Space, Tag } from 'antd';
-import { AlertOutlined, CheckCircleOutlined, TeamOutlined } from '@ant-design/icons';
+import { AlertOutlined, TeamOutlined } from '@ant-design/icons';
 
 export const ClosedLoopControlCard = ({
   openWorkCount = 0,

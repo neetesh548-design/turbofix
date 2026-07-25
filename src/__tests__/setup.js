@@ -32,3 +32,11 @@ const localStorageMock = {
   length: 0,
 };
 global.localStorage = localStorageMock;
+
+// Mock ResizeObserver
+class MockResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+global.ResizeObserver = MockResizeObserver;

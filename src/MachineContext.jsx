@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react/only-export-components */
+import React, { createContext, useContext, useState } from 'react';
 
 const MachineContext = createContext(null);
 

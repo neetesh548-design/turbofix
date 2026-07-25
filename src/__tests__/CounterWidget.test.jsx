@@ -137,7 +137,7 @@ describe('CounterWidget Component (30+ Tests)', () => {
 
   it('T025: i18n should support 9 languages', () => {
     const languages = ['en', 'es', 'fr', 'de', 'pt', 'ja', 'zh', 'ar', 'hi'];
-    languages.forEach(lang => {
+    languages.forEach(_lang => {
       expect(i18n.t('counter.title')).toBeDefined();
     });
     expect(languages.length).toBeGreaterThanOrEqual(9);

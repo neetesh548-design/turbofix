@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Parser } = require('html-to-react');
-const parser = new Parser();
+const _parser = new Parser();
 
 const pages = [
   { file: 'index.html', name: 'Home' },

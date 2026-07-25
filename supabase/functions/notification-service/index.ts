@@ -35,7 +35,7 @@ serve(async (req) => {
       
       // Get the machine details to find who to notify
       if (ticket.machine_id) {
-        const { data: machine, error } = await supabase
+        const { data: machine, _error } = await supabase
           .from('machines')
           .select('name, technician_user_id, supervisor_id, engineer_user_id, maintenance_head_user_id')
           .eq('id', ticket.machine_id)

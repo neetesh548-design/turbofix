@@ -279,7 +279,7 @@ export default function QRGateway() {
   // Photo capture and upload state
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [_uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submittedTicketInfo, setSubmittedTicketInfo] = useState(null);
   const [pendingAudioBlob, setPendingAudioBlob] = useState(null);
   const [pendingAudioUrl, setPendingAudioUrl] = useState('');
@@ -292,7 +292,7 @@ export default function QRGateway() {
 
   // Offline queue state
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
-  const [offlineQueued, setOfflineQueued] = useState(false);
+  const [_offlineQueued, setOfflineQueued] = useState(false);
 
   const t = (key) => (GATEWAY_I18N[lang] || GATEWAY_I18N['hi-IN'])[key] || key;
   const machineContextLabel = machine.name ? `${machine.name}${machine.loc ? ` · ${machine.loc}` : ''}` : 'Selected machine';
@@ -496,7 +496,8 @@ export default function QRGateway() {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [lang, phoneGate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, phoneGate, greetUser]);
 
   const speak = (text) => {
     if (!speakFeedback || !window.speechSynthesis) return;
@@ -929,7 +930,7 @@ export default function QRGateway() {
 
   const stopVoiceInput = () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      try { recorderRef.current.stop(); } catch (e) {}
+      try { recorderRef.current.stop(); } catch {}
     }
   };
 
@@ -1038,7 +1039,7 @@ export default function QRGateway() {
         setWorkflowStage('done');
         try {
           localStorage.removeItem(draftKey);
-        } catch (err) {}
+        } catch {}
         return;
       }
 
@@ -1093,7 +1094,7 @@ export default function QRGateway() {
       setVoiceArtifacts(null);
       try {
         localStorage.removeItem(draftKey);
-      } catch (err) {}
+      } catch {}
     } catch (err) {
       console.error('Error logging ticket:', err);
       const errMsg = t('submissionProblemText');
@@ -1157,7 +1158,7 @@ export default function QRGateway() {
       setVoiceArtifacts(null);
       try {
         localStorage.removeItem(draftKey);
-      } catch (err) {}
+      } catch {}
     } catch (err) {
       alert('Error appending: ' + err.message);
       setWorkflowStage('review');

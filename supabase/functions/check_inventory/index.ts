@@ -80,7 +80,7 @@ serve(async (req) => {
               }).catch(() => {}); // ignore unique constraint errors
               
               // Notify maintenance head / supervisor
-              const { data: factory } = await supabase.from('factories').select('id').eq('id', item.factory_id).single(); // find correct users in real app
+              const { data: _factory } = await supabase.from('factories').select('id').eq('id', item.factory_id).single(); // find correct users in real app
               // In this demo, we'll skip direct notification generation and let the UI show pending POs
             }
           }

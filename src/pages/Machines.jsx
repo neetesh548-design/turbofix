@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mail, Mic, Square, CheckCircle2, Sparkles,
+  ShieldCheck, Upload, Users, LayoutGrid, List, Pencil, Mic, Square, CheckCircle2, Sparkles,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -84,7 +84,7 @@ export default function Machines() {
   const [machineEdit, setMachineEdit] = useState(null);
   const [machineEditSaving, setMachineEditSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showMachineDetails, setShowMachineDetails] = useState(true);
+  const [_showMachineDetails, _setShowMachineDetails] = useState(true);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
@@ -166,7 +166,7 @@ export default function Machines() {
   const [relLoading, setRelLoading] = useState(false);
   const [relSaving, setRelSaving] = useState(false);
   const [showRcaForm, setShowRcaForm] = useState(false);
-  const [relSubTab, setRelSubTab] = useState('rca'); // 'rca' | 'kaizen'
+  const [_relSubTab, _setRelSubTab] = useState('rca'); // 'rca' | 'kaizen'
   const [machineKaizens, setMachineKaizens] = useState([]);
   const [showKznForm, setShowKznForm] = useState(false);
   const [kznTitle, setKznTitle] = useState('');
@@ -188,7 +188,7 @@ export default function Machines() {
   const [consumablesLoading, setConsumablesLoading] = useState(false);
   const [machineData, setMachineData] = useState(null);
   const [machineDataLoading, setMachineDataLoading] = useState(false);
-  const [enrichingMachineData, setEnrichingMachineData] = useState(false);
+  const [_enrichingMachineData, _setEnrichingMachineData] = useState(false);
   const [machineKnowledge, setMachineKnowledge] = useState({ file: null, graph: null, interventions: [], audit: [] });
 
   // Sub-tab Form inputs
@@ -227,6 +227,7 @@ export default function Machines() {
   useEffect(() => {
     document.title = 'Machines | TurboFix';
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -250,6 +251,7 @@ export default function Machines() {
     if (selectedMachine) {
       loadMachineAssets(selectedMachine.machine_id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMachine]);
 
   const fetchData = async () => {
@@ -619,7 +621,7 @@ export default function Machines() {
       setMachines((current) => current.map((machine) => machine.machine_id === targetMachineId ? { ...machine, image_url: publicUrl } : machine));
       setSuccess('Machine picture updated successfully.');
       return publicUrl;
-    } catch (err) {
+    } catch {
       // Local fallback
       return new Promise((resolve) => {
         const fileReader = new FileReader();
@@ -846,7 +848,7 @@ export default function Machines() {
     alert('Internet enrichment is not yet available in this version.');
   };
 
-  const downloadDoc = async (docId, filename) => {
+  const downloadDoc = async (docId, _filename) => {
     try {
       const { data: docRow } = await supabase.from('documents').select('file_url').eq('id', docId).single();
       if (!docRow?.file_url) throw new Error('No file URL');
@@ -1168,7 +1170,7 @@ export default function Machines() {
       setKznTitle('');
       setKznProposal('');
       setShowKznForm(false);
-    } catch (err) {
+    } catch {
       // Local fallback
       setMachineKaizens([newKzn, ...machineKaizens]);
       setKznTitle('');
