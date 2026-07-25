@@ -11,20 +11,20 @@ const PAGES = [
 
 test.describe('Dark Mode Consistency', () => {
   PAGES.forEach(page => {
-    test(`${page.name} should be readable in dark mode`, async ({ pw }) => {
-      await pw.goto(page.path);
+    test(`${page.name} should be readable in dark mode`, async ({ page: pageFixture }) => {
+      await pageFixture.goto(page.path);
 
       // Enable dark mode
-      await pw.evaluate(() => {
+      await pageFixture.evaluate(() => {
         localStorage.setItem('theme', 'dark');
         document.documentElement.setAttribute('data-theme', 'dark');
       });
 
-      await pw.reload();
-      await pw.waitForLoadState('networkidle');
+      await pageFixture.reload();
+      await pageFixture.waitForLoadState('networkidle');
 
       // Check that text is visible (basic contrast check)
-      const textElements = await pw.locator('p, span, h1, h2, h3, h4, a, button').all();
+      const textElements = await pageFixture.locator('p, span, h1, h2, h3, h4, a, button').all();
       let visibleTexts = 0;
 
       for (const elem of textElements) {
@@ -45,20 +45,20 @@ test.describe('Dark Mode Consistency', () => {
       expect(visibleTexts).toBeGreaterThan(0);
     });
 
-    test(`${page.name} should not have hardcoded colors breaking in dark mode`, async ({ pw }) => {
-      await pw.goto(page.path);
+    test(`${page.name} should not have hardcoded colors breaking in dark mode`, async ({ page: pageFixture }) => {
+      await pageFixture.goto(page.path);
 
       // Enable dark mode
-      await pw.evaluate(() => {
+      await pageFixture.evaluate(() => {
         localStorage.setItem('theme', 'dark');
         document.documentElement.setAttribute('data-theme', 'dark');
       });
 
-      await pw.reload();
-      await pw.waitForLoadState('networkidle');
+      await pageFixture.reload();
+      await pageFixture.waitForLoadState('networkidle');
 
       // Check for suspicious hardcoded colors
-      const suspiciousElements = await pw.locator('*[style*="color: white"], *[style*="color: #fff"], *[style*="background: white"]').all();
+      const suspiciousElements = await pageFixture.locator('*[style*="color: white"], *[style*="color: #fff"], *[style*="background: white"]').all();
 
       // In dark mode, white text on dark background is fine
       // But hardcoded white text that can't adapt is bad

@@ -2,7 +2,9 @@ export function getElapsedHours(reportedAtStr) {
   if (!reportedAtStr) return 0;
   try {
     const reported = new Date(reportedAtStr.replace(' ', 'T'));
-    return Math.max(0, (Date.now() - reported.getTime()) / (1000 * 60 * 60));
+    const time = reported.getTime();
+    if (isNaN(time)) return 0;
+    return Math.max(0, (Date.now() - time) / (1000 * 60 * 60));
   } catch {
     return 0;
   }
