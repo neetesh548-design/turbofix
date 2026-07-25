@@ -430,7 +430,7 @@ export default function Tickets() {
                   </span>
                 </div>
 
-                {/* COLLAPSIBLE TICKET CARDS LIST */}
+                {/* COLLAPSIBLE TICKET CARDS LIST - TOP 5 BY PRIORITY */}
                 {(() => {
                   if (visibleTickets.length === 0) {
                     return (
@@ -440,17 +440,55 @@ export default function Tickets() {
                     );
                   }
 
+                  // Sort by priority: Critical > High > Medium > Low
+                  const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+                  const sortedByPriority = [...visibleTickets].sort((a, b) => {
+                    const aPriority = priorityOrder[String(a.urgency || '').toLowerCase()] ?? 4;
+                    const bPriority = priorityOrder[String(b.urgency || '').toLowerCase()] ?? 4;
+                    if (aPriority !== bPriority) return aPriority - bPriority;
+                    // If same priority, sort by status (open first)
+                    const aOpen = String(a.status).toLowerCase() === 'open' ? 0 : 1;
+                    const bOpen = String(b.status).toLowerCase() === 'open' ? 0 : 1;
+                    return aOpen - bOpen;
+                  });
+
+                  const topFiveTickets = sortedByPriority.slice(0, 5);
+                  const remainingCount = sortedByPriority.length - 5;
+
                   return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                      {visibleTickets.map((ticket) => (
-                        <TicketCard
-                          key={ticket.id || ticket.ticket_id}
-                          ticket={ticket}
-                          onStartWork={(ticketId) => handleCloseTicket(ticketId)}
-                          onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                        {topFiveTickets.map((ticket) => (
+                          <TicketCard
+                            key={ticket.id || ticket.ticket_id}
+                            ticket={ticket}
+                            onStartWork={(ticketId) => handleCloseTicket(ticketId)}
+                            onViewDetails={(ticketId) => setExpandedId(expandedId === ticketId ? null : ticketId)}
+                          />
+                        ))}
+                      </div>
+
+                      {remainingCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowMoreOptions(true)}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: 'rgba(255,255,255,0.08)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            borderRadius: '8px',
+                            color: '#cbd5e1',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            marginBottom: '20px'
+                          }}
+                        >
+                          View all {remainingCount} other tickets →
+                        </button>
+                      )}
+                    </>
                   );
                 })()}
 
