@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { NotificationProvider } from './components/NotificationCenter';
 import { I18nProvider } from './utils/i18n-provider';
 import AntDProvider from './components/AntDProvider';
+import { ViewModeProvider } from './ViewModeContext';
 import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -54,8 +55,9 @@ function App() {
   return (
     <I18nProvider>
       <AntDProvider>
-        <NotificationProvider>
-          <BrowserRouter basename={basename}>
+        <ViewModeProvider>
+          <NotificationProvider>
+            <BrowserRouter basename={basename}>
             <SearchMetadata />
             <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
               <Routes>
@@ -84,7 +86,8 @@ function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
-        </NotificationProvider>
+          </NotificationProvider>
+        </ViewModeProvider>
       </AntDProvider>
     </I18nProvider>
   );

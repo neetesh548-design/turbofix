@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useViewMode } from '@/ViewModeContext';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 
@@ -98,6 +99,7 @@ const NAV_SOON = [];
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
+  const { viewMode, toggleViewMode, isMvpMode } = useViewMode();
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -383,6 +385,32 @@ export default function AppShell({ children, active }) {
           </div>
           <div className="app-topbar-right">
             <ThemeToggle />
+            <Tooltip content={isMvpMode ? 'Switch to Full View' : 'Switch to MVP View'} position="bottom" delay={300}>
+              <button
+                type="button"
+                className="app-view-mode-toggle"
+                onClick={toggleViewMode}
+                aria-label={isMvpMode ? 'Switch to Full View' : 'Switch to MVP View'}
+                title={isMvpMode ? 'Full View shows all features' : 'MVP View shows only core workflow'}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '6px 8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--slate)',
+                  transition: 'all 200ms ease'
+                }}
+              >
+                {isMvpMode ? <Eye size={16} /> : <EyeOff size={16} />}
+                <span>{isMvpMode ? 'MVP' : 'Full'}</span>
+              </button>
+            </Tooltip>
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
             <div className="app-user" title={user?.name || ''}>
               <span className="app-avatar">{initial}</span>

@@ -170,6 +170,11 @@ export const translations = {
     "menu.explore": "Explore TurboFix",
     "menu.language": "Choose language",
     "menu.signedIn": "Signed in",
+
+    "view.mvp": "MVP View",
+    "view.full": "Full View",
+    "view.mvp.desc": "Shows only core workflow",
+    "view.full.desc": "Shows all features",
   },
   hi: {
     "nav.why": "टर्बोफिक्स क्यों",
@@ -342,6 +347,11 @@ export const translations = {
     "menu.explore": "TurboFix देखें",
     "menu.language": "भाषा चुनें",
     "menu.signedIn": "साइन इन",
+
+    "view.mvp": "MVP दृश्य",
+    "view.full": "पूर्ण दृश्य",
+    "view.mvp.desc": "केवल मूल वर्कफ़्लो दिखाता है",
+    "view.full.desc": "सभी सुविधाएँ दिखाता है",
   },
   mr: {
     "nav.why": "टर्बोफिक्स का",
@@ -514,5 +524,10 @@ export const translations = {
     "menu.explore": "TurboFix पाहा",
     "menu.language": "भाषा निवडा",
     "menu.signedIn": "साइन इन",
+
+    "view.mvp": "MVP दृश्य",
+    "view.full": "संपूर्ण दृश्य",
+    "view.mvp.desc": "फक्त मूळ वर्कफ्लो दाखवते",
+    "view.full.desc": "सर्व वैशिष्ट्ये दाखवते",
   }
 };
