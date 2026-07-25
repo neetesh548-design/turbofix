@@ -60,14 +60,6 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
-  /* Spacing scale on a 4px grid -> p-md, gap-lg, m-xl, ... */
-  --spacing-xs: 0.25rem;   /*  4px */
-  --spacing-sm: 0.5rem;    /*  8px */
-  --spacing-md: 0.75rem;   /* 12px */
-  --spacing-lg: 1rem;      /* 16px */
-  --spacing-xl: 1.5rem;    /* 24px */
-  --spacing-2xl: 2rem;     /* 32px */
-
   /* Typography scale -> text-h1, text-body, text-sm-body, ... */
   --text-h1: 2rem;         /* 32px */
   --text-h1--line-height: 2.5rem;
