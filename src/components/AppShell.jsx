@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle, Grid } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle, Grid, LogOut } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -378,29 +378,44 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar flex items-center gap-3">
-          <button
-            type="button"
-            className="ms-waffle-btn p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-            onClick={() => setAppLauncherOpen(true)}
-            aria-label="Open Microsoft-style App Launcher"
-            title="TurboFix Apps & Workspaces (App Switcher)"
-          >
-            <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-          </button>
+        <header className="app-topbar flex items-center justify-between gap-3 px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="ms-waffle-btn p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2 cursor-pointer border border-slate-200/80 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50"
+              onClick={() => setAppLauncherOpen(true)}
+              aria-label="Open Microsoft-style App Launcher"
+              title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+            >
+              <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">Apps</span>
+            </button>
 
-          <a href={BASE} className="app-topbar-brand" aria-label="TurboFix home">
-            <span className="app-logo">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
-            </span>
-            <span className="app-brand-name"><b>TURBO</b>FIX</span>
-          </a>
+            <a href={BASE} className="app-topbar-brand flex items-center gap-2" aria-label="TurboFix home">
+              <span className="app-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
+              </span>
+              <span className="app-brand-name font-bold tracking-tight"><b>TURBO</b>FIX</span>
+            </a>
 
-          <div className="app-company">
-            <span className="app-company-name">{company}</span>
-            <span className="app-live"><span className="app-live-dot" />Live</span>
+            {/* Current Active Workspace Indicator Pill */}
+            {active && (
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 rounded-full text-xs font-medium border border-teal-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                <span className="capitalize">{active.replace('-', ' ')}</span>
+              </div>
+            )}
           </div>
-          <div className="app-topbar-right">
+
+          <div className="app-company hidden lg:flex items-center gap-2">
+            <span className="app-company-name text-xs text-slate-500 dark:text-slate-400 font-medium">{company}</span>
+            <span className="app-live text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Live
+            </span>
+          </div>
+
+          <div className="app-topbar-right flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               className="app-quick-report-btn"
@@ -415,7 +430,7 @@ export default function AppShell({ children, active }) {
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 padding: '6px 12px',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -426,10 +441,19 @@ export default function AppShell({ children, active }) {
             </button>
             <ThemeToggle />
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
-            <div className="app-user" title={user?.name || ''}>
+            <div className="app-user flex items-center gap-2" title={user?.name || ''}>
               <span className="app-avatar">{initial}</span>
-              <span className="app-user-name">{user?.name || 'Staff'}</span>
+              <span className="app-user-name hidden xl:inline text-xs font-semibold">{user?.name || 'Staff'}</span>
             </div>
+            <button
+              type="button"
+              onClick={logout}
+              className="p-2 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
+              title="Log out"
+              aria-label="Log out"
+            >
+              <LogOut size={17} />
+            </button>
           </div>
         </header>
 
@@ -446,24 +470,6 @@ export default function AppShell({ children, active }) {
             onClose={() => setShowQuickReport(false)}
           />
         )}
-
-        <nav className="app-h-nav" aria-label="Main navigation">
-          {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).map((item) => (
-            <Tooltip key={item.id} content={item.label} position="bottom" delay={300}>
-              <a
-                href={item.href}
-                className={`app-h-nav-item${active === item.id ? ' active' : ''}`}
-              >
-                <svg className="nav-ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={item.icon} /></svg>
-                <span>{item.label}</span>
-              </a>
-            </Tooltip>
-          ))}
-          <button type="button" className="app-h-nav-logout" onClick={logout} title="Log out">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /></svg>
-            <span>Log out</span>
-          </button>
-        </nav>
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
 
