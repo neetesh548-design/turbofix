@@ -1,0 +1,429 @@
+# TurboFix Three-Agent Workflow Orchestration
+# This workflow automates the feature development pipeline:
+# Creator → Reviewer → Approver
+
+name: TurboFix Create-Review-Approve Pipeline
+version: 1.0.0
+description: Orchestrates feature development with three sequential quality gates
+
+# Global configuration
+config:
+  timeout: 28800  # 8 hours total timeout
+  max_retries: 3
+  notification_on_failure: true
+  notification_on_success: true
+  archive_reports: true
+
+# Input schema - what information is needed to start
+input:
+  required:
+    - feature_name
+    - description
+    - acceptance_criteria
+  optional:
+    - issue_number
+    - assignee
+    - priority
+    - due_date
+    - labels
+
+# Workflow stages - sequential pipeline
+stages:
+
+  # STAGE 1: CREATION
+  - id: creation
+    name: Feature Creation
+    description: Creator Agent builds the feature
+
+    agent:
+      name: creator
+      file: .claude/agents/creator.md
+      model: claude-opus-5
+
+    input:
+      - feature_name
+      - description
+      - acceptance_criteria
+      - issue_number
+      - priority
+
+    timeout: 7200  # 2 hours
+
+    # Expected outputs from Creator
+    output_schema:
+      branch_name: string        # e.g., feature/activity-dashboard
+      commit_hash: string        # Git commit SHA
+      files_created: array       # New files
+      files_modified: array      # Modified files
+      test_coverage: number      # e.g., 85
+      status: string             # "ready_for_review" or "failed"
+      summary: string            # Brief summary of what was created
+
+    # Success criteria
+    success_criteria:
+      - output.status == "ready_for_review"
+      - output.test_coverage >= 80
+      - output.branch_name != null
+      - output.commit_hash != null
+
+    # Handling success
+    on_success:
+      - log: "✅ Feature creation complete"
+      - log: "Branch: ${output.branch_name}"
+      - log: "Coverage: ${output.test_coverage}%"
+      - next_stage: review
+
+    # Handling failures
+    on_failure:
+      - log: "❌ Feature creation failed"
+      - notify:
+          recipients:
+            - creator
+          subject: "TurboFix: Feature creation failed"
+          template: creation_failed
+      - exit_workflow:
+          status: FAILED
+          reason: "Creator stage failed"
+
+    # Retry logic
+    retry_on_failure: true
+    retry_wait_seconds: 300  # Wait 5 minutes before retry
+
+    # State preservation
+    state_preservation:
+      save_branch: true
+      save_output: true
+
+  # STAGE 2: REVIEW
+  - id: review
+    name: Code Review & Validation
+    description: Reviewer Agent checks quality gates
+
+    agent:
+      name: reviewer
+      file: .claude/agents/reviewer.md
+      model: claude-opus-5
+
+    # Input from previous stage
+    input:
+      - stage.creation.output.branch_name
+      - stage.creation.output.commit_hash
+      - stage.creation.output.files_created
+      - stage.creation.output.files_modified
+      - stage.creation.output.test_coverage
+
+    timeout: 3600  # 1 hour
+
+    # Expected outputs from Reviewer
+    output_schema:
+      review_status: string           # "APPROVED" or "NEEDS_REVISION"
+      issues_found: array             # List of issues
+      blockers: array                 # Blocking issues
+      warnings: array                 # Non-blocking warnings
+      test_results: object
+      security_score: number          # 0-100
+      performance_score: number       # Lighthouse score
+      code_quality_score: number      # 0-100
+      review_notes: string
+
+    # Success criteria (APPROVED status)
+    success_criteria:
+      - output.review_status == "APPROVED"
+      - output.security_score >= 80
+      - output.performance_score >= 85
+      - length(output.blockers) == 0
+
+    # Handling approval
+    on_success:
+      - log: "✅ Code review APPROVED"
+      - log: "Security: ${output.security_score}/100"
+      - log: "Performance: ${output.performance_score}/100"
+      - log: "Quality: ${output.code_quality_score}/100"
+      - next_stage: approval
+
+    # Handling rejection (send back to Creator)
+    on_failure:
+      - log: "❌ Code review REJECTED - Needs revision"
+      - log: "Blockers: ${length(output.blockers)}"
+      - log: "Warnings: ${length(output.warnings)}"
+      - notify:
+          recipients:
+            - creator
+            - reviewer
+          subject: "TurboFix: Code review feedback"
+          template: review_feedback
+          data:
+            blockers: output.blockers
+            warnings: output.warnings
+      - exit_workflow:
+          status: NEEDS_REVISION
+          reason: "Reviewer marked for revision"
+
+    # Conditional logic
+    conditions:
+      - if: output.review_status == "NEEDS_REVISION"
+        then: exit_workflow
+      - if: output.security_score < 80
+        then: exit_workflow
+
+    # State preservation
+    state_preservation:
+      save_review_report: true
+      save_metrics: true
+
+  # STAGE 3: APPROVAL & DEPLOYMENT
+  - id: approval
+    name: Final Approval & Deployment
+    description: Approver Agent validates, merges, and deploys
+
+    agent:
+      name: approver
+      file: .claude/agents/approver.md
+      model: claude-opus-5
+
+    # Input from previous stages
+    input:
+      - stage.creation.output.branch_name
+      - stage.creation.output.commit_hash
+      - stage.review.output.review_status
+      - stage.review.output.security_score
+      - stage.review.output.performance_score
+
+    timeout: 3600  # 1 hour
+
+    # Expected outputs from Approver
+    output_schema:
+      approval_status: string         # "APPROVED" or "REJECTED"
+      merge_status: string            # "SUCCESS" or "FAILED"
+      version_tag: string             # e.g., v1.5.0
+      deployment_status: string       # "SUCCESS" or "FAILED"
+      deployment_url: string          # Production URL
+      release_notes: string
+      rollback_plan: string
+
+    # Success criteria
+    success_criteria:
+      - output.approval_status == "APPROVED"
+      - output.merge_status == "SUCCESS"
+      - output.deployment_status == "SUCCESS"
+      - output.version_tag != null
+
+    # Handling success
+    on_success:
+      - log: "✅ Feature APPROVED and DEPLOYED"
+      - log: "Version: ${output.version_tag}"
+      - log: "URL: ${output.deployment_url}"
+      - notify:
+          recipients:
+            - creator
+            - reviewer
+            - approver
+            - stakeholders
+          subject: "TurboFix: Feature deployed to production"
+          template: deployment_success
+          data:
+            version: output.version_tag
+            url: output.deployment_url
+      - archive_workflow:
+          status: SUCCESS
+      - exit_workflow:
+          status: SUCCESS
+          reason: "Feature successfully deployed"
+
+    # Handling failure
+    on_failure:
+      - log: "❌ Deployment FAILED"
+      - log: "Rollback initiated"
+      - notify:
+          recipients:
+            - approver
+            - creator
+            - devops
+          subject: "🚨 URGENT: TurboFix deployment failed"
+          priority: HIGH
+          template: deployment_failed
+      - exit_workflow:
+          status: FAILED_DEPLOYMENT
+          reason: "Deployment failed, rollback triggered"
+
+# Output handling
+output:
+  success_template: |
+    ✅ TurboFix Feature Pipeline Complete
+
+    Feature: {{ stage.creation.output.summary }}
+    Status: DEPLOYED TO PRODUCTION
+
+    📊 Quality Metrics:
+    - Test Coverage: {{ stage.creation.output.test_coverage }}%
+    - Security Score: {{ stage.review.output.security_score }}/100
+    - Performance: {{ stage.review.output.performance_score }}/100
+    - Code Quality: {{ stage.review.output.code_quality_score }}/100
+
+    🏷️ Release Information:
+    - Version: {{ stage.approval.output.version_tag }}
+    - Deployed To: {{ stage.approval.output.deployment_url }}
+    - Branch: {{ stage.creation.output.branch_name }}
+    - Commit: {{ stage.creation.output.commit_hash }}
+
+    📋 Files Changed:
+    Created: {{ stage.creation.output.files_created | length }} files
+    Modified: {{ stage.creation.output.files_modified | length }} files
+
+    🎉 Ready for production use!
+
+  failure_template: |
+    ❌ TurboFix Feature Pipeline Failed
+
+    Feature: {{ feature_name }}
+    Failed At: {{ failed_stage }}
+
+    ⚠️ Issues:
+    {{ issues }}
+
+    ⏭️ Next Steps:
+    1. Review the issues above
+    2. Make necessary fixes
+    3. Restart the workflow
+
+    📞 Support: Use /help or check documentation
+
+# Notifications
+notifications:
+
+  # On workflow success
+  on_success:
+    enabled: true
+    channels:
+      - slack
+      - github
+      - email
+    templates:
+      slack: workflows/notifications/success_slack.txt
+      github: workflows/notifications/success_github.md
+      email: workflows/notifications/success_email.html
+
+  # On workflow failure
+  on_failure:
+    enabled: true
+    channels:
+      - slack
+      - github
+      - email
+    priority: high
+    templates:
+      slack: workflows/notifications/failure_slack.txt
+      github: workflows/notifications/failure_github.md
+      email: workflows/notifications/failure_email.html
+
+  # Stakeholder updates
+  on_stage_complete:
+    enabled: true
+    send_to:
+      - assignee
+      - team_lead
+      - product_manager
+    template: workflows/notifications/stage_update.txt
+
+# Monitoring & Logging
+monitoring:
+  log_level: INFO
+  archive_logs: true
+  retention_days: 90
+
+  # Metrics to track
+  metrics:
+    - workflow_duration
+    - stage_durations
+    - success_rate
+    - failure_rate
+    - average_quality_scores
+
+  # Alerting
+  alerts:
+    - if: workflow_duration > 7200  # 2 hours
+      then: warn
+    - if: stage_failure_rate > 30%
+      then: alert
+    - if: security_score < 70
+      then: alert_security_team
+
+# Rollback policy
+rollback:
+  enabled: true
+  triggers:
+    - deployment_failure
+    - critical_production_error
+    - security_vulnerability_found
+
+  window: 86400  # 24 hours
+
+  procedure: |
+    1. Approver Agent triggers rollback
+    2. Revert to previous version tag
+    3. Notify all stakeholders
+    4. Open incident report
+    5. Begin root cause analysis
+
+# Schedule configurations (optional)
+schedule:
+  # Run workflow automatically on schedule
+  enabled: false  # Set to true to enable scheduled runs
+
+  # Cron expression (runs weekly on Monday)
+  cron: "0 9 ? * MON"
+
+  # Input for scheduled runs (use latest pending issues)
+  input_source: github_issues
+  filter:
+    labels: [ready-for-implementation]
+    priority: high
+
+# Manual triggers
+triggers:
+  manual:
+    enabled: true
+    command: "turbofix workflow start"
+
+  github_webhook:
+    enabled: false
+    event: pull_request
+    action: labeled
+    label: "auto-workflow"
+
+  cli_command:
+    enabled: true
+    command: "claude workflow run turbofix-create-review-approve"
+
+# Permissions
+permissions:
+  creator:
+    - read_repo
+    - write_branch
+    - push_commits
+
+  reviewer:
+    - read_repo
+    - read_branch
+    - run_tests
+    - security_scan
+
+  approver:
+    - read_repo
+    - write_main_branch
+    - create_tags
+    - deploy_production
+    - send_notifications
+
+# Metadata
+metadata:
+  owner: Neetesh Kumar Soni
+  team: TurboFix Development
+  created_date: 2026-07-25
+  last_updated: 2026-07-25
+  environment: production
+
+  documentation:
+    setup_guide: .claude/workflows/SETUP.md
+    examples: .claude/workflows/EXAMPLES.md
+    troubleshooting: .claude/workflows/TROUBLESHOOTING.md
