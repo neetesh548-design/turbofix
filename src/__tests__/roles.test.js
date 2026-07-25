@@ -17,12 +17,13 @@ describe('src/lib/roles', () => {
     });
 
     it('should fallback to replacing underscores with spaces for unknown roles', () => {
-      expect(getRoleLabel('safety_officer')).toBe('safety officer');
       expect(getRoleLabel('plant_lead')).toBe('plant lead');
+      expect(getRoleLabel('electrical_specialist')).toBe('electrical specialist');
     });
 
     it('should handle null/undefined role gracefully', () => {
-      expect(() => getRoleLabel(null)).toThrow(); // String method call on null
+      expect(getRoleLabel(null)).toBe('Unknown Role');
+      expect(getRoleLabel(undefined)).toBe('Unknown Role');
     });
   });
 
