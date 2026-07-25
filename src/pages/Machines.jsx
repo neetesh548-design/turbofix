@@ -9,6 +9,7 @@ import {
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import EmptyState from '../components/EmptyState';
 import { supabase } from '@/supabaseClient';
 
 const WORKSPACE_TABS = [
@@ -1931,17 +1932,23 @@ export default function Machines() {
 
               if (machines.length === 0) {
                 return (
-                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines onboarded yet. Click "+ Register New Machine" to get started.</p>
-                  </div>
+                  <EmptyState
+                    icon={PackageSearch}
+                    title="No Registered Machinery"
+                    description="No factory equipment has been registered yet. Click '+ Register New Machine' above to get started."
+                    actionLabel="+ Register New Machine"
+                    onAction={() => setShowAddForm(true)}
+                  />
                 );
               }
 
               if (filteredMachines.length === 0) {
                 return (
-                  <div className="vault-card" style={{ textAlign: 'center', padding: '40px' }}>
-                    <p style={{ color: 'var(--slate)', margin: 0 }}>No machines match your search/filter parameters. Try clearing the search query.</p>
-                  </div>
+                  <EmptyState
+                    icon={PackageSearch}
+                    title="No Matching Machines Found"
+                    description="No factory machinery matches your search/filter parameters. Try clearing your search term or status filter."
+                  />
                 );
               }
 
@@ -1975,7 +1982,7 @@ export default function Machines() {
                   })}
                 </div>
               ) : (
-                <div className="vault-card" style={{ padding: 0, overflowX: 'auto', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="ui-table-wrapper vault-card" style={{ padding: 0, marginBottom: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <table className="vault-table">
                     <thead>
                       <tr>
@@ -1984,7 +1991,7 @@ export default function Machines() {
                         <th>Location</th>
                         <th>Escalation Assignees</th>
                         <th>Status</th>
-                        <th style={{ textAlign: 'right' }}>Action</th>
+                        <th style={{ textAlign: 'right' }}>Quick Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2023,10 +2030,30 @@ export default function Machines() {
                             </span>
                           )}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button className="vault-btn vault-btn-primary" style={{ padding: '6px 14px', fontSize: '0.78rem', background: 'var(--brand)', color: '#000' }} onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>
-                            Open Workspace →
-                          </button>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                            <button
+                              type="button"
+                              className="vault-btn"
+                              style={{ padding: '4px 10px', fontSize: '0.72rem', background: 'rgba(248,113,113,0.15)', color: '#F87171', border: '1px solid rgba(248,113,113,0.3)' }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setReportIssueOpen(true); }}
+                              title="Report breakdown for this machine"
+                            >
+                              + Issue
+                            </button>
+                            <button
+                              type="button"
+                              className="vault-btn"
+                              style={{ padding: '4px 10px', fontSize: '0.72rem', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.3)' }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('parts'); }}
+                              title="View spare parts stock"
+                            >
+                              📦 Spares
+                            </button>
+                            <button className="vault-btn vault-btn-primary" style={{ padding: '4px 12px', fontSize: '0.75rem', background: 'var(--brand)', color: '#000' }} onClick={(e) => { e.stopPropagation(); setSelectedMachine(m); setWsTab('info'); }}>
+                              Workspace →
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2075,6 +2102,15 @@ export default function Machines() {
                   <p><MapPin />{selectedMachine.location || 'Location not set'}</p>
                 </div>
                 <div className="machine-workspace-actions">
+                  <button
+                    type="button"
+                    className="machine-action"
+                    style={{ background: 'rgba(239,68,68,0.2)', color: '#F87171', border: '1px solid rgba(239,68,68,0.4)', fontWeight: 'bold' }}
+                    onClick={() => setReportIssueOpen(true)}
+                    title="Log a new breakdown ticket for this machine"
+                  >
+                    🚨 Report Breakdown
+                  </button>
                   {isOwner && <button type="button" className="machine-action secondary" onClick={openMachineEdit}><Pencil />Edit details</button>}
                   <button type="button" className="machine-action secondary" onClick={() => setWsTab('docs')}><Upload />Add document</button>
                   <a className="machine-action secondary" href={`records.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}&upload=1`}><FileCheck2 />Add old records</a>

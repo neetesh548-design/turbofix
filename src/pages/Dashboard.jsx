@@ -32,13 +32,14 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp, ClipboardList, CheckCircle2 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import AntDKPICard from '../components/AntDKPICard';
 import { AntDChartCard, AntDDetailList, AntDEmptyState } from '../components/AntDDashboardComponents';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import ExportButton from '../components/Dashboard/ExportButton';
+import EmptyState from '../components/EmptyState';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
 
@@ -823,6 +824,17 @@ export default function Dashboard() {
     if (handoverPmDue.length) { lines.push(`\nPM due (${handoverPmDue.length}):`); handoverPmDue.forEach((p) => lines.push(`- ${p.machine}: ${p.text}${p.overdue ? ' (OVERDUE)' : ''}`)); }
     return lines.join('\n');
   };
+  const [handoverCopied, setHandoverCopied] = useState(false);
+  const handleCopyHandover = () => {
+    try {
+      navigator.clipboard?.writeText(buildHandoverText());
+      setHandoverCopied(true);
+      setTimeout(() => setHandoverCopied(false), 2500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
   const exportDashboardData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -845,6 +857,16 @@ export default function Dashboard() {
             <p>Maintenance command center · reliability, efficiency, cost &amp; planning, live.</p>
           </div>
           <div className="decision-actions">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={handleCopyHandover}
+              title="Copy Shift Handover Summary to Clipboard"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              {handoverCopied ? <CheckCircle2 size={14} color="#34D399" /> : <ClipboardList size={14} />}
+              <span>{handoverCopied ? 'Shift Brief Copied!' : 'Shift Handover'}</span>
+            </button>
             <ExportButton
               dashboardData={{
                 kpis: data.kpis,
@@ -916,15 +938,31 @@ export default function Dashboard() {
               {data.needs_attention?.length ? data.needs_attention
                 .filter((item) => !mostCritical || item.ticket_id == null || item.ticket_id !== mostCritical.ticket_id)
                 .slice(0, 3).map((item, index) => (
-                <button type="button" className="md-queue-row" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
+                <div className="md-queue-row" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', cursor: 'pointer' }}>
                   <span className={`md-dot md-dot-${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'ok'}`} />
-                  <span className="md-queue-text">
+                  <span className="md-queue-text" style={{ flex: 1 }}>
                     <strong>{item.machine_name || 'Unknown machine'}</strong>
                     <small>{item.description || 'Maintenance issue reported'}</small>
                   </span>
-                  <b className="md-queue-tag">{item.urgency || 'Open'}</b>
-                </button>
-              )) : <Empty text="No open issues. Your plant is clear." />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <b className="md-queue-tag">{item.urgency || 'Open'}</b>
+                    <a
+                      href="technician.html"
+                      className="vault-btn"
+                      style={{ fontSize: '0.68rem', padding: '2px 7px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.3)', textDecoration: 'none' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ▶ Assign
+                    </a>
+                  </div>
+                </div>
+              )) : (
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="No Open Issues"
+                  description="All factory machinery is operating normally. Your plant maintenance queue is clear."
+                />
+              )}
             </div>
           </div>
 
@@ -1233,28 +1271,32 @@ export default function Dashboard() {
           <section className="decision-columns">
             <div className="decision-panel">
               <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
-              {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
-                <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
-                  <span className="status-dot warning" />
-                  <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
-                </a>
-              )) : <Empty text="Records look clean. KPIs are trustworthy." />}
+              <div className="ui-table-wrapper">
+                {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
+                  <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
+                    <span className="status-dot warning" />
+                    <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
+                  </a>
+                )) : <Empty text="Records look clean. KPIs are trustworthy." />}
+              </div>
             </div>
             <div className="decision-panel">
               <div className="decision-panel-heading"><div><div className="decision-card-kicker">Audit trail</div><h2>Recent changes</h2></div><span className="trend-caption">Append-only</span></div>
-              {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
-                const d = entry.details || {};
-                const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
-                  : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
-                  : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
-                  : `Status: ${d.from || '—'} → ${d.to || '—'}`;
-                return (
-                  <div className="attention-row" key={entry.id}>
-                    <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
-                    <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
-                  </div>
-                );
-              }) : <Empty text="No recorded changes yet." />}
+              <div className="ui-table-wrapper">
+                {data.audit_log?.length ? data.audit_log.slice(0, 8).map((entry) => {
+                  const d = entry.details || {};
+                  const label = entry.action === 'created' ? `Work order created${d.wo ? ` (${d.wo})` : ''}`
+                    : entry.action === 'closed' ? `Closed${d.wo ? ` (${d.wo})` : ''}`
+                    : entry.action === 'lifecycle_changed' ? `Stage: ${d.from || '—'} → ${d.to || '—'}`
+                    : `Status: ${d.from || '—'} → ${d.to || '—'}`;
+                  return (
+                    <div className="attention-row" key={entry.id}>
+                      <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
+                      <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
+                    </div>
+                  );
+                }) : <Empty text="No recorded changes yet." />}
+              </div>
             </div>
           </section>
 
