@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle, Grid } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 import QuickReportDialog from '@/components/QuickReportDialog';
+import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -95,6 +96,7 @@ export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
   const [showQuickReport, setShowQuickReport] = useState(false);
+  const [appLauncherOpen, setAppLauncherOpen] = useState(false);
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -376,7 +378,17 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar">
+        <header className="app-topbar flex items-center gap-3">
+          <button
+            type="button"
+            className="ms-waffle-btn p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+            onClick={() => setAppLauncherOpen(true)}
+            aria-label="Open Microsoft-style App Launcher"
+            title="TurboFix Apps & Workspaces (App Switcher)"
+          >
+            <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+          </button>
+
           <a href={BASE} className="app-topbar-brand" aria-label="TurboFix home">
             <span className="app-logo">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
@@ -420,6 +432,13 @@ export default function AppShell({ children, active }) {
             </div>
           </div>
         </header>
+
+        <MicrosoftAppLauncher
+          open={appLauncherOpen}
+          onClose={() => setAppLauncherOpen(false)}
+          active={active}
+          onOpenQuickReport={() => setShowQuickReport(true)}
+        />
 
         {showQuickReport && (
           <QuickReportDialog

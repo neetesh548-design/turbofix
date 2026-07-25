@@ -3,6 +3,7 @@ import {
   ArchiveRestore,
   ArrowRight,
   Globe2,
+  Grid,
   Layers3,
   LogIn,
   Menu,
@@ -12,10 +13,12 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
+import MicrosoftAppLauncher from './MicrosoftAppLauncher';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [appLauncherOpen, setAppLauncherOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
   const [isAuth, setIsAuth] = useState(() => Boolean(localStorage.getItem('tf_token')));
   const [user, setUser] = useState(() => {
@@ -111,7 +114,17 @@ export default function Navbar() {
 
   return (
     <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
-      <div className="container nav-inner public-nav-inner">
+      <div className="container nav-inner public-nav-inner flex items-center gap-2">
+        <button
+          type="button"
+          className="public-nav-waffle-btn p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+          onClick={() => setAppLauncherOpen(true)}
+          aria-label="Open Microsoft-style App Launcher"
+          title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+        >
+          <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+        </button>
+
         <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
           <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
@@ -159,6 +172,10 @@ export default function Navbar() {
         </div>
       </div>
       {isOpen && <button type="button" className="public-nav-backdrop" aria-label="Close menu" onClick={() => setIsOpen(false)} />}
+      <MicrosoftAppLauncher
+        open={appLauncherOpen}
+        onClose={() => setAppLauncherOpen(false)}
+      />
     </header>
   );
 }
