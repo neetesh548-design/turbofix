@@ -352,7 +352,7 @@ function computeOwnerImpact(machines, tickets, now = new Date()) {
 // Shift handover (roadmap §7.3): auto-compiled so nothing critical slips between
 // shifts. Everything is derived from live tickets and PM schedules — zero entry.
 function computeShiftHandover(machines, tickets, pmSchedules, now = new Date()) {
-  const nameOf = (id) => machines.find((m) => m.id === id)?.name || 'Unknown machine';
+  const nameOf = (id) => (machines || []).find((m) => m.id === id)?.name || 'Unknown machine';
   const open = tickets.filter((t) => String(t.status || '').toLowerCase() === 'open');
   const urgencyOf = (t) => {
     const s = t.ai_summary;
@@ -386,10 +386,10 @@ function computeRepairReplace(machines, tickets, workOrderParts, now = new Date(
   const LABOUR_RATE = 300; // assumed labour rate ₹/hr (matches machine workspace)
   const yearAgo = new Date(now.getTime() - (365 * 24 * 3_600_000));
   const partsByMachine = {};
-  workOrderParts.forEach((w) => {
+  (workOrderParts || []).forEach((w) => {
     if (new Date(w.created_at) >= yearAgo) partsByMachine[w.machine_id] = (partsByMachine[w.machine_id] || 0) + asNumber(w.total_cost);
   });
-  const machineMap = Object.fromEntries(machines.map((m) => [m.id, m]));
+  const machineMap = Object.fromEntries((machines || []).map((m) => [m.id, m]));
   const labourByMachine = {};
   const downtimeCostByMachine = {};
   const breakdownsByMachine = {};
@@ -421,7 +421,7 @@ function computeRepairReplace(machines, tickets, workOrderParts, now = new Date(
 // AI Data-Quality checks (roadmap §9.4, Tier 0): flag records that would make a
 // KPI lie — computed from existing tickets, zero entry. Trust layer under KPIs.
 function computeDataQuality(machines, tickets) {
-  const nameOf = (id) => machines.find((m) => m.id === id)?.name || 'Unknown machine';
+  const nameOf = (id) => (machines || []).find((m) => m.id === id)?.name || 'Unknown machine';
   const isClosed = (t) => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase());
   const urgencyOf = (t) => String((t.ai_summary && typeof t.ai_summary === 'object' && t.ai_summary.urgency) || t.urgency || '').toLowerCase();
   const flags = [];
@@ -735,7 +735,7 @@ export default function Dashboard() {
   const fleetDown = data.drilldown?.machines_down || [];
   const fleetOnlineCount = data.drilldown?.online_machines?.length || 0;
   const fleetTotal = fleetDown.length + fleetOnlineCount;
-  const trendMonths = TREND_WINDOWS.find((item) => item.key === trendWindow)?.months || 12;
+  const trendMonths = (TREND_WINDOWS || []).find((item) => item.key === trendWindow)?.months || 12;
   const trendSeries = (data.monthly_trend || []).slice(-trendMonths);
   const maxTrendCount = Math.max(...trendSeries.map((month) => month.issues || 0), 1);
   const maxTrendResolved = Math.max(...trendSeries.map((month) => month.resolved || 0), 1);
@@ -1490,7 +1490,7 @@ function WorkMixChart({ open = 0, resolved = 0 }) {
 function MiniDonutChart({ items = [] }) {
   const rows = items.filter((item) => item.value > 0);
   const total = rows.reduce((sum, item) => sum + item.value, 0);
-  const open = rows.find((item) => item.label === 'open')?.value || 0;
+  const open = (rows || []).find((item) => item.label === 'open')?.value || 0;
   const openPct = total ? Math.round((open / total) * 100) : 0;
   if (!rows.length) return <Empty text="No maintenance status yet." />;
   return (
