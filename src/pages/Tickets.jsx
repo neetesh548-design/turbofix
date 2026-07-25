@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import QuickReportDialog from '../components/QuickReportDialog';
 import { supabase } from '../supabaseClient';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
@@ -88,6 +89,7 @@ export default function Tickets() {
   const [filterTechnician, setFilterTechnician] = useState('all');
   const [machinesList, setMachinesList] = useState([]);
   const [techniciansList, setTechniciansList] = useState([]);
+  const [quickReportOpen, setQuickReportOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Tickets | TurboFix';
@@ -315,9 +317,40 @@ export default function Tickets() {
       ` }} />
 
       <div className="vault-wrap workspace-page tickets-page" style={{ maxWidth: '1100px', padding: '20px 24px 80px' }}>
-        <div className="workspace-page-heading" style={{ marginBottom: '20px' }}>
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Work Order Control Board</h1>
-          <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>One ticket. One action. Done.</p>
+        <div className="workspace-page-heading" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Work Order Control Board</h1>
+            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>One ticket. One action. Done.</p>
+          </div>
+          <button
+            onClick={() => setQuickReportOpen(true)}
+            style={{
+              background: 'var(--brand)',
+              color: 'white',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '6px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 200ms ease',
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#1e7e34';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(34, 163, 90, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = 'var(--brand)';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = 'none';
+            }}
+          >
+            <span>📱 Quick Report</span>
+          </button>
         </div>
 
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
@@ -769,6 +802,16 @@ export default function Tickets() {
         </>
         )}
       </div>
+      <QuickReportDialog
+        open={quickReportOpen}
+        onClose={() => setQuickReportOpen(false)}
+        machines={machinesList}
+        onTicketCreated={() => {
+          setSuccess('Ticket created! Supervisor has been notified via WhatsApp.');
+          setQuickReportOpen(false);
+          fetchTicketsAndEscalation();
+        }}
+      />
     </AppShell>
   );
 }
