@@ -163,15 +163,7 @@ const Inventory = () => {
           )}
         </div>
 
-        {/* More Options Button */}
-        <div className="text-center">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all"
-          >
-            More options (Full inventory, PO management)
-          </button>
-        </div>
+
 
         {/* ADVANCED FEATURES DRILL-DOWN */}
         <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>

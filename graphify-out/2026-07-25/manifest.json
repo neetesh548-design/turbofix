@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1784906472.91353,
-    "ast_hash": "702e1dfc3625b672fa988dc3f3e29142",
+    "mtime": 1784962701.5207126,
+    "ast_hash": "2c47a57e42fbc28084efff02dd0a3d7d",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -1807,6 +1807,21 @@
   "VIEW_MODE_TOGGLE_IMPLEMENTATION.md": {
     "mtime": 1784961879.3652668,
     "ast_hash": "8f862509791a4ec2c9df33f8f8326b6c",
+    "semantic_hash": ""
+  },
+  "SESSION_2_SUMMARY.md": {
+    "mtime": 1784962151.7005565,
+    "ast_hash": "4b648735d9b1e454df986d966b9adadf",
+    "semantic_hash": ""
+  },
+  "src/components/QuickReportDialog.jsx": {
+    "mtime": 1784962367.603933,
+    "ast_hash": "afa85b78b057df36b766de8b423717b3",
+    "semantic_hash": ""
+  },
+  "PHASE_2_COMPLETION.md": {
+    "mtime": 1784962751.7993436,
+    "ast_hash": "8673d148063f9a7ac70828011905dd88",
     "semantic_hash": ""
   }
 }

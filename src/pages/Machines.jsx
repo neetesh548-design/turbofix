@@ -84,7 +84,7 @@ export default function Machines() {
   const [machineEdit, setMachineEdit] = useState(null);
   const [machineEditSaving, setMachineEditSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showMachineDetails, setShowMachineDetails] = useState(false);
+  const [showMachineDetails, setShowMachineDetails] = useState(true);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [machinePhoto, setMachinePhoto] = useState('');
   const [photoSaving, setPhotoSaving] = useState(false);
@@ -2319,12 +2319,7 @@ export default function Machines() {
                       <span>{loopGaps.length ? `${loopGaps.length} loop gap${loopGaps.length === 1 ? '' : 's'}: ${loopGaps.slice(0, 3).join(', ')}${loopGaps.length > 3 ? '…' : ''}` : 'All critical loops closed'}</span>
                     </section>
 
-                    {/* Drill-down toggle button */}
-                    <div style={{ marginBottom: '18px', textAlign: 'center' }}>
-                      <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowMachineDetails(!showMachineDetails)} style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                        {showMachineDetails ? 'Hide machine details' : 'Show machine details'} <ChevronRight size={14} style={{ marginLeft: '4px', transform: showMachineDetails ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-                      </button>
-                    </div>
+
 
                     {/* ADVANCED: Machine loop status (drill-down) */}
                     {showMachineDetails && <section className="machine-loop-status">

@@ -245,5 +245,11 @@
   "243": "tailwind-merge",
   "244": "tw-animate-css",
   "245": "workbox-routing",
-  "247": "http_client.py"
+  "246": ".get_machine_events",
+  "247": "http_client.py",
+  "248": "_SupabaseClient",
+  "249": "_FakeBrief",
+  "250": "detect_language",
+  "251": "transcribe_audio",
+  "252": "translate_message"
 }

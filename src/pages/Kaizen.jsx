@@ -297,14 +297,9 @@ export default function Kaizen() {
             <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.86rem' }}>Track active improvements. Submit → Approve → Implement → Verify → Close.</p>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
             <button className={`vault-btn vault-btn-primary`} onClick={() => setActiveSubTab('add')} style={{ background: 'var(--brand)', color: '#000' }}>
               <Plus size={16} /> Submit Idea
             </button>
-            <button className={`vault-btn vault-btn-ghost`} onClick={() => setShowAdvanced(!showAdvanced)} style={{ background: 'transparent', color: 'var(--slate)' }}>
-              More options
-            </button>
-          </div>
         </div>
 
         {/* CORE WORKFLOW - Active Kaizens Only */}

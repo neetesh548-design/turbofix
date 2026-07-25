@@ -246,5 +246,16 @@
   "244": "tw-animate-css",
   "245": "workbox-routing",
   "246": ".get_machine_events",
-  "247": "http_client.py"
+  "247": "http_client.py",
+  "248": "_SupabaseClient",
+  "249": "_FakeBrief",
+  "250": "detect_language",
+  "251": "transcribe_audio",
+  "252": "translate_message",
+  "253": "AntDDashboardComponents.jsx",
+  "254": "LocalTechnicianWorkRepository",
+  "255": "Technician.jsx",
+  "256": "badge.jsx",
+  "257": "button.jsx",
+  "258": "dashboardLayout.js"
 }

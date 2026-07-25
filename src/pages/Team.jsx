@@ -194,11 +194,7 @@ export default function Team() {
             <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>See who's assigned to what now. Quick reassign or view more options.</p>
           </div>
-          {isOwner && (
-            <button className="vault-btn vault-btn-primary" onClick={() => setShowAdvanced(!showAdvanced)} style={{ background: 'var(--brand)', color: '#000' }}>
-              More options
-            </button>
-          )}
+
         </div>
 
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
