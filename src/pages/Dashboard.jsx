@@ -32,7 +32,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Clock3, DollarSign, Layers, Wrench, TrendingUp, Factory, BrainCircuit, UsersRound, ScanLine, CheckCircle2, ShieldCheck, LayoutDashboard } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import AntDKPICard from '../components/AntDKPICard';
@@ -702,6 +702,7 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [activeDetail, setActiveDetail] = useState('');
   const [activeBoard, setActiveBoard] = useState('overview');
+  const [activeRoleView, setActiveRoleView] = useState('all');
   const [trendWindow, setTrendWindow] = useState('12m');
   const [trendMetric, setTrendMetric] = useState('issues');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -840,6 +841,301 @@ export default function Dashboard() {
         </header>
 
         {error && <div className="decision-alert">{error}. Showing a safe empty-state until the API is available.</div>}
+
+        {/* ROLE SWITCHER BAR */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/80 border border-slate-700/60 rounded-xl mb-6 shadow-sm">
+          <div className="flex items-center gap-2 overflow-x-auto py-1">
+            <span className="text-xs font-bold text-teal-400 uppercase tracking-wider px-2">Role Perspective:</span>
+            {[
+              { id: 'all', label: 'Plant Control Board', icon: LayoutDashboard },
+              { id: 'owner', label: 'Owner 30-Sec View', icon: Factory },
+              { id: 'head', label: 'Maintenance Head', icon: BrainCircuit },
+              { id: 'supervisor', label: 'Supervisor', icon: UsersRound },
+              { id: 'technician', label: 'Technician Hub', icon: Wrench },
+              { id: 'operator', label: 'Operator QR Flow', icon: ScanLine },
+            ].map((role) => {
+              const Icon = role.icon;
+              const isActive = activeRoleView === role.id;
+              return (
+                <button
+                  key={role.id}
+                  type="button"
+                  onClick={() => setActiveRoleView(role.id)}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all shrink-0 ${
+                    isActive
+                      ? 'bg-teal-600 text-white shadow-md shadow-teal-900/30'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{role.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs text-slate-400 px-2 hidden lg:inline">From Machine Stress to Maintenance Peace</span>
+        </div>
+
+        {/* OWNER DASHBOARD VIEW */}
+        {activeRoleView === 'owner' && (
+          <div className="space-y-6 mb-8">
+            {/* Executive Natural Language Summary */}
+            <div className="bg-teal-950/40 border border-teal-500/40 rounded-xl p-5 relative overflow-hidden">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-teal-500/20 text-teal-300 rounded-lg shrink-0">
+                  <ShieldCheck className="w-7 h-7" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="tf-badge tf-badge-healthy">EXECUTIVE SUMMARY</span>
+                    <span className="text-xs text-slate-400">Updated 2 mins ago</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-100 mb-1">Plant Health is Stable at 94% — Revenue Protected</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    Zero critical breakdowns are currently active on the factory floor. Hydraulic Press leak repair was completed in 1.2 hours with full photo proof. Total estimated maintenance spend this month is ₹58,457 (under budget target).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 30-Second Owner Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="tf-card p-5 border border-slate-700/60">
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Factory Health Score</div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl font-black text-emerald-400">94%</span>
+                  <span className="text-xs text-emerald-400/90 font-medium">Healthy &amp; Operational</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">6 out of 7 machines running smoothly without failure signals.</p>
+              </div>
+
+              <div className="tf-card p-5 border border-slate-700/60">
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Revenue at Risk</div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl font-black text-slate-100">₹0</span>
+                  <span className="text-xs text-slate-400 font-medium">No critical lines stopped</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">All primary production assets running within capacity.</p>
+              </div>
+
+              <div className="tf-card p-5 border border-slate-700/60">
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Maintenance Spend vs RAV</div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl font-black text-teal-400">5.2%</span>
+                  <span className="text-xs text-teal-400/90 font-medium">Benchmark: &lt; 6.0%</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">Annualized spend within world-class reliability threshold.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MAINTENANCE HEAD DASHBOARD VIEW */}
+        {activeRoleView === 'head' && (
+          <div className="space-y-6 mb-8">
+            {/* Focus on 3 Items Today Panel */}
+            <div className="bg-amber-950/30 border border-amber-500/40 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/20">
+                <div className="flex items-center gap-2">
+                  <BrainCircuit className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-base font-bold text-slate-100">Focus on 3 Items Today</h3>
+                </div>
+                <span className="tf-badge tf-badge-warning">MAINTENANCE HEAD PRIORITIES</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-slate-900/80 p-4 rounded-lg border border-slate-800">
+                  <span className="text-xs font-bold text-amber-400 mb-1 block">Priority 1 — Closure Verification</span>
+                  <h4 className="text-sm font-semibold text-slate-100 mb-1">Hydraulic Press Repair Sign-off</h4>
+                  <p className="text-xs text-slate-400 mb-3">Technician uploaded photo proof of pump seal replacement. Ready for final review.</p>
+                  <button type="button" onClick={() => window.location.href = 'technician.html'} className="text-xs font-bold text-teal-400 hover:underline">Review &amp; Verify →</button>
+                </div>
+                <div className="bg-slate-900/80 p-4 rounded-lg border border-slate-800">
+                  <span className="text-xs font-bold text-amber-400 mb-1 block">Priority 2 — Preventive Maintenance</span>
+                  <h4 className="text-sm font-semibold text-slate-100 mb-1">Sunday Shutdown PM Preparation</h4>
+                  <p className="text-xs text-slate-400 mb-3">Screw Air Compressor filter &amp; oil inspection scheduled. Spare parts confirmed in stock.</p>
+                  <button type="button" onClick={() => window.location.href = 'shutdown-planner.html'} className="text-xs font-bold text-teal-400 hover:underline">View Shutdown Plan →</button>
+                </div>
+                <div className="bg-slate-900/80 p-4 rounded-lg border border-slate-800">
+                  <span className="text-xs font-bold text-amber-400 mb-1 block">Priority 3 — Knowledge Sign-off</span>
+                  <h4 className="text-sm font-semibold text-slate-100 mb-1">CNC Lathe 1 Register Draft</h4>
+                  <p className="text-xs text-slate-400 mb-3">24 handwritten pages extracted by AI. Verification needed before context update.</p>
+                  <button type="button" onClick={() => window.location.href = 'records.html'} className="text-xs font-bold text-teal-400 hover:underline">Approve Machine Memory →</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Technician Workload & SLA Matrix */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="tf-card p-5 border border-slate-700/60">
+                <h4 className="text-sm font-bold text-slate-100 mb-3 flex items-center justify-between">
+                  <span>Technician Workload Matrix</span>
+                  <span className="text-xs text-slate-400">Active Load</span>
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">Ramesh (Senior Mechanical Tech)</span>
+                    <span className="tf-badge tf-badge-progress">2 Active Tasks</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">Suresh (Electrical Lead)</span>
+                    <span className="tf-badge tf-badge-healthy">1 Active Task</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">Vikram (Hydraulics Specialist)</span>
+                    <span className="tf-badge tf-badge-idle">Available / Idle</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="tf-card p-5 border border-slate-700/60">
+                <h4 className="text-sm font-bold text-slate-100 mb-3 flex items-center justify-between">
+                  <span>SLA Breach Prevention</span>
+                  <span className="text-xs text-emerald-400">100% On-Track</span>
+                </h4>
+                <div className="space-y-3 text-xs">
+                  <div className="p-3 bg-slate-900/60 rounded-lg flex items-center justify-between">
+                    <div>
+                      <strong className="text-slate-200 block">Screw Air Compressor</strong>
+                      <span className="text-slate-400">High discharge temp alert • SLA limit 4h</span>
+                    </div>
+                    <span className="text-amber-400 font-bold">2.1h remaining</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SUPERVISOR VIEW */}
+        {activeRoleView === 'supervisor' && (
+          <div className="space-y-6 mb-8">
+            <div className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <UsersRound className="w-5 h-5 text-teal-400" />
+                  <h3 className="text-base font-bold text-slate-100">Supervisor Dispatch &amp; Shift Handover Board</h3>
+                </div>
+                <a href="tickets.html" className="text-xs text-teal-400 hover:underline font-semibold">Open Ticket Queue →</a>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shift Handover Summary</h4>
+                  <div className="p-4 bg-slate-950/60 rounded-lg border border-slate-800 text-xs text-slate-300 space-y-2">
+                    <div className="flex justify-between border-b border-slate-800 pb-2">
+                      <span>Morning Shift (06:00 - 14:00)</span>
+                      <span className="text-emerald-400 font-semibold">Handover Complete</span>
+                    </div>
+                    <p className="text-slate-400 leading-relaxed">
+                      All 3 open work orders dispatched. Laser Cutting Bed mirror alignment completed. Hydraulic Press oil leak seal replaced by Ramesh.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Supervisor Approvals</h4>
+                  <div className="p-4 bg-slate-950/60 rounded-lg border border-slate-800 text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-200">Spare Seal Kit #SK-402 Request</span>
+                      <span className="tf-badge tf-badge-warning">Pending Approval</span>
+                    </div>
+                    <p className="text-slate-400">Requested by Ramesh for Hydraulic Press maintenance.</p>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button type="button" className="px-3 py-1 bg-teal-600 text-white rounded text-xs font-bold">Approve</button>
+                      <button type="button" className="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs">Details</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TECHNICIAN MOBILE VIEW */}
+        {activeRoleView === 'technician' && (
+          <div className="space-y-6 mb-8">
+            <div className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-5 max-w-2xl mx-auto">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-teal-400" />
+                  <h3 className="text-base font-bold text-slate-100">Technician Mobile Execution Card</h3>
+                </div>
+                <span className="tf-badge tf-badge-progress">IN PROGRESS</span>
+              </div>
+              <div className="space-y-4 text-xs">
+                <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800">
+                  <div className="font-bold text-slate-200 text-sm">Hydraulic Press — Main Oil Seal Leak</div>
+                  <div className="text-slate-400 mt-1">Location: Shop Floor A • Reported 45 mins ago</div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="font-semibold text-slate-300 block">Required Steps Checklist:</span>
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-2 p-2 bg-slate-950/40 rounded border border-slate-800">
+                      <input type="checkbox" defaultChecked className="rounded accent-teal-500" />
+                      <span className="text-slate-200">Isolate machine electrical &amp; hydraulic power</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2 bg-slate-950/40 rounded border border-slate-800">
+                      <input type="checkbox" defaultChecked className="rounded accent-teal-500" />
+                      <span className="text-slate-200">Inspect pump housing for micro-cracks</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2 bg-slate-950/40 rounded border border-slate-800">
+                      <input type="checkbox" className="rounded accent-teal-500" />
+                      <span className="text-slate-200">Replace oil seal &amp; torque bolts to 45 Nm</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-slate-200 block">Mandatory Proof of Fix</span>
+                    <span className="text-slate-400">Attach photo of completed seal replacement</span>
+                  </div>
+                  <button type="button" onClick={() => window.location.href = 'technician.html'} className="px-3 py-1.5 bg-teal-600 text-white rounded font-semibold flex items-center gap-1.5">
+                    <span>Upload Photo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* OPERATOR QR FLOW */}
+        {activeRoleView === 'operator' && (
+          <div className="space-y-6 mb-8">
+            <div className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-5 max-w-xl mx-auto text-center">
+              <div className="w-12 h-12 bg-teal-500/20 text-teal-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                <ScanLine className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-100 mb-1">10-Second Operator QR Report</h3>
+              <p className="text-xs text-slate-400 mb-4">Scan machine code on the shop floor to report an issue instantly in your language.</p>
+
+              <div className="p-4 bg-slate-950/60 rounded-lg border border-slate-800 text-left space-y-3 text-xs mb-4">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                  <span className="text-slate-400">Scanned Machine:</span>
+                  <span className="font-bold text-teal-400">Hydraulic Press 1 [M001]</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">Issue Description (Voice or Text):</span>
+                  <div className="p-3 bg-slate-900 rounded border border-slate-700 text-slate-200 italic">
+                    "Machine main oil leak ho raha hai pressure drop ho raha hai"
+                  </div>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">Select Urgency:</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button type="button" className="p-2 border border-slate-700 rounded text-center font-semibold text-slate-300">Normal</button>
+                    <button type="button" className="p-2 border border-amber-500/60 bg-amber-950/30 rounded text-center font-semibold text-amber-300">High</button>
+                    <button type="button" className="p-2 border border-red-500/60 bg-red-950/30 rounded text-center font-semibold text-red-300">Critical</button>
+                  </div>
+                </div>
+              </div>
+
+              <a href="qr-gateway.html" className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-bold text-sm transition">
+                <ScanLine className="w-4 h-4" />
+                <span>Open Live QR Scanner →</span>
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* CLOSED-LOOP CONTROL — Ant Design version with work assignment tracking */}
         <ClosedLoopControlCard

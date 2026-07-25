@@ -38,9 +38,9 @@ const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const contentByLanguage = {
   en: {
-    eyebrow: 'Maintenance decision platform for manufacturing teams',
-    heroTitle: 'Know what to fix next—before downtime decides for you.',
-    heroBody: 'TurboFix turns old paper records and soft copies into approved machine knowledge, while analytics stays the engine underneath and TurboFix stays the workflow layer for review, decisions, and execution.',
+    eyebrow: 'Intelligent Machine Maintenance & Reliability Platform',
+    heroTitle: 'Machine maintenance without the daily tension.',
+    heroBody: 'From Machine Stress to Maintenance Peace — TurboFix turns paper records and floor signals into approved machine memory, clear 4-step accountability, and reassuring plant operational peace.',
     bookDemo: 'Book a guided demo',
     explore: 'Explore the product',
     trust: ['Direct WhatsApp API Integration', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
@@ -363,6 +363,124 @@ export default function Home() {
             {copy.strip.map((item) => <span key={item}><Check />{item}</span>)}
           </div>
         </div>
+
+        {/* Before / After Transformation Section */}
+        <section className="marketing-section bg-slate-950/40 py-16" id="transformation">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">THE TURBOFIX TRANSFORMATION</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">From Machine Stress to Maintenance Peace</h2>
+              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Replace daily floor chaos with calm, intelligent, closed-loop accountability.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Before Card */}
+              <div className="bg-red-950/20 border border-red-800/40 rounded-2xl p-6 md:p-8 space-y-4">
+                <div className="flex items-center gap-3 text-red-400 border-b border-red-800/30 pb-4">
+                  <AlertTriangle className="w-6 h-6 shrink-0" />
+                  <h3 className="text-xl font-bold">The Old Way — Daily Machine Stress</h3>
+                </div>
+                <ul className="space-y-3 text-slate-300 text-sm">
+                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Paper registers lost or damaged on shop floor</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Panic calls at 2 AM with no machine breakdown history</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Delayed supervisor approvals causing prolonged downtime</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Recurring machine failures fixed only by memory</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Zero proof of technician work quality or spare usage</li>
+                </ul>
+              </div>
+
+              {/* After Card */}
+              <div className="bg-teal-950/30 border border-teal-500/40 rounded-2xl p-6 md:p-8 space-y-4 relative overflow-hidden">
+                <div className="flex items-center gap-3 text-teal-300 border-b border-teal-800/40 pb-4">
+                  <ShieldCheck className="w-6 h-6 shrink-0 text-teal-400" />
+                  <h3 className="text-xl font-bold">The TurboFix Way — Maintenance Peace</h3>
+                </div>
+                <ul className="space-y-3 text-slate-200 text-sm">
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 10-second Operator QR scan with voice/photo input</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 30-Second Owner Dashboard with instant Plant Health & Revenue protection</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> Automated SLA routing & instant WhatsApp notification</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> Mandatory photo proof & technician step-by-step checklist</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 4-step closed-loop accountability with 100% verified resolution</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4-Step Closed-Loop Workflow */}
+        <section className="marketing-section py-16" id="closed-loop">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <span className="tf-badge tf-badge-progress mb-3 text-sm px-4 py-1">THE 4-STEP CLOSED LOOP</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Zero Breakdown Signals Drop Through the Cracks</h2>
+              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Every reported issue moves seamlessly through a 4-stage verified workflow.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
+                <div className="text-teal-400 text-3xl font-black mb-3">01</div>
+                <h4 className="text-lg font-bold text-slate-100 mb-2">Quick Report</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">Operator scans machine QR code, records a 5-sec voice note or takes a photo. Immediate context created.</p>
+              </div>
+
+              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
+                <div className="text-teal-400 text-3xl font-black mb-3">02</div>
+                <h4 className="text-lg font-bold text-slate-100 mb-2">Smart Routing</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">Supervisor triages ticket, sets SLA urgency, and auto-dispatches to the right skilled technician.</p>
+              </div>
+
+              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
+                <div className="text-teal-400 text-3xl font-black mb-3">03</div>
+                <h4 className="text-lg font-bold text-slate-100 mb-2">Action & Proof</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">Technician completes mobile checklist, attaches photo evidence of fix, and logs spare parts used.</p>
+              </div>
+
+              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
+                <div className="text-teal-400 text-3xl font-black mb-3">04</div>
+                <h4 className="text-lg font-bold text-slate-100 mb-2">Verification</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">Maintenance Head reviews proof and signs off. Case closed and converted to permanent machine memory.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stakeholder Benefit Cards */}
+        <section className="marketing-section py-16 bg-slate-900/30" id="stakeholders">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">BUILT FOR EVERY FACTORY ROLE</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Tailored Peace of Mind Across Your Team</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="tf-card p-5 border border-slate-700/40 text-center">
+                <div className="text-teal-400 mb-3 flex justify-center"><Factory className="w-8 h-8" /></div>
+                <h4 className="font-bold text-slate-100 text-base mb-1">Factory Owner</h4>
+                <p className="text-xs text-slate-400">30-second daily plant health status, revenue at risk visibility, zero surprise expenses.</p>
+              </div>
+              <div className="tf-card p-5 border border-slate-700/40 text-center">
+                <div className="text-teal-400 mb-3 flex justify-center"><BrainCircuit className="w-8 h-8" /></div>
+                <h4 className="font-bold text-slate-100 text-base mb-1">Maintenance Head</h4>
+                <p className="text-xs text-slate-400">Focus on 3 priority items today, AI machine history, zero repeat breakdown anxiety.</p>
+              </div>
+              <div className="tf-card p-5 border border-slate-700/40 text-center">
+                <div className="text-teal-400 mb-3 flex justify-center"><UsersRound className="w-8 h-8" /></div>
+                <h4 className="font-bold text-slate-100 text-base mb-1">Supervisor</h4>
+                <p className="text-xs text-slate-400">Instant ticket routing, work order approvals, clear shift handover logs.</p>
+              </div>
+              <div className="tf-card p-5 border border-slate-700/40 text-center">
+                <div className="text-teal-400 mb-3 flex justify-center"><Wrench className="w-8 h-8" /></div>
+                <h4 className="font-bold text-slate-100 text-base mb-1">Technician</h4>
+                <p className="text-xs text-slate-400">Mobile task checklists, tool & spare guidance, simple 1-tap photo evidence upload.</p>
+              </div>
+              <div className="tf-card p-5 border border-slate-700/40 text-center">
+                <div className="text-teal-400 mb-3 flex justify-center"><ScanLine className="w-8 h-8" /></div>
+                <h4 className="font-bold text-slate-100 text-base mb-1">Shop Operator</h4>
+                <p className="text-xs text-slate-400">10-second QR scan reporting, local voice recording, instant ticket confirmation.</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="marketing-section" id="platform">
           <div className="container">

@@ -545,9 +545,9 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785002708.200361,
-    "ast_hash": "a6f789001458b596a6cea1be588e798d",
-    "semantic_hash": "a6f789001458b596a6cea1be588e798d"
+    "mtime": 1785007830.4702377,
+    "ast_hash": "61b2589471ef791e372b3308cdd55a54",
+    "semantic_hash": ""
   },
   "playwright.config.js": {
     "mtime": 1784880227.2622151,
@@ -605,9 +605,9 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785001667.5059345,
-    "ast_hash": "76798d04533b0c4f6f51f331562fc9d6",
-    "semantic_hash": "76798d04533b0c4f6f51f331562fc9d6"
+    "mtime": 1785008453.5865436,
+    "ast_hash": "9098f2be685e1967c81c551b59340db8",
+    "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
     "mtime": 1784403054.8513017,
@@ -760,14 +760,14 @@
     "semantic_hash": "ec0eac52b24646da1e44967f6df8ff97"
   },
   "src/lib/escalation.js": {
-    "mtime": 1784215728.7546403,
-    "ast_hash": "1a50d966e10431e517ca01ce2730cb2a",
-    "semantic_hash": "1a50d966e10431e517ca01ce2730cb2a"
+    "mtime": 1785006493.470889,
+    "ast_hash": "d18d302a245d29cc3c5578a4db5c2ea7",
+    "semantic_hash": ""
   },
   "src/lib/roles.js": {
-    "mtime": 1784396415.206743,
-    "ast_hash": "806dd5e7b9c1c6da6f2c20ab33c2435d",
-    "semantic_hash": "806dd5e7b9c1c6da6f2c20ab33c2435d"
+    "mtime": 1785007659.9466908,
+    "ast_hash": "7772bd7e82cff4c5440e71ce0f09b193",
+    "semantic_hash": ""
   },
   "src/lib/utils.js": {
     "mtime": 1783878947.0,
@@ -785,8 +785,8 @@
     "semantic_hash": "79bf872e4a1be704118515dfd5674b87"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785003086.819412,
-    "ast_hash": "069219e97ea8b0ed4540b22fbdaca62a",
+    "mtime": 1785003440.6752982,
+    "ast_hash": "abf83ceba343b23b82662fe58a37eba8",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -795,14 +795,14 @@
     "semantic_hash": "e37b4dadb0fab4b2e1b0da98cd314183"
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785001667.5154629,
-    "ast_hash": "9e6d123ad178aa91e14b4b42c793442d",
-    "semantic_hash": "9e6d123ad178aa91e14b4b42c793442d"
+    "mtime": 1785008010.1108906,
+    "ast_hash": "3f69780caab02e667967c159d0fa1910",
+    "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785001667.5171244,
-    "ast_hash": "7871f8aa77f118723cb97e4fdf1a7877",
-    "semantic_hash": "7871f8aa77f118723cb97e4fdf1a7877"
+    "mtime": 1785008645.1481972,
+    "ast_hash": "43b3e68ad79d31c50b993d28807bd22e",
+    "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
     "mtime": 1785001667.517717,
@@ -845,9 +845,9 @@
     "semantic_hash": "73820b5dd86612b98c3782f8c575b855"
   },
   "src/pages/Team.jsx": {
-    "mtime": 1785001667.5189714,
-    "ast_hash": "eab1462ce45177a00cd87ee4ef9f8676",
-    "semantic_hash": "eab1462ce45177a00cd87ee4ef9f8676"
+    "mtime": 1785007663.8626153,
+    "ast_hash": "c0c7cecff022bd597cb96f99092a9316",
+    "semantic_hash": ""
   },
   "src/pages/Technician.jsx": {
     "mtime": 1785001667.5195684,
@@ -1855,9 +1855,9 @@
     "semantic_hash": "56527440464bbd10f0398d796aba2db7"
   },
   "tests/ux-audit/dark-mode.spec.ts": {
-    "mtime": 1785002708.2136447,
-    "ast_hash": "b8b7edd18ff1c5506505e146576312fb",
-    "semantic_hash": "b8b7edd18ff1c5506505e146576312fb"
+    "mtime": 1785005985.7181268,
+    "ast_hash": "f862db745a9c983c3bb960727f1ae01a",
+    "semantic_hash": ""
   },
   "tests/ux-audit/interactions.spec.ts": {
     "mtime": 1785002708.2143488,
@@ -2027,6 +2027,51 @@
   "src/components/KPICard.jsx": {
     "mtime": 1785003215.4252276,
     "ast_hash": "288a55d67954a40178826669108967c8",
+    "semantic_hash": ""
+  },
+  "src/__tests__/api.test.js": {
+    "mtime": 1785006561.6687346,
+    "ast_hash": "2dad040a53898edd35f5766521e7ef7f",
+    "semantic_hash": ""
+  },
+  "src/__tests__/dashboardLayout.test.js": {
+    "mtime": 1785006576.031859,
+    "ast_hash": "c62531992d852a0f586e49a26bb3fe49",
+    "semantic_hash": ""
+  },
+  "src/__tests__/escalation.test.js": {
+    "mtime": 1785006469.3282418,
+    "ast_hash": "ce59c525a4769e5807fed9ac7ca4d836",
+    "semantic_hash": ""
+  },
+  "src/__tests__/roles.test.js": {
+    "mtime": 1785007682.5642686,
+    "ast_hash": "c50465e1d0c22e1a163446fc15388cc6",
+    "semantic_hash": ""
+  },
+  "src/__tests__/utils.test.js": {
+    "mtime": 1785006462.8637328,
+    "ast_hash": "52ad82d9c4e27d4d7621061eae9824a6",
+    "semantic_hash": ""
+  },
+  "src/__tests__/financialImpact.test.js": {
+    "mtime": 1785007030.4125748,
+    "ast_hash": "b0dc079eb699d1205ff98f96a45e9e05",
+    "semantic_hash": ""
+  },
+  "src/__tests__/tenantIsolation.test.js": {
+    "mtime": 1785007012.190787,
+    "ast_hash": "603db1341c7fbd62a31448f0de89c985",
+    "semantic_hash": ""
+  },
+  "src/__tests__/ticketLifecycle.test.js": {
+    "mtime": 1785007008.800489,
+    "ast_hash": "bbb440c843bc957b521bc1e7d5f48fe9",
+    "semantic_hash": ""
+  },
+  "ROLE_BASED_NAV_IMPLEMENTATION.md": {
+    "mtime": 1785008497.0252612,
+    "ast_hash": "975db215f6833a027126ea4c1084d0d2",
     "semantic_hash": ""
   }
 }
