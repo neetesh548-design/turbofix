@@ -21,3 +21,14 @@ global.matchMedia = vi.fn().mockImplementation(query => ({
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
 }));
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  key: vi.fn(() => null),
+  length: 0,
+};
+global.localStorage = localStorageMock;

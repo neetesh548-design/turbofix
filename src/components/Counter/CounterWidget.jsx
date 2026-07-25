@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button, Card, Row, Col, Space, Statistic, Tooltip } from 'antd';
 import { PlusOutlined, MinusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useI18n } from '@/utils/i18n';
@@ -162,8 +163,5 @@ export function CounterWidget({
     </Card>
   );
 }
-
-// Import React for useEffect
-import React from 'react';
 
 export default CounterWidget;

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { i18n } from './i18n';
+import { i18n } from './i18n.js';
 
 // React context for i18n
 export const I18nContext = React.createContext(null);
