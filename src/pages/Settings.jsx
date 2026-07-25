@@ -19,6 +19,13 @@ import {
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
+import {
+  getAdminUrlSecret,
+  setAdminUrlSecret,
+  getAdminEncryptionConfig,
+  setAdminEncryptionConfig,
+  encryptUrlParams
+} from '../utils/urlEncryption';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -74,6 +81,10 @@ export default function Settings() {
     autoRefresh: window.localStorage.getItem('tf_settings_auto_refresh') !== 'false',
     approvalMode: window.localStorage.getItem('tf_settings_approval_mode') || 'always-ask',
   }));
+
+  const [adminSecretKey, setAdminSecretKey] = useState(() => getAdminUrlSecret());
+  const [urlConfig, setUrlConfig] = useState(() => getAdminEncryptionConfig());
+  const [testSampleToken, setTestSampleToken] = useState('');
 
   useEffect(() => {
     if (!success) return undefined;
@@ -333,6 +344,105 @@ export default function Settings() {
                         </Select>
                       </div>
                     ))}
+                  </div>
+                </CardContent></Card>
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <SectionHeading icon={<Shield />} eyebrow="Security & Encryption" title="URL Encryption & Admin Security Keys" description="Managed & controlled entirely by the TurboFix Admin Team." />
+                <Card className="settings-role-card"><CardContent>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+                    <div style={{ background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.25)', borderRadius: '10px', padding: '12px 16px', color: '#2dd4bf', fontSize: '0.85rem' }}>
+                      <strong>🔒 TurboFix Admin Protection Active</strong> — Encrypts machine IDs, company tokens, and link parameters into signed HMAC tokens.
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <Label htmlFor="adminSecretInput">Admin URL Encryption Master Secret Key</Label>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <Input
+                          id="adminSecretInput"
+                          type="password"
+                          value={adminSecretKey}
+                          onChange={(e) => setAdminSecretKey(e.target.value)}
+                          placeholder="Min 8 characters secret key"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            try {
+                              setAdminUrlSecret(adminSecretKey);
+                              setSuccess('Admin URL Encryption Master Key rotated successfully!');
+                            } catch (err) {
+                              setError(err.message);
+                            }
+                          }}
+                        >
+                          Rotate & Save Key
+                        </Button>
+                      </div>
+                      <small style={{ color: '#94a3b8' }}>Only TurboFix Admin Team can view or rotate this encryption secret.</small>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '8px' }}>
+                      <div>
+                        <Label htmlFor="enforcePolicy">Enforce Encrypted URLs Only</Label>
+                        <Select
+                          value={urlConfig.enforceEncryptedUrls ? 'true' : 'false'}
+                          onValueChange={(val) => {
+                            const updated = setAdminEncryptionConfig({ enforceEncryptedUrls: val === 'true' });
+                            setUrlConfig(updated);
+                            setSuccess('URL Security policy updated.');
+                          }}
+                        >
+                          <SelectTrigger id="enforcePolicy" style={{ marginTop: '6px' }}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="false">Allow Optional (Plain + Encrypted)</SelectItem>
+                            <SelectItem value="true">Enforce Strictly Encrypted URLs</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="expDays">Link Token Expiration</Label>
+                        <Select
+                          value={String(urlConfig.linkExpirationDays)}
+                          onValueChange={(val) => {
+                            const updated = setAdminEncryptionConfig({ linkExpirationDays: Number(val) });
+                            setUrlConfig(updated);
+                            setSuccess('Link Expiration period updated.');
+                          }}
+                        >
+                          <SelectTrigger id="expDays" style={{ marginTop: '6px' }}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30">30 Days</SelectItem>
+                            <SelectItem value="90">90 Days</SelectItem>
+                            <SelectItem value="365">1 Year (Default)</SelectItem>
+                            <SelectItem value="0">Never Expire</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const tokenQuery = encryptUrlParams({ id: 'MCH-SAMPLE-01', name: 'Sample Machine', loc: 'Bay 1' });
+                          setTestSampleToken(`${window.location.origin}/qr-gateway.html?${tokenQuery}`);
+                        }}
+                      >
+                        Generate Sample Encrypted Admin Token Link
+                      </Button>
+                      {testSampleToken && (
+                        <div style={{ marginTop: '10px', background: '#0f172a', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.78rem', color: '#38bdf8', border: '1px solid #1e293b' }}>
+                          {testSampleToken}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent></Card>
               </div>

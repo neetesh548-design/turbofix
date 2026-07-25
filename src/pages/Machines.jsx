@@ -10,6 +10,7 @@ import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
+import { generateMachineQRUrl } from '../utils/urlEncryption';
 
 const WORKSPACE_TABS = [
   { id: 'info', label: 'Overview', hint: 'Status and response', Icon: Activity },
@@ -3200,7 +3201,7 @@ export default function Machines() {
                   
                   <div className="sticker-qr-box" style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                     <QRCodeSVG
-                      value={`${window.location.origin}${import.meta.env.BASE_URL || '/'}qr-gateway.html?id=${selectedMachine.machine_id}&name=${encodeURIComponent(selectedMachine.machine_name)}&loc=${encodeURIComponent(selectedMachine.location || '')}&wa=${encodeURIComponent(selectedMachine.wa_link || `https://wa.me/?text=Issue with ${selectedMachine.machine_id}`)}`}
+                      value={generateMachineQRUrl(selectedMachine, window.location.origin, true)}
                       size={180}
                     />
                   </div>

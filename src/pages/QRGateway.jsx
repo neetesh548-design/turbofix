@@ -53,6 +53,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';
+import { decryptUrlParams } from '../utils/urlEncryption';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 const ORB_ANIMATIONS = `
@@ -448,10 +449,14 @@ export default function QRGateway() {
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id') || '';
-    const name = params.get('name') || 'Machine';
-    const loc = params.get('loc') || 'Plant Floor';
+    const parsed = decryptUrlParams(window.location.search);
+    if (!parsed.isValid && parsed.error) {
+      console.warn('URL Security Warning:', parsed.error);
+    }
+
+    const id = parsed.id || '';
+    const name = parsed.name || 'Machine';
+    const loc = parsed.loc || 'Plant Floor';
     setMachine({ id, name, loc });
 
     const fetchMachineDetails = async () => {
