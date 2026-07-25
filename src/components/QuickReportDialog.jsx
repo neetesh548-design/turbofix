@@ -12,6 +12,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { supabase } from '../supabaseClient';
 
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
   const [step, setStep] = useState('machine'); // machine, issue, review, submitting
@@ -105,17 +106,35 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
         urgency: 'high', // Quick reports default to high urgency
       };
 
-      const response = await apiFetch('/vault/tickets', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      let ticket = null;
+      try {
+        const response = await apiFetch('/vault/tickets', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
 
-      if (!response.ok) {
-        const msg = await response.json().catch(() => ({}));
-        throw new Error(msg.detail || 'Failed to create ticket');
+        if (!response.ok) {
+          const msg = await response.json().catch(() => ({}));
+          throw new Error(msg.detail || 'API endpoint error');
+        }
+
+        ticket = await response.json();
+      } catch (apiErr) {
+        console.warn('API endpoint unavailable/failed, executing direct Supabase DB fallback:', apiErr);
+        const ticketRecord = {
+          machine_id: selectedMachineId,
+          issue_text: issueText,
+          urgency: 'high',
+          status: 'open',
+          created_at: new Date().toISOString(),
+        };
+        const { data: dbData, error: dbErr } = await supabase.from('tickets').insert(ticketRecord).select().single();
+        if (dbErr) {
+          throw new Error(dbErr.message || apiErr.message || 'Failed to create ticket');
+        }
+        ticket = dbData;
       }
 
-      const ticket = await response.json();
       onTicketCreated?.(ticket);
       setStep('submitting');
 

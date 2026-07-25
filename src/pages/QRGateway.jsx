@@ -1043,13 +1043,30 @@ export default function QRGateway() {
       }
 
       if (!bypassDuplicateCheck) {
-        const { data: dupData, error: dupErr } = await invokeWithRetry('ticket_gateway', {
-          body: { action: 'check_duplicate', machine_id: machine.id }
-        });
-        if (dupErr || !dupData || dupData.error) {
-          console.error('Error checking duplicates:', dupErr || dupData?.error);
-        } else if (dupData.duplicate) {
-          setDuplicateTicket(dupData.duplicate);
+        let dupTicket = null;
+        try {
+          const { data: dupData, error: dupErr } = await invokeWithRetry('ticket_gateway', {
+            body: { action: 'check_duplicate', machine_id: machine.id }
+          });
+          if (!dupErr && dupData && dupData.duplicate) {
+            dupTicket = dupData.duplicate;
+          }
+        } catch (_edgeErr) {
+          // Direct DB fallback for duplicate check
+          const { data: dbDup } = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('machine_id', machine.id)
+            .eq('status', 'open')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (dbDup && dbDup.length > 0) {
+            dupTicket = dbDup[0];
+          }
+        }
+
+        if (dupTicket) {
+          setDuplicateTicket(dupTicket);
           const alertMsg = t('similarTicketOpen');
           setAssistantPrompt(alertMsg);
           speak(alertMsg);
@@ -1075,11 +1092,35 @@ export default function QRGateway() {
       const uploadedUrl = await uploadIssuePhoto();
       const payload = buildTicketPayload({ uploadedUrl, verified });
 
-      const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
-        body: { action: 'log_ticket', payload }
-      });
-      if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
-      const insertedTicket = data.data;
+      let insertedTicket = null;
+      try {
+        const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
+          body: { action: 'log_ticket', payload }
+        });
+        if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
+        insertedTicket = data.data;
+      } catch (edgeErr) {
+        console.warn('Edge function log_ticket unavailable/failed, executing resilient direct DB fallback:', edgeErr);
+        const ticketRecord = {
+          machine_id: payload.machine_id,
+          issue_text: payload.issue_text,
+          urgency: payload.urgency || 'high',
+          status: 'open',
+          reporter_phone: payload.reporter_phone || null,
+          ai_summary: payload.ai_summary || {},
+          created_at: new Date().toISOString(),
+        };
+        const { data: dbData, error: dbErr } = await supabase.from('tickets').insert(ticketRecord).select().single();
+        if (dbErr) {
+          console.warn('Supabase DB insert failed, storing ticket in offline queue:', dbErr);
+          const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+          queue.push(payload);
+          localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+          insertedTicket = { ...ticketRecord, id: 'offline-' + Date.now() };
+        } else {
+          insertedTicket = dbData;
+        }
+      }
 
       setSubmittedTicketInfo(insertedTicket);
 
