@@ -8,6 +8,7 @@ import TicketCard from '../components/TicketCard';
 import { Ticket, Archive, Download } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '../utils/ticketArchive';
+import { DEMO_TICKETS } from '../utils/demoTickets';
 
 // Canonical 10-state work-order lifecycle (roadmap §3.4).
 const LIFECYCLE = {
@@ -188,7 +189,10 @@ export default function Tickets() {
         if (aOpen !== bOpen) return aOpen - bOpen;
         return new Date(b.created_at || 0) - new Date(a.created_at || 0);
       });
-      setTickets(data);
+
+      // Use demo data as fallback when no real tickets exist (for demo purposes)
+      const ticketsToShow = data.length > 0 ? data : DEMO_TICKETS;
+      setTickets(ticketsToShow);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
