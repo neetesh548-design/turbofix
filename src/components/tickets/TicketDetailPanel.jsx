@@ -325,14 +325,14 @@ export default function TicketDetailPanel({
             </span>
             <a
               className="tickets-stage-btn"
-              href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=reliability&open=rca`}
+              href={`rca.html?machine=${encodeURIComponent(ticket.machine_id || '')}&ticket=${encodeURIComponent(ticketId || '')}&repeat=${ticket.repeat_failure_flag || ticket.repeat_failure_count ? 1 : 0}`}
               style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
             >
               Open RCA page
             </a>
             <a
               className="tickets-stage-btn"
-              href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=kaizen&open=kaizen`}
+              href={`rca.html?machine=${encodeURIComponent(ticket.machine_id || '')}&ticket=${encodeURIComponent(ticketId || '')}&repeat=${ticket.repeat_failure_flag || ticket.repeat_failure_count ? 1 : 0}#kaizen`}
               style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
             >
               Add to backlog
@@ -370,7 +370,7 @@ export default function TicketDetailPanel({
           ))}
           <a
             className="tickets-stage-btn"
-            href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=reliability&open=rca`}
+            href={`rca.html?machine=${encodeURIComponent(ticket.machine_id || '')}&ticket=${encodeURIComponent(ticketId || '')}&repeat=${ticket.repeat_failure_flag || ticket.repeat_failure_count ? 1 : 0}`}
             style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
             RCA
