@@ -127,6 +127,35 @@ test.describe('Report breakdown scenarios', () => {
     await expect(page.getByTestId('breakdown-issue-text')).toBeEditable();
   });
 
+  test('explains when an embedded browser rejects an allowed microphone', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'permissions', {
+        configurable: true,
+        value: { query: async () => ({ state: 'granted' }) },
+      });
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: async () => {
+            throw new DOMException('Capture is unavailable', 'NotAllowedError');
+          },
+        },
+      });
+      Object.defineProperty(window, 'MediaRecorder', {
+        configurable: true,
+        value: class {},
+      });
+    });
+    await page.goto('/report-breakdown.html', { waitUntil: 'domcontentloaded' });
+
+    await page.getByTestId('breakdown-mic').click();
+
+    await expect(page.getByTestId('breakdown-voice-status')).toContainText(
+      'This in-app browser cannot capture microphone audio. Open TurboFix in Chrome or Safari',
+    );
+    await expect(page.getByTestId('breakdown-issue-text')).toBeEditable();
+  });
+
   test('records, stops, and adds the voice transcript to the issue', async ({ page }) => {
     await page.addInitScript(() => {
       const stream = { getTracks: () => [{ stop() {} }] };
