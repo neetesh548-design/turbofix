@@ -29,6 +29,7 @@
     "test:ux:ui": "npm run test:ux:visual && npm run test:ux:responsive && npm run test:ux:dark-mode",
     "test:ux:headed": "playwright test tests/ux-audit --headed",
     "test:ux:debug": "playwright test tests/ux-audit --debug",
+    "agent:redesign": "node scripts/redesign-page-agent.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
