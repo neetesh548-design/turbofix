@@ -66,7 +66,7 @@ export default function RCA() {
       setLoading(true);
       setError('');
       const [machineRes, ticketRes] = await Promise.all([
-        supabase.from('machines').select('id,machine_id,machine_name,location,status,factory_id,technician_user_id,supervisor_id,engineer_user_id,maintenance_head_user_id').eq('machine_id', machineId).maybeSingle(),
+        supabase.from('machines').select('id,name,location,status,company_id,supervisor_id').eq('id', machineId).maybeSingle(),
         ticketId ? supabase.from('tickets').select('*').eq('id', ticketId).maybeSingle() : Promise.resolve({ data: null, error: null }),
       ]);
       if (!mounted) return;
@@ -88,7 +88,7 @@ export default function RCA() {
 
   const repeatCount = Number(ticket?.repeat_failure_count || (ticket?.repeat_failure_flag ? 1 : 0) || (repeatIssue ? 1 : 0));
   const businessValue = repeatCount >= 2 ? 'High' : repeatCount === 1 ? 'Medium' : 'Review';
-  const kaizenText = suggestKaizen(rootCause, machine?.machine_name || 'this machine');
+  const kaizenText = suggestKaizen(rootCause, machine?.name || 'this machine');
 
   const submitRca = async () => {
     setError('');
@@ -98,7 +98,7 @@ export default function RCA() {
     try {
       const payload = {
         machine_id: machineId,
-        factory_id: machine?.factory_id || null,
+        company_id: machine?.company_id || null,
         ticket_id: ticket?.id || ticketId || null,
         failure_mode: rootCause.trim().slice(0, 80),
         five_whys: [rootCause.trim(), evidence.trim()].filter(Boolean),
@@ -123,8 +123,8 @@ export default function RCA() {
     try {
       const { error: insertErr } = await supabase.from('kaizen_opportunities').insert({
         machine_id: machineId,
-        factory_id: machine?.factory_id || null,
-        title: `Improve ${machine?.machine_name || 'machine'} reliability`,
+        company_id: machine?.company_id || null,
+        title: `Improve ${machine?.name || 'machine'} reliability`,
         proposal: kaizenText,
         category: 'breakdown_prevention',
         waste_category: 'defects',
@@ -152,7 +152,7 @@ export default function RCA() {
             </span>
             <h1>RCA</h1>
             <p>
-              {machine ? `${machine.machine_name} · ${machine.location || 'No location'}` : 'Load machine context first'}
+              {machine ? `${machine.name} · ${machine.location || 'No location'}` : 'Load machine context first'}
             </p>
           </div>
           <div className="decision-actions">
@@ -177,12 +177,12 @@ export default function RCA() {
               <div className="rd-panel-header">
                 <div>
                   <span className="eyebrow eyebrow-light">Machine context</span>
-                  <h2 style={{ margin: '6px 0 0' }}>{machine.machine_name}</h2>
+                  <h2 style={{ margin: '6px 0 0' }}>{machine.name}</h2>
                 </div>
                 <span className="rd-badge">{repeatCount >= 2 ? 'Repeat issue detected' : 'RCA ready'}</span>
               </div>
               <div className="rd-kpi-row" style={{ marginTop: 12 }}>
-                <div className="rd-kpi-card"><span className="rd-kpi-label">Machine</span><strong>{machine.machine_id}</strong></div>
+                <div className="rd-kpi-card"><span className="rd-kpi-label">Machine ID</span><strong>{machine.id}</strong></div>
                 <div className="rd-kpi-card"><span className="rd-kpi-label">Location</span><strong>{machine.location || '—'}</strong></div>
                 <div className="rd-kpi-card"><span className="rd-kpi-label">Technician</span><strong>{ticket?.technician_name || 'Not assigned'}</strong></div>
               </div>
