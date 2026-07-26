@@ -57,6 +57,10 @@ import {
   shouldUseDemoInventory,
 } from '../utils/demoInventory.js';
 import { supabase } from '../supabaseClient';
+// Dashboard.css carries the shared design system — the md-* tokens and the
+// rd-* KPI / panel / table primitives every role board is built from.
+// Inventory.css layers only the stores-specific furniture on top.
+import './Dashboard.css';
 import './Inventory.css';
 
 const ROLE_HEADINGS = {
@@ -274,7 +278,8 @@ export default function Inventory() {
 
     if (isDemo) return;
     try {
-      await supabase.from('purchase_orders').insert(created.map(({ id, ...row }) => row));
+      // Strip the optimistic local id — Supabase assigns the real one.
+      await supabase.from('purchase_orders').insert(created.map(({ id: _id, ...row }) => row));
     } catch (err) {
       setError(`Purchase order saved locally but not synced: ${err?.message || 'unknown error'}`);
     }
@@ -350,7 +355,7 @@ export default function Inventory() {
 
     if (isDemo) return;
     try {
-      const { id, ...insert } = row;
+      const { id: _id, ...insert } = row;
       await supabase.from('parts').insert(insert);
     } catch (err) {
       setError(`Part saved locally but not synced: ${err?.message || 'unknown error'}`);

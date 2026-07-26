@@ -1,1 +1,1286 @@
-/* Inventory page styles live in the shared board components for now. */
+/* ============================================================
+   Inventory — role-aware stores, procurement and cost board
+   ============================================================
+
+   Layered on top of Dashboard.css, the same way Kaizen.css is: the
+   page carries `md-dashboard`, so it inherits the whole design system
+   (surfaces, the --md-* tokens, and the rd-* KPI / chart-card / alert
+   primitives) rather than declaring a second theme that would drift
+   from the maintenance boards.
+
+   Everything here is either inventory-specific furniture — the stock
+   toolbar, the reorder table, the bin map, the PO approval card, the
+   donut and trend panels — or a responsive rule for it. Nothing here
+   redefines a colour that Dashboard.css already owns.
+
+   Colour discipline is the stock-status vocabulary, and it is the
+   same five colours everywhere they appear (badge, chip, table row,
+   bin tile, KPI tile):
+
+     red    --md-red     below reorder, or nothing on the shelf
+     yellow --md-amber   inside the safety band / under a week of cover
+     green  --md-green   comfortably above the reorder level
+     blue   --md-blue    held above the max level
+     gray   --md-ink-dim not issued in 180+ days
+
+   Hue is never the only signal: every status badge carries a text
+   label (or an sr-only one when compact), every bar prints its value,
+   and every table row keeps its status in a `data-status` attribute.
+
+   Breakpoints: 1080px (tablet — split panels stack)
+                 720px (mobile — tables become cards, charts simplify)
+   ============================================================ */
+
+.inv-page {
+  padding-bottom: 44px;
+}
+
+.inv-page .eyebrow-light {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Utility: label a control for screen readers only. Scoped to the page
+   so it cannot collide with a global of the same name. */
+.inv-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------ */
+
+.inv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 15px;
+  border-radius: 9px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.79rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+.inv-btn:hover:not(:disabled) { background: rgba(250, 245, 238, 0.09); }
+.inv-btn:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; }
+.inv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.inv-btn.sm { min-height: 30px; padding: 5px 11px; font-size: 0.73rem; }
+.inv-btn.ghost { background: transparent; }
+.inv-btn.primary {
+  background: var(--md-accent);
+  border-color: var(--md-accent);
+  color: var(--md-accent-ink);
+}
+.inv-btn.primary:hover:not(:disabled) { background: var(--md-accent); filter: brightness(1.08); }
+
+.inv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink-dim);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.inv-icon-btn:hover { color: var(--md-accent); border-color: var(--md-accent); }
+.inv-icon-btn:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------
+   Toolbar — search, status chips, filter drawer
+   ------------------------------------------------------------ */
+
+.inv-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 14px;
+}
+
+.inv-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 380px;
+}
+.inv-search svg {
+  position: absolute;
+  left: 11px;
+  color: var(--md-ink-dim);
+  pointer-events: none;
+}
+.inv-search input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px 8px 32px;
+  border-radius: 9px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.82rem;
+}
+.inv-search input::placeholder { color: var(--md-ink-dim); opacity: 0.75; }
+.inv-search input:focus-visible {
+  outline: 2px solid var(--md-accent);
+  outline-offset: 1px;
+  border-color: var(--md-accent);
+}
+
+.inv-status-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.inv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink-dim);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.inv-chip:hover { color: var(--md-ink); border-color: var(--md-line-strong); }
+.inv-chip:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; }
+
+/* A status chip carries a dot in its own colour, so the filter row
+   teaches the same colour language the table uses. */
+.inv-chip[class*='inv-chip-']::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.inv-chip-red { color: var(--md-red); }
+.inv-chip-yellow { color: var(--md-amber); }
+.inv-chip-green { color: var(--md-green); }
+.inv-chip-blue { color: var(--md-blue); }
+.inv-chip-gray { color: var(--md-ink-dim); }
+
+.inv-chip.active {
+  color: var(--md-accent-ink);
+  background: var(--md-accent);
+  border-color: var(--md-accent);
+}
+.inv-chip.active::before { background: var(--md-accent-ink); }
+
+.inv-filter-drawer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--md-line);
+  background: var(--md-panel);
+}
+.inv-filter-drawer label { display: grid; gap: 5px; min-width: 0; }
+.inv-filter-drawer span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-ink-dim);
+  font-weight: 600;
+}
+.inv-filter-drawer select {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.inv-filter-note {
+  margin: -6px 0 14px;
+  font-size: 0.75rem;
+  color: var(--md-amber);
+}
+
+/* ------------------------------------------------------------
+   Stock status badge — the red/yellow/green/blue/gray vocabulary
+   ------------------------------------------------------------ */
+
+.inv-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.inv-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.inv-status-label { text-transform: uppercase; }
+
+/* Compact drops the frame and keeps only the dot — the visible label
+   is redundant next to the part name, but the sr-only one still says
+   why the dot is that colour. */
+.inv-status.compact {
+  padding: 0;
+  border-color: transparent;
+  background: none;
+}
+
+.inv-status-red { color: var(--md-red); background: rgba(193, 69, 53, 0.14); border-color: rgba(193, 69, 53, 0.32); }
+.inv-status-yellow { color: var(--md-amber); background: rgba(173, 138, 46, 0.15); border-color: rgba(173, 138, 46, 0.32); }
+.inv-status-green { color: var(--md-green); background: rgba(92, 148, 80, 0.15); border-color: rgba(92, 148, 80, 0.34); }
+.inv-status-blue { color: var(--md-blue); background: rgba(61, 127, 176, 0.14); border-color: rgba(61, 127, 176, 0.3); }
+.inv-status-gray { color: var(--md-ink-dim); background: rgba(250, 245, 238, 0.05); border-color: var(--md-line); }
+
+/* Criticality band, deliberately quieter than stock status: it
+   describes the part, not today's shortage. */
+.inv-priority {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-ink-dim);
+}
+.inv-priority-critical { color: var(--md-red); }
+.inv-priority-high { color: var(--md-amber); }
+.inv-priority-medium { color: var(--md-blue); }
+.inv-priority-low { color: var(--md-ink-dim); }
+
+/* ------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------ */
+
+.inv-table-wrap {
+  overflow-x: auto;
+  margin: 0 -2px;
+  padding: 0 2px;
+}
+
+.inv-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.inv-table.compact { min-width: 460px; }
+
+.inv-table thead th {
+  padding: 0 10px 8px;
+  text-align: left;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-ink-dim);
+  border-bottom: 1px solid var(--md-line);
+  white-space: nowrap;
+}
+.inv-table tbody td {
+  padding: 10px;
+  color: var(--md-ink);
+  border-bottom: 1px solid var(--md-line);
+  vertical-align: top;
+}
+.inv-table tbody tr:last-child td { border-bottom: none; }
+.inv-table tbody tr:hover td { background: rgba(250, 245, 238, 0.022); }
+
+.inv-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.inv-table th.num { text-align: right; }
+.inv-table .num.ok { color: var(--md-green); }
+.inv-table .num.warning { color: var(--md-amber); }
+.inv-table .num.danger { color: var(--md-red); }
+.inv-table code {
+  font-size: 0.7rem;
+  color: var(--md-ink-dim);
+  background: rgba(250, 245, 238, 0.04);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.inv-table small { color: var(--md-ink-dim); font-size: 0.7rem; }
+
+/* A row's stock status tints its leading edge, so the table scans as
+   a status list before it is read as data. */
+.inv-table tbody tr[data-status] td:first-child { box-shadow: inset 2px 0 0 transparent; }
+.inv-table tbody tr[data-status='critical'] td:first-child { box-shadow: inset 2px 0 0 var(--md-red); }
+.inv-table tbody tr[data-status='at_risk'] td:first-child { box-shadow: inset 2px 0 0 var(--md-amber); }
+.inv-table tbody tr[data-status='healthy'] td:first-child { box-shadow: inset 2px 0 0 var(--md-green); }
+.inv-table tbody tr[data-status='overstocked'] td:first-child { box-shadow: inset 2px 0 0 var(--md-blue); }
+.inv-table tbody tr[data-status='obsolete'] td:first-child { box-shadow: inset 2px 0 0 var(--md-ink-dim); }
+
+.inv-row-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--md-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.inv-row-link:hover .inv-row-name { color: var(--md-accent); text-decoration: underline; }
+.inv-row-link:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; border-radius: 4px; }
+.inv-row-name { font-weight: 600; }
+.inv-row-pencil { color: var(--md-ink-dim); opacity: 0; transition: opacity 0.15s ease; }
+.inv-row-link:hover .inv-row-pencil,
+.inv-row-link:focus-visible .inv-row-pencil { opacity: 1; }
+
+.inv-machine { display: block; }
+
+.inv-order-cell { white-space: nowrap; }
+.inv-order-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: var(--md-ink-dim);
+  line-height: 1.35;
+  white-space: normal;
+}
+
+/* ------------------------------------------------------------
+   Store manager — supplier directory & bin map
+   ------------------------------------------------------------ */
+
+.inv-supplier-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.inv-supplier-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.022);
+}
+.inv-supplier-main { display: grid; gap: 2px; min-width: 0; }
+.inv-supplier-main strong { font-size: 0.83rem; color: var(--md-ink); }
+.inv-supplier-main small { font-size: 0.71rem; color: var(--md-ink-dim); }
+.inv-supplier-contact { display: flex; align-items: center; gap: 6px; flex: none; }
+.inv-supplier-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--md-red);
+  background: rgba(193, 69, 53, 0.14);
+  border: 1px solid rgba(193, 69, 53, 0.3);
+}
+
+.inv-bin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 9px;
+}
+.inv-bin {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 11px 8px;
+  border-radius: 11px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.022);
+  color: var(--md-ink-dim);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.inv-bin:hover { border-color: var(--md-line-strong); transform: translateY(-1px); }
+.inv-bin:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; }
+.inv-bin strong {
+  font-family: 'Rajdhani', 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  color: var(--md-ink);
+  line-height: 1.1;
+}
+.inv-bin small { font-size: 0.68rem; }
+.inv-bin em {
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--md-red);
+}
+.inv-bin.has-critical { border-color: rgba(193, 69, 53, 0.34); }
+.inv-bin.active {
+  border-color: var(--md-accent);
+  background: rgba(224, 137, 95, 0.1);
+  color: var(--md-ink);
+}
+
+.inv-bin-contents {
+  list-style: none;
+  margin: 11px 0 0;
+  padding: 11px 0 0;
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--md-line);
+}
+.inv-bin-contents li {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.76rem;
+}
+.inv-bin-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-bin-contents code {
+  font-size: 0.68rem;
+  color: var(--md-ink-dim);
+  background: rgba(250, 245, 238, 0.04);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.inv-bin-contents b { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------
+   Supervisor — auto-order strip & PO approval cards
+   ------------------------------------------------------------ */
+
+.inv-auto-order {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(193, 69, 53, 0.2);
+}
+.inv-auto-order-lead {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  color: var(--md-ink-dim);
+}
+.inv-auto-order ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.inv-auto-order label {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.77rem;
+  cursor: pointer;
+}
+.inv-auto-order input[type='checkbox'] { accent-color: var(--md-accent); width: 15px; height: 15px; }
+.inv-auto-name { font-weight: 600; color: var(--md-ink); }
+.inv-auto-detail {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.69rem;
+  color: var(--md-ink-dim);
+}
+.inv-auto-order label b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.inv-po-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+}
+
+.inv-po-card {
+  display: grid;
+  gap: 9px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--md-line);
+  border-left: 3px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.022);
+  min-width: 0;
+}
+.inv-po-card.danger { border-left-color: var(--md-red); }
+.inv-po-card.warning { border-left-color: var(--md-amber); }
+
+.inv-po-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inv-po-title { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-width: 0; }
+.inv-po-title strong { font-size: 0.86rem; color: var(--md-ink); }
+.inv-po-number {
+  font-size: 0.69rem;
+  color: var(--md-ink-dim);
+  background: rgba(250, 245, 238, 0.05);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.inv-po-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--md-red);
+  background: rgba(193, 69, 53, 0.14);
+  border: 1px solid rgba(193, 69, 53, 0.3);
+}
+.inv-po-amount {
+  font-family: 'Rajdhani', 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  color: var(--md-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.inv-po-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.inv-po-meta div { display: grid; gap: 2px; min-width: 0; }
+.inv-po-meta dt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-ink-dim);
+}
+.inv-po-meta dd { margin: 0; font-size: 0.76rem; color: var(--md-ink); }
+
+.inv-po-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--md-accent);
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.inv-po-toggle:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; border-radius: 4px; }
+.inv-po-toggle svg { transition: transform 0.15s ease; }
+.inv-po-toggle svg.open { transform: rotate(180deg); }
+
+.inv-po-items {
+  list-style: none;
+  margin: 0;
+  padding: 9px 11px;
+  display: grid;
+  gap: 5px;
+  border-radius: 9px;
+  background: rgba(250, 245, 238, 0.03);
+}
+.inv-po-items li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.75rem;
+}
+.inv-po-item-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.inv-po-item-name code {
+  font-size: 0.67rem;
+  color: var(--md-ink-dim);
+  background: rgba(250, 245, 238, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.inv-po-item-qty { color: var(--md-ink-dim); font-variant-numeric: tabular-nums; }
+.inv-po-item-cost { font-variant-numeric: tabular-nums; }
+
+.inv-po-impact {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--md-ink-dim);
+}
+.inv-po-impact strong { color: var(--md-ink); }
+
+.inv-po-comment { display: grid; gap: 8px; }
+.inv-po-comment textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.78rem;
+  resize: vertical;
+}
+.inv-po-comment textarea:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 1px; }
+
+.inv-po-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------------
+   Supervisor — weekly spend against budget
+   ------------------------------------------------------------ */
+
+.inv-budget-chart { display: grid; gap: 10px; }
+
+.inv-budget-plot {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 7px;
+  height: 190px;
+}
+
+/* The budget is a reference rule across the plot, not a second series. */
+.inv-budget-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed var(--md-line-strong);
+  pointer-events: none;
+  z-index: 1;
+}
+.inv-budget-rule small {
+  position: absolute;
+  right: 0;
+  top: -14px;
+  font-size: 0.62rem;
+  color: var(--md-ink-dim);
+  background: var(--md-panel);
+  padding: 0 4px;
+}
+
+.inv-budget-col {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-items: end;
+  justify-items: center;
+  gap: 4px;
+  height: 100%;
+  min-width: 0;
+}
+.inv-budget-amount {
+  font-size: 0.62rem;
+  color: var(--md-ink-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.inv-budget-bar {
+  align-self: end;
+  width: 100%;
+  max-width: 34px;
+  min-height: 2px;
+  border-radius: 5px 5px 0 0;
+  background: var(--md-blue-deep);
+}
+.inv-budget-bar.over { background: var(--md-red-deep); }
+.inv-budget-label {
+  font-size: 0.64rem;
+  color: var(--md-ink-dim);
+  white-space: nowrap;
+}
+.inv-budget-total {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--md-ink-dim);
+}
+.inv-budget-total strong { color: var(--md-ink); }
+
+/* ------------------------------------------------------------
+   Finance — composition donut
+   ------------------------------------------------------------ */
+
+.inv-donut-wrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+.inv-donut { position: relative; width: 160px; flex: none; }
+.inv-donut svg { display: block; width: 100%; height: auto; }
+.inv-donut circle { transition: stroke-width 0.15s ease, opacity 0.15s ease; cursor: pointer; }
+.inv-donut-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1px;
+  pointer-events: none;
+  text-align: center;
+}
+.inv-donut-center strong {
+  font-family: 'Rajdhani', 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  color: var(--md-ink);
+  line-height: 1.1;
+}
+.inv-donut-center span { font-size: 0.65rem; color: var(--md-ink-dim); }
+
+.inv-donut-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.inv-donut-legend li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  font-size: 0.77rem;
+  cursor: default;
+  transition: background 0.15s ease;
+}
+.inv-donut-legend li.active { background: rgba(250, 245, 238, 0.05); }
+.inv-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+.inv-legend-label { color: var(--md-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-legend-value { font-variant-numeric: tabular-nums; color: var(--md-ink); }
+.inv-legend-pct { color: var(--md-ink-dim); font-size: 0.7rem; min-width: 36px; text-align: right; }
+
+.inv-donut-detail {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  background: rgba(250, 245, 238, 0.03);
+  font-size: 0.74rem;
+  color: var(--md-ink-dim);
+}
+.inv-donut-detail strong { color: var(--md-ink); }
+
+/* ------------------------------------------------------------
+   Finance — 12-month trend small multiples
+   ------------------------------------------------------------ */
+
+.inv-trend-grid { display: grid; gap: 10px; }
+
+.inv-trend-panel { display: grid; gap: 4px; }
+.inv-trend-panel header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inv-trend-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--md-ink-dim);
+}
+.inv-trend-current {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  color: var(--md-ink);
+  white-space: nowrap;
+}
+.inv-trend-current small { color: var(--md-ink-dim); font-weight: 400; }
+.inv-trend-panel svg {
+  display: block;
+  width: 100%;
+  height: 54px;
+  overflow: visible;
+}
+.inv-trend-crosshair { stroke: var(--md-line-strong); stroke-dasharray: 3 3; }
+.inv-trend-marker { pointer-events: none; }
+
+.inv-trend-axis {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding-top: 2px;
+  border-top: 1px solid var(--md-line);
+  font-size: 0.62rem;
+  color: var(--md-ink-dim);
+  text-align: center;
+}
+.inv-trend-axis span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-trend-axis .active { color: var(--md-accent); font-weight: 700; }
+
+/* ------------------------------------------------------------
+   Finance — savings, usage bands, cost comparison
+   ------------------------------------------------------------ */
+
+.inv-savings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 11px;
+}
+.inv-saving-card {
+  display: grid;
+  gap: 3px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(92, 148, 80, 0.3);
+  background: rgba(92, 148, 80, 0.07);
+  color: var(--md-green);
+}
+.inv-saving-card strong {
+  font-family: 'Rajdhani', 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--md-green);
+}
+.inv-saving-card span { font-size: 0.8rem; font-weight: 600; color: var(--md-ink); }
+.inv-saving-card small { font-size: 0.7rem; color: var(--md-ink-dim); }
+/* Nothing to release is still worth showing — it says the lever was
+   checked, not that it was forgotten. */
+.inv-saving-card.empty {
+  border-color: var(--md-line);
+  background: rgba(250, 245, 238, 0.022);
+  color: var(--md-ink-dim);
+}
+.inv-saving-card.empty strong { color: var(--md-ink-dim); }
+
+.inv-usage-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.inv-usage-active { color: var(--md-green); background: rgba(92, 148, 80, 0.15); }
+.inv-usage-slow { color: var(--md-amber); background: rgba(173, 138, 46, 0.15); }
+.inv-usage-obsolete { color: var(--md-red); background: rgba(193, 69, 53, 0.14); }
+.inv-usage-never { color: var(--md-red); background: rgba(193, 69, 53, 0.14); }
+
+.inv-dispose { color: var(--md-red); font-size: 0.75rem; font-weight: 600; }
+.inv-hold { color: var(--md-amber); font-size: 0.75rem; }
+.inv-keep { color: var(--md-ink-dim); font-size: 0.75rem; }
+
+.inv-sort select {
+  min-height: 30px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.73rem;
+}
+
+.inv-comparison-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+.inv-comparison-list > li {
+  padding: 11px 13px;
+  border-radius: 11px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.022);
+}
+.inv-comparison-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.inv-comparison-head strong { font-size: 0.83rem; color: var(--md-ink); }
+.inv-comparison-head code {
+  font-size: 0.68rem;
+  color: var(--md-ink-dim);
+  background: rgba(250, 245, 238, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.inv-comparison-saving {
+  margin-left: auto;
+  color: var(--md-green);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.inv-comparison-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.inv-comparison-options li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(250, 245, 238, 0.03);
+  font-size: 0.76rem;
+}
+.inv-comparison-options li.best {
+  background: rgba(92, 148, 80, 0.1);
+  box-shadow: inset 2px 0 0 var(--md-green);
+}
+.inv-comparison-options b { font-variant-numeric: tabular-nums; }
+.inv-comparison-options small { color: var(--md-ink-dim); font-size: 0.69rem; white-space: nowrap; }
+.inv-comparison-options em {
+  font-style: normal;
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-green);
+}
+
+/* ------------------------------------------------------------
+   Modals — edit drawer & purchase-order preview
+   ------------------------------------------------------------ */
+
+.inv-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(10, 8, 6, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.inv-modal {
+  width: min(560px, 100%);
+  max-height: min(84vh, 720px);
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  border-radius: 15px;
+  border: 1px solid var(--md-line-strong);
+  background: var(--md-panel);
+  background-color: #211D19;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+  color: var(--md-ink);
+}
+[data-theme='light'] .inv-modal { background-color: #FBF9F4; }
+
+.inv-modal header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.inv-modal h2 { margin: 0; font-size: 1.02rem; color: var(--md-ink); }
+
+.inv-add-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 11px;
+}
+.inv-add-form label { display: grid; gap: 5px; min-width: 0; }
+.inv-add-form span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-ink-dim);
+  font-weight: 600;
+}
+.inv-add-form input,
+.inv-add-form select {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+.inv-add-form input:focus-visible,
+.inv-add-form select:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 1px; }
+
+.inv-add-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 3px;
+}
+
+.inv-preview-lines {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.inv-preview-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.022);
+}
+.inv-preview-lines strong { display: block; font-size: 0.82rem; }
+.inv-preview-lines small { display: block; font-size: 0.69rem; color: var(--md-ink-dim); }
+.inv-preview-numbers { text-align: right; }
+.inv-preview-numbers b { font-size: 0.78rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.inv-preview-cost {
+  font-family: 'Rajdhani', 'Outfit', sans-serif;
+  font-size: 1.02rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.inv-preview-total {
+  margin: 0 0 14px;
+  font-size: 0.79rem;
+  color: var(--md-ink-dim);
+  line-height: 1.45;
+}
+.inv-preview-total strong { color: var(--md-ink); }
+
+/* ------------------------------------------------------------
+   Toast
+   ------------------------------------------------------------ */
+
+.inv-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 70;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 11px 17px;
+  border-radius: 11px;
+  border: 1px solid rgba(92, 148, 80, 0.34);
+  background: #22301F;
+  color: #DCEBD6;
+  font-size: 0.79rem;
+  font-weight: 600;
+  box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.7);
+  animation: inv-toast-in 0.2s ease;
+}
+@keyframes inv-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ============================================================
+   Tablet — 1080px
+   ============================================================ */
+
+@media (max-width: 1080px) {
+  .inv-page .rd-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inv-page .rd-split { grid-template-columns: minmax(0, 1fr); }
+  .inv-donut-wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .inv-donut-legend { width: 100%; max-width: 420px; }
+  .inv-po-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================
+   Mobile — 720px
+
+   Cards only. Every table collapses into one card per row, with each
+   cell growing its column name from `data-label`, because a seven
+   column reorder table cannot be read on a 375px phone and a
+   sideways-scrolling table is worse than no table.
+   ============================================================ */
+
+@media (max-width: 720px) {
+  .inv-page { padding-bottom: 32px; }
+
+  .inv-toolbar { gap: 8px; }
+  .inv-search { flex-basis: 100%; max-width: none; }
+
+  /* The chip row scrolls sideways as one strip rather than wrapping
+     into four stacked lines that push the board off the screen. */
+  .inv-status-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    margin: 0 -2px;
+    width: 100%;
+  }
+  .inv-status-filters::-webkit-scrollbar { display: none; }
+  .inv-chip { flex: none; }
+
+  .inv-page .rd-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+
+  /* ---- tables become cards ---- */
+  .inv-page .inv-table-wrap { overflow-x: visible; }
+  .inv-page .inv-table,
+  .inv-page .inv-table.compact { min-width: 0; display: block; }
+  .inv-page .inv-table thead { display: none; }
+  .inv-page .inv-table tbody { display: grid; gap: 9px; }
+  .inv-page .inv-table tbody tr {
+    display: grid;
+    gap: 4px;
+    padding: 11px 12px;
+    border: 1px solid var(--md-line);
+    border-radius: 11px;
+    background: rgba(250, 245, 238, 0.022);
+  }
+  .inv-page .inv-table tbody tr:hover td { background: none; }
+  .inv-page .inv-table tbody td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    text-align: right;
+  }
+  .inv-page .inv-table tbody td::before {
+    content: attr(data-label);
+    flex: none;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--md-ink-dim);
+    text-align: left;
+  }
+  /* The part cell is the card title: no label, full width, and it
+     keeps the coloured status edge the table row used to carry. */
+  .inv-page .inv-table tbody td:first-child {
+    display: grid;
+    gap: 4px;
+    justify-items: start;
+    text-align: left;
+    padding: 0 0 6px 9px;
+    margin-bottom: 3px;
+    border-bottom: 1px solid var(--md-line);
+  }
+  .inv-page .inv-table tbody td:first-child::before { display: none; }
+  .inv-page .inv-table tbody td:empty { display: none; }
+  .inv-page .inv-table .num { text-align: right; }
+  .inv-page .inv-table .inv-order-cell { display: grid; justify-items: stretch; padding-top: 5px; }
+  .inv-page .inv-table .inv-order-cell::before { text-align: left; margin-bottom: 4px; }
+  .inv-page .inv-table .inv-order-cell .inv-btn { width: 100%; }
+  .inv-page .inv-table .inv-order-hint { text-align: left; }
+  .inv-page .inv-row-pencil { opacity: 1; }
+
+  /* ---- charts simplify ---- */
+  .inv-budget-plot { height: 150px; gap: 4px; }
+  .inv-budget-amount { display: none; }
+  .inv-budget-label { font-size: 0.58rem; }
+  .inv-trend-axis { font-size: 0.55rem; }
+  .inv-donut { width: 132px; }
+
+  .inv-po-meta { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .inv-po-meta div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .inv-po-actions { flex-direction: column-reverse; align-items: stretch; }
+  .inv-po-actions .inv-btn { width: 100%; }
+
+  .inv-supplier-list li { flex-wrap: wrap; }
+  .inv-bin-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+  .inv-bin-contents li { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .inv-bin-contents code { display: none; }
+
+  .inv-comparison-options li { grid-template-columns: minmax(0, 1fr) auto; row-gap: 3px; }
+
+  .inv-add-form { grid-template-columns: minmax(0, 1fr); }
+  .inv-add-actions { flex-direction: column-reverse; align-items: stretch; }
+  .inv-add-actions .inv-btn { width: 100%; }
+
+  .inv-modal { padding: 15px 16px 17px; max-height: 90vh; }
+  .inv-preview-lines li { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; }
+  .inv-preview-numbers { grid-column: 1 / -1; text-align: left; }
+
+  .inv-toast { left: 12px; right: 12px; bottom: 14px; transform: none; max-width: none; }
+  @keyframes inv-toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ============================================================
+   Motion & contrast preferences
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .inv-btn,
+  .inv-chip,
+  .inv-bin,
+  .inv-icon-btn,
+  .inv-row-pencil,
+  .inv-po-toggle svg,
+  .inv-donut circle,
+  .inv-donut-legend li { transition: none; }
+  .inv-toast { animation: none; }
+}
