@@ -137,7 +137,7 @@ test.describe('Report breakdown scenarios', () => {
         configurable: true,
         value: {
           getUserMedia: async () => {
-            throw new DOMException('Capture is unavailable', 'NotAllowedError');
+            throw new Error('Embedded capture backend is unavailable');
           },
         },
       });

@@ -78,13 +78,13 @@ export default function IssueCapture({
   const microphoneErrorMessage = async (error) => {
     if (error?.name === 'NotFoundError') return 'No microphone was found. Connect one or type the issue instead.';
     if (error?.name === 'NotReadableError') return 'The microphone is busy in another app. Close it there and try again.';
+    try {
+      const permission = await navigator.permissions?.query?.({ name: 'microphone' });
+      if (permission?.state === 'granted') {
+        return 'This in-app browser cannot capture microphone audio. Open TurboFix in Chrome or Safari, or type the issue.';
+      }
+    } catch { /* permission queries are not supported everywhere */ }
     if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
-      try {
-        const permission = await navigator.permissions?.query?.({ name: 'microphone' });
-        if (permission?.state === 'granted') {
-          return 'This in-app browser cannot capture microphone audio. Open TurboFix in Chrome or Safari, or type the issue.';
-        }
-      } catch { /* permission queries are not supported everywhere */ }
       return 'Microphone access is blocked. Allow it in your browser settings, then tap Speak again.';
     }
     return 'Could not start the microphone. Try again or type the issue instead.';
