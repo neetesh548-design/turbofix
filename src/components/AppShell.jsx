@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
-import { Sparkles, Mic, Square, X, Camera, Plus, AlertCircle, Grid, LogOut } from 'lucide-react';
+import { Sparkles, Mic, Square, X, Camera, Plus, Grid, LogOut } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -8,10 +8,18 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
-import QuickReportDialog from '@/components/QuickReportDialog';
 import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 
 const BASE = import.meta.env.BASE_URL;
+
+/**
+ * The global "report a breakdown" entry point. It is a full page rather
+ * than a modal: the logger needs the camera, the microphone and a
+ * machine picker, and a sheet over whatever page you happened to be on
+ * gave all three about a third of the screen on a phone. A page also
+ * means the QR gateway can deep-link straight into it with ?machine=.
+ */
+const REPORT_BREAKDOWN_URL = BASE + 'report-breakdown.html';
 
 function getLiveDataAnswer(machines = [], tickets = [], events = [], selectedMachineId) {
   const safeMachines = machines || [];
@@ -94,12 +102,9 @@ const NAV_LIVE = [
   { id: 'settings', label: 'Settings', href: BASE + 'settings.html', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2 3 .5 3-3 .5L14 24l-2-2-2 2-2.5-2-3-.5.5-3-2-3 2-3-.5-3 3-.5L10 0l2 2 2-2 2.5 2 3 .5-.5 3 2 3z' },
 ];
 
-const NAV_SOON = [];
-
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
-  const [showQuickReport, setShowQuickReport] = useState(false);
   const [appLauncherOpen, setAppLauncherOpen] = useState(false);
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
@@ -113,7 +118,11 @@ export default function AppShell({ children, active }) {
     const handleGlobalKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
         e.preventDefault();
-        setShowQuickReport((prev) => !prev);
+        // No-op if we are already on the logger, so the shortcut cannot
+        // discard a half-written report by reloading the page.
+        if (!window.location.pathname.endsWith('report-breakdown.html')) {
+          window.location.href = REPORT_BREAKDOWN_URL;
+        }
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -420,10 +429,9 @@ export default function AppShell({ children, active }) {
           </div>
 
           <div className="app-topbar-right flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
+            <a
+              href={REPORT_BREAKDOWN_URL}
               className="app-quick-report-btn"
-              onClick={() => setShowQuickReport(true)}
               title="Report Breakdown / Ticket (Cmd+Shift+R)"
               style={{
                 display: 'inline-flex',
@@ -442,7 +450,7 @@ export default function AppShell({ children, active }) {
             >
               <Plus size={16} />
               <span>Report Issue</span>
-            </button>
+            </a>
             <ThemeToggle />
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
             <div className="app-user flex items-center gap-2" title={user?.name || ''}>
@@ -465,15 +473,8 @@ export default function AppShell({ children, active }) {
           open={appLauncherOpen}
           onClose={() => setAppLauncherOpen(false)}
           active={active}
-          onOpenQuickReport={() => setShowQuickReport(true)}
+          onOpenQuickReport={() => { window.location.href = REPORT_BREAKDOWN_URL; }}
         />
-
-        {showQuickReport && (
-          <QuickReportDialog
-            open={showQuickReport}
-            onClose={() => setShowQuickReport(false)}
-          />
-        )}
 
         <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
 

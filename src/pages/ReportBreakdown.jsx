@@ -182,6 +182,25 @@ export default function ReportBreakdown() {
     document.title = 'Report a breakdown | TurboFix';
   }, []);
 
+  /**
+   * AppShell pins its floating "Ask AI" trigger to the bottom-right at
+   * z-index 999, which on a 375px phone covers the bottom edge of the
+   * Send button — a thumb aiming at Send opens the assistant instead.
+   * Everywhere else that overlap costs nothing; on the one page whose
+   * entire purpose is a single fast tap it is a broken primary action,
+   * so the logger lifts the trigger clear of the submit bar while it is
+   * open. See the body.brk-logger-open rule in ReportBreakdown.css.
+   *
+   * Scoped to the form: the receipt has no submit bar, and a trigger
+   * still parked 136px up would sit on top of the "who was notified"
+   * list — the one thing the reporter is there to read.
+   */
+  useEffect(() => {
+    if (receipt) return undefined;
+    document.body.classList.add('brk-logger-open');
+    return () => document.body.classList.remove('brk-logger-open');
+  }, [receipt]);
+
   // Signing in or out on another tab must re-point the form rather than
   // leave a vendor looking at the supervisor's assignment picker.
   useEffect(() => {

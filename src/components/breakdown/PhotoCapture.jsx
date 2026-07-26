@@ -39,7 +39,7 @@ const MAX_INPUT_BYTES = 20 * 1024 * 1024;
  * Falls back to the original data URL wherever canvas is unavailable
  * (older WebViews, jsdom) — a big photo beats no photo.
  */
-export async function compressImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUALITY } = {}) {
+async function compressImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUALITY } = {}) {
   const dataUrl = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ''));

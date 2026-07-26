@@ -1,0 +1,885 @@
+/* ============================================================
+   Report Breakdown — the 10-second issue logger
+   ============================================================
+
+   Mobile-first, unlike the rest of the app's pages, because this is
+   the one page that is genuinely used on a phone while standing at a
+   machine. The base rules are the 375px layout; the desktop
+   two-column split is the enhancement, not the other way round.
+
+   Layered on Dashboard.css: the page carries `md-dashboard` so it
+   inherits the design system (surfaces, --md-* tokens, rd-* card
+   primitives) rather than declaring a second, drifting theme.
+
+   Colour discipline follows the dashboard's: --md-red for critical
+   and high, --md-amber for medium, --md-green for low and for
+   "done", and --md-accent (terracotta) strictly for interactive
+   state so it never reads as a status.
+
+   Touch targets are 44px minimum throughout — gloves, not cursors.
+
+   Breakpoints: 900px  (tablet — the aside appears beside the form)
+                1180px (desktop — the aside gets its own column)
+   ============================================================ */
+
+.brk-page {
+  padding-bottom: 120px; /* clears the sticky submit bar on mobile */
+}
+
+.brk-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.brk-page .eyebrow-light {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brk-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   Buttons — shared with the rest of the page furniture
+   ------------------------------------------------------------ */
+
+.brk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+.brk-btn:hover:not(:disabled) { background: rgba(250, 245, 238, 0.09); }
+.brk-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.brk-btn-sm { min-height: 36px; padding: 6px 12px; font-size: 0.76rem; }
+.brk-btn-ghost { background: transparent; }
+
+.brk-btn-primary {
+  background: var(--md-accent);
+  border-color: var(--md-accent);
+  color: var(--md-accent-ink);
+}
+.brk-btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.brk-btn-scan,
+.brk-btn-photo {
+  flex: 0 0 auto;
+  border-color: rgba(224, 137, 95, 0.4);
+  color: var(--md-accent);
+}
+
+.brk-link-btn {
+  align-self: flex-start;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: var(--md-accent);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.brk-chip-btn {
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink-dim);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.brk-chip-btn:hover { color: var(--md-ink); border-color: var(--md-accent); }
+
+.brk-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.brk-tag.danger { color: var(--md-red); background: rgba(193, 69, 53, 0.14); }
+
+.brk-inline-error {
+  margin: 6px 0 0;
+  color: var(--md-red);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.brk-spin { animation: brk-spin 0.9s linear infinite; }
+@keyframes brk-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .brk-spin { animation-duration: 3s; }
+  .brk-mic.recording { animation: none; }
+}
+
+/* ------------------------------------------------------------
+   Layout — one column on a phone, form + aside on a desktop
+   ------------------------------------------------------------ */
+
+.brk-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.brk-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brk-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.brk-side:empty { display: none; }
+
+/* ------------------------------------------------------------
+   Steps
+   ------------------------------------------------------------ */
+
+.brk-step {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--md-line);
+  background: var(--md-panel);
+  box-shadow: var(--md-shadow);
+}
+
+.brk-step-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.brk-step-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-ink);
+}
+
+.brk-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.05);
+  color: var(--md-ink-dim);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   Step 1 — machine picker
+   ------------------------------------------------------------ */
+
+.brk-machine-picker { display: flex; flex-direction: column; gap: 10px; }
+
+.brk-search-row { display: flex; gap: 8px; }
+
+.brk-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink-dim);
+}
+.brk-search:focus-within { border-color: var(--md-accent); }
+.brk-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.9rem; /* 16px-ish: anything smaller zooms iOS Safari on focus */
+}
+.brk-search input:focus { outline: none; }
+.brk-search input::-webkit-search-cancel-button { filter: invert(0.6); }
+
+.brk-machine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.brk-machine-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(250, 245, 238, 0.02);
+  color: var(--md-ink);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.brk-machine-option:hover { background: rgba(250, 245, 238, 0.07); border-color: var(--md-line-strong); }
+
+.brk-machine-option-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.brk-machine-option-text strong {
+  font-size: 0.87rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.brk-machine-option-text small { font-size: 0.72rem; color: var(--md-ink-dim); }
+
+.brk-machine-empty {
+  padding: 14px 12px;
+  color: var(--md-ink-dim);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.brk-machine-chosen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(92, 148, 80, 0.34);
+  background: rgba(92, 148, 80, 0.09);
+}
+.brk-machine-chosen-main { display: flex; align-items: center; gap: 10px; }
+.brk-machine-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--md-green-deep);
+  color: #fff;
+}
+.brk-machine-chosen-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.brk-machine-chosen-text strong { font-size: 0.95rem; font-weight: 600; color: var(--md-ink); }
+.brk-machine-chosen-text small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  color: var(--md-ink-dim);
+}
+.brk-machine-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--md-ink-dim);
+}
+
+.brk-scanner {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+.brk-scanner video { display: block; width: 100%; max-height: 320px; object-fit: cover; }
+.brk-scanner-frame {
+  position: absolute;
+  inset: 18% 22%;
+  border: 2px solid var(--md-accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+}
+.brk-scanner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  cursor: pointer;
+}
+.brk-scanner p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 0.78rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.brk-manual { display: flex; flex-direction: column; gap: 6px; }
+.brk-manual label { font-size: 0.75rem; color: var(--md-ink-dim); font-weight: 600; }
+.brk-manual-row { display: flex; gap: 8px; }
+.brk-manual-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------
+   Step 2 — issue capture
+   ------------------------------------------------------------ */
+
+.brk-issue { display: flex; flex-direction: column; gap: 12px; }
+
+.brk-issue-box {
+  border-radius: 12px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  overflow: hidden;
+}
+.brk-issue-box:focus-within { border-color: var(--md-accent); }
+
+.brk-issue-box textarea {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: none;
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 84px;
+}
+.brk-issue-box textarea:focus { outline: none; }
+.brk-issue-box textarea::placeholder { color: var(--md-ink-dim); opacity: 0.65; }
+
+.brk-issue-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--md-line);
+}
+
+.brk-mic {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(224, 137, 95, 0.45);
+  background: rgba(224, 137, 95, 0.1);
+  color: var(--md-accent);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.brk-mic:disabled { opacity: 0.5; cursor: not-allowed; }
+.brk-mic.recording {
+  background: var(--md-red-deep);
+  border-color: var(--md-red-deep);
+  color: #fff;
+  animation: brk-pulse 1.1s ease-in-out infinite;
+}
+@keyframes brk-pulse { 50% { opacity: 0.72; } }
+
+.brk-count { font-size: 0.7rem; color: var(--md-ink-dim); font-variant-numeric: tabular-nums; }
+
+.brk-voice-note {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--md-ink-dim);
+  line-height: 1.5;
+}
+
+.brk-quick-phrases { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.brk-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.035);
+}
+.brk-suggestion.tone-danger { border-color: rgba(193, 69, 53, 0.34); background: rgba(193, 69, 53, 0.09); }
+.brk-suggestion.tone-warning { border-color: rgba(173, 138, 46, 0.32); background: rgba(173, 138, 46, 0.09); }
+.brk-suggestion.tone-ok { border-color: rgba(92, 148, 80, 0.3); background: rgba(92, 148, 80, 0.08); }
+
+.brk-suggestion-icon { flex: 0 0 auto; color: var(--md-accent); margin-top: 1px; }
+.brk-suggestion-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.brk-suggestion-text strong { font-size: 0.82rem; font-weight: 700; color: var(--md-ink); }
+.brk-suggestion-text small {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--md-ink-dim);
+  line-height: 1.45;
+}
+.brk-suggestion-text small svg { flex: 0 0 auto; margin-top: 2px; }
+
+.brk-urgency { border: none; margin: 0; padding: 0; min-width: 0; }
+.brk-urgency legend {
+  padding: 0;
+  margin-bottom: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--md-ink-dim);
+}
+.brk-urgency-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+.brk-urgency-btn {
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink-dim);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.brk-urgency-btn:hover { color: var(--md-ink); }
+.brk-urgency-btn.active.tone-danger { background: rgba(193, 69, 53, 0.2); border-color: var(--md-red); color: var(--md-red); }
+.brk-urgency-btn.active.tone-warning { background: rgba(173, 138, 46, 0.2); border-color: var(--md-amber); color: var(--md-amber); }
+.brk-urgency-btn.active.tone-ok { background: rgba(92, 148, 80, 0.18); border-color: var(--md-green); color: var(--md-green); }
+
+.brk-urgency-hint { margin: 7px 0 0; font-size: 0.74rem; color: var(--md-ink-dim); }
+
+.brk-nudge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(173, 138, 46, 0.3);
+  background: rgba(173, 138, 46, 0.08);
+  color: var(--md-amber);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.brk-nudge svg { flex: 0 0 auto; }
+
+/* ------------------------------------------------------------
+   Step 3 — photo
+   ------------------------------------------------------------ */
+
+.brk-photo { display: flex; flex-direction: column; gap: 10px; }
+.brk-photo-prompt { margin: 0; font-size: 0.79rem; color: var(--md-ink-dim); }
+.brk-photo-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.brk-photo-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  color: var(--md-ink-dim);
+}
+
+.brk-photo-preview { position: relative; border-radius: 12px; overflow: hidden; }
+.brk-photo-preview img { display: block; width: 100%; max-height: 260px; object-fit: cover; }
+.brk-photo-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.66);
+  color: #fff;
+  cursor: pointer;
+}
+.brk-photo-status {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.66);
+  color: #fff;
+  font-size: 0.71rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   Step 4 — role-specific fields
+   ------------------------------------------------------------ */
+
+.brk-role-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.brk-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; border: none; margin: 0; padding: 0; }
+.brk-field > label,
+.brk-field > legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--md-ink-dim);
+}
+.brk-field input,
+.brk-field select {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.04);
+  color: var(--md-ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+.brk-field input:focus,
+.brk-field select:focus { outline: none; border-color: var(--md-accent); }
+.brk-field-wide { grid-column: 1 / -1; }
+
+.brk-severity-row { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.brk-severity-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 52px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line-strong);
+  background: rgba(250, 245, 238, 0.03);
+  color: var(--md-ink-dim);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.brk-severity-btn strong { font-size: 0.83rem; font-weight: 700; color: var(--md-ink); }
+.brk-severity-btn small { font-size: 0.72rem; }
+.brk-severity-btn.active {
+  border-color: var(--md-accent);
+  background: rgba(224, 137, 95, 0.12);
+}
+.brk-severity-btn.active strong { color: var(--md-accent); }
+
+.brk-cost {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.77rem;
+  color: var(--md-ink-dim);
+  line-height: 1.5;
+}
+.brk-cost strong { color: var(--md-ink); }
+
+/* ------------------------------------------------------------
+   Aside — history and destination preview
+   ------------------------------------------------------------ */
+
+.brk-history,
+.brk-preview {
+  padding: 14px;
+  border-radius: 13px;
+  border: 1px solid var(--md-line);
+  background: var(--md-panel);
+  box-shadow: var(--md-shadow);
+}
+
+.brk-history header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.brk-history header strong { font-size: 0.84rem; font-weight: 600; color: var(--md-ink); }
+.brk-history-icon { display: inline-flex; color: var(--md-amber); }
+.brk-history-note { margin: 0 0 8px; font-size: 0.79rem; color: var(--md-ink-dim); line-height: 1.5; }
+.brk-history-repair {
+  display: flex;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(250, 245, 238, 0.04);
+  font-size: 0.76rem;
+  color: var(--md-ink-dim);
+  line-height: 1.5;
+}
+.brk-history-repair svg { flex: 0 0 auto; margin-top: 3px; }
+.brk-history-repair em { color: var(--md-ink); font-style: normal; font-weight: 600; }
+
+.brk-preview h3 {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-ink-dim);
+}
+.brk-preview-name { margin: 0 0 3px; font-size: 0.92rem; font-weight: 600; color: var(--md-ink); }
+.brk-preview-meta { margin: 0; font-size: 0.76rem; color: var(--md-ink-dim); line-height: 1.5; }
+
+/* ------------------------------------------------------------
+   Submit bar — sticky on a phone, inline on a desktop
+   ------------------------------------------------------------ */
+
+.brk-submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Below AppShell's mobile bottom nav (z-index 998) so the nav always
+     wins an overlap, above everything on the page itself. */
+  z-index: 997;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--md-line-strong);
+  background: #1B1815;
+  box-shadow: 0 -8px 22px -16px rgba(0, 0, 0, 0.7);
+}
+
+.brk-submit-status { flex: 1; min-width: 0; font-size: 0.76rem; line-height: 1.35; }
+.brk-ready { font-weight: 600; }
+.brk-ready.tone-danger { color: var(--md-red); }
+.brk-ready.tone-warning { color: var(--md-amber); }
+.brk-ready.tone-ok { color: var(--md-green); }
+.brk-blocked { color: var(--md-ink-dim); }
+
+.brk-btn-submit { flex: 0 0 auto; min-width: 148px; }
+
+/* ------------------------------------------------------------
+   Receipt
+   ------------------------------------------------------------ */
+
+.brk-receipt {
+  max-width: 620px;
+  margin: 24px auto;
+  padding: 26px 20px;
+  text-align: center;
+  border-radius: 16px;
+  border: 1px solid rgba(92, 148, 80, 0.32);
+  background: var(--md-panel);
+  box-shadow: var(--md-shadow);
+}
+.brk-receipt-tick { display: inline-flex; color: var(--md-green); }
+.brk-receipt h1 { margin: 10px 0 6px; font-size: 1.4rem; font-weight: 600; }
+.brk-receipt-line {
+  margin: 0 auto 18px;
+  max-width: 46ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--md-ink-dim);
+}
+
+.brk-receipt-facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 0 0 16px;
+  text-align: left;
+}
+.brk-receipt-facts > div {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--md-line);
+  background: rgba(250, 245, 238, 0.03);
+}
+.brk-receipt-facts dt {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-ink-dim);
+}
+.brk-receipt-facts dd { margin: 3px 0 0; font-size: 0.88rem; font-weight: 600; color: var(--md-ink); }
+.brk-receipt-facts dd.tone-danger { color: var(--md-red); }
+.brk-receipt-facts dd.tone-warning { color: var(--md-amber); }
+.brk-receipt-facts dd.tone-ok { color: var(--md-green); }
+
+.brk-receipt-notified {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+.brk-receipt-notified li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(92, 148, 80, 0.08);
+  border: 1px solid rgba(92, 148, 80, 0.22);
+}
+.brk-receipt-notified strong { font-size: 0.85rem; color: var(--md-ink); }
+.brk-receipt-notified span { font-size: 0.72rem; color: var(--md-ink-dim); }
+
+.brk-receipt-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+/* ------------------------------------------------------------
+   Phone — clear AppShell's bottom navigation
+   ------------------------------------------------------------
+
+   At ≤768px AppShell pins a 60px navigation bar to the bottom of the
+   viewport. A submit bar at bottom:0 lands underneath it and the
+   Send button becomes unclickable — the tap goes to whichever nav
+   item happens to be behind it. Sit above the nav instead, and pad
+   the page for both bars.
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .brk-submit-bar { bottom: 60px; }
+  .brk-page { padding-bottom: 150px; }
+
+  /* The floating "Ask AI" trigger (bottom: 24px, z-index 999) otherwise
+     overlaps the bottom edge of Send. Lift it clear of the whole bar —
+     the assistant stays reachable, Send stays tappable. */
+  body.brk-logger-open .app-sidebar-trigger { bottom: 136px; }
+}
+
+/* ------------------------------------------------------------
+   Tablet — the aside comes alongside
+   ------------------------------------------------------------ */
+
+@media (min-width: 900px) {
+  .brk-page { padding-bottom: 40px; }
+
+  .brk-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    align-items: start;
+    gap: 16px;
+  }
+
+  .brk-side { position: sticky; top: 84px; }
+
+  .brk-role-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .brk-severity-row { grid-template-columns: repeat(3, 1fr); }
+
+  .brk-submit-bar {
+    position: static;
+    grid-column: 1 / -1;
+    padding: 12px 16px;
+    border: 1px solid var(--md-line);
+    border-radius: 13px;
+    background: var(--md-panel);
+    box-shadow: var(--md-shadow);
+  }
+}
+
+/* ------------------------------------------------------------
+   Desktop
+   ------------------------------------------------------------ */
+
+@media (min-width: 1180px) {
+  .brk-step { padding: 20px; }
+  .brk-layout { gap: 18px; }
+}
+
+/* ------------------------------------------------------------
+   Light theme — Dashboard.css flips the --md-* tokens; only the
+   two hard-coded surfaces here need their own answer.
+   ------------------------------------------------------------ */
+
+@media (prefers-color-scheme: light) {
+  .brk-submit-bar { background: #FAF6F0; }
+}
+:root[data-theme='light'] .brk-submit-bar { background: #FAF6F0; }
+
+/* ------------------------------------------------------------
+   RTL — the numbered steps and inline icons are the only
+   direction-sensitive furniture on the page.
+   ------------------------------------------------------------ */
+
+[dir='rtl'] .brk-machine-option,
+[dir='rtl'] .brk-severity-btn { text-align: right; }
+[dir='rtl'] .brk-photo-remove,
+[dir='rtl'] .brk-scanner-close { right: auto; left: 8px; }
+[dir='rtl'] .brk-photo-status { left: auto; right: 8px; }
+[dir='rtl'] .brk-link-btn { align-self: flex-end; }

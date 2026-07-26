@@ -23,19 +23,26 @@ export function getRoleLabel(roleVal, customRoles = []) {
 // open collects nothing: the operator who sees the waste has to be able to
 // reach the submission form, and the Kaizen page renders a board per role
 // (submit / approve / impact) rather than one page with hidden sections.
+//
+// 'report' is on every role for the same reason, only more so. Reporting a
+// breakdown is the one thing every person in the plant must be able to do,
+// including a vendor watching one contracted press. The Report Breakdown
+// page renders a form per role (operator / technician / supervisor / vendor)
+// and filters the machine picker accordingly, so access here is not the
+// place to draw the boundary — the form itself is.
 const ROLE_NAV = {
-  operator: ['machines', 'assistant', 'support', 'kaizen'],
+  operator: ['machines', 'assistant', 'support', 'kaizen', 'report'],
   // 'overview' is the technician's own dashboard (their queue and machines),
   // not the business board — the Dashboard page renders per role. Without it
   // AppShell would gate technicians out of the view built for them.
-  maintenance_technician: ['overview', 'machines', 'records', 'assistant', 'technician', 'support', 'kaizen'],
-  maintenance_engineer: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen'],
-  supervisor: ['overview', 'machines', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen'],
-  maintenance_head: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen'],
-  owner: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings', 'kaizen'],
-  quality_inspector: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen'],
-  safety_officer: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen'],
-  vendor: ['machines', 'records', 'support', 'kaizen'],
+  maintenance_technician: ['overview', 'machines', 'records', 'assistant', 'technician', 'support', 'kaizen', 'report'],
+  maintenance_engineer: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
+  supervisor: ['overview', 'machines', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
+  maintenance_head: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen', 'report'],
+  owner: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings', 'kaizen', 'report'],
+  quality_inspector: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'report'],
+  safety_officer: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'report'],
+  vendor: ['machines', 'records', 'support', 'kaizen', 'report'],
 };
 
 export function canViewWorkspace(role, workspace) {

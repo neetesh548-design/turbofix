@@ -892,5 +892,3 @@ export default function Settings() {
     </AppShell>
   );
 }
-n}</span>}</div>;
-}

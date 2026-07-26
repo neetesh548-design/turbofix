@@ -203,7 +203,9 @@ const URGENCY_RULES = Object.freeze([
     keywords: [
       'minor', 'cosmetic', 'routine', 'scheduled', 'when possible', 'no rush',
       'clean', 'cleaning', 'paint', 'label', 'sticker', 'top up', 'topup',
-      'lubricate', 'greasing', 'housekeeping', 'check when free',
+      // Prefixes, not whole words: "lubricat" covers lubricate,
+      // lubrication and lubricating in one entry.
+      'lubricat', 'greasing', 'housekeeping', 'check when free',
     ],
   },
 ]);
@@ -296,10 +298,31 @@ function normalise(text) {
   return ` ${String(text || '').toLowerCase().replace(/[^a-z0-9']+/g, ' ').trim()} `;
 }
 
+/**
+ * Keywords match at a word *start* but may run on at the end, so
+ * "jam" catches "jammed" and "lubric" catches "lubrication" without
+ * "hot" catching "shot" or "air" catching "repair". Plain substring
+ * matching gets that last part wrong, and a false CRITICAL on the
+ * word "shot" is exactly the kind of thing that teaches a shop floor
+ * to ignore the suggestion.
+ *
+ * Patterns are compiled once and cached — this runs on every
+ * keystroke, over roughly 200 keywords.
+ */
+const KEYWORD_PATTERNS = new Map();
+
+function keywordPattern(keyword) {
+  let pattern = KEYWORD_PATTERNS.get(keyword);
+  if (!pattern) {
+    const escaped = String(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    pattern = new RegExp(`(^|[^a-z0-9])${escaped}`);
+    KEYWORD_PATTERNS.set(keyword, pattern);
+  }
+  return pattern;
+}
+
 function matchKeywords(haystack, keywords) {
-  return asArray(keywords).filter((keyword) => haystack.includes(` ${keyword} `)
-    || haystack.includes(`${keyword} `)
-    || haystack.includes(` ${keyword}`));
+  return asArray(keywords).filter((keyword) => keywordPattern(keyword).test(haystack));
 }
 
 /**
@@ -334,13 +357,22 @@ export function classifyIssue(text) {
 
   // Best-scoring category rather than first match: "oil leak, motor
   // tripped" should land on whichever subsystem the sentence leans on.
+  //
+  // Score is total matched-keyword *length*, not hit count, because
+  // length tracks specificity. "motor overheating" hits `motor`
+  // (electrical) and `overheat` (thermal) once each; the longer, more
+  // diagnostic word is the one that should decide, and counting hits
+  // alone would hand it to whichever category is declared first.
   let best = GENERAL_CATEGORY;
   let bestHits = [];
+  let bestScore = 0;
   ISSUE_CATEGORIES.forEach((category) => {
     const hits = matchKeywords(haystack, category.keywords);
-    if (hits.length > bestHits.length) {
+    const score = hits.reduce((total, keyword) => total + keyword.length, 0);
+    if (score > bestScore) {
       best = category;
       bestHits = hits;
+      bestScore = score;
     }
   });
 

@@ -24,6 +24,7 @@ const Support = lazy(() => import('./pages/Support'));
 const QRGateway = lazy(() => import('./pages/QRGateway'));
 const Inventory = lazy(() => import('./pages/Inventory'));
 const Kaizen = lazy(() => import('./pages/Kaizen'));
+const ReportBreakdown = lazy(() => import('./pages/ReportBreakdown'));
 
 function SearchMetadata() {
   const { pathname } = useLocation();
@@ -84,6 +85,8 @@ function App() {
                 <Route path="/inventory.html" element={<Inventory />} />
                 <Route path="/kaizen.html" element={<Kaizen />} />
                 <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
+                <Route path="/report-breakdown.html" element={<ReportBreakdown />} />
+                <Route path="/report-breakdown" element={<Navigate to="/report-breakdown.html" replace />} />
                 <Route path="*" element={<Home />} />
                 </Routes>
               </Suspense>
