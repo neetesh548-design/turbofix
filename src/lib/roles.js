@@ -46,6 +46,7 @@ const ROLE_NAV = {
 };
 
 export function canViewWorkspace(role, workspace) {
+  if (workspace === 'inventory' && ['maintenance_technician', 'technician'].includes(role)) return false;
   const allowed = ROLE_NAV[role];
   return !allowed || allowed.includes(workspace);
 }

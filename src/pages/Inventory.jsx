@@ -116,6 +116,9 @@ async function fetchInventorySources() {
 
 const EMPTY_FILTERS = { search: '', status: 'all', criticality: 'all', supplier: 'all', machine: 'all' };
 
+const VIEW_ONLY_ROLES = new Set(['maintenance_technician', 'technician']);
+const MODIFY_ROLES = new Set(['store_manager', 'storekeeper', 'purchase', 'procurement', 'buyer']);
+
 export default function Inventory() {
   const [user, setUser] = useState(() => readStoredUser());
   const [sources, setSources] = useState({
@@ -135,6 +138,9 @@ export default function Inventory() {
   if (cacheRef.current === null) cacheRef.current = createInventoryCache();
 
   const role = useMemo(() => resolveInventoryRole(user?.role), [user]);
+  const rawRole = String(user?.role || '').toLowerCase().trim();
+  const canViewInventory = !VIEW_ONLY_ROLES.has(rawRole);
+  const canModifyInventory = MODIFY_ROLES.has(rawRole);
 
   useEffect(() => { document.title = 'Inventory | TurboFix'; }, []);
 
@@ -385,6 +391,12 @@ export default function Inventory() {
         {error && <div className="decision-alert">{error}</div>}
         {loading && <p className="rd-loading" role="status">Refreshing live stock…</p>}
 
+        {!canViewInventory && !loading && (
+          <section className="rd-empty" role="alert" data-testid="inventory-access-denied">
+            Inventory is not available for technician roles. Ask a store manager or purchase user to review stock.
+          </section>
+        )}
+
         {!loading && isDemo && (
           <p className="rd-demo-banner" data-testid="inventory-demo-banner">
             Showing a sample store — no parts or consumables came back from the workspace.
@@ -392,7 +404,8 @@ export default function Inventory() {
           </p>
         )}
 
-        <section className="inv-toolbar" aria-label="Search and filter stock">
+        {canViewInventory && (
+          <section className="inv-toolbar" aria-label="Search and filter stock">
           <div className="inv-search">
             <Search size={15} aria-hidden="true" />
             <label htmlFor="inv-search-input" className="sr-only">Search parts by name, number or machine</label>
@@ -429,9 +442,10 @@ export default function Inventory() {
           >
             <SlidersHorizontal size={13} aria-hidden="true" /> More filters
           </button>
-        </section>
+          </section>
+        )}
 
-        {showFilters && (
+        {canViewInventory && showFilters && (
           <section className="inv-filter-drawer" aria-label="Additional filters">
             <label>
               <span>Machine</span>
@@ -463,23 +477,24 @@ export default function Inventory() {
           </section>
         )}
 
-        {filtered && (
+        {canViewInventory && filtered && (
           <p className="inv-filter-note" data-testid="inv-filter-note">
             Showing {items.length} of {allItems.length} items — every number below reflects the filter.
           </p>
         )}
 
-        {role === INVENTORY_ROLES.STORE && (
+        {canViewInventory && role === INVENTORY_ROLES.STORE && (
           <StoreManagerInventory
             metrics={metrics}
             loading={loading}
-            onOrder={previewOrder}
-            onEditItem={setEditing}
-            onAddItem={addItem}
+            canModify={canModifyInventory}
+            onOrder={canModifyInventory ? previewOrder : undefined}
+            onEditItem={canModifyInventory ? setEditing : undefined}
+            onAddItem={canModifyInventory ? addItem : undefined}
           />
         )}
 
-        {role === INVENTORY_ROLES.SUPERVISOR && (
+        {canViewInventory && role === INVENTORY_ROLES.SUPERVISOR && (
           <SupervisorInventory
             metrics={metrics}
             loading={loading}
@@ -489,7 +504,7 @@ export default function Inventory() {
           />
         )}
 
-        {role === INVENTORY_ROLES.FINANCE && (
+        {canViewInventory && role === INVENTORY_ROLES.FINANCE && (
           <FinanceInventory metrics={metrics} loading={loading} />
         )}
 

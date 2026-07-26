@@ -42,7 +42,7 @@ function etaLabel(suggestion) {
 }
 
 export default function StoreManagerInventory({
-  metrics, onOrder, onEditItem, onAddItem, loading = false,
+  metrics, onOrder, onEditItem, onAddItem, canModify = true, loading = false,
 }) {
   const [openBin, setOpenBin] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -131,6 +131,12 @@ export default function StoreManagerInventory({
         />
       </section>
 
+      {!canModify && (
+        <p className="rd-hint" data-testid="inv-read-only-note">
+          View only: ask a store manager or purchase user to edit reorder levels, raise orders, or add stock.
+        </p>
+      )}
+
       <InventoryChart
         title="Action required"
         subtitle="Order today"
@@ -156,16 +162,23 @@ export default function StoreManagerInventory({
                 {queue.map((row) => (
                   <tr key={row.id} data-status={row.status}>
                     <td data-label="Part">
-                      <button
-                        type="button"
-                        className="inv-row-link"
-                        onClick={() => onEditItem?.(row)}
-                        title="Edit reorder level, location and supplier"
-                      >
-                        <span className="inv-row-name">{row.name}</span>
-                        {row.partNumber ? <code>{row.partNumber}</code> : null}
-                        <Pencil size={11} aria-hidden="true" className="inv-row-pencil" />
-                      </button>
+                      {canModify ? (
+                        <button
+                          type="button"
+                          className="inv-row-link"
+                          onClick={() => onEditItem?.(row)}
+                          title="Edit reorder level, location and supplier"
+                        >
+                          <span className="inv-row-name">{row.name}</span>
+                          {row.partNumber ? <code>{row.partNumber}</code> : null}
+                          <Pencil size={11} aria-hidden="true" className="inv-row-pencil" />
+                        </button>
+                      ) : (
+                        <span className="inv-row-link readonly" title="View only">
+                          <span className="inv-row-name">{row.name}</span>
+                          {row.partNumber ? <code>{row.partNumber}</code> : null}
+                        </span>
+                      )}
                       <StockHealthIndicator item={row} compact />
                     </td>
                     <td data-label="Machine">
@@ -180,17 +193,23 @@ export default function StoreManagerInventory({
                     <td data-label="Supplier">{row.supplier}</td>
                     <td data-label="Lead" className="num">{row.leadTimeDays}d</td>
                     <td data-label="Order" className="inv-order-cell">
-                      <button
-                        type="button"
-                        className="inv-btn primary sm"
-                        onClick={() => onOrder?.(row, row.suggestion)}
-                        data-testid="inv-order-now"
-                      >
-                        Order {row.suggestion.qty}
-                      </button>
-                      <small className="inv-order-hint">
-                        {etaLabel(row.suggestion)} · {formatInr(row.suggestion.cost)}
-                      </small>
+                      {canModify ? (
+                        <>
+                          <button
+                            type="button"
+                            className="inv-btn primary sm"
+                            onClick={() => onOrder?.(row, row.suggestion)}
+                            data-testid="inv-order-now"
+                          >
+                            Order {row.suggestion.qty}
+                          </button>
+                          <small className="inv-order-hint">
+                            {etaLabel(row.suggestion)} · {formatInr(row.suggestion.cost)}
+                          </small>
+                        </>
+                      ) : (
+                        <small className="inv-order-hint">Order actions are store / purchase only.</small>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -287,12 +306,14 @@ export default function StoreManagerInventory({
         title="Add a part"
         subtitle="Quick add"
         action={(
-          <button type="button" className="inv-btn sm" onClick={() => setAddOpen((open) => !open)} aria-expanded={addOpen}>
-            <Plus size={13} aria-hidden="true" /> {addOpen ? 'Close' : 'New part'}
-          </button>
+          canModify ? (
+            <button type="button" className="inv-btn sm" onClick={() => setAddOpen((open) => !open)} aria-expanded={addOpen}>
+              <Plus size={13} aria-hidden="true" /> {addOpen ? 'Close' : 'New part'}
+            </button>
+          ) : null
         )}
       >
-        {addOpen ? (
+        {canModify && addOpen ? (
           <form className="inv-add-form" onSubmit={submitAdd} data-testid="inv-add-form">
             <label>
               <span>Part name</span>
@@ -345,7 +366,7 @@ export default function StoreManagerInventory({
         ) : (
           <p className="rd-hint">
             Adding a part here sets its reorder level and lead time, which is what the board uses to
-            decide when it turns red. Click any row above to edit an existing one.
+            decide when it turns red. {canModify ? 'Click any row above to edit an existing one.' : 'Only store / purchase users can change stock details.'}
           </p>
         )}
       </InventoryChart>
