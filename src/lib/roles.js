@@ -31,18 +31,18 @@ export function getRoleLabel(roleVal, customRoles = []) {
 // and filters the machine picker accordingly, so access here is not the
 // place to draw the boundary — the form itself is.
 const ROLE_NAV = {
-  operator: ['machines', 'assistant', 'support', 'kaizen', 'report'],
+  operator: ['machines', 'inventory', 'assistant', 'support', 'kaizen', 'report'],
   // 'overview' is the technician's own dashboard (their queue and machines),
   // not the business board — the Dashboard page renders per role. Without it
   // AppShell would gate technicians out of the view built for them.
   maintenance_technician: ['overview', 'machines', 'records', 'assistant', 'technician', 'support', 'kaizen', 'report'],
-  maintenance_engineer: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
-  supervisor: ['overview', 'machines', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
-  maintenance_head: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen', 'report'],
-  owner: ['overview', 'machines', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings', 'kaizen', 'report'],
-  quality_inspector: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'report'],
-  safety_officer: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'report'],
-  vendor: ['machines', 'records', 'support', 'kaizen', 'report'],
+  maintenance_engineer: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
+  supervisor: ['overview', 'machines', 'inventory', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
+  maintenance_head: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen', 'report'],
+  owner: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings', 'kaizen', 'report'],
+  quality_inspector: ['overview', 'machines', 'inventory', 'records', 'tickets', 'support', 'kaizen', 'report'],
+  safety_officer: ['overview', 'machines', 'inventory', 'records', 'tickets', 'support', 'kaizen', 'report'],
+  vendor: ['machines', 'inventory', 'records', 'support', 'kaizen', 'report'],
 };
 
 export function canViewWorkspace(role, workspace) {
