@@ -155,7 +155,11 @@ export default function IssueCapture({
         </div>
       </div>
 
-      {voiceNote && <p className="brk-voice-note" role="status">{voiceNote}</p>}
+      {voiceNote && (
+        <p className="brk-voice-note" role="status" data-testid="breakdown-voice-status">
+          {voiceNote}
+        </p>
+      )}
 
       {!value.trim() && (
         <div className="brk-quick-phrases" data-testid="breakdown-quick-phrases">
