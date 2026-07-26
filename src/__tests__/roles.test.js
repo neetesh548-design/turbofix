@@ -48,6 +48,20 @@ describe('src/lib/roles', () => {
       expect(canViewWorkspace('custom_role', 'settings')).toBe(true);
       expect(canViewWorkspace(null, 'settings')).toBe(true);
     });
+
+    // A suggestion scheme only management can open collects nothing. The
+    // operator who spots the waste has to be able to reach the form.
+    it('should open the kaizen workspace to every mapped role', () => {
+      defaultRoles.forEach((role) => {
+        expect(canViewWorkspace(role.value, 'kaizen')).toBe(true);
+      });
+    });
+
+    it('should keep the operator out of workspaces that are not theirs', () => {
+      expect(canViewWorkspace('operator', 'settings')).toBe(false);
+      expect(canViewWorkspace('operator', 'team')).toBe(false);
+      expect(canViewWorkspace('operator', 'tickets')).toBe(false);
+    });
   });
 
   describe('roleContribution', () => {

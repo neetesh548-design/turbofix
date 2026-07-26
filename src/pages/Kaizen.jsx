@@ -1,519 +1,326 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Activity, BookOpen, Bot, CalendarDays, ChevronRight, CircleAlert,
-  ClipboardList, Droplets, FileCheck2, MessageSquare, Mic,
-  Play, Plus, ShieldCheck, TrendingUp, Trash2, CheckCircle2, User,
-  Coins, ArrowRight, ShieldAlert, Sparkles, CheckSquare, Eye, RefreshCw
-} from 'lucide-react';
+/**
+ * Kaizen — role-aware continuous-improvement board.
+ *
+ * One page, three audiences, and almost nothing in common between what
+ * they need from it. The operator needs a submission box and proof that
+ * ideas here actually land. The supervisor needs a decision queue. The
+ * plant manager needs to know whether any of it returned money. Showing
+ * all three to everyone is how a Kaizen page turns into a form nobody
+ * fills in, so the page reads the signed-in role once and renders the
+ * board built for it — no toggle, nothing to configure.
+ *
+ * Role → board
+ *   operator, technician, contractor        → OperatorKaizen  ("My ideas")
+ *   supervisor, engineer, shift in-charge   → SupervisorKaizen ("Review & approve")
+ *   owner, plant_manager, admin             → ManagerKaizen   ("Impact")
+ *   anything else / signed out              → ManagerKaizen (read-only summary)
+ *
+ * Impact tracking is the spine of all three: an idea carries an
+ * *estimated* saving from the moment it is submitted and a *realized*
+ * saving from the moment it is verified. The two are never summed. See
+ * utils/kaizenMetrics.js, where all the arithmetic lives.
+ *
+ * @workflow
+ *   1. Read tf_user → resolve the Kaizen role
+ *   2. Fetch kaizen_opportunities + machines (3s budget, demo fallback)
+ *   3. Compute that role's metrics through a 5-minute cache
+ *   4. Render the board; every write updates local state first, then
+ *      Supabase, so the shop floor stays usable on a bad connection
+ */
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
-import EmptyState from '../components/EmptyState';
+import OperatorKaizen from '../components/kaizen/OperatorKaizen.jsx';
+import SupervisorKaizen from '../components/kaizen/SupervisorKaizen.jsx';
+import ManagerKaizen from '../components/kaizen/ManagerKaizen.jsx';
+import {
+  KAIZEN_ROLES,
+  buildKaizenMetrics,
+  resolveKaizenRole,
+  nextIdeaId,
+} from '../utils/kaizenMetrics.js';
+import { DEMO_KAIZENS, DEMO_OPERATOR, shouldUseDemoKaizen } from '../utils/demoKaizen.js';
+import { createMetricsCache, readStoredUser } from '../utils/dashboardMetrics.js';
 import { supabase } from '@/supabaseClient';
+import './Dashboard.css';
+import './Kaizen.css';
 
-const KAIZEN_CATEGORIES = [
-  { value: 'safety', label: 'Safety' },
-  { value: 'quality', label: 'Quality' },
-  { value: 'productivity', label: 'Productivity' },
-  { value: 'cost_reduction', label: 'Cost Reduction' },
-  { value: 'energy_saving', label: 'Energy Saving' },
-  { value: 'material_saving', label: 'Material Saving' },
-  { value: 'breakdown_prevention', label: 'Breakdown Prevention' },
-  { value: 'ergonomics', label: 'Ergonomics' },
-  { value: '5s', label: '5S' },
-  { value: 'simplification', label: 'Process Simplification' }
-];
-
-const LEAN_WASTES = [
-  { value: 'transportation', label: 'Transportation' },
-  { value: 'inventory', label: 'Inventory' },
-  { value: 'motion', label: 'Motion' },
-  { value: 'waiting', label: 'Waiting' },
-  { value: 'overproduction', label: 'Overproduction' },
-  { value: 'overprocessing', label: 'Over-processing' },
-  { value: 'defects', label: 'Defects' },
-  { value: 'talent', label: 'Unutilised Human Talent' }
-];
-
-const KAIZEN_STATUSES = [
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'need_information', label: 'Need Info' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'implemented', label: 'Implemented' },
-  { value: 'verified', label: 'Verified' },
-  { value: 'standardisation_pending', label: 'SOP Pending' },
-  { value: 'closed', label: 'Closed' }
-];
-
-const PRE_SEEDED_KAIZENS = [
-  {
-    id: 'KZN-2026-001',
-    title: 'Relocate Scrap Bin to Unloading Table',
-    proposal: 'Operator currently walks 5 meters with metal punch residue to reach the main scrap yard after every 15 cycles. Move a small scrap bin directly next to the unloading table to eliminate motion waste.',
-    machine_id: 'M001',
-    category: 'simplification',
-    waste_category: 'motion',
-    estimated_impact: 'medium',
-    estimated_cost: 1500,
-    actual_saving: 24000,
-    status: 'closed',
-    standardisation_status: 'checklist',
-    created_by_name: 'Anil Kumar',
-    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    due_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    verified_by_name: 'S. Patil',
-    verified_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    trial_duration_shifts: 6,
-    before_photo_url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop',
-    after_photo_url: 'https://images.unsplash.com/photo-1581092162613-f54843a91034?w=200&auto=format&fit=crop'
+/**
+ * Header copy and the two shortcut links, per role. The links are not
+ * decoration: `records.html` is gated away from operators by ROLE_NAV,
+ * so offering it to them would be a dead end. Each role gets the two
+ * places they actually go next from here.
+ */
+const ROLE_HEADINGS = {
+  [KAIZEN_ROLES.OPERATOR]: {
+    kicker: 'My ideas',
+    title: 'Kaizen',
+    lead: 'You see the waste before anyone else does. Log it here and it gets an answer.',
+    links: [
+      { label: 'My machines', href: 'machines.html', primary: false },
+      { label: 'Report an issue', href: 'support.html', primary: true },
+    ],
   },
-  {
-    id: 'KZN-2026-002',
-    title: 'Install Guard over Limit Switch LS-2',
-    proposal: 'LS-2 switch regularly gets hit by falling metal blanks causing sensor damage, leading to breakdown tickets. Install a sheet metal guard over it to shield it.',
-    machine_id: 'M002',
-    category: 'breakdown_prevention',
-    waste_category: 'defects',
-    estimated_impact: 'high',
-    estimated_cost: 800,
-    actual_saving: 85000,
-    status: 'verified',
-    standardisation_status: 'pm_checklist',
-    created_by_name: 'Ramesh Sawant',
-    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    due_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    verified_by_name: 'S. Patil',
-    verified_at: new Date().toISOString(),
-    trial_duration_shifts: 4,
-    before_photo_url: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=200&auto=format&fit=crop',
-    after_photo_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=200&auto=format&fit=crop'
+  [KAIZEN_ROLES.SUPERVISOR]: {
+    kicker: 'Review & approve',
+    title: 'Kaizen review',
+    lead: 'Decide what gets tried, keep the trials moving, and turn what works into the standard.',
+    links: [
+      { label: 'Machine health', href: 'machines.html', primary: false },
+      { label: 'Open tickets', href: 'tickets.html', primary: true },
+    ],
   },
-  {
-    id: 'KZN-2026-003',
-    title: 'Air Compressor Solenoid Timer Switch',
-    proposal: 'Soleneoid valve stays active and vents air during lunch hours wasting compressor power. Add a timer to cut air feed automatically when production stops for over 15 minutes.',
-    machine_id: 'M001',
-    category: 'energy_saving',
-    waste_category: 'waiting',
-    estimated_impact: 'high',
-    estimated_cost: 3200,
-    actual_saving: 0,
-    status: 'in_progress',
-    standardisation_status: 'no_update_required',
-    created_by_name: 'Vijay Deshmukh',
-    created_at: new Date().toISOString(),
-    due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    before_photo_url: 'https://images.unsplash.com/photo-1597491853414-998fe05c56c2?w=200&auto=format&fit=crop'
-  }
-];
+  [KAIZEN_ROLES.MANAGER]: {
+    kicker: 'Impact',
+    title: 'Kaizen impact',
+    lead: 'What continuous improvement has actually returned, what is still in flight, and where it is stuck.',
+    links: [
+      { label: 'Improvement records', href: 'records.html', primary: false },
+      { label: 'Business dashboard', href: 'dashboard.html', primary: true },
+    ],
+  },
+};
+
+/** Supabase read with the 3s budget the rest of the app uses. */
+function fetchWithTimeout(promise, ms = 3000) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve({ data: [] }), ms)),
+  ]).catch(() => ({ data: [] }));
+}
+
+async function fetchKaizenSources() {
+  const [ideasRes, machinesRes] = await Promise.all([
+    fetchWithTimeout(supabase.from('kaizen_opportunities').select('*').order('created_at', { ascending: false })),
+    fetchWithTimeout(supabase.from('machines').select('id, machine_id, machine_name, location')),
+  ]);
+
+  return {
+    ideas: ideasRes.data || [],
+    machines: machinesRes.data || [],
+  };
+}
+
+/**
+ * Estimated savings become realized savings at verification. Without a
+ * measured figure from the field we book the estimate rather than zero —
+ * a verified idea reporting ₹0 would drag the plant ROI down for a data
+ * gap, not a business outcome. The board labels it as realized either
+ * way, and a supervisor can correct it.
+ */
+function realizeSaving(idea) {
+  const measured = idea?.realized_savings ?? idea?.actual_saving;
+  if (measured != null && measured !== '' && Number(measured) > 0) return Number(measured);
+  return Number(idea?.estimated_saving) || 0;
+}
 
 export default function Kaizen() {
-  const [kaizens, setKaizens] = useState([]);
+  const [user, setUser] = useState(() => readStoredUser());
+  const [ideas, setIdeas] = useState([]);
+  const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeSubTab, setActiveSubTab] = useState('list'); // 'dashboard' | 'list' | 'add'
-  const [machines, setMachines] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
-  // Form State
-  const [machineId, setMachineId] = useState('');
-  const [kaizenType, setKaizenType] = useState('productivity');
-  const [urgency, setUrgency] = useState('normal');
-  const [title, setTitle] = useState('');
-  const [proposal, setProposal] = useState('');
-  const [savingType, setSavingType] = useState('none');
-  const [savingValue, setSavingValue] = useState('');
-  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  // One cache per mount, 5-minute TTL — see createMetricsCache.
+  const cacheRef = useRef(null);
+  if (cacheRef.current === null) cacheRef.current = createMetricsCache();
 
-  // Action Panel Filter
-  const [dashboardFilter, setDashboardFilter] = useState('all');
+  const role = useMemo(() => resolveKaizenRole(user?.role), [user]);
 
   useEffect(() => {
-    // Read local auth info
-    const storedUser = localStorage.getItem('tf_user');
-    if (storedUser) {
-      try { setCurrentUser(JSON.parse(storedUser)); } catch {}
-    }
-
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const { data: machs } = await supabase.from('machines').select('id, machine_id, machine_name, location');
-        setMachines(machs || []);
-
-        const { data: usrList } = await supabase.from('users').select('id, name, role');
-        setUsers(usrList || []);
-
-        const { data: kzList } = await supabase.from('kaizen_opportunities').select('*').order('created_at', { ascending: false });
-        if (kzList && kzList.length > 0) {
-          setKaizens(kzList);
-        } else {
-          // Use pre-seeded data if Supabase table is empty
-          setKaizens(PRE_SEEDED_KAIZENS);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setKaizens(PRE_SEEDED_KAIZENS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+    document.title = 'Kaizen | TurboFix';
   }, []);
 
-  // Voice updates simulator
-  const simulateVoiceRecording = () => {
-    setIsVoiceRecording(true);
-    setTimeout(() => {
-      setIsVoiceRecording(false);
-      setTitle('Trolley Relocation for unloading');
-      setProposal('Keep an empty parts trolley right next to the unloading frame to eliminate constant walking to fetch one.');
-      setKaizenType('simplification');
-      setAudioUrl(true);
-    }, 3500);
-  };
+  // Signing in or out on another tab must re-point the board rather than
+  // strand a supervisor on the manager view until they reload.
+  useEffect(() => {
+    const refresh = () => setUser(readStoredUser());
+    window.addEventListener('authChanged', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('authChanged', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
 
-  const handleCreateKaizen = async (e) => {
-    e.preventDefault();
-    if (!machineId || !title || !proposal) {
-      setError('Please fill in all required fields.');
-      return;
+  useEffect(() => {
+    let mounted = true;
+
+    fetchKaizenSources()
+      .then((sources) => {
+        if (!mounted) return;
+        const demo = shouldUseDemoKaizen(sources.ideas);
+        cacheRef.current.clear();
+        setIsDemo(demo);
+        setIdeas(demo ? DEMO_KAIZENS : sources.ideas);
+        setMachines(sources.machines);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setError(err?.message || 'Could not reach the workspace');
+        setIsDemo(true);
+        setIdeas(DEMO_KAIZENS);
+      })
+      .finally(() => { if (mounted) setLoading(false); });
+
+    return () => { mounted = false; };
+  }, []);
+
+  /**
+   * On demo data a signed-out visitor would otherwise see an empty "My
+   * ideas". Borrowing the demo operator's identity keeps the operator
+   * board populated without touching what a real signed-in user sees.
+   */
+  const effectiveUser = useMemo(() => {
+    if (!isDemo || role !== KAIZEN_ROLES.OPERATOR) return user;
+    return user?.name ? user : { ...(user || {}), ...DEMO_OPERATOR };
+  }, [isDemo, role, user]);
+
+  const metrics = useMemo(() => {
+    const key = [
+      role,
+      isDemo ? 'demo' : 'live',
+      ideas.length,
+      // Statuses change without the count changing; fold them into the key
+      // so an approval invalidates the cache the same as a new idea would.
+      ideas.map((idea) => `${idea?.id}:${idea?.status}`).join('|'),
+      effectiveUser?.user_id || effectiveUser?.name || 'anon',
+    ].join('~');
+
+    return cacheRef.current.resolve(key, () => buildKaizenMetrics(role, { ideas, user: effectiveUser }));
+  }, [role, ideas, effectiveUser, isDemo]);
+
+  /** Local-first write: update state, then try to persist. */
+  const persist = useCallback(async (id, patch) => {
+    setIdeas((current) => current.map((idea) => (idea.id === id ? { ...idea, ...patch } : idea)));
+    try {
+      await supabase.from('kaizen_opportunities').update(patch).eq('id', id);
+    } catch {
+      // Offline or the row lives only in demo data. The board already
+      // reflects the change; the next successful sync reconciles it.
     }
-    setSubmitting(true);
-    setError('');
+  }, []);
 
-    const newKzn = {
-      id: `KZN-2026-00${kaizens.length + 1}`,
-      machine_id: machineId,
-      title,
-      proposal,
-      category: kaizenType,
-      estimated_impact: urgency === 'safety' ? 'high' : 'medium',
-      estimated_cost: 0,
-      actual_saving: 0,
+  const handleSubmitIdea = useCallback(async (draft) => {
+    const record = {
+      ...draft,
+      id: nextIdeaId(ideas),
       status: 'submitted',
+      estimated_cost: 0,
+      realized_savings: null,
       standardisation_status: 'no_update_required',
-      created_by_name: currentUser?.name || 'Operator',
       created_at: new Date().toISOString(),
-      before_photo_url: photoUrl || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop'
     };
 
-    try {
-      const { data, error: err } = await supabase.from('kaizen_opportunities').insert(newKzn).select();
-      if (err) throw err;
-      setKaizens([data[0], ...kaizens]);
-    } catch {
-      // Local fallback
-      setKaizens([newKzn, ...kaizens]);
-    } finally {
-      setSubmitting(false);
-      setActiveSubTab('list');
-      // Reset
-      setTitle('');
-      setProposal('');
-      setMachineId('');
-      setAudioUrl(null);
-      setPhotoUrl('');
-    }
-  };
+    setIdeas((current) => [record, ...current]);
 
-  const handleUpdateStatus = async (kznId, newStatus) => {
-    const updated = kaizens.map((k) => {
-      if (k.id === kznId) {
-        let actual_saving = k.actual_saving;
-        let standardisation_status = k.standardisation_status;
-        if (newStatus === 'verified') {
-          actual_saving = k.category === 'energy_saving' ? 12000 : 45000; // Simulated calculator
-        }
-        if (newStatus === 'closed') {
-          standardisation_status = 'sop';
-        }
-        return {
-          ...k,
-          status: newStatus,
-          actual_saving,
-          standardisation_status,
-          verified_by_name: currentUser?.name || 'Supervisor',
-          verified_at: newStatus === 'verified' || newStatus === 'closed' ? new Date().toISOString() : k.verified_at
-        };
+    try {
+      const { data } = await supabase.from('kaizen_opportunities').insert(record).select();
+      if (data?.[0]) {
+        setIdeas((current) => current.map((idea) => (idea.id === record.id ? data[0] : idea)));
+        return data[0];
       }
-      return k;
+    } catch {
+      // Kept locally; the operator still gets their receipt.
+    }
+    return record;
+  }, [ideas]);
+
+  const handleDecision = useCallback((id, status, { comment } = {}) => {
+    persist(id, {
+      status,
+      ...(comment ? { review_comment: comment } : {}),
+      ...(status === 'approved' ? { approved_at: new Date().toISOString() } : {}),
+      updated_at: new Date().toISOString(),
     });
-    setKaizens(updated);
+  }, [persist]);
 
-    try {
-      await supabase.from('kaizen_opportunities').update({
-        status: newStatus,
-        verified_by_name: currentUser?.name || 'Supervisor',
-        verified_at: new Date().toISOString()
-      }).eq('id', kznId);
-    } catch {}
-  };
+  const handleCompleteTrial = useCallback((id) => {
+    const idea = ideas.find((row) => row.id === id);
+    persist(id, {
+      status: 'verified',
+      realized_savings: realizeSaving(idea),
+      verified_by_name: user?.name || 'Supervisor',
+      verified_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  }, [ideas, persist, user]);
 
-  const handleDeleteKaizen = async (kznId) => {
-    setKaizens(kaizens.filter((k) => k.id !== kznId));
-    try {
-      await supabase.from('kaizen_opportunities').delete().eq('id', kznId);
-    } catch {}
-  };
+  const handleStandardise = useCallback((id) => {
+    persist(id, {
+      status: 'closed',
+      standardisation_status: 'pm_checklist',
+      updated_at: new Date().toISOString(),
+    });
+  }, [persist]);
 
-  // Math KPI counts
-  const openKaizens = kaizens.filter(k => k.status !== 'closed' && k.status !== 'rejected').length;
-  const overdueKaizens = kaizens.filter(k => k.due_date && new Date(k.due_date) < new Date() && k.status !== 'closed').length;
-  const completedThisMonth = kaizens.filter(k => k.status === 'implemented' || k.status === 'verified' || k.status === 'closed').length;
-  const verifiedKaizens = kaizens.filter(k => k.status === 'verified' || k.status === 'closed').length;
-  const estimatedSavings = kaizens.reduce((sum, k) => sum + (k.status !== 'rejected' ? (k.estimated_cost * 4) : 0), 0);
-  const validatedSavings = kaizens.reduce((sum, k) => sum + k.actual_saving, 0);
-
-  // Action filter filtering
-  const filteredKaizens = kaizens.filter((k) => {
-    if (dashboardFilter === 'all') return true;
-    if (dashboardFilter === 'safety') return k.category === 'safety';
-    if (dashboardFilter === 'overdue') return k.due_date && new Date(k.due_date) < new Date() && k.status !== 'closed';
-    if (dashboardFilter === 'pending_verify') return k.status === 'implemented';
-    if (dashboardFilter === 'pending_approve') return k.status === 'submitted';
-    return true;
-  });
-
-  // Filter for active kaizens (in core view)
-  const activeKaizens = kaizens.filter(k => k.status !== 'closed' && k.status !== 'rejected');
+  const heading = ROLE_HEADINGS[role] || ROLE_HEADINGS[KAIZEN_ROLES.MANAGER];
 
   return (
-    <AppShell active="overview">
-      <main className="workspace-page kaizen-page" style={{ padding: '24px', color: '#e2e8f0', minHeight: '100vh', background: 'radial-gradient(circle at 10% 20%, #0b0f19 0%, #070a10 90%)' }}>
-
-        {/* Header Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
+    <AppShell active="kaizen">
+      <div className="decision-page md-dashboard rd-page kz-page" data-role={role} data-testid="kaizen-page">
+        <header className="md-header rd-header">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Bot style={{ color: 'var(--brand)', filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.5))' }} />
-              <h1 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'white' }}>Kaizen Improvements</h1>
-            </div>
-            <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.86rem' }}>Track active improvements. Submit → Approve → Implement → Verify → Close.</p>
+            <span className="eyebrow eyebrow-light">
+              <Lightbulb size={13} aria-hidden="true" /> {heading.kicker}
+            </span>
+            <h1>{heading.title}</h1>
+            <p>{heading.lead}</p>
           </div>
-
-            <button className={`vault-btn vault-btn-primary`} onClick={() => setActiveSubTab('add')} style={{ background: 'var(--brand)', color: '#000' }}>
-              <Plus size={16} /> Submit Idea
-            </button>
-        </div>
-
-        {/* CORE WORKFLOW - Active Kaizens Only */}
-        {activeSubTab === 'list' && (
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--slate)' }}>Loading kaizens...</div>
-            ) : activeKaizens.length === 0 ? (
-              <EmptyState
-                icon={Sparkles}
-                title="No Active Kaizen Improvements"
-                description="Kaizen drives continuous plant efficiency. Have an idea to reduce downtime or safety risks? Submit a proposal!"
-                primaryAction={{
-                  label: 'Submit First Idea',
-                  onClick: () => setActiveSubTab('add')
-                }}
-              />
-            ) : activeKaizens.map((k) => (
-              <div id={k.id} key={k.id} className="glass-panel" style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem' }}>{k.id}: {k.title}</h3>
-                    <span style={{ background: k.status === 'closed' ? '#064e3b' : '#311005', color: k.status === 'closed' ? '#34d399' : '#f97316', fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{k.status.toUpperCase()}</span>
-                  </div>
-                  <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: '1.4' }}>{k.proposal}</p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderLeft: '1px solid rgba(255,255,255,0.06)', paddingLeft: '20px' }}>
-                  <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem' }}>
-                    <div><span style={{ color: 'var(--slate)' }}>Submitted by:</span> <strong style={{ color: 'white' }}>{k.created_by_name}</strong></div>
-                    {k.due_date && <div><span style={{ color: 'var(--slate)' }}>Target date:</span> <strong style={{ color: 'white' }}>{k.due_date}</strong></div>}
-                    {k.verified_by_name && <div><span style={{ color: 'var(--slate)' }}>Verified by:</span> <strong style={{ color: 'white' }}>{k.verified_by_name}</strong></div>}
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                    {k.status === 'submitted' && (
-                      <>
-                        <button className="vault-btn vault-btn-primary" style={{ background: '#3b82f6', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'approved')}>Approve</button>
-                        <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'need_information')}>Request Info</button>
-                      </>
-                    )}
-                    {k.status === 'approved' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#f59e0b', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'in_progress')}>Start</button>
-                    )}
-                    {k.status === 'in_progress' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => {
-                        const updated = kaizens.map((x) => x.id === k.id ? { ...x, status: 'implemented', after_photo_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=200&auto=format&fit=crop' } : x);
-                        setKaizens(updated);
-                      }}>Submit Evidence</button>
-                    )}
-                    {k.status === 'implemented' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: '#10b981', color: '#fff', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'verified')}>Verify</button>
-                    )}
-                    {k.status === 'verified' && (
-                      <button className="vault-btn vault-btn-primary" style={{ background: 'var(--brand)', color: '#000', padding: '4px 12px', fontSize: '0.78rem' }} onClick={() => handleUpdateStatus(k.id, 'closed')}>Close</button>
-                    )}
-                    <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.78rem', marginLeft: 'auto' }} onClick={() => handleDeleteKaizen(k.id)}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              </div>
+          <div className="decision-actions">
+            {heading.links.map((link) => (
+              <a
+                key={link.href}
+                className={`btn btn-sm ${link.primary ? 'btn-primary' : 'btn-ghost'}`}
+                href={link.href}
+              >
+                {link.label}
+              </a>
             ))}
           </div>
-        )}
+        </header>
 
-        {/* SUBMIT NEW KAIZEN FORM */}
-        {activeSubTab === 'add' && (
-          <div className="glass-panel" style={{ maxWidth: '520px', margin: '0 auto', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 16px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Suggest New Kaizen</h3>
-            <div style={{ background: 'rgba(74,222,128,0.06)', border: '1px dashed rgba(74,222,128,0.25)', borderRadius: '8px', padding: '14px', marginBottom: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', textAlign: 'center' }}>AI Voice Interpreter: Speak naturally in Hindi/English</div>
-              <button type="button" className={`vault-btn ${isVoiceRecording ? 'vault-btn-primary animate-pulse' : 'vault-btn-ghost'}`} onClick={simulateVoiceRecording} style={{ background: isVoiceRecording ? '#ef4444' : 'transparent', color: isVoiceRecording ? 'white' : 'var(--brand)', minWidth: '160px' }}>
-                <Mic size={16} /> {isVoiceRecording ? 'Listening...' : 'Record Voice'}
-              </button>
-              {audioUrl && <span style={{ fontSize: '0.72rem', color: '#25D366' }}>Voice parsed! Form filled.</span>}
-            </div>
-
-            <form onSubmit={handleCreateKaizen} style={{ display: 'grid', gap: '14px' }}>
-              <div className="vault-field">
-                <label htmlFor="kzn-machine-select">Related machine <strong aria-hidden="true">*</strong></label>
-                <select id="kzn-machine-select" value={machineId} onChange={(e) => setMachineId(e.target.value)} required>
-                  <option value="">Select Machine</option>
-                  {machines.map((m) => <option key={m.id} value={m.machine_id}>{m.machine_id} — {m.machine_name}</option>)}
-                </select>
-              </div>
-
-              <div className="vault-field">
-                <label>Idea title <strong aria-hidden="true">*</strong></label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Relocate unloading trolley" required />
-              </div>
-
-              <div className="vault-field">
-                <label>Proposal details <strong aria-hidden="true">*</strong></label>
-                <textarea value={proposal} onChange={(e) => setProposal(e.target.value)} rows={3} placeholder="Describe the problem and solution..." required />
-              </div>
-
-              {error && <div style={{ color: '#F87171', fontSize: '0.8rem' }}>{error}</div>}
-
-              <button type="submit" className="vault-btn vault-btn-primary" disabled={submitting} style={{ background: 'var(--brand)', color: '#000', marginTop: '8px' }}>
-                {submitting ? 'Saving idea...' : 'Submit Kaizen'}
-              </button>
-            </form>
+        {error && (
+          <div className="decision-alert">
+            {error}. Showing sample ideas until the workspace is reachable.
           </div>
         )}
 
-        {/* ADVANCED FEATURES DRILL-DOWN */}
-        <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
-          {/* SUBTAB 1: DASHBOARD SUMMARY - ADVANCED ANALYTICS */}
-          <div>
-            {/* Top summary cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-              {[
-                { title: 'Open Kaizens', val: openKaizens, color: '#60A5FA', icon: ClipboardList, desc: 'Improvement workload' },
-                { title: 'Overdue Kaizens', val: overdueKaizens, color: '#F87171', icon: ShieldAlert, desc: 'Attention required' },
-                { title: 'Completed Month', val: completedThisMonth, color: '#34D399', icon: CheckSquare, desc: 'Improvements implemented' },
-                { title: 'Verified Kaizens', val: verifiedKaizens, color: '#25D366', icon: CheckCircle2, desc: 'Confirmed results' },
-                { title: 'Estimated Annual Saving', val: `₹${estimatedSavings.toLocaleString('en-IN')}`, color: '#FBBF24', icon: Coins, desc: 'Financial opportunity' },
-                { title: 'Validated Saving', val: `₹${validatedSavings.toLocaleString('en-IN')}`, color: '#A78BFA', icon: Sparkles, desc: 'Audited financial benefit' }
-              ].map((c, i) => (
-                <div key={i} style={{ background: 'rgba(15,23,42,0.6)', border: `1px solid rgba(255,255,255,0.06)`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <small style={{ color: 'var(--slate)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>{c.title}</small>
-                    <c.icon size={16} style={{ color: c.color }} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#fff', fontFamily: 'Rajdhani, sans-serif' }}>{c.val}</h3>
-                    <small style={{ color: 'var(--slate)', fontSize: '0.68rem' }}>{c.desc}</small>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {loading && <p className="rd-loading" role="status">Loading improvement ideas…</p>}
 
-            {/* Middle Section: Funnel & Wastes */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-              {/* Funnel */}
-              <div className="glass-panel" style={{ padding: '20px' }}>
-                <h4 style={{ margin: '0 0 14px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Kaizen Pipeline Funnel</h4>
-                <div style={{ display: 'grid', gap: '8px' }}>
-                  {[
-                    { label: 'Submitted / Review', count: kaizens.filter(k => k.status === 'submitted').length, color: '#94A3B8' },
-                    { label: 'Approved & Planned', count: kaizens.filter(k => k.status === 'approved' || k.status === 'planned').length, color: '#60A5FA' },
-                    { label: 'In Progress / Open', count: kaizens.filter(k => k.status === 'in_progress').length, color: '#FBBF24' },
-                    { label: 'Awaiting Verification', count: kaizens.filter(k => k.status === 'implemented').length, color: '#F87171' },
-                    { label: 'Closed / SOP Update', count: kaizens.filter(k => k.status === 'closed' || k.status === 'verified').length, color: '#25D366' }
-                  ].map((s, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '130px', fontSize: '0.78rem', color: 'var(--slate)' }}>{s.label}</div>
-                      <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '999px', overflow: 'hidden' }}>
-                        <div style={{ width: `${Math.min(100, (s.count / (kaizens.length || 1)) * 100)}%`, height: '100%', background: s.color, borderRadius: '999px' }}></div>
-                      </div>
-                      <b style={{ color: '#fff', fontSize: '0.8rem', width: '20px', textAlign: 'right' }}>{s.count}</b>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {!loading && isDemo && (
+          <p className="rd-demo-banner" data-testid="kaizen-demo-banner">
+            Showing a sample improvement programme — no Kaizen ideas came back from the workspace.
+            Every figure below is illustrative until your plant data loads.
+          </p>
+        )}
 
-              {/* Lean Waste analysis */}
-              <div className="glass-panel" style={{ padding: '20px' }}>
-                <h4 style={{ margin: '0 0 14px', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Seven Wastes Addressed</h4>
-                <div style={{ display: 'grid', gap: '6px' }}>
-                  {LEAN_WASTES.map((w) => {
-                    const cnt = kaizens.filter((k) => k.waste_category === w.value).length;
-                    return (
-                      <div key={w.value} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                        <span style={{ color: '#cbd5e1' }}>{w.label}</span>
-                        <span style={{ color: 'var(--brand)', fontWeight: 'bold' }}>{cnt} opportunity{cnt === 1 ? '' : 'ies'}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+        {role === KAIZEN_ROLES.OPERATOR && (
+          <OperatorKaizen
+            metrics={metrics}
+            user={effectiveUser}
+            machines={machines}
+            onSubmit={handleSubmitIdea}
+            loading={loading}
+          />
+        )}
 
-            {/* Bottom Section: Priority Action Panel */}
-            <div className="glass-panel" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', color: 'white' }}>Priority Action Panel</h4>
-                <select aria-label="Filter action items" value={dashboardFilter} onChange={(e) => setDashboardFilter(e.target.value)} style={{ width: '180px', padding: '4px' }}>
-                  <option value="all">Show All Items</option>
-                  <option value="safety">Safety-Critical Opportunities</option>
-                  <option value="overdue">Overdue Actions</option>
-                  <option value="pending_verify">Awaiting Verification</option>
-                  <option value="pending_approve">Awaiting Approval</option>
-                </select>
-              </div>
+        {role === KAIZEN_ROLES.SUPERVISOR && (
+          <SupervisorKaizen
+            metrics={metrics}
+            onDecision={handleDecision}
+            onCompleteTrial={handleCompleteTrial}
+            onStandardise={handleStandardise}
+            loading={loading}
+          />
+        )}
 
-              {filteredKaizens.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--slate)', padding: '20px' }}>No items match current priority filter.</div>
-              ) : (
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  {filteredKaizens.map((k) => (
-                    <div key={k.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 14px', background: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' }}>
-                      <div>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <b style={{ color: '#fff', fontSize: '0.85rem' }}>{k.id}</b>
-                          <span style={{ background: k.category === 'safety' ? 'rgba(239,68,68,0.2)' : 'rgba(96,165,250,0.15)', color: k.category === 'safety' ? '#f87171' : '#60a5fa', fontSize: '0.66rem', fontWeight: 'bold', padding: '1px 8px', borderRadius: '999px' }}>{k.category.toUpperCase()}</span>
-                          <span style={{ color: 'var(--slate)', fontSize: '0.72rem' }}>Machine: {k.machine_id}</span>
-                        </div>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#cbd5e1' }}>{k.title}</p>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#fbbf24', fontWeight: 650 }}>{k.status}</span>
-                        <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.72rem' }} onClick={() => { setActiveSubTab('list'); setTimeout(() => { document.getElementById(k.id)?.scrollIntoView({ behavior: 'smooth' }) }, 100); }}>View details</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </AdvancedFeaturesDrilldown>
-
-      </main>
+        {role === KAIZEN_ROLES.MANAGER && (
+          <ManagerKaizen metrics={metrics} loading={loading} />
+        )}
+      </div>
     </AppShell>
   );
 }
