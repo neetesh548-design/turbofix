@@ -368,6 +368,13 @@ export default function TicketDetailPanel({
               {label}
             </button>
           ))}
+          <a
+            className="tickets-stage-btn"
+            href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=reliability&open=rca`}
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            RCA
+          </a>
           <button
             type="button"
             className="tickets-stage-btn"
