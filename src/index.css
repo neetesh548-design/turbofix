@@ -8442,8 +8442,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .machine-workspace-pulse .attention > span { color: #fca5a5; background: rgba(127, 29, 29, .24); }
 .machine-workspace-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
   padding: 12px;
   border: 1px solid rgba(130, 151, 174, .16);
   border-bottom: 1px solid rgba(130, 151, 174, .14);
@@ -8460,7 +8462,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   display: flex;
   width: auto !important;
   min-width: 0;
-  min-height: 68px;
+  min-height: 74px;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
@@ -8499,6 +8501,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .machine-workspace-tabs button > b { display: grid; min-width: 20px; height: 20px; margin-left: auto; place-items: center; border-radius: 999px; color: #9eb1c3; background: #27384a; font-size: .58rem; }
 .machine-workspace-tabs button.active > b { color: #d9ffe6; background: rgba(22, 101, 52, .55); }
 .machine-workspace-tabs + div { overflow-x: auto; padding: 24px; }
+.machine-workspace-tabs + div { margin-top: 16px; }
 .machine-overview-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; align-items: start; gap: 18px; }
 .machine-overview-main, .machine-next-action, .machine-response-team { border: 1px solid #33465a; border-radius: 12px; background: #152230; }
 .machine-overview-main { padding: 20px; }
@@ -8676,7 +8679,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @media (max-width: 1450px) {
-  .machine-workspace-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .machine-workspace-tabs { max-width: 100%; }
 }
 
 @media (max-width: 1120px) {
@@ -8686,7 +8689,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   .machine-workspace-pulse { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .machine-workspace-pulse > div:nth-child(2) { border-right: 0; }
   .machine-workspace-pulse > div:nth-child(-n+2) { border-bottom: 1px solid #304154; }
-  .machine-workspace-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .machine-workspace-tabs { max-width: 100%; }
   .machine-overview-grid { grid-template-columns: 1fr; }
   .machine-overview-side { grid-template-columns: 1fr 1fr; }
   .consumables-planning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -8704,8 +8707,8 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   .machine-workspace-pulse { grid-template-columns: 1fr; }
   .machine-workspace-pulse > div { border-right: 0; border-bottom: 1px solid #304154; }
   .machine-workspace-pulse > div:last-child { border-bottom: 0; }
-  .machine-workspace-tabs { display: flex; overflow-x: auto; padding: 9px; gap: 8px; border-radius: 16px; }
-  .machine-workspace-tabs button { min-width: 168px; flex: 0 0 auto; }
+  .machine-workspace-tabs { display: grid; grid-template-columns: 1fr; overflow: visible; padding: 10px; gap: 8px; border-radius: 16px; max-width: 100%; }
+  .machine-workspace-tabs button { min-width: 0; width: 100%; flex: initial; }
   .machine-workspace-tabs + div { padding: 15px 12px; }
   .machine-overview-main { padding: 15px 12px; }
   .machine-section-heading { align-items: flex-start; flex-direction: column; }
@@ -9986,6 +9989,5 @@ a:focus-visible,
 .tf-calm-pulse {
   animation: calm-pulse 3s infinite ease-in-out;
 }
-
 
 
