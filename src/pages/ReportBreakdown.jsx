@@ -79,24 +79,24 @@ const BASE = import.meta.env.BASE_URL;
 /** Header copy per role. Says what this page does *for them*. */
 const ROLE_HEADINGS = {
   [BREAKDOWN_ROLES.OPERATOR]: {
-    kicker: 'I see a problem',
-    title: 'Report a breakdown',
-    lead: 'Scan or search the machine, say what is wrong, send. Ten seconds and someone is on it.',
+    kicker: 'Report a breakdown',
+    title: 'Tell TurboFix what happened',
+    lead: 'Pick the machine, add a short description, and send it on.',
   },
   [BREAKDOWN_ROLES.TECHNICIAN]: {
-    kicker: 'I found an issue',
-    title: 'Log what you found',
-    lead: 'Log it while you are standing there. Your call on severity decides who gets called over.',
+    kicker: 'Log an issue',
+    title: 'Capture what you found',
+    lead: 'Add the machine, describe the fault, and keep moving.',
   },
   [BREAKDOWN_ROLES.SUPERVISOR]: {
-    kicker: 'Report from the floor',
-    title: 'Raise and assign',
-    lead: 'File it, assign it and price the downtime in one pass — the technician is notified immediately.',
+    kicker: 'Raise and assign',
+    title: 'Route the next action',
+    lead: 'Pick the machine, assign ownership, and send it forward.',
   },
   [BREAKDOWN_ROLES.VENDOR]: {
     kicker: 'Contracted equipment',
-    title: 'Report an issue',
-    lead: 'Report on the units you are responsible for. The plant technician and your contact are both notified.',
+    title: 'Report a machine issue',
+    lead: 'Choose the machine you support and add the problem.',
   },
 };
 
@@ -488,13 +488,13 @@ export default function ReportBreakdown() {
 
         {error && (
           <div className="decision-alert">
-            {error}. Showing sample machines until the workspace is reachable.
+            {error}. Sample machines are shown until the workspace is reachable.
           </div>
         )}
 
         {isDemo && !loading && (
           <p className="rd-demo-banner" data-testid="breakdown-demo-banner">
-            Showing a sample plant — no machines came back from the workspace. Reports filed here stay on this device.
+            Showing a sample plant until live machine data is available.
           </p>
         )}
 
@@ -503,7 +503,7 @@ export default function ReportBreakdown() {
             <section className="brk-step" aria-labelledby="brk-step-1">
               <header className="brk-step-head">
                 <span className="brk-step-num" aria-hidden="true">1</span>
-                <h2 id="brk-step-1">Which machine?</h2>
+                <h2 id="brk-step-1">Machine</h2>
               </header>
               <MachineSelector
                 machines={selectableMachines}
@@ -520,7 +520,7 @@ export default function ReportBreakdown() {
             <section className="brk-step" aria-labelledby="brk-step-2">
               <header className="brk-step-head">
                 <span className="brk-step-num" aria-hidden="true">2</span>
-                <h2 id="brk-step-2">What’s wrong?</h2>
+                <h2 id="brk-step-2">Issue</h2>
               </header>
               <IssueCapture
                 value={draft.issueText}
@@ -537,7 +537,7 @@ export default function ReportBreakdown() {
             <section className="brk-step" aria-labelledby="brk-step-3">
               <header className="brk-step-head">
                 <span className="brk-step-num" aria-hidden="true">3</span>
-                <h2 id="brk-step-3">Photo?</h2>
+                <h2 id="brk-step-3">Photo</h2>
               </header>
               <PhotoCapture
                 value={draft.photoUrl}
@@ -553,9 +553,9 @@ export default function ReportBreakdown() {
                 <header className="brk-step-head">
                   <span className="brk-step-num" aria-hidden="true">4</span>
                   <h2 id="brk-step-role">
-                    {role === BREAKDOWN_ROLES.TECHNICIAN && 'Your findings'}
-                    {role === BREAKDOWN_ROLES.SUPERVISOR && 'Your context'}
-                    {role === BREAKDOWN_ROLES.VENDOR && 'Your contact'}
+                    {role === BREAKDOWN_ROLES.TECHNICIAN && 'Findings'}
+                    {role === BREAKDOWN_ROLES.SUPERVISOR && 'Assignment'}
+                    {role === BREAKDOWN_ROLES.VENDOR && 'Contact'}
                   </h2>
                 </header>
                 <RoleForm

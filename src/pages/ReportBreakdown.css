@@ -161,20 +161,20 @@
 .brk-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brk-main {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
 }
 
 .brk-side {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 .brk-side:empty { display: none; }
@@ -184,8 +184,8 @@
    ------------------------------------------------------------ */
 
 .brk-step {
-  padding: 16px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   border: 1px solid var(--md-line);
   background: var(--md-panel);
   box-shadow: var(--md-shadow);
@@ -195,11 +195,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .brk-step-head h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.94rem;
   font-weight: 600;
   color: var(--md-ink);
 }
@@ -208,14 +208,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   border-radius: 50%;
   border: 1px solid var(--md-line-strong);
   background: rgba(250, 245, 238, 0.05);
   color: var(--md-ink-dim);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -261,7 +261,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 260px;
+  max-height: 240px;
   overflow-y: auto;
 }
 
@@ -271,9 +271,9 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  min-height: 52px;
-  padding: 8px 12px;
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 7px 11px;
+  border-radius: 9px;
   border: 1px solid transparent;
   background: rgba(250, 245, 238, 0.02);
   color: var(--md-ink);
@@ -304,8 +304,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: 11px;
   border: 1px solid rgba(92, 148, 80, 0.34);
   background: rgba(92, 148, 80, 0.09);
 }
@@ -400,7 +400,7 @@
    Step 2 — issue capture
    ------------------------------------------------------------ */
 
-.brk-issue { display: flex; flex-direction: column; gap: 12px; }
+.brk-issue { display: flex; flex-direction: column; gap: 10px; }
 
 .brk-issue-box {
   border-radius: 12px;
@@ -421,7 +421,7 @@
   font-size: 0.95rem;
   line-height: 1.5;
   resize: vertical;
-  min-height: 84px;
+  min-height: 72px;
 }
 .brk-issue-box textarea:focus { outline: none; }
 .brk-issue-box textarea::placeholder { color: var(--md-ink-dim); opacity: 0.65; }
@@ -431,7 +431,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   border-top: 1px solid var(--md-line);
 }
 
@@ -595,7 +595,7 @@
 .brk-role-fields {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .brk-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; border: none; margin: 0; padding: 0; }
@@ -612,8 +612,8 @@
 .brk-field input,
 .brk-field select {
   min-height: 44px;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 7px 11px;
+  border-radius: 9px;
   border: 1px solid var(--md-line-strong);
   background: rgba(250, 245, 238, 0.04);
   color: var(--md-ink);
@@ -629,9 +629,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-height: 52px;
-  padding: 9px 12px;
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 8px 11px;
+  border-radius: 9px;
   border: 1px solid var(--md-line-strong);
   background: rgba(250, 245, 238, 0.03);
   color: var(--md-ink-dim);
@@ -665,8 +665,8 @@
 
 .brk-history,
 .brk-preview {
-  padding: 14px;
-  border-radius: 13px;
+  padding: 12px;
+  border-radius: 12px;
   border: 1px solid var(--md-line);
   background: var(--md-panel);
   box-shadow: var(--md-shadow);
@@ -737,8 +737,8 @@
 
 .brk-receipt {
   max-width: 620px;
-  margin: 24px auto;
-  padding: 26px 20px;
+  margin: 20px auto;
+  padding: 22px 18px;
   text-align: center;
   border-radius: 16px;
   border: 1px solid rgba(92, 148, 80, 0.32);
@@ -758,13 +758,13 @@
 .brk-receipt-facts {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin: 0 0 16px;
   text-align: left;
 }
 .brk-receipt-facts > div {
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
   border: 1px solid var(--md-line);
   background: rgba(250, 245, 238, 0.03);
 }
@@ -832,9 +832,9 @@
   .brk-page { padding-bottom: 40px; }
 
   .brk-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
     align-items: start;
-    gap: 16px;
+    gap: 14px;
   }
 
   .brk-side { position: sticky; top: 84px; }
@@ -858,8 +858,8 @@
    ------------------------------------------------------------ */
 
 @media (min-width: 1180px) {
-  .brk-step { padding: 20px; }
-  .brk-layout { gap: 18px; }
+  .brk-step { padding: 18px; }
+  .brk-layout { gap: 16px; }
 }
 
 /* ------------------------------------------------------------
