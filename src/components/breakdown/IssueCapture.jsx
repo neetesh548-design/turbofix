@@ -58,12 +58,30 @@ export default function IssueCapture({
   const [transcribing, setTranscribing] = useState(false);
   const [voiceNote, setVoiceNote] = useState('');
   const recorderRef = useRef(null);
+  const micStreamRef = useRef(null);
   const chunksRef = useRef([]);
 
+  const getLiveMicStream = async () => {
+    const existing = micStreamRef.current;
+    const hasLiveTrack = existing?.getAudioTracks?.().some((track) => track.readyState === 'live');
+    if (hasLiveTrack) return existing;
+    micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return micStreamRef.current;
+  };
+
+  const releaseMicStream = () => {
+    micStreamRef.current?.getTracks?.().forEach((track) => track.stop());
+    micStreamRef.current = null;
+  };
+
+  const getRecorderOptions = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+    const mimeType = types.find((type) => window.MediaRecorder?.isTypeSupported?.(type));
+    return mimeType ? { mimeType } : undefined;
+  };
+
   // Never leave the microphone hot behind a navigation.
-  useEffect(() => () => {
-    try { recorderRef.current?.stream?.getTracks?.().forEach((track) => track.stop()); } catch { /* already gone */ }
-  }, []);
+  useEffect(() => releaseMicStream, []);
 
   const appendTranscript = (text) => {
     const clean = String(text || '').trim();
@@ -72,7 +90,9 @@ export default function IssueCapture({
   };
 
   const stopVoice = () => {
-    try { recorderRef.current?.stop(); } catch { setListening(false); }
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      try { recorderRef.current.stop(); } catch { setListening(false); }
+    }
   };
 
   const microphoneErrorMessage = async (error) => {
@@ -97,16 +117,21 @@ export default function IssueCapture({
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new window.MediaRecorder(stream);
-      recorder.stream = stream;
       chunksRef.current = [];
+      const stream = await getLiveMicStream();
+      const recorder = new window.MediaRecorder(stream, getRecorderOptions());
 
       recorder.ondataavailable = (event) => { if (event.data?.size) chunksRef.current.push(event.data); };
       recorder.onstop = async () => {
-        stream.getTracks().forEach((track) => track.stop());
+        releaseMicStream();
         setListening(false);
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        chunksRef.current = [];
+        recorderRef.current = null;
+        if (!blob.size) {
+          setVoiceNote('Recording is empty. Please re-record once.');
+          return;
+        }
         if (!onTranscribe) {
           setVoiceNote('Recording kept with the report. Add a line of text so the technician can read it too.');
           return;
@@ -131,6 +156,7 @@ export default function IssueCapture({
       setListening(true);
       recorder.start();
     } catch (error) {
+      releaseMicStream();
       setListening(false);
       setVoiceNote(await microphoneErrorMessage(error));
     }

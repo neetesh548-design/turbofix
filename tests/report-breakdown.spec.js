@@ -169,11 +169,19 @@ test.describe('Report breakdown scenarios', () => {
           constructor(input) {
             this.stream = input;
             this.mimeType = 'audio/webm';
+            this.state = 'inactive';
           }
 
-          start() {}
+          static isTypeSupported() {
+            return true;
+          }
+
+          start() {
+            this.state = 'recording';
+          }
 
           stop() {
+            this.state = 'inactive';
             this.ondataavailable?.({ data: new Blob(['voice'], { type: this.mimeType }) });
             this.onstop?.();
           }
