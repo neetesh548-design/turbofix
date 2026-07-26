@@ -191,6 +191,21 @@ export default function RCA() {
               </p>
             </section>
 
+            {ticket && (
+              <section className="rd-panel" style={{ marginBottom: 14 }}>
+                <span className="eyebrow eyebrow-light">Ticket details</span>
+                <h2 style={{ margin: '6px 0 0' }}>Original issue</h2>
+                <p style={{ marginTop: 12, lineHeight: 1.6, color: 'var(--muted-foreground)' }}>
+                  {ticket.issue_text || 'No description provided'}
+                </p>
+                {ticket.created_at && (
+                  <p className="rd-hint" style={{ marginTop: 10 }}>
+                    Reported on {new Date(ticket.created_at).toLocaleDateString()} at {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
+              </section>
+            )}
+
             <div className="rd-split">
               <section className="rd-panel" id="rca">
                 <span className="eyebrow eyebrow-light">RCA input</span>
