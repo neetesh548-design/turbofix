@@ -204,13 +204,14 @@ export function partCriticality(item) {
  */
 export function normalizeItem(item, { type = 'part', now = new Date() } = {}) {
   const reference = toDate(now);
-  const stock = asNumber(item?.stock_qty);
-  const reserved = asNumber(item?.reserved_qty);
+  // Map database columns to expected format
+  const stock = asNumber(item?.stock_qty || item?.qty_on_hand);
+  const reserved = asNumber(item?.reserved_qty || 0);
   const available = stock - reserved;
   const reorder = asNumber(item?.reorder_level);
-  const unitCost = asNumber(item?.unit_cost);
-  const leadTimeDays = asNumber(item?.lead_time_days);
-  const monthlyUsage = asNumber(item?.monthly_usage);
+  const unitCost = asNumber(item?.unit_cost || 0);
+  const leadTimeDays = asNumber(item?.lead_time_days || 0);
+  const monthlyUsage = asNumber(item?.monthly_usage || 0);
 
   // Nobody sets a max level by hand, so infer one: four reorder-levels of
   // cover is comfortably more than any reorder cycle needs.
@@ -234,8 +235,8 @@ export function normalizeItem(item, { type = 'part', now = new Date() } = {}) {
   });
 
   return {
-    id: item?.id ?? item?.part_number ?? item?.name,
-    name: item?.name || 'Unnamed item',
+    id: item?.id ?? item?.part_number ?? item?.name ?? item?.part_name,
+    name: item?.name || item?.part_name || 'Unnamed item',
     partNumber: item?.part_number || '',
     machine: item?.associated_machine || 'Unassigned',
     machinePriority: criticality.priority,
