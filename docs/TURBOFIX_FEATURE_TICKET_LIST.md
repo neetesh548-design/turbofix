@@ -43,6 +43,11 @@
 - Reduce manual entry
 - Keep review and correction
 
+### 9. AI simplification
+- Rename visible AI surfaces into task language where possible.
+- Keep AI help contextual and optional.
+- Keep the review step before any AI output becomes trusted.
+
 ## Ticket template
 
 Each ticket should include:

@@ -2137,7 +2137,7 @@ export default function Machines() {
                   {isOwner && <button type="button" className="machine-action secondary" onClick={openMachineEdit}><Pencil />Edit details</button>}
                   <button type="button" className="machine-action secondary" onClick={() => setWsTab('docs')}><Upload />Add document</button>
                   <a className="machine-action secondary" href={`records.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}&upload=1`}><FileCheck2 />Add old records</a>
-                  <a className="machine-action primary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Ask TurboFix AI</a>
+                  <a className="machine-action primary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Get help</a>
                 </div>
               </header>
 

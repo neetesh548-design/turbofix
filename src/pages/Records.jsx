@@ -367,7 +367,7 @@ function ReviewDialog({ record, machine, user, onClose, onUpdated }) {
         <aside className="records-source-panel">
           <div className={`records-source-preview${sourceUrl ? ' document' : ''}`}>{sourceUrl ? (sourceMime === 'application/pdf' ? <iframe src={sourceUrl} title={`Original ${record.file_name}`} /> : <img src={sourceUrl} alt={`Original ${record.file_name}`} />) : <><FileText /><strong>{record.file_name || 'Original source'}</strong><span>{label(record.source_kind)} record</span></>}</div>
           <button className="records-button secondary full" onClick={downloadOriginal} disabled={!record.document_id}><Download />Download original</button>
-          <div className="records-source-facts"><span><b>AI confidence</b><Confidence value={record.overall_confidence} /></span><span><b>Uploaded</b>{formatDate(record.created_at)}</span><span><b>Version</b>{record.version}</span></div>
+          <div className="records-source-facts"><span><b>Review needed</b><Confidence value={record.overall_confidence} /></span><span><b>Uploaded</b>{formatDate(record.created_at)}</span><span><b>Version</b>{record.version}</span></div>
           <div className="records-confidence-help"><Info /><span>Confidence helps prioritize checking. It does not replace human verification.</span></div>
           <div className="records-history"><h3><History />Activity</h3>{(record.history || []).slice().reverse().map((item, index) => <div key={`${item.at}-${index}`}><span className="records-history-dot" /><p><strong>{label(item.action)}</strong><span>{item.name || item.by} · {formatDate(item.at)}</span>{item.note && <small>{item.note}</small>}</p></div>)}</div>
         </aside>
@@ -435,7 +435,7 @@ export default function Records() {
   }, [initialMachineId]);
 
   useEffect(() => {
-    document.title = 'AI Records | TurboFix';
+    document.title = 'Work Records | TurboFix';
     load();
   }, [load]);
 

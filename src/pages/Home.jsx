@@ -234,8 +234,8 @@ const contentByLanguage = {
 };
 
 const platformFeatures = [
-  { icon: ScanText, title: 'AI Records & Machine Knowledge', body: 'Photograph handwritten registers or upload PDFs, Excel, Word, CSV, manuals, job cards, BOMs, and spare lists for structured review.' },
-  { icon: BrainCircuit, title: 'AI Assistant', body: 'Ask about one machine or the entire plant. Get recommendations grounded in machine knowledge, history, and current work.' },
+  { icon: ScanText, title: 'Records & Machine Knowledge', body: 'Photograph handwritten registers or upload PDFs, Excel, Word, CSV, manuals, job cards, BOMs, and spare lists for structured review.' },
+  { icon: BrainCircuit, title: 'Maintenance Help', body: 'Ask about one machine or the entire plant. Get recommendations grounded in machine knowledge, history, and current work.' },
   { icon: CalendarClock, title: 'Shutdown Planner', body: 'Prioritize the right machines and prepare an achievable sequence.' },
   { icon: ClipboardCheck, title: 'Technician Work Board', body: 'Give technicians a focused queue with checklists, notes, parts, evidence, and supervisor review.' },
   { icon: TicketCheck, title: 'WhatsApp Dispatch', body: 'Capture machine breakdowns, dispatch tickets to technicians, and track resolution progress.' },

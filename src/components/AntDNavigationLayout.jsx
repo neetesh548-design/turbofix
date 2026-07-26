@@ -17,9 +17,9 @@ const { Header, Sider, Content, Footer } = Layout;
 const getNavMenuItems = (t) => [
   { key: 'dashboard', label: t('nav.dashboard'), path: '/dashboard.html', icon: '📊' },
   { key: 'machines', label: 'Machines', path: '/machines.html', icon: '⚙️' },
-  { key: 'records', label: 'AI Records', path: '/records.html', icon: '📋' },
+  { key: 'records', label: 'Work Records', path: '/records.html', icon: '📋' },
   { key: 'tickets', label: 'Tickets', path: '/tickets.html', icon: '🎫' },
-  { key: 'assistant', label: 'AI Assistant', path: '/assistant.html', icon: '🤖' },
+  { key: 'assistant', label: 'Maintenance Help', path: '/assistant.html', icon: '🤖' },
   { key: 'shutdown', label: 'Shutdown Planner', path: '/shutdown-planner.html', icon: '🛑' },
   { key: 'technician', label: 'Technician', path: '/technician.html', icon: '🔧' },
   { key: 'inventory', label: 'Inventory', path: '/inventory.html', icon: '📦' },
@@ -163,7 +163,7 @@ export const AntDNavigationLayout = ({
           fontSize: '12px',
           color: '#999',
         }}>
-          TurboFix © 2026 · AI Maintenance Decision Platform
+          TurboFix © 2026 · Maintenance decision platform
         </Footer>
       </Layout>
     </Layout>

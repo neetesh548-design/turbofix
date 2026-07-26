@@ -94,8 +94,8 @@ const NAV_LIVE = [
   { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
   { id: 'inventory', label: 'Inventory', href: BASE + 'inventory.html', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96L12 12.01l8.73-5.05M12 22.08V12' },
   { id: 'kaizen', label: 'Kaizen', href: BASE + 'kaizen.html', icon: 'M9 12l2 2 4-4M7.833 4.667H16.17c.92 0 1.667.746 1.667 1.666v11.334c0 .92-.746 1.666-1.667 1.666H7.833c-.92 0-1.666-.746-1.666-1.666V6.333c0-.92.746-1.666 1.666-1.666z' },
-  { id: 'assistant', label: 'AI Assistant', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
-  { id: 'records', label: 'AI Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
+  { id: 'assistant', label: 'Maintenance Help', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
+  { id: 'records', label: 'Work Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
   { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: 'M12 3v9l6 3M12 21a9 9 0 100-18 9 9 0 000 18z' },
   { id: 'support', label: 'Support & Decisions', href: BASE + 'support.html', icon: 'M12 22a10 10 0 110-20 10 10 0 010 20zm-1-6h2v2h-2v-2zm1-10a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 2-3 5h2c0-2 3-2 3-5a4 4 0 00-4-4z' },
   { id: 'team', label: 'Team', href: BASE + 'team.html', icon: 'M16 11a4 4 0 10-8 0 4 4 0 008 0zm-8 2a6 6 0 00-6 6v1h20v-1a6 6 0 00-6-6H8z' },
@@ -498,7 +498,7 @@ export default function AppShell({ children, active }) {
         type="button"
         className={`app-sidebar-trigger${sidebarOpen ? ' active' : ''}`}
         onClick={() => setSidebarOpen((open) => !open)}
-        aria-label="Open AI Assistant"
+        aria-label="Open maintenance help"
       >
         <Sparkles size={20} />
         <span>Ask AI</span>
@@ -509,7 +509,7 @@ export default function AppShell({ children, active }) {
         <header className="app-sidebar-header">
           <div className="app-sidebar-title">
             <Sparkles className="glow-icon" size={18} />
-            <span>AI Assistant</span>
+            <span>Maintenance Help</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button

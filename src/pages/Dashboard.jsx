@@ -210,7 +210,7 @@ export default function Dashboard() {
           </div>
           <div className="decision-actions">
             <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
-            <a className="btn btn-primary btn-sm" href="assistant.html">Ask the AI assistant</a>
+            <a className="btn btn-primary btn-sm" href="assistant.html">Open maintenance help</a>
           </div>
         </header>
 

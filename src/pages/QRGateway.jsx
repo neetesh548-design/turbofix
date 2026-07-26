@@ -1791,7 +1791,7 @@ export default function QRGateway() {
                 ))}
                 {extractedInfo?.confidence != null && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem' }}>
-                    <span style={{ color: '#94a3b8' }}>AI confidence</span>
+                    <span style={{ color: '#94a3b8' }}>Please review</span>
                     <strong style={{ color: extractedInfo.confidence >= 80 ? '#4ade80' : '#fbbf24', textAlign: 'right' }}>{extractedInfo.confidence}%</strong>
                   </div>
                 )}

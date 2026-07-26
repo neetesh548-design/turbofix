@@ -12,6 +12,18 @@ TurboFix helps a factory keep machines running by making it easy to report probl
 - Keep screens simple for each role.
 - Let people review and correct important data.
 - Close the loop from issue to verified repair.
+- Keep AI invisible unless the user asks for help.
+- Use task language instead of technical AI wording.
+
+## AI simplification rule
+
+TurboFix should behave like a maintenance tool, not a chat product.
+
+- Do not lead with AI labels on core screens.
+- Prefer task words like summary, next step, issue type, machine risk, and review needed.
+- Keep explicit AI help contextual and optional.
+- Never block the main workflow with AI settings or prompts.
+- Keep voice, photo, QR, and auto-filled data ahead of manual forms.
 
 ## Main users
 

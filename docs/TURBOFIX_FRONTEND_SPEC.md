@@ -11,6 +11,8 @@ Make the app feel calm, clear, and easy to use. Show less at once, but keep ever
 - Keep extra detail behind drilldowns or expanders
 - Use the same language across pages
 - Make mobile easy to use
+- Use task language instead of AI jargon
+- Keep AI help contextual and optional
 
 ## Shared patterns
 
@@ -60,6 +62,7 @@ To guarantee operation in signal-dead areas of a factory, TurboFix uses a Servic
 - Listen back before transcription
 - Review before submit
 - Show WO number and technician name at success
+- Keep the AI draft behind the review step, not as the main screen
 
 ## Mobile behavior
 

@@ -89,7 +89,7 @@ export default function Assistant() {
   const audioChunksRef = useRef([]);
 
   useEffect(() => {
-    document.title = 'AI Assistant | TurboFix';
+    document.title = 'Maintenance Help | TurboFix';
     Promise.all([
       supabase.from('machines').select('id,name,location,status,image_url'),
       supabase.from('tickets').select('*'),
@@ -248,7 +248,7 @@ export default function Assistant() {
       setContextFiles(data.context_files || []);
       setRetrieval(data.retrieval || null);
     } catch (requestError) {
-      console.warn("AI Assistant edge function failed, falling back to local summary:", requestError);
+      console.warn("Maintenance help edge function failed, falling back to local summary:", requestError);
       try {
         const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
         setAnswer(liveAnswer);
@@ -262,7 +262,7 @@ export default function Assistant() {
   };
 
   return <AppShell active="assistant"><div className="assistant-page">
-    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>AI Assistant</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language. TurboFix shapes the workflow; analytics stays the engine behind the answers.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
+    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">TurboFix intelligence</span><h1>Maintenance Help</h1><p>Ask about one machine or get a plant-wide maintenance view in plain language. TurboFix shapes the workflow; analytics stays the engine behind the answers.</p></div><a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Open shutdown planner</a></div>
     <section className="assistant-layout">
       <div className="assistant-chat" style={{ maxWidth: '700px', margin: '0 auto' }}>
         <div className="assistant-orb">✦</div><h2>Ask TurboFix</h2><p className="assistant-helper">Your maintenance question</p>
@@ -308,7 +308,7 @@ export default function Assistant() {
           </div>
         </>}
 
-        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'AI recommendation' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}{retrieval ? ` · ${retrieval.nodes_used} relevant facts · ~${retrieval.estimated_tokens} context tokens` : ''}</small>}</div>}
+        {error && <div className="decision-alert" role="alert">{error}</div>}{answer && <div className="assistant-answer"><div className="decision-card-kicker">{answerSource === 'ai' ? 'Suggested next step' : 'Live maintenance summary'}</div><p>{answer}</p>{contextFiles.length > 0 && <small className="assistant-context-file">Context refreshed from {contextFiles.map((file) => file.file_name).join(', ')}{retrieval ? ` · ${retrieval.nodes_used} relevant facts · ~${retrieval.estimated_tokens} context tokens` : ''}</small>}</div>}
       </div>
     </section>
   </div></AppShell>;
