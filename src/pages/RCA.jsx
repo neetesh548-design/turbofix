@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ArrowLeft, BadgeInfo, CheckCircle2, Lightbulb, Send, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, BadgeInfo, CheckCircle2, Send } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '../supabaseClient';
 
@@ -182,10 +182,9 @@ export default function RCA() {
                 <span className="rd-badge">{repeatCount >= 2 ? 'Repeat issue detected' : 'RCA ready'}</span>
               </div>
               <div className="rd-kpi-row" style={{ marginTop: 12 }}>
-                <div className="rd-kpi-card"><span className="rd-kpi-label">Machine ID</span><strong>{machine.machine_id}</strong></div>
+                <div className="rd-kpi-card"><span className="rd-kpi-label">Machine</span><strong>{machine.machine_id}</strong></div>
                 <div className="rd-kpi-card"><span className="rd-kpi-label">Location</span><strong>{machine.location || '—'}</strong></div>
-                <div className="rd-kpi-card"><span className="rd-kpi-label">Assigned technician</span><strong>{ticket?.technician_name || 'Not assigned'}</strong></div>
-                <div className="rd-kpi-card"><span className="rd-kpi-label">Open tickets</span><strong>{ticket ? 1 : 0}</strong></div>
+                <div className="rd-kpi-card"><span className="rd-kpi-label">Technician</span><strong>{ticket?.technician_name || 'Not assigned'}</strong></div>
               </div>
               <p className="rd-hint" style={{ marginTop: 10 }}>
                 {repeatIssue ? 'This issue has repeated, so RCA is required before the loop can close.' : 'Keep this short: one clear cause, one useful improvement.'}
@@ -224,19 +223,21 @@ export default function RCA() {
                 <span className="eyebrow eyebrow-light">Kaizen suggestion</span>
                 <h2>What should we improve next?</h2>
                 <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-                  <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: 10, padding: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
-                      <strong style={{ color: 'white' }}>{submitted ? kaizenText : 'Submit RCA to generate a suggestion'}</strong>
-                      <span style={{ padding: '4px 8px', borderRadius: 999, border: '1px solid #34D399', color: '#34D399', fontSize: '0.72rem', fontWeight: 700 }}>
-                        Business value: {businessValue}
-                      </span>
+                  {submitted ? (
+                    <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: 10, padding: 14 }}>
+                      <strong style={{ color: 'white' }}>{kaizenText}</strong>
+                      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ padding: '4px 8px', borderRadius: 999, border: '1px solid #34D399', color: '#34D399', fontSize: '0.72rem', fontWeight: 700 }}>
+                          Business value: {businessValue}
+                        </span>
+                        <span className="rd-hint" style={{ margin: 0 }}>If this looks useful, send it to the maintenance head for review.</span>
+                      </div>
                     </div>
-                    <p className="rd-hint" style={{ marginTop: 8 }}>
-                      {submitted
-                        ? 'If this looks useful, send it to the maintenance head for review. They can approve and assign the follow-up work.'
-                        : 'TurboFix will suggest one simple improvement after the RCA is accepted.'}
+                  ) : (
+                    <p className="rd-hint" style={{ marginTop: 0 }}>
+                      TurboFix will suggest one simple improvement after the RCA is accepted.
                     </p>
-                  </div>
+                  )}
                   <div className="decision-actions">
                     <button type="button" className="btn btn-primary btn-sm" onClick={approveKaizen} disabled={!submitted || saving}>
                       <Send size={14} aria-hidden="true" /> Send to maintenance head
