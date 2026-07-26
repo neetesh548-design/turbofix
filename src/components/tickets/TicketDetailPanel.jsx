@@ -291,6 +291,56 @@ export default function TicketDetailPanel({
         </div>
       </div>
 
+      <div className="tickets-panel is-kaizen" style={{ marginTop: 12 }}>
+        <div className="tickets-panel-title" style={{ color: '#34D399' }}>
+          <span>RCA launch pad</span>
+          <span
+            style={{
+              fontSize: '0.66rem',
+              color: '#34D399',
+              background: 'rgba(52,211,153,0.12)',
+              padding: '2px 6px',
+              borderRadius: 4,
+            }}
+          >
+            Machine context
+          </span>
+        </div>
+        <div style={{ display: 'grid', gap: 10 }}>
+          <div style={{ display: 'grid', gap: 6, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+            <div style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(52,211,153,0.22)', borderRadius: 8, padding: 10 }}>
+              <small style={{ display: 'block', color: 'var(--slate-light)', textTransform: 'uppercase', fontSize: '0.66rem', letterSpacing: '0.05em' }}>RCA card</small>
+              <strong style={{ color: 'var(--ink)' }}>{ticket.root_cause ? 'Root cause captured' : 'Start root cause analysis'}</strong>
+              <div style={{ color: 'var(--slate)', fontSize: '0.78rem' }}>{ticket.root_cause || 'Open the machine RCA form and document why the failure happened.'}</div>
+            </div>
+            <div style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(168,85,247,0.22)', borderRadius: 8, padding: 10 }}>
+              <small style={{ display: 'block', color: 'var(--slate-light)', textTransform: 'uppercase', fontSize: '0.66rem', letterSpacing: '0.05em' }}>Kaizen card</small>
+              <strong style={{ color: 'var(--ink)' }}>1–3 improvement ideas</strong>
+              <div style={{ color: 'var(--slate)', fontSize: '0.78rem' }}>Capture the smallest fix that removes repeat failure or reduces repair effort.</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '4px 8px', borderRadius: 999, color: '#34D399', border: '1px solid rgba(52,211,153,0.4)' }}>
+              Business value: {ticket.repeat_failure_flag ? 'High' : ticket.root_cause ? 'Medium' : 'Review'}
+            </span>
+            <a
+              className="tickets-stage-btn"
+              href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=reliability&open=rca`}
+              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              Open RCA page
+            </a>
+            <a
+              className="tickets-stage-btn"
+              href={`machines.html?machine=${encodeURIComponent(ticket.machine_id || '')}&tab=kaizen&open=kaizen`}
+              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              Add to backlog
+            </a>
+          </div>
+        </div>
+      </div>
+
       {!closed && (
         <div className="tickets-stage-actions">
           <span

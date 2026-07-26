@@ -417,11 +417,16 @@ export default function Machines() {
       setMachines(useDemo ? DEMO_MACHINES : visibleMachines);
 
       const queryMachineId = queryParams.get('machine') || queryParams.get('machine_id');
+      const queryTab = queryParams.get('tab');
+      const queryOpen = queryParams.get('open');
       if (queryMachineId) {
         const found = visibleMachines.find(m => String(m.machine_id) === String(queryMachineId));
         if (found) {
           setSelectedMachine(found);
-          setWsTab('info');
+          setWsTab(['info', 'docs', 'parts', 'consumables', 'pm', 'reliability', 'kaizen', 'calendar', 'qr'].includes(queryTab) ? queryTab : 'info');
+          setShowRcaForm(queryTab === 'reliability' && queryOpen === 'rca');
+          setShowKznForm(queryTab === 'kaizen' || queryOpen === 'kaizen');
+          if (queryTab === 'reliability') setRelSubTab('rca');
         }
       }
       window.setTimeout(() => syncLocalMachinePhotos(visibleMachines), 0);
@@ -2987,6 +2992,32 @@ export default function Machines() {
                   <div style={{ marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
                     <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>RCA card</small>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{rcaReports.length}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Root-cause analyses on this machine</small>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Kaizen card</small>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{machineKaizens.length}</div>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Improvement ideas already captured</small>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Business value badge</small>
+                      <div style={{ display: 'inline-flex', marginTop: '4px', padding: '4px 8px', borderRadius: '999px', border: '1px solid #34D399', color: '#34D399', fontWeight: 700, fontSize: '0.75rem' }}>
+                        {repeatTickets.length > 0 ? 'High value' : machineKaizens.length > 0 ? 'Medium value' : 'Review value'}
+                      </div>
+                      <small style={{ display: 'block', color: 'var(--slate)', fontSize: '0.8rem', marginTop: '6px' }}>Focus on repeat-failure reduction first</small>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
+                      <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Add-to-backlog action</small>
+                      <button type="button" className="vault-btn vault-btn-primary" style={{ marginTop: '10px', background: 'var(--brand)', color: '#000', padding: '6px 10px', fontSize: '0.78rem' }} onClick={() => { setWsTab('kaizen'); setShowKznForm(true); }}>
+                        Open Kaizen form
+                      </button>
+                    </div>
                   </div>
 
                   {/* Repeat-failure signal */}
