@@ -75,6 +75,15 @@ function responseStepLabel(index, total) {
   return `Escalation ${index}`;
 }
 
+function getVisibleSettingTabs(role) {
+  if (role === 'owner' || role === 'admin') return SETTING_TABS;
+  if (role === 'maintenance_head') return SETTING_TABS.filter((tab) => ['general', 'company', 'ai-data', 'escalation', 'roles'].includes(tab.key));
+  if (role === 'supervisor') return SETTING_TABS.filter((tab) => ['general', 'company', 'escalation'].includes(tab.key));
+  if (role === 'maintenance_technician' || role === 'technician') return SETTING_TABS.filter((tab) => ['general', 'ai-data'].includes(tab.key));
+  if (role === 'support') return SETTING_TABS.filter((tab) => ['general', 'ai-data', 'security'].includes(tab.key));
+  return SETTING_TABS.filter((tab) => ['general'].includes(tab.key));
+}
+
 export default function Settings() {
   const [currentUser] = useState(readCurrentUser);
   const [companyInfo, setCompanyInfo] = useState(null);
@@ -252,35 +261,57 @@ export default function Settings() {
     index === escalationPath.length - 1 ? total : total + (Number(step.threshold_hours) || 0)
   ), 0);
   const machineUsage = companyInfo?.quota ? Math.min(100, Math.round((companyInfo.machinesUsed / companyInfo.quota) * 100)) : 0;
+  const aiCoverage = knowledgeStats.total ? Math.round((knowledgeStats.ready / knowledgeStats.total) * 100) : 0;
+  const roleKey = currentUser.role || 'general';
+  const visibleTabs = getVisibleSettingTabs(roleKey);
+  const effectiveTab = visibleTabs.some((tab) => tab.key === activeTab) ? activeTab : (visibleTabs[0]?.key || 'general');
+  const settingsOverview = [
+    { label: 'Plant code', value: companyInfo?.code || currentUser.company_code || 'PLANT-01' },
+    { label: 'Machine quota', value: `${companyInfo?.machinesUsed || 0}/${companyInfo?.quota || 0}` },
+    { label: 'Knowledge coverage', value: `${aiCoverage}%` },
+    { label: 'Escalation depth', value: `${escalationPath.length} steps` },
+  ];
 
   return (
     <AppShell active="settings">
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8 transition-colors duration-200">
-        <header className="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl">
-              <Settings2 className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <Text className="text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-400">
-                  Plant Setup & Security
-                </Text>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-6 sm:px-6 lg:px-8 transition-colors duration-200">
+        <div className="mx-auto max-w-7xl space-y-5">
+          <header className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-teal-500/10 p-3 text-teal-600 dark:text-teal-400">
+                    <Settings2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-600 dark:text-teal-400">
+                      Plant setup & security
+                    </Text>
+                    <Title level={2} className="!mb-0 !mt-1 !text-slate-900 dark:!text-white !font-semibold tracking-tight">
+                      Settings
+                    </Title>
+                  </div>
+                </div>
+                <Paragraph className="!mb-0 max-w-xl text-slate-600 dark:text-slate-300">
+                  Keep the system aligned to this plant, tune local preferences, and manage the few high-impact controls that need attention.
+                </Paragraph>
               </div>
-              <Title level={2} className="!mb-0 !text-slate-900 dark:!text-white !font-bold tracking-tight">
-                Settings
-              </Title>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-sm font-medium rounded-md">
-              {companyInfo?.code || currentUser.company_code || 'PLANT-01'}
-            </span>
-            <Badge status="processing" text="Live" className="dark:text-slate-300 font-medium" />
-          </div>
-        </header>
 
-        <div className="max-w-7xl mx-auto space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[38rem]">
+                {settingsOverview.map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                      {item.label}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                      {item.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </header>
+
           {error && (
             <AntDAlert
               message="Action Needed"
@@ -305,37 +336,65 @@ export default function Settings() {
             />
           )}
 
-          <Card className="shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
-            <Tabs
-              activeKey={activeTab}
-              onChange={handleTabChange}
-              size="large"
-              className="px-4 pt-2"
-              items={SETTING_TABS.map((tab) => ({
-                key: tab.key,
-                label: (
-                  <span className="flex items-center gap-2 font-medium">
-                    {tab.icon}
-                    {tab.label}
-                  </span>
-                ),
-                children: (
-                  <div className="py-6 px-2 sm:px-4 space-y-6">
+          <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
+            <Card className="rounded-3xl border-slate-200 bg-white/90 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="p-4">
+                <div className="mb-4">
+                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                    Sections
+                  </Text>
+                </div>
+                <Tabs
+                  activeKey={effectiveTab}
+                  onChange={handleTabChange}
+                  tabPosition="left"
+                  size="small"
+                  className="settings-nav"
+                  items={visibleTabs.map((tab) => ({
+                    key: tab.key,
+                    label: (
+                      <span className="flex items-center gap-2 font-medium">
+                        {tab.icon}
+                        {tab.label}
+                      </span>
+                    ),
+                  }))}
+                />
+              </div>
+            </Card>
+
+            <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white/90 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="p-0">
+                <Tabs
+                  activeKey={effectiveTab}
+                  onChange={handleTabChange}
+                  size="large"
+                  className="settings-content"
+                  items={visibleTabs.map((tab) => ({
+                    key: tab.key,
+                    label: (
+                      <span className="flex items-center gap-2 font-medium">
+                        {tab.icon}
+                        {tab.label}
+                      </span>
+                    ),
+                    children: (
+                      <div className="space-y-6 p-5 sm:p-6 lg:p-8">
                     {/* General Preferences Tab */}
                     {tab.key === 'general' && (
-                      <div className="space-y-6 max-w-4xl">
-                        <div>
-                          <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                            <Building2 className="w-5 h-5 text-teal-500" />
-                            Personal & Local Preferences
+                      <div className="max-w-4xl space-y-4">
+                        <div className="space-y-1">
+                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <Building2 className="h-5 w-5 text-teal-500" />
+                            Personal & local preferences
                           </Title>
                           <Text className="text-slate-500 dark:text-slate-400">
-                            Configure automatic updates and internet enrichment behavior on this browser.
+                            Lightweight browser settings that stay local to this device.
                           </Text>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <div className="flex items-start justify-between gap-4">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
@@ -358,7 +417,7 @@ export default function Settings() {
                             </div>
                           </Card>
 
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <div className="space-y-3">
                               <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
                                 <Shield className="w-4 h-4 text-teal-500" />
@@ -384,18 +443,18 @@ export default function Settings() {
 
                     {/* Company Info Tab */}
                     {tab.key === 'company' && (
-                      <div className="space-y-6 max-w-4xl">
-                        <div>
-                          <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                            <Building2 className="w-5 h-5 text-teal-500" />
-                            Plant & Quota Information
+                      <div className="max-w-4xl space-y-6">
+                        <div className="space-y-1">
+                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <Building2 className="h-5 w-5 text-teal-500" />
+                            Plant & quota information
                           </Title>
                           <Text className="text-slate-500 dark:text-slate-400">
-                            View registered plant credentials and capacity metrics.
+                            Read-only plant identity and capacity context.
                           </Text>
                         </div>
 
-                        <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl p-2">
+                        <Card className="rounded-2xl border-slate-200 bg-slate-50 p-2 dark:border-slate-700/60 dark:bg-slate-800/40">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                             <div>
                               <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider block mb-1">
@@ -440,19 +499,19 @@ export default function Settings() {
 
                     {/* AI Data Tab */}
                     {tab.key === 'ai-data' && (
-                      <div className="space-y-6 max-w-4xl">
-                        <div>
-                          <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                            <BrainCircuit className="w-5 h-5 text-teal-500" />
-                            AI Knowledge & Documentation Audit
+                      <div className="max-w-4xl space-y-6">
+                        <div className="space-y-1">
+                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <BrainCircuit className="h-5 w-5 text-teal-500" />
+                            AI knowledge & documentation audit
                           </Title>
                           <Text className="text-slate-500 dark:text-slate-400">
-                            Monitor machine manual coverage and AI diagnostic readiness.
+                            Track manual coverage and know where the gaps are.
                           </Text>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl md:col-span-3">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 md:col-span-3 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <div className="flex items-center gap-4">
                               <div className="p-3 bg-teal-500/10 text-teal-500 rounded-xl">
                                 <Sparkles className="w-6 h-6" />
@@ -473,7 +532,7 @@ export default function Settings() {
                             />
                           </Card>
 
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <a href="records.html" className="block space-y-2 hover:opacity-80 transition-opacity">
                               <div className="flex items-center justify-between text-teal-600 dark:text-teal-400">
                                 <FileText className="w-5 h-5" />
@@ -490,7 +549,7 @@ export default function Settings() {
                             </a>
                           </Card>
 
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <a href="records.html" className="block space-y-2 hover:opacity-80 transition-opacity">
                               <div className="flex items-center justify-between text-amber-500">
                                 <Wrench className="w-5 h-5" />
@@ -512,16 +571,14 @@ export default function Settings() {
 
                     {/* Breakdown Escalation Tab */}
                     {tab.key === 'escalation' && (
-                      <div className="space-y-6 max-w-4xl">
+                      <div className="max-w-4xl space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
-                            <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                              <Shield className="w-5 h-5 text-teal-500" />
-                              Breakdown Alert Escalation Chain
+                            <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                              <Shield className="h-5 w-5 text-teal-500" />
+                              Breakdown alert escalation chain
                             </Title>
-                            <Text className="text-slate-500 dark:text-slate-400">
-                              Define response sequence and hour thresholds for unaddressed breakdowns.
-                            </Text>
+                            <Text className="text-slate-500 dark:text-slate-400">Define the response order and wait thresholds.</Text>
                           </div>
                           {escalationDirty && (
                             <Badge count="Unsaved changes" style={{ backgroundColor: '#eab308' }} />
@@ -535,10 +592,10 @@ export default function Settings() {
                               return (
                                 <div
                                   key={`${step.role}-${index}`}
-                                  className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                                  className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700/60 dark:bg-slate-800/40 sm:flex-row sm:items-center"
                                 >
                                   <div className="flex items-center gap-3 w-full sm:w-auto">
-                                    <div className="w-8 h-8 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-sm shrink-0">
+                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-500/10 text-sm font-bold text-teal-600 dark:text-teal-400">
                                       {index + 1}
                                     </div>
                                     <div className="flex-1 sm:w-64">
@@ -571,9 +628,9 @@ export default function Settings() {
                                       />
                                     </div>
                                   ) : (
-                                    <div className="text-xs font-semibold text-slate-400 bg-slate-200/50 dark:bg-slate-700/40 px-3 py-1.5 rounded-lg">
-                                      Final Escalation Contact
-                                    </div>
+                                      <div className="rounded-lg bg-slate-200/50 px-3 py-1.5 text-xs font-semibold text-slate-400 dark:bg-slate-700/40">
+                                        Final Escalation Contact
+                                      </div>
                                   )}
 
                                   <div className="flex items-center gap-1 self-end sm:self-center">
@@ -608,7 +665,7 @@ export default function Settings() {
                             })}
                           </div>
 
-                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-4 dark:border-slate-800 sm:flex-row">
                             <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                               Total chain duration: <strong className="text-slate-900 dark:text-white">{totalHours} hours</strong>
                             </Text>
@@ -634,16 +691,14 @@ export default function Settings() {
 
                     {/* Custom Roles & Access Tab */}
                     {tab.key === 'roles' && (
-                      <div className="space-y-6 max-w-4xl">
+                      <div className="max-w-4xl space-y-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                              <Users className="w-5 h-5 text-teal-500" />
-                              Custom Plant Responsibilities
+                            <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                              <Users className="h-5 w-5 text-teal-500" />
+                              Custom plant responsibilities
                             </Title>
-                            <Text className="text-slate-500 dark:text-slate-400">
-                              Define custom role titles for factory staff allocation.
-                            </Text>
+                            <Text className="text-slate-500 dark:text-slate-400">Add the few extra role labels your plant actually uses.</Text>
                           </div>
                           <Button
                             type="primary"
@@ -656,7 +711,7 @@ export default function Settings() {
                         </div>
 
                         {showAddRole && (
-                          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                          <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                             <form onSubmit={handleAddRoleSubmit} className="space-y-4">
                               <div>
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
@@ -729,14 +784,14 @@ export default function Settings() {
 
                     {/* Smart Modules Tab */}
                     {tab.key === 'smart-modules' && (
-                      <div className="space-y-6 max-w-4xl">
-                        <div>
-                          <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                            <Settings2 className="w-5 h-5 text-teal-500" />
-                            Configurable Smart Modules & Overlays
+                      <div className="max-w-4xl space-y-6">
+                        <div className="space-y-1">
+                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <Settings2 className="h-5 w-5 text-teal-500" />
+                            Smart modules
                           </Title>
                           <Text className="text-slate-500 dark:text-slate-400">
-                            Toggle specialized Poka-Yoke and IoT modules on top of core maintenance logic.
+                            Optional overlays; leave off unless the plant is ready for them.
                           </Text>
                         </div>
 
@@ -750,7 +805,7 @@ export default function Settings() {
                           ].map((mod) => (
                             <div
                               key={mod.id}
-                              className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between gap-4"
+                              className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700/60 dark:bg-slate-800/40"
                             >
                               <div>
                                 <Text className="text-sm font-semibold text-slate-900 dark:text-white block">
@@ -776,20 +831,20 @@ export default function Settings() {
 
                     {/* Security & Encryption Tab */}
                     {tab.key === 'security' && (
-                      <div className="space-y-6 max-w-4xl">
-                        <div>
-                          <Title level={4} className="!text-slate-900 dark:!text-white !mb-1 flex items-center gap-2">
-                            <KeyRound className="w-5 h-5 text-teal-500" />
-                            Security Keys & URL Encryption
+                      <div className="max-w-4xl space-y-6">
+                        <div className="space-y-1">
+                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <KeyRound className="h-5 w-5 text-teal-500" />
+                            Security keys & URL encryption
                           </Title>
                           <Text className="text-slate-500 dark:text-slate-400">
-                            Configure HMAC secrets and enforcement policies for plant links.
+                            Rotate secrets and choose how strictly gateway links are enforced.
                           </Text>
                         </div>
 
-                        <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60 rounded-xl">
+                        <Card className="rounded-2xl border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                           <div className="space-y-4">
-                            <div className="p-3 bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 rounded-lg text-xs font-medium">
+                            <div className="rounded-lg border border-teal-500/20 bg-teal-500/10 p-3 text-xs font-medium text-teal-600 dark:text-teal-400">
                               🔒 <strong>TurboFix Key Protection Active</strong> — Machine codes and QR gateway links are signed with HMAC token hashing.
                             </div>
 
@@ -886,7 +941,9 @@ export default function Settings() {
                 ),
               }))}
             />
-          </Card>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </AppShell>
