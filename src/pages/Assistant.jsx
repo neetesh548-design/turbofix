@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, Mic, Square, X } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
+import { microphoneErrorMessage } from '@/utils/mediaErrors';
 
 const plantSuggestions = [
   'Which machines require attention today?',
@@ -198,7 +199,7 @@ export default function Assistant() {
   const toggleVoice = async () => {
     if (listening) { recorderRef.current?.stop(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setError('Voice recording is not supported on this device. Please type your question.');
+      setError(microphoneErrorMessage(null, 'type your question instead'));
       return;
     }
     try {
@@ -218,7 +219,7 @@ export default function Assistant() {
       recorder.start();
     } catch (err) {
       setListening(false);
-      setError(err?.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Microphone was not available.');
+      setError(microphoneErrorMessage(err, 'type your question instead'));
     }
   };
 

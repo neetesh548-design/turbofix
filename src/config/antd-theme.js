@@ -7,11 +7,12 @@ import { theme } from 'antd';
 
 // TurboFix Brand Colors
 const brandColors = {
-  primary: '#52C41A',      // Green (maintenance/action)
-  success: '#52C41A',      // Success states
-  warning: '#FAAD14',      // Warnings
-  error: '#EF4444',        // Errors/alerts (red)
-  info: '#1890FF',         // Info messages
+  primary: '#25D366',
+  success: '#047857',
+  warning: '#B45309',
+  error: '#DC2626',
+  info: '#2563EB',
+  primaryText: '#0F172A',
 };
 
 // Color palette for dark/light modes
@@ -71,13 +72,14 @@ export const generateAntDTheme = (isDark = false) => {
       colorBorderSecondary: palette.divider,
 
       // Typography
+      fontFamily: '"Outfit", Arial, Roboto, sans-serif',
       fontSize: 14,
-      fontSizeHeading1: 38,
-      fontSizeHeading2: 30,
-      fontSizeHeading3: 24,
-      fontSizeHeading4: 20,
-      fontSizeHeading5: 16,
-      fontSizeHeading6: 14,
+      fontSizeHeading1: 32,
+      fontSizeHeading2: 24,
+      fontSizeHeading3: 20,
+      fontSizeHeading4: 16,
+      fontSizeHeading5: 14,
+      fontSizeHeading6: 12,
 
       // Spacing
       margin: 16,
@@ -97,10 +99,8 @@ export const generateAntDTheme = (isDark = false) => {
       borderRadiusSM: 4,
       borderRadiusXS: 2,
 
-      // Box shadow
-      boxShadow: `0 3px 6px -4px rgba(0, 0, 0, 0.12),
-                  0 6px 16px 0 rgba(0, 0, 0, 0.08),
-                  0 9px 28px 8px rgba(0, 0, 0, 0.05)`,
+      // Industrial surfaces use borders instead of decorative elevation.
+      boxShadow: 'none',
 
       // Transitions
       motionUnit: 0.1,
@@ -111,9 +111,9 @@ export const generateAntDTheme = (isDark = false) => {
       motionEaseOutCirc: 'cubic-bezier(0.075, 0.82, 0.165, 1)',
 
       // Height
-      controlHeight: 32,
-      controlHeightLG: 40,
-      controlHeightSM: 24,
+      controlHeight: 44,
+      controlHeightLG: 48,
+      controlHeightSM: 44,
 
       // Z-index
       zIndexPopupBase: 1000,
@@ -133,31 +133,31 @@ export const generateAntDTheme = (isDark = false) => {
     components: {
       // Button customization
       Button: {
-        primaryColor: brandColors.primary,
+        primaryColor: brandColors.primaryText,
         borderRadius: 6,
-        controlHeight: 32,
-        fontWeight: 500,
+        controlHeight: 44,
+        controlHeightSM: 44,
+        controlHeightLG: 48,
+        fontWeight: 600,
       },
 
       // Card customization
       Card: {
-        borderRadiusLG: 8,
-        boxShadow: `0 1px 2px -2px rgba(0, 0, 0, 0.16),
-                    0 3px 6px 0 rgba(0, 0, 0, 0.12),
-                    0 5px 12px 4px rgba(0, 0, 0, 0.09)`,
+        borderRadiusLG: 10,
+        boxShadow: 'none',
       },
 
       // Input customization
       Input: {
         borderRadius: 6,
-        controlHeight: 32,
+        controlHeight: 44,
         fontSize: 14,
       },
 
       // Select customization
       Select: {
         borderRadius: 6,
-        controlHeight: 32,
+        controlHeight: 44,
       },
 
       // Table customization
@@ -184,9 +184,7 @@ export const generateAntDTheme = (isDark = false) => {
       // Modal customization
       Modal: {
         borderRadiusLG: 8,
-        boxShadow: `0 3px 6px -4px rgba(0, 0, 0, 0.48),
-                    0 6px 16px 0 rgba(0, 0, 0, 0.32),
-                    0 9px 28px 8px rgba(0, 0, 0, 0.2)`,
+        boxShadow: 'none',
       },
 
       // Dropdown customization
@@ -208,9 +206,7 @@ export const generateAntDTheme = (isDark = false) => {
       // Notification customization
       Notification: {
         borderRadius: 8,
-        boxShadow: `0 3px 6px -4px rgba(0, 0, 0, 0.48),
-                    0 6px 16px 0 rgba(0, 0, 0, 0.32),
-                    0 9px 28px 8px rgba(0, 0, 0, 0.2)`,
+        boxShadow: 'none',
       },
 
       // Progress customization

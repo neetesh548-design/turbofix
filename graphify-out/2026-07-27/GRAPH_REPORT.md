@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-27)
 
 ## Corpus Check
-- 466 files · ~567,528 words
+- 466 files · ~567,431 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3592 nodes · 7249 edges · 290 communities (204 shown, 86 thin omitted)
+- 3591 nodes · 7248 edges · 290 communities (204 shown, 86 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 630 edges (avg confidence: 0.57)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7ac8cbcd`
+- Built from commit: `c76e9d82`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -936,9 +936,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **Why does `react` connect `wacrm_client.py` to `SupabaseCustomKpiRepository`, `machine_record_service.py`, `whatsapp_webhook/index.ts`, `Kaizen.jsx`, `.get_company_machines`, `Home.jsx`, `LocalTicketRepository`, `Prerequisites`, `AntDNavigationLayout.jsx`, `MachineContext.jsx`, `kpi_router.py`, `config.py`, `react`, `run_predictive_maintenance_check`, `CounterWidget.test.jsx`, `handle_reject_command`, `Machines.jsx`, `qrgateway-utils.test.js`, `Dashboard.jsx`, `SecurityHeadersMiddleware`, `escalation_service.py`, `intelligence_service.py`, `utils.js`, `gemini.py`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `Inventory.jsx`, `LocalDocumentRepository`, `ticket_gateway/index.ts`, `LocalTechnicianWorkRepository`, `FakeAsyncClient`, `.oxlintrc.json`, `accessibility.js`, `ErrorBoundary`, `tabs.jsx`, `roles.js`, `Tickets.jsx`, `DriveFileStorage`, `test_summarize.py`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **Why does `MachineRepository` connect `main.py` to `SupabaseMachineRecordRepository`, `UserRepository`, `ai_assistant/index.ts`, `auth_headers`, `TicketRepository`, `LocalUserRepository`, `base.py`, `test_new_features.py`, `dependencies.py`, `test_webhook.py`, `dependencies`, `get_tickets`, `SheetsPartsRepository`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `AppShell.jsx` to `React (JavaScript Framework)`, `LocalTicketRepository`, `sw.js`, `react-router-dom`, `tailwindcss`, `workbox-precaching`, `alert.jsx`?**
   _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **Are the 47 inferred relationships involving `MachineRepository` (e.g. with `LocalEventRepository` and `LocalMachineRepository`) actually correct?**

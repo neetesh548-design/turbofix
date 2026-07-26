@@ -10,13 +10,32 @@ export const defaultRoles = [
   { value: 'vendor', label: 'Vendor / OEM Specialist' }
 ];
 
+const ROLE_ALIASES = {
+  technician: 'maintenance_technician',
+  engineer: 'maintenance_engineer',
+  maintenance_supervisor: 'supervisor',
+  maintenance_manager: 'maintenance_head',
+  maintenance_lead: 'maintenance_head',
+  factory_owner: 'owner',
+  plant_owner: 'owner',
+  machine_operator: 'operator',
+  plant_operator: 'operator',
+};
+
+export function normalizeRole(role) {
+  if (typeof role !== 'string') return '';
+  const normalized = role.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return ROLE_ALIASES[normalized] || normalized;
+}
+
 export function getRoleLabel(roleVal, customRoles = []) {
   if (!roleVal) return 'Unknown Role';
-  const found = defaultRoles.find((r) => r.value === roleVal);
+  const normalizedRole = normalizeRole(roleVal);
+  const found = defaultRoles.find((r) => r.value === normalizedRole);
   if (found) return found.label;
-  const custom = customRoles.find((r) => r.role_name === roleVal);
+  const custom = customRoles.find((r) => normalizeRole(r.role_name) === normalizedRole);
   if (custom) return custom.role_label;
-  return String(roleVal).replace(/_/g, ' ');
+  return normalizedRole.replace(/_/g, ' ');
 }
 
 // 'kaizen' is on every role. A suggestion scheme that only management can
@@ -46,12 +65,12 @@ const ROLE_NAV = {
 };
 
 export function canViewWorkspace(role, workspace) {
-  if (workspace === 'inventory' && ['maintenance_technician', 'technician'].includes(role)) return false;
-  const allowed = ROLE_NAV[role];
-  return !allowed || allowed.includes(workspace);
+  const allowed = ROLE_NAV[normalizeRole(role)];
+  return Boolean(allowed?.includes(workspace));
 }
 
 export function roleContribution(role) {
+  const normalizedRole = normalizeRole(role);
   return {
     operator: 'Scan QR codes and report shopfloor breakdowns instantly.',
     maintenance_technician: 'Resolve assigned work and ask for support when needed.',
@@ -62,5 +81,5 @@ export function roleContribution(role) {
     quality_inspector: 'Verify repair quality and ensure compliance with factory standards.',
     safety_officer: 'Ensure safety protocols and Lockout-Tagout (LOTO) procedures are followed.',
     vendor: 'Provide specialized OEM machine support and warranty service.',
-  }[role] || 'Contribute to safe, reliable issue resolution.';
+  }[normalizedRole] || 'Contribute to safe, reliable issue resolution.';
 }

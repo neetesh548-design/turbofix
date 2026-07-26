@@ -54,6 +54,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';
 import { decryptUrlParams } from '../utils/urlEncryption';
+import { microphoneErrorMessage } from '../utils/mediaErrors';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 const ORB_ANIMATIONS = `
@@ -416,8 +417,6 @@ export default function QRGateway() {
       if (saved.extractedInfo) setExtractedInfo(saved.extractedInfo);
       if (saved.voiceArtifacts) setVoiceArtifacts(saved.voiceArtifacts);
       if (saved.manualCondition) setManualCondition(saved.manualCondition);
-      if (typeof saved.showTextFallback === 'boolean') setShowTextFallback(saved.showTextFallback);
-      if (saved.workflowStage) setWorkflowStage(saved.workflowStage);
       if (saved.phoneInput) setPhoneInput(saved.phoneInput);
       if (saved.technicianName) setTechnicianName(saved.technicianName);
       if (saved.reporterName) setReporterName(saved.reporterName);
@@ -428,7 +427,7 @@ export default function QRGateway() {
 
   useEffect(() => {
     if (!machine.id) return;
-    const hasDraft = Boolean(transcript || extractedInfo || showTextFallback || phoneInput || technicianName || voiceArtifacts);
+    const hasDraft = Boolean(transcript || extractedInfo || phoneInput || technicianName || voiceArtifacts);
     if (!hasDraft) return;
     try {
       localStorage.setItem(draftKey, JSON.stringify({
@@ -436,8 +435,6 @@ export default function QRGateway() {
         extractedInfo,
         voiceArtifacts,
         manualCondition,
-        showTextFallback,
-        workflowStage,
         phoneInput,
         technicianName,
         reporterName
@@ -445,7 +442,7 @@ export default function QRGateway() {
     } catch (err) {
       console.warn('Could not save QR draft', err);
     }
-  }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, showTextFallback, workflowStage, phoneInput, technicianName, reporterName]);
+  }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, phoneInput, technicianName, reporterName]);
 
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
@@ -921,7 +918,7 @@ export default function QRGateway() {
           </div>
         ) : (
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#0b1118', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '8px', padding: '8px', cursor: 'pointer' }}>
-            <Camera size={16} color="#863bff" />
+            <Camera size={16} color="var(--brand)" />
             <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold' }}>
               {t('takePhoto')}
             </span>
@@ -965,7 +962,7 @@ export default function QRGateway() {
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       setErrorAlert({
         title: t('micBlockedTitle'),
-        desc: t('micBlockedDesc')
+        desc: microphoneErrorMessage(null, 'write the issue instead')
       });
       setShowTextFallback(true);
       return;
@@ -1013,7 +1010,7 @@ export default function QRGateway() {
     } catch (e) {
       console.error(e);
       setIsListening(false);
-      fallBackToText(t('micBlockedTitle'), t('micBlockedDesc'));
+      fallBackToText(t('micBlockedTitle'), microphoneErrorMessage(e, 'write the issue instead'));
       setWorkflowStage('capture');
     }
   };
@@ -1263,8 +1260,8 @@ export default function QRGateway() {
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      background: 'radial-gradient(circle at center, #111029 0%, #05030a 100%)',
-      color: '#e5edf6',
+      background: 'var(--background)',
+      color: 'var(--foreground)',
       fontFamily: 'Outfit, sans-serif',
       padding: 'clamp(6px, 1.2vh, 12px) clamp(8px, 2.5vw, 14px)',
       overflow: 'hidden',
@@ -1272,20 +1269,23 @@ export default function QRGateway() {
       boxSizing: 'border-box'
     }}>
       <style>{ORB_ANIMATIONS}</style>
+      <h1 className="sr-only">Report a machine issue</h1>
 
       {/* Top Identity Block - 4 Individual Lines */}
       <div className="qr-gateway-shell" style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: 10 }}>
         <div className="qr-gateway-identity-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '6px', marginBottom: '2px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
-            <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Rajdhani, sans-serif', color: '#ffffff' }}>TURBOFIX</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', color: 'var(--foreground)' }}>TURBOFIX</span>
           </div>
           <div className="qr-gateway-identity-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button 
               type="button" 
               onClick={() => setSpeakFeedback(!speakFeedback)} 
-              style={{ background: 'transparent', border: 'none', color: speakFeedback ? '#863bff' : '#64748b', cursor: 'pointer', padding: '2px' }}
+              style={{ width: '44px', height: '44px', display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', color: speakFeedback ? 'var(--brand)' : 'var(--muted-foreground)', cursor: 'pointer', padding: 0 }}
               title="Toggle Voice Feedback"
+              aria-label={`${speakFeedback ? 'Turn off' : 'Turn on'} voice feedback`}
+              aria-pressed={speakFeedback}
             >
               {speakFeedback ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </button>
@@ -1293,30 +1293,35 @@ export default function QRGateway() {
               type="button"
               onClick={greetUser}
               style={{
-                background: '#863bff',
+                background: 'var(--brand)',
                 border: 'none',
                 borderRadius: '4px',
-                color: 'white',
+                color: 'var(--primary-foreground)',
                 fontSize: '0.65rem',
                 padding: '2px 6px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '3px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                minHeight: '44px'
               }}
             >
               <Volume2 size={10} />
               {t('listenGuide')}
             </button>
-            <select 
+            <label htmlFor="qr-language" style={{ color: 'var(--muted-foreground)', fontSize: '0.65rem', fontWeight: 700 }}>
+              Language
+            </label>
+            <select
+              id="qr-language"
               value={lang} 
               onChange={(e) => { 
                 const newLang = e.target.value;
                 setLang(newLang); 
                 localStorage.setItem('tf_lang', newLang);
               }} 
-              style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', color: 'white', fontSize: '0.65rem', padding: '2px 4px', fontWeight: 'bold' }}
+              style={{ minHeight: '44px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)', fontSize: '0.75rem', padding: '4px 8px', fontWeight: 'bold' }}
             >
               <option value="hi-IN">हिंदी</option>
               <option value="mr-IN">मराठी</option>
@@ -1336,11 +1341,11 @@ export default function QRGateway() {
             <div>
               {activeTickets.length > 0 ? (
                 <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '999px', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="glow-dot down" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> Attention ({activeTickets.length})
+                  <span aria-hidden="true" className="glow-dot down" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> Attention ({activeTickets.length})
                 </span>
               ) : (
                 <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#25D366', background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.25)', borderRadius: '999px', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#25D366' }} /> Operational
+                  <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: '#25D366' }} /> Operational
                 </span>
               )}
             </div>
@@ -1352,7 +1357,10 @@ export default function QRGateway() {
         <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '8px 12px', width: '100%', maxWidth: '340px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 10 }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#ef4444' }}>{errorAlert.title}</span>
           <span style={{ fontSize: '0.72rem', color: '#cbd5e1', lineHeight: '1.3' }}>{errorAlert.desc}</span>
-          <button type="button" onClick={() => setErrorAlert(null)} style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', color: 'white', cursor: 'pointer' }}>{t('cancel')}</button>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => { setErrorAlert(null); setShowTextFallback(false); }} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', color: 'white', cursor: 'pointer' }}>{t('cancel')}</button>
+            <button type="button" onClick={() => { setErrorAlert(null); setShowTextFallback(false); setWorkflowStage('capture'); }} style={{ background: 'rgba(134,59,255,0.18)', border: '1px solid rgba(134,59,255,0.35)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', color: 'white', cursor: 'pointer', fontWeight: 700 }}>Try mic again</button>
+          </div>
         </div>
       )}
 
@@ -1360,7 +1368,7 @@ export default function QRGateway() {
         <div style={{ width: '100%', maxWidth: '340px', margin: '0 auto', display: 'grid', gap: '8px', zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '0 4px' }}>
             <span style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '.08em' }}>Current step</span>
-            <span style={{ color: '#a78bfa', fontSize: '0.72rem', fontWeight: 800 }}>{workflowStage === 'listening' ? t('listening') : workflowStage === 'transcribing' ? t('transcribing') : workflowStage === 'submitting' ? t('submitting') : workflowLabel}</span>
+            <span style={{ color: 'var(--brand)', fontSize: '0.72rem', fontWeight: 800 }}>{workflowStage === 'listening' ? t('listening') : workflowStage === 'transcribing' ? t('transcribing') : workflowStage === 'submitting' ? t('submitting') : workflowLabel}</span>
           </div>
         </div>
       )}
@@ -1369,9 +1377,9 @@ export default function QRGateway() {
       {phoneGate ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-gate" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '.04em' }}>
+            <h2 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--foreground)', textAlign: 'center' }}>
               {t('phoneGateTitle')}
-            </h3>
+            </h2>
             
             <div className="qr-gateway-segment-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>
@@ -1393,11 +1401,11 @@ export default function QRGateway() {
                       style={{
                         flex: 1,
                         padding: '9px 4px',
-                        minHeight: '42px',
-                        background: active ? '#863bff' : '#0b1118',
-                        border: active ? '1px solid #863bff' : '1px solid rgba(255,255,255,0.1)',
+                        minHeight: '44px',
+                        background: active ? 'var(--brand)' : 'var(--card-bg)',
+                        border: active ? '1px solid var(--brand)' : '1px solid var(--border)',
                         borderRadius: '12px',
-                        color: 'white',
+                        color: active ? 'var(--primary-foreground)' : 'var(--foreground)',
                         fontSize: '0.8rem',
                         fontWeight: 'bold',
                         cursor: 'pointer'
@@ -1413,7 +1421,11 @@ export default function QRGateway() {
             <p style={{ margin: 0, fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.35' }}>
               {t('phoneGateDesc')}
             </p>
-            <input 
+            <label htmlFor="qr-phone" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+              {t('phoneGatePlaceholder')}
+            </label>
+            <input
+              id="qr-phone"
               type="tel" 
               maxLength={10} 
               value={phoneInput} 
@@ -1421,7 +1433,11 @@ export default function QRGateway() {
               placeholder={t('phoneGatePlaceholder')} 
               style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
             />
+            <label htmlFor="qr-reporter-name" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+              {t('reporterNameLabel')}
+            </label>
             <input
+              id="qr-reporter-name"
               type="text"
               maxLength={48}
               value={reporterName}
@@ -1432,7 +1448,7 @@ export default function QRGateway() {
             <button 
               type="button" 
               onClick={handlePhoneProceed} 
-              style={{ width: '100%', padding: '12px', minHeight: '48px', background: '#863bff', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 8px 20px rgba(134,59,255,0.28)' }}
+              style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}
             >
               {t('proceed')}
             </button>
@@ -1453,9 +1469,9 @@ export default function QRGateway() {
             <div style={{ display: 'flex', justifyContent: 'center', color: '#4ade80' }}>
               <CheckCircle2 size={40} />
             </div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>
               {t('successTitle')}
-            </h3>
+            </h2>
             {submittedTicketInfo && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left', background: '#0b1118', padding: '10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}>
@@ -1468,14 +1484,14 @@ export default function QRGateway() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>{t('primaryTech')}</span>
-                  <span style={{ color: '#a78bfa', fontWeight: 'bold' }}>{technicianName || t('notAssigned')}</span>
+                  <span style={{ color: 'var(--brand)', fontWeight: 'bold' }}>{technicianName || t('notAssigned')}</span>
                 </div>
               </div>
             )}
             <button 
               type="button" 
               onClick={resetForm}
-              style={{ width: '100%', padding: '12px', minHeight: '48px', background: '#863bff', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+              style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '8px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
             >
               {t('reportAnother')}
             </button>
@@ -1484,9 +1500,9 @@ export default function QRGateway() {
       ) : workflowStage === 'listenback' && pendingAudioUrl ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '10px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-listenback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', display: 'grid', gap: '10px' }}>
-            <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            <h2 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 700, color: 'var(--foreground)', textAlign: 'center' }}>
               Hear it back
-            </h3>
+            </h2>
             <div style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.45 }}>
               Play once, re-record if needed, then send it for transcription.
             </div>
@@ -1510,7 +1526,7 @@ export default function QRGateway() {
               <button
                 type="button"
                 onClick={transcribePendingAudio}
-                style={{ minHeight: '46px', background: 'linear-gradient(135deg, #863bff, #6d28d9)', border: 'none', borderRadius: '12px', color: '#ffffff', fontSize: '0.85rem', fontWeight: 850, cursor: 'pointer', boxShadow: '0 8px 20px rgba(134,59,255,0.25)' }}
+                style={{ minHeight: '46px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontSize: '0.85rem', fontWeight: 850, cursor: 'pointer' }}
               >
                 Send for transcription
               </button>
@@ -1538,20 +1554,24 @@ export default function QRGateway() {
       ) : showTextFallback ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '8px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-text-fallback" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 'bold', color: 'white', fontFamily: 'Rajdhani, sans-serif', textAlign: 'center' }}>
+            <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--foreground)', textAlign: 'center' }}>
               {t('writeIssueTitle')}
-            </h3>
+            </h2>
             <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.72rem', lineHeight: '1.35' }}>
               {machineContextLabel}
             </div>
             
+            <label htmlFor="qr-issue-text" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+              {t('issueDescEdit')}
+            </label>
             <div style={{ position: 'relative' }}>
               <textarea 
+                id="qr-issue-text"
                 rows={2}
                 value={transcript} 
                 onChange={(e) => setTranscript(e.target.value)}
                 placeholder={t('issuePlaceholder')}
-                style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 42px 10px 10px', color: 'white', fontFamily: 'inherit', resize: 'none', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 54px 10px 10px', color: 'white', fontFamily: 'inherit', resize: 'none', fontSize: '0.85rem', boxSizing: 'border-box' }}
               />
               <button
                 type="button"
@@ -1562,11 +1582,11 @@ export default function QRGateway() {
                   position: 'absolute',
                   right: '8px',
                   top: '8px',
-                  background: isListening ? '#ef4444' : '#863bff',
+                  background: isListening ? 'var(--danger)' : 'var(--brand)',
                   border: 'none',
                   borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
+                  width: '44px',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1574,6 +1594,7 @@ export default function QRGateway() {
                   cursor: 'pointer'
                 }}
                 title={isListening ? t('tapToStop') : t('tapToSpeak')}
+                aria-label={isListening ? t('tapToStop') : t('tapToSpeak')}
               >
                 <Mic size={16} />
               </button>
@@ -1618,11 +1639,11 @@ export default function QRGateway() {
             <div className="qr-gateway-action-row" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               <button 
                 type="button" 
-                onClick={() => setShowTextFallback(false)}
+                onClick={() => { setShowTextFallback(false); setErrorAlert(null); setWorkflowStage('capture'); }}
                 className="qr-gateway-secondary"
                 style={{ flex: 1, padding: '10px', minHeight: '44px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
               >
-                {t('cancel')}
+                Use mic
               </button>
               <button 
                 type="button" 
@@ -1670,11 +1691,7 @@ export default function QRGateway() {
               width: 'clamp(100px, 20vh, 130px)',
               height: 'clamp(100px, 20vh, 130px)',
               borderRadius: '50%',
-              background: isTranscribing
-                ? 'radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(109,40,217,1) 100%)'
-                : isListening 
-                ? 'radial-gradient(circle, rgba(239,68,68,1) 0%, rgba(185,28,28,1) 100%)' 
-                : 'radial-gradient(circle, rgba(134,59,255,1) 0%, rgba(91,33,182,1) 100%)',
+              background: isListening ? 'var(--danger)' : 'var(--brand)',
               border: '4px solid rgba(255,255,255,0.15)',
               display: 'flex',
               alignItems: 'center',
@@ -1703,7 +1720,7 @@ export default function QRGateway() {
             onClick={() => { setShowTextFallback(true); setTranscript(''); }}
             disabled={isTranscribing}
             className="qr-gateway-text-toggle"
-            style={{ background: 'rgba(134,59,255,0.12)', border: '1px solid #863bff', borderRadius: '8px', color: '#a78bfa', fontSize: '0.8rem', cursor: 'pointer', padding: '8px 14px', marginTop: '12px', zIndex: 5, fontWeight: 'bold' }}
+            style={{ background: 'rgba(37,211,102,0.1)', border: '1px solid var(--brand)', borderRadius: '8px', color: 'var(--brand)', fontSize: '0.8rem', cursor: 'pointer', padding: '8px 14px', marginTop: '12px', zIndex: 5, fontWeight: 'bold' }}
           >
             {t('troubleSpeaking')}
           </button>
@@ -1716,7 +1733,7 @@ export default function QRGateway() {
               {renderPromptText(assistantPrompt)}
             </p>
             {transcript && (
-              <p style={{ fontSize: '0.72rem', color: '#863bff', fontStyle: 'italic', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--brand)', fontStyle: 'italic', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 "{transcript}"
               </p>
             )}
@@ -1768,9 +1785,9 @@ export default function QRGateway() {
           ) : (
             <>
               <div style={{ textAlign: 'center', display: 'grid', gap: '4px' }}>
-                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 850, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                <h2 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--foreground)' }}>
                   {t('reviewTitle')}
-                </h4>
+                </h2>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.45 }}>
                   {approvalSummary} · AI draft ready for approval
                 </p>
@@ -1786,7 +1803,7 @@ export default function QRGateway() {
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.76rem', alignItems: 'start' }}>
                     <span style={{ color: '#94a3b8' }}>{label}</span>
-                    <strong style={{ color: label === 'Report type' ? '#a78bfa' : '#f8fafc', textAlign: 'right', lineHeight: 1.35 }}>{value}</strong>
+                    <strong style={{ color: label === 'Report type' ? 'var(--info)' : 'var(--foreground)', textAlign: 'right', lineHeight: 1.35 }}>{value}</strong>
                   </div>
                 ))}
                 {extractedInfo?.confidence != null && (
@@ -1809,10 +1826,11 @@ export default function QRGateway() {
               </div>
 
               <div style={{ display: 'grid', gap: '6px' }}>
-                <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
+                <label htmlFor="qr-reviewer-name" style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
                   {t('reporterNameLabel')}
                 </label>
                 <input
+                  id="qr-reviewer-name"
                   type="text"
                   maxLength={48}
                   value={reporterName}
@@ -1823,10 +1841,11 @@ export default function QRGateway() {
               </div>
 
               <div style={{ display: 'grid', gap: '6px' }}>
-                <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
+                <label htmlFor="qr-review-issue" style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, letterSpacing: '.03em' }}>
                   {t('issueDescEdit')}
                 </label>
                 <textarea 
+                  id="qr-review-issue"
                   rows={3}
                   value={extractedInfo.issue}
                   onChange={(e) => setExtractedInfo(prev => ({ ...prev, issue: e.target.value }))}
@@ -1875,7 +1894,7 @@ export default function QRGateway() {
               <div style={{ display: 'grid', gap: '8px', background: 'rgba(134,59,255,0.08)', padding: '10px 12px', borderRadius: '14px', border: '1px solid rgba(134,59,255,0.15)', fontSize: '0.76rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                   <span style={{ color: '#cbd5e1' }}>{t('assignedTech')}</span>
-                  <strong style={{ color: '#a78bfa', fontWeight: 800, textAlign: 'right' }}>{technicianName || t('notAssigned')}</strong>
+                  <strong style={{ color: 'var(--brand)', fontWeight: 800, textAlign: 'right' }}>{technicianName || t('notAssigned')}</strong>
                 </div>
                 <span style={{ color: '#94a3b8', lineHeight: 1.4 }}>After approval, TurboFix creates the WO and saves voice, AI draft, review snapshot and final submission.</span>
               </div>
@@ -1930,9 +1949,9 @@ export default function QRGateway() {
       {/* Ticket Status Timeline overlay */}
       {showStatus && (
         <div className="qr-gateway-card qr-gateway-status" style={{ position: 'fixed', inset: 0, background: 'rgba(11,17,24,0.98)', display: 'flex', flexDirection: 'column', padding: '16px', zIndex: 1000 }}>
-          <h3 style={{ fontSize: '1.05rem', fontFamily: 'Rajdhani, sans-serif', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', color: 'white', margin: 0 }}>
+          <h2 style={{ fontSize: '1.05rem', borderBottom: '1px solid var(--border)', paddingBottom: '8px', color: 'var(--foreground)', margin: 0 }}>
             {t('activeOpenTickets')}
-          </h3>
+          </h2>
           
           <div style={{ flex: 1, overflowY: 'auto', margin: '12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {loadingTickets ? (
@@ -1955,7 +1974,7 @@ export default function QRGateway() {
           <button 
             type="button" 
             onClick={() => setShowStatus(false)}
-            style={{ width: '100%', padding: '12px', minHeight: '48px', background: '#863bff', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '8px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer' }}
           >
             {t('close')}
           </button>

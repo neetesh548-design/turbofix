@@ -380,6 +380,7 @@
   align-items: center;
   gap: 9px;
   width: 100%;
+  min-height: 44px;
   border: 0;
   background: transparent;
   padding: 6px 2px;
@@ -432,6 +433,7 @@
 .md-cost-comp-item {
   display: flex;
   align-items: center;
+  min-height: 44px;
   gap: 8px;
   width: 100%;
   border: 0;
@@ -498,6 +500,7 @@
   border-radius: 999px;
 }
 .md-dashboard .dashboard-filter-row button {
+  min-height: 44px;
   border: 0;
   background: transparent;
   padding: 8px 16px;
@@ -905,7 +908,7 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 12px; margin-bottom: 12px;
 }
-.rd-chart-head h3 { margin: 0; font-size: 1rem; color: var(--md-ink); }
+.rd-chart-head h2 { margin: 0; font-size: 1rem; color: var(--md-ink); }
 .rd-chart-kicker {
   display: block; font-size: 0.66rem; text-transform: uppercase;
   letter-spacing: 0.07em; color: var(--md-ink-dim); font-weight: 700; margin-bottom: 2px;
@@ -987,7 +990,7 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
 .rd-sg-crit { text-align: left !important; color: var(--md-ink); font-weight: 600; }
 .rd-sg-crit-critical { color: var(--md-red); }
 .rd-sg-crit-high { color: var(--md-amber); }
-.rd-sg-cell { font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; color: var(--md-ink); }
+.rd-sg-cell { font-family: inherit; font-size: 1rem; font-weight: 700; color: var(--md-ink); }
 .rd-sg-cell.zero { color: var(--md-ink-dim); opacity: 0.4; }
 .rd-sg-cell button { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 2px 6px; }
 .rd-sg-down { color: var(--md-red); }
@@ -1193,6 +1196,9 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
 }
 
 @media (max-width: 720px) {
+  .rd-status-grid { min-width: 100%; table-layout: fixed; }
+  .rd-status-grid th, .rd-status-grid td { padding: 6px 2px; }
+  .rd-status-grid thead th { font-size: 0.58rem; letter-spacing: 0; }
   .rd-kpi-row, .rd-kpi-row-3 { grid-template-columns: minmax(0, 1fr); }
   .rd-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rd-fleet-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }

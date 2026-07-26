@@ -159,7 +159,7 @@ export default function AdvancedAnalyticsBoard({ data = fallback }) {
                 .filter((item) => !mostCritical || item.ticket_id == null || item.ticket_id !== mostCritical.ticket_id)
                 .slice(0, 3).map((item, index) => (
                 <button type="button" className="md-queue-row" onClick={() => revealDetail('queue')} key={`${item.machine_name}-${index}`}>
-                  <span className={`md-dot md-dot-${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'ok'}`} />
+                  <span aria-hidden="true" className={`md-dot md-dot-${item.urgency === 'High' ? 'danger' : item.urgency === 'Medium' ? 'warning' : 'ok'}`} />
                   <span className="md-queue-text">
                     <strong>{item.machine_name || 'Unknown machine'}</strong>
                     <small>{item.description || 'Maintenance issue reported'}</small>
@@ -357,7 +357,7 @@ export default function AdvancedAnalyticsBoard({ data = fallback }) {
                   renderItem={(machine, index) => (
                     <a href={`machines.html?machine=${encodeURIComponent(machine.machine_id)}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', textDecoration: 'none', color: 'inherit' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <b style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
+                        <b style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', color: index === 0 ? '#F87171' : 'var(--slate)', minWidth: '20px' }}>{index + 1}</b>
                         <span style={{ display: 'flex', flexDirection: 'column' }}><strong>{machine.machine_name}</strong><small>{machine.downtime_hours} hrs downtime · {machine.tickets} issue{machine.tickets === 1 ? '' : 's'}</small></span>
                       </span>
                       <b style={{ color: '#F87171' }}>{money.format(machine.cost)}</b>
@@ -476,7 +476,8 @@ export default function AdvancedAnalyticsBoard({ data = fallback }) {
               <div className="decision-panel-heading"><div><div className="decision-card-kicker">KPI trust layer</div><h2>Data quality <LeanTag term="Poka-Yoke" kanji="ポカヨケ" meaning="Poka-Yoke — mistake-proofing. These checks stop bad records from corrupting your KPIs." /></h2></div><span className="trend-caption">{data.data_quality?.length || 0} to review</span></div>
               {data.data_quality?.length ? data.data_quality.slice(0, 8).map((f, index) => (
                 <a className="attention-row" href={f.machine_id ? `machines.html?machine=${encodeURIComponent(f.machine_id)}` : 'tickets.html'} key={`${f.type}-${index}`}>
-                  <span className="status-dot warning" />
+                  <span aria-hidden="true" className="status-dot warning" />
+                  <b className="attention-status warning">Review</b>
                   <div><strong>{f.machine}{f.wo ? ` · ${f.wo}` : ''}</strong><span>{f.type} — {f.detail}</span></div>
                 </a>
               )) : <Empty text="Records look clean. KPIs are trustworthy." />}
@@ -491,7 +492,7 @@ export default function AdvancedAnalyticsBoard({ data = fallback }) {
                   : `Status: ${d.from || '—'} → ${d.to || '—'}`;
                 return (
                   <div className="attention-row" key={entry.id}>
-                    <span className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
+                    <span aria-hidden="true" className={`status-dot ${entry.action === 'closed' ? 'success' : entry.action === 'created' ? 'warning' : ''}`} />
                     <div><strong>{label}</strong><span>{entry.actor || 'system'} · {new Date(entry.created_at).toLocaleString('en-IN')}</span></div>
                   </div>
                 );

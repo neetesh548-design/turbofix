@@ -18,7 +18,7 @@ export default function DashboardChart({ title, subtitle, caption, children, act
       <header className="rd-chart-head">
         <div>
           <span className="rd-chart-kicker">{subtitle}</span>
-          <h3>{title}</h3>
+          <h2>{title}</h2>
         </div>
         {action || (caption ? <span className="rd-chart-caption">{caption}</span> : null)}
       </header>

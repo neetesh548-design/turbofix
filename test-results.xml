@@ -1,190 +1,20 @@
-<testsuites id="" name="" tests="26" failures="0" skipped="0" errors="4" time="145.97373199999998">
-<testsuite name="qr-gateway.spec.ts" timestamp="2026-07-25T20:24:51.220Z" hostname="chromium" tests="26" failures="0" skipped="0" time="452.627" errors="4">
-<testcase name="QRGateway - Worst Case Scenarios › Should handle offline submission and queue ticket locally" classname="qr-gateway.spec.ts" time="17.083">
+<testsuites id="" name="" tests="8" failures="0" skipped="0" errors="0" time="25.968227">
+<testsuite name="report-breakdown.spec.js" timestamp="2026-07-26T19:23:33.595Z" hostname="chromium" tests="8" failures="0" skipped="0" time="96.094" errors="0">
+<testcase name="Report breakdown scenarios › loads the simple three-step breakdown flow" classname="report-breakdown.spec.js" time="6.677">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should retry on transient network failures" classname="qr-gateway.spec.ts" time="19.561">
+<testcase name="Report breakdown scenarios › keeps the breakdown flow usable on a mobile viewport" classname="report-breakdown.spec.js" time="6.792">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle API timeout gracefully" classname="qr-gateway.spec.ts" time="20.17">
+<testcase name="Report breakdown scenarios › falls back to text when microphone input is unavailable" classname="report-breakdown.spec.js" time="6.325">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle microphone permission denied" classname="qr-gateway.spec.ts" time="17.799">
+<testcase name="Report breakdown scenarios › explains when an embedded browser rejects an allowed microphone" classname="report-breakdown.spec.js" time="7.021">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle camera permission denied for photo upload" classname="qr-gateway.spec.ts" time="5.702">
+<testcase name="Report breakdown scenarios › records, stops, and adds the voice transcript to the issue" classname="report-breakdown.spec.js" time="17.799">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle no speech detected error" classname="qr-gateway.spec.ts" time="6.605">
+<testcase name="Report breakdown scenarios › exposes a named page and labelled breakdown steps" classname="report-breakdown.spec.js" time="16.34">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle transcription API failure" classname="qr-gateway.spec.ts" time="7.312">
+<testcase name="Report breakdown scenarios › submits a breakdown after choosing the machine and entering the issue" classname="report-breakdown.spec.js" time="17.654">
 </testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle SpeechRecognition API unavailable" classname="qr-gateway.spec.ts" time="4.594">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should validate phone number format on phone gate" classname="qr-gateway.spec.ts" time="7.188">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very long issue descriptions" classname="qr-gateway.spec.ts" time="4.966">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle special characters in input" classname="qr-gateway.spec.ts" time="3.818">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle empty/whitespace-only submission" classname="qr-gateway.spec.ts" time="4.955">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle corrupted image file" classname="qr-gateway.spec.ts" time="20.282">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle very large image file (&gt;50MB)" classname="qr-gateway.spec.ts" time="41.611">
-<system-err>
-<![CDATA[
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-bfc7c-very-large-image-file-50MB--chromium/error-context.md is missing]]>
-</system-err>
-<error message="Test timeout of 30000ms exceeded." type="Error">
-<![CDATA[  [chromium] › qr-gateway.spec.ts:410:3 › QRGateway - Worst Case Scenarios › Should handle very large image file (>50MB) 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: locator.click: Target page, context or browser has been closed
-    Call log:
-      - waiting for getByRole('button', { name: /Review & confirm|समीक्षा|पुष्टि/ })
-        - locator resolved to <button type="button" class="qr-gateway-primary">…</button>
-      - attempting click action
-        - waiting for element to be visible, enabled and stable
-
-
-      429 |     // File upload should still be optional
-      430 |     await page.fill('textarea', 'Issue description');
-    > 431 |     await page.getByRole('button', { name: /Review & confirm|समीक्षा|पुष्टि/ }).click();
-          |                                                                                 ^
-      432 |     await expect(page.locator('.qr-gateway-review textarea').first()).toBeVisible();
-      433 |   });
-      434 |
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:431:81
-
-    Error Context: ../test-results/qr-gateway-QRGateway---Wor-bfc7c-very-large-image-file-50MB--chromium/error-context.md
-]]>
-</error>
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle storage upload failure" classname="qr-gateway.spec.ts" time="58.241">
-<system-err>
-<![CDATA[
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/test-failed-1.png is missing
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/error-context.md is missing]]>
-</system-err>
-<error message="Test timeout of 30000ms exceeded." type="Error">
-<![CDATA[  [chromium] › qr-gateway.spec.ts:435:3 › QRGateway - Worst Case Scenarios › Should handle storage upload failure 
-
-    Test timeout of 30000ms exceeded.
-
-    Error: page.fill: Target page, context or browser has been closed
-    Call log:
-      - waiting for locator('textarea')
-
-
-      445 |     // Go to text input with photo
-      446 |     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
-    > 447 |     await page.fill('textarea', 'Issue with photo');
-          |                ^
-      448 |
-      449 |     // Add a valid image (simulated)
-      450 |     const fileInput = page.locator('input[type="file"]');
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:447:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/qr-gateway-QRGateway---Wor-494e5-ndle-storage-upload-failure-chromium/error-context.md
-]]>
-</error>
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid form submissions" classname="qr-gateway.spec.ts" time="55.562">
-<system-err>
-<![CDATA[
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md is missing]]>
-</system-err>
-<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
-<![CDATA[  [chromium] › qr-gateway.spec.ts:465:3 › QRGateway - Worst Case Scenarios › Should handle rapid form submissions 
-
-    Test timeout of 30000ms exceeded while running "beforeEach" hook.
-
-      4 |   let page: Page;
-      5 |
-    > 6 |   test.beforeEach(async ({ browser }) => {
-        |        ^
-      7 |     const context = await browser.newContext();
-      8 |     page = await context.newPage();
-      9 |
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:6:8
-
-    Error: page.waitForLoadState: Target page, context or browser has been closed
-
-      16 |
-      17 |     // Wait for page to fully load
-    > 18 |     await page.waitForLoadState('networkidle');
-         |                ^
-      19 |   });
-      20 |
-      21 |   test.afterEach(async () => {
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:18:16
-
-    Error Context: ../test-results/qr-gateway-QRGateway---Wor-c56b2-ndle-rapid-form-submissions-chromium/error-context.md
-]]>
-</error>
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle language change during submission" classname="qr-gateway.spec.ts" time="31.089">
-<system-err>
-<![CDATA[
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/test-failed-1.png is missing
-Warning: attachment test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/error-context.md is missing]]>
-</system-err>
-<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
-<![CDATA[  [chromium] › qr-gateway.spec.ts:487:3 › QRGateway - Worst Case Scenarios › Should handle language change during submission 
-
-    Test timeout of 30000ms exceeded while running "beforeEach" hook.
-
-      4 |   let page: Page;
-      5 |
-    > 6 |   test.beforeEach(async ({ browser }) => {
-        |        ^
-      7 |     const context = await browser.newContext();
-      8 |     page = await context.newPage();
-      9 |
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:6:8
-
-    Error: page.waitForLoadState: Target page, context or browser has been closed
-
-      16 |
-      17 |     // Wait for page to fully load
-    > 18 |     await page.waitForLoadState('networkidle');
-         |                ^
-      19 |   });
-      20 |
-      21 |   test.afterEach(async () => {
-        at /Users/nkumarsoni/TurboFix/tests/qr-gateway.spec.ts:18:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/qr-gateway-QRGateway---Wor-c87f9-ge-change-during-submission-chromium/error-context.md
-]]>
-</error>
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle localStorage quota exceeded" classname="qr-gateway.spec.ts" time="16.187">
-<system-err>
-<![CDATA[(node:42439) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
-(Use `node --trace-warnings ...` to show where the warning was created)
-]]>
-</system-err>
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle speechSynthesis API failure" classname="qr-gateway.spec.ts" time="13.665">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle back button during phone gate" classname="qr-gateway.spec.ts" time="17.843">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should persist reporter phone across page reload" classname="qr-gateway.spec.ts" time="18.353">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle machine details fetch failure" classname="qr-gateway.spec.ts" time="7.647">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle duplicate check failure gracefully" classname="qr-gateway.spec.ts" time="15.612">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle ticket log failure with fallback" classname="qr-gateway.spec.ts" time="12.237">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle rapid language switches without state corruption" classname="qr-gateway.spec.ts" time="11.177">
-</testcase>
-<testcase name="QRGateway - Worst Case Scenarios › Should handle zero-width screen edge case" classname="qr-gateway.spec.ts" time="13.368">
+<testcase name="Report breakdown scenarios › report another returns to a clean entry state" classname="report-breakdown.spec.js" time="17.486">
 </testcase>
 </testsuite>
 </testsuites>

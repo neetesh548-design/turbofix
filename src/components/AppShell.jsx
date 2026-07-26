@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
+import { microphoneErrorMessage } from '@/utils/mediaErrors';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -289,7 +290,7 @@ export default function AppShell({ children, active }) {
   const toggleVoice = async () => {
     if (listening) { recorderRef.current?.stop(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setSidebarError('Voice recording is not supported.');
+      setSidebarError(microphoneErrorMessage());
       return;
     }
     try {
@@ -307,9 +308,9 @@ export default function AppShell({ children, active }) {
       setSidebarError('');
       setListening(true);
       recorder.start();
-    } catch (_err) {
+    } catch (err) {
       setListening(false);
-      setSidebarError('Microphone not available.');
+      setSidebarError(microphoneErrorMessage(err));
     }
   };
 
@@ -414,7 +415,7 @@ export default function AppShell({ children, active }) {
             {/* Current Active Workspace Indicator Pill */}
             {active && (
               <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 rounded-full text-xs font-medium border border-teal-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                 <span className="capitalize">{active.replace('-', ' ')}</span>
               </div>
             )}
@@ -423,7 +424,7 @@ export default function AppShell({ children, active }) {
           <div className="app-company hidden lg:flex items-center gap-2">
             <span className="app-company-name text-xs text-slate-500 dark:text-slate-400 font-medium">{company}</span>
             <span className="app-live text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Live
             </span>
           </div>
@@ -476,7 +477,7 @@ export default function AppShell({ children, active }) {
           onOpenQuickReport={() => { window.location.href = REPORT_BREAKDOWN_URL; }}
         />
 
-        <div className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</div>
+        <main className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</main>
 
         {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) - Role-Filtered */}
         <nav className="app-bottom-nav" aria-label="Mobile navigation">

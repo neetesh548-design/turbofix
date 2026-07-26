@@ -83,7 +83,7 @@
 .brk-btn:hover:not(:disabled) { background: rgba(250, 245, 238, 0.09); }
 .brk-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.brk-btn-sm { min-height: 36px; padding: 6px 12px; font-size: 0.76rem; }
+.brk-btn-sm { min-height: 44px; padding: 6px 12px; font-size: 0.76rem; }
 .brk-btn-ghost { background: transparent; }
 
 .brk-btn-primary {
@@ -115,7 +115,7 @@
 }
 
 .brk-chip-btn {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--md-line-strong);

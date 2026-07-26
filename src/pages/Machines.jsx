@@ -16,6 +16,7 @@ import { supabase } from '@/supabaseClient';
 import { generateMachineQRUrl } from '../utils/urlEncryption';
 import { filterMachines, summarizeFleet, sortByHealth } from '../utils/machineHealth';
 import { DEMO_MACHINES } from '../utils/demoMachines';
+import { microphoneErrorMessage } from '../utils/mediaErrors';
 import './Machines.css';
 
 const WORKSPACE_TABS = [
@@ -601,7 +602,7 @@ export default function Machines() {
   const toggleIssueVoice = async () => {
     if (issueListening) { issueRecorderRef.current?.stop(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setReportIssueError('Voice recording is not supported on this device. Please type the problem.');
+      setReportIssueError(microphoneErrorMessage(null, 'type the problem instead'));
       return;
     }
     try {
@@ -621,7 +622,7 @@ export default function Machines() {
       recorder.start();
     } catch (err) {
       setIssueListening(false);
-      setReportIssueError(err?.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Microphone was not available.');
+      setReportIssueError(microphoneErrorMessage(err, 'type the problem instead'));
     }
   };
 
@@ -1738,7 +1739,7 @@ export default function Machines() {
           background: rgba(0, 0, 0, 0.2);
         }
         .cal-bar .m {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'Outfit', sans-serif;
           font-weight: 700;
           font-size: 1.15rem;
           color: white;
@@ -1757,7 +1758,7 @@ export default function Machines() {
           background: rgba(255, 255, 255, 0.01);
         }
         .cal-dow {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'Outfit', sans-serif;
           font-size: 0.75rem;
           font-weight: 700;
           letter-spacing: .06em;
@@ -1809,7 +1810,7 @@ export default function Machines() {
           text-overflow: ellipsis;
           white-space: nowrap;
           text-transform: uppercase;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'Outfit', sans-serif;
         }
         .ev.order { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
         .ev.due { background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -2103,7 +2104,7 @@ export default function Machines() {
         ) : (
           /* VIEW 2: DEDICATED FULL-PAGE MACHINE WORKSPACE VIEW */
           <div className="machine-workspace-page">
-            <nav className="machine-workspace-breadcrumbs" aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '20px', fontFamily: 'Rajdhani, -apple-system, sans-serif', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
+            <nav className="machine-workspace-breadcrumbs" aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '20px', fontFamily: 'Outfit, -apple-system, sans-serif', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
               <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: 'var(--brand)', cursor: 'pointer', font: 'inherit', textDecoration: 'none' }} onClick={() => setSelectedMachine(null)}>
                 Machines
               </button>
@@ -2150,7 +2151,7 @@ export default function Machines() {
                 <div className="machine-owner-edit-heading" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <span style={{ color: '#25D366', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.08em' }}>OWNER EDIT · SHARED MACHINE PROFILE</span>
-                    <h3 style={{ fontSize: '1.4rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', margin: '4px 0', color: 'white' }}>Machine details</h3>
+                    <h3 style={{ fontSize: '1.4rem', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase', margin: '4px 0', color: 'white' }}>Machine details</h3>
                     <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>These changes appear across the shared company workspace.</p>
                   </div>
                   <button type="button" onClick={() => setMachineEdit(null)} style={{ color: '#F87171', fontSize: '0.85rem', fontWeight: 'bold', padding: '6px 14px', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', background: 'rgba(248,113,113,0.1)', cursor: 'pointer' }}>Cancel</button>
@@ -2166,7 +2167,7 @@ export default function Machines() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#25D366', fontWeight: 800, fontSize: '1rem' }}>⚙️</span>
-                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Operational Parameters</strong>
+                      <strong style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Operational Parameters</strong>
                     </div>
                     {editSections.basic ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
                   </button>
@@ -2194,7 +2195,7 @@ export default function Machines() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#60A5FA', fontWeight: 800, fontSize: '1rem' }}>🪪</span>
-                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#60A5FA' }}>Machine Identity & Asset Details</strong>
+                      <strong style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#60A5FA' }}>Machine Identity & Asset Details</strong>
                     </div>
                     {editSections.identity ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
                   </button>
@@ -2234,7 +2235,7 @@ export default function Machines() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#a78bfa', fontWeight: 800, fontSize: '1rem' }}>👥</span>
-                      <strong style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#a78bfa' }}>People Connected to this Machine</strong>
+                      <strong style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#a78bfa' }}>People Connected to this Machine</strong>
                     </div>
                     {editSections.people ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
                   </button>
@@ -2301,7 +2302,7 @@ export default function Machines() {
                               <div><h3>{m.name || m.machine_id}</h3><p>Machine status and health</p></div>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
+                              <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
                               {m.criticality && <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: critColors[m.criticality] || 'var(--slate)', border: `1px solid ${critColors[m.criticality] || 'var(--slate)'}` }}>{m.criticality}</span>}
                             </div>
                           </div>
@@ -2339,7 +2340,7 @@ export default function Machines() {
                               <div><h3>Machine profile</h3><p>Identity, warranty and vendor details for this asset.</p></div>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
+                              <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#cbd5e1' }}>{statusLabels[String(m.status || '').toLowerCase()] || 'Running'}</span>
                               {m.criticality && <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', color: critColors[m.criticality] || 'var(--slate)', border: `1px solid ${critColors[m.criticality] || 'var(--slate)'}` }}>{m.criticality}</span>}
                               {isOwner && <button type="button" className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px' }} onClick={openMachineEdit}><Pencil size={13} /> Edit</button>}
                             </div>
@@ -2468,7 +2469,7 @@ export default function Machines() {
                               <span><BookOpen /></span>
                               <div><h3>Machine knowledge vault</h3><p>Versioned MachineData, graph links, interventions and audit trail.</p></div>
                             </div>
-                            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.76rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: machineData?.dirty ? '#FBBF24' : 'var(--brand)' }}>
+                            <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '0.76rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: machineData?.dirty ? '#FBBF24' : 'var(--brand)' }}>
                               {machineDataLoading ? 'Loading…' : machineData?.dirty ? 'Needs approval' : machineData?.file_name ? 'Approved' : 'No knowledge yet'}
                             </span>
                           </div>
@@ -2592,7 +2593,7 @@ export default function Machines() {
                   ) : docs.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: 'var(--slate)' }}>No documents uploaded.</div>
                   ) : (
-                    <table className="vault-table">
+                    <table className="vault-table machine-mobile-table">
                       <thead>
                         <tr>
                           <th>Document Name</th>
@@ -2603,9 +2604,9 @@ export default function Machines() {
                       <tbody>
                         {docs.map((d) => (
                           <tr key={d.document_id || d.doc_id}>
-                            <td style={{ fontWeight: 'bold', color: 'white' }}>{d.file_name || d.filename}</td>
-                            <td style={{ color: 'var(--slate)' }}>{d.uploaded_at ? new Date(d.uploaded_at.replace(' ', 'T')).toLocaleString() : '—'}</td>
-                            <td style={{ textAlign: 'right' }}>
+                            <td data-label="Document" style={{ fontWeight: 'bold', color: 'white' }}>{d.file_name || d.filename}</td>
+                            <td data-label="Uploaded" style={{ color: 'var(--slate)' }}>{d.uploaded_at ? new Date(d.uploaded_at.replace(' ', 'T')).toLocaleString() : '—'}</td>
+                            <td data-label="Actions" style={{ textAlign: 'right' }}>
                               <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} onClick={() => downloadDoc(d.document_id || d.doc_id, d.file_name || d.filename)}>
                                 Download
                               </button>
@@ -2658,7 +2659,7 @@ export default function Machines() {
                       ['Total maintenance cost', machineCost.total, '#F87171'],
                     ].map(([label, val, color]) => (
                       <div key={label} style={{ flex: '1 1 150px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 14px' }}>
-                        <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color, lineHeight: 1 }}>₹{Number(val).toLocaleString('en-IN')}</div>
+                        <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700, color, lineHeight: 1 }}>₹{Number(val).toLocaleString('en-IN')}</div>
                         <small style={{ color: 'var(--slate)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</small>
                       </div>
                     ))}
@@ -2669,7 +2670,7 @@ export default function Machines() {
                   ) : parts.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: 'var(--slate)' }}>No spare parts listed in Bill of Materials.</div>
                   ) : (
-                    <table className="vault-table">
+                    <table className="vault-table machine-mobile-table">
                       <thead>
                         <tr>
                           <th>Part</th>
@@ -2684,22 +2685,22 @@ export default function Machines() {
                         {parts.map((p) => (
                           <React.Fragment key={p.part_id}>
                           <tr>
-                            <td style={{ fontWeight: 'bold', color: 'white' }}>{p.part_name}</td>
-                            <td style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{p.part_number}</td>
-                            <td>
+                            <td data-label="Part" style={{ fontWeight: 'bold', color: 'white' }}>{p.part_name}</td>
+                            <td data-label="Number" style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{p.part_number}</td>
+                            <td data-label="Stock">
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, -1)}>-</button>
-                                <input type="number" value={p.quantity_on_hand} style={{ width: '48px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetPartQty(p, e.target.value)} />
-                                <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, 1)}>+</button>
+                                <button type="button" aria-label={`Reduce ${p.part_name} stock`} className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '44px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, -1)}>-</button>
+                                <input aria-label={`${p.part_name} stock on hand`} type="number" value={p.quantity_on_hand} style={{ width: '56px', minHeight: '44px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetPartQty(p, e.target.value)} />
+                                <button type="button" aria-label={`Increase ${p.part_name} stock`} className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '44px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdatePartQty(p, 1)}>+</button>
                                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '2px' }}>{p.unit}</span>
                                 {p.quantity_on_hand <= p.reorder_level && (
                                   <span className="vault-role-badge read-only" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.2)' }}>LOW</span>
                                 )}
                               </div>
                             </td>
-                            <td style={{ color: 'var(--slate)' }}>{p.reorder_level} {p.unit}</td>
-                            <td style={{ color: 'white' }}>₹{Number(p.unit_price || 0).toLocaleString('en-IN')}</td>
-                            <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <td data-label="Reorder point" style={{ color: 'var(--slate)' }}>{p.reorder_level} {p.unit}</td>
+                            <td data-label="Unit price" style={{ color: 'white' }}>₹{Number(p.unit_price || 0).toLocaleString('en-IN')}</td>
+                            <td data-label="Actions" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                               <button className="vault-btn vault-btn-ghost" style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '6px' }} disabled={machineOpenTickets.length === 0} title={machineOpenTickets.length === 0 ? 'No open work order to issue against' : 'Issue this spare to a work order'} onClick={() => { setIssueSparePartId(issueSparePartId === p.part_id ? null : p.part_id); setIssueSpareTicket(machineOpenTickets[0]?.id || ''); setIssueSpareQty('1'); }}>
                                 Issue
                               </button>
@@ -2710,7 +2711,7 @@ export default function Machines() {
                           </tr>
                           {issueSparePartId === p.part_id && (
                             <tr>
-                              <td colSpan="6" style={{ background: 'rgba(0,0,0,0.25)', padding: '12px 16px' }}>
+                              <td className="machine-table-expanded" colSpan="6" style={{ background: 'rgba(0,0,0,0.25)', padding: '12px 16px' }}>
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                                   <div className="vault-field" style={{ minWidth: '220px' }}>
                                     <label style={{ fontSize: '0.72rem' }}>Issue to work order</label>
@@ -2796,7 +2797,7 @@ export default function Machines() {
                   ) : consumables.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: 'var(--slate)' }}>No consumables registered for this machine.</div>
                   ) : (
-                    <table className="vault-table">
+                    <table className="vault-table machine-mobile-table">
                       <thead>
                         <tr>
                           <th>Item</th>
@@ -2814,28 +2815,28 @@ export default function Machines() {
                           const metrics = getConsumableMetrics(c);
                           return (
                             <tr key={c.consumable_id}>
-                              <td style={{ fontWeight: 'bold', color: 'white' }}>{c.name}</td>
-                              <td>
+                              <td data-label="Item" style={{ fontWeight: 'bold', color: 'white' }}>{c.name}</td>
+                              <td data-label="Stock">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, -1)}>-</button>
-                                  <input type="number" value={c.quantity_on_hand} style={{ width: '48px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetConsumableQty(c, e.target.value)} />
-                                  <button type="button" className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '22px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, 1)}>+</button>
+                                  <button type="button" aria-label={`Reduce ${c.name} stock`} className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '44px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, -1)}>-</button>
+                                  <input aria-label={`${c.name} stock on hand`} type="number" value={c.quantity_on_hand} style={{ width: '56px', minHeight: '44px', background: '#111827', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', textAlign: 'center', fontSize: '0.8rem', padding: '2px 0' }} onChange={(e) => handleSetConsumableQty(c, e.target.value)} />
+                                  <button type="button" aria-label={`Increase ${c.name} stock`} className="vault-btn" style={{ padding: '2px 8px', fontSize: '0.85rem', minWidth: '44px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={() => handleUpdateConsumableQty(c, 1)}>+</button>
                                   <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '2px' }}>{c.unit}</span>
                                   {c.quantity_on_hand <= c.reorder_level && (
                                     <span className="vault-role-badge read-only" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(239,68,68,0.15)', color: '#F87171', border: '1px solid rgba(239,68,68,0.2)' }}>LOW</span>
                                   )}
                                 </div>
                               </td>
-                              <td style={{ color: '#cbd5e1' }}>{metrics.meta.burn_rate} {c.unit}/day</td>
-                              <td style={{ fontFamily: 'monospace', color: 'white' }}>{metrics.coverDays} days</td>
-                              <td style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{metrics.orderByDate}</td>
-                              <td style={{ fontFamily: 'monospace', color: '#60A5FA' }}>{metrics.replaceDueDate}</td>
-                              <td>
+                              <td data-label="Per day" style={{ color: '#cbd5e1' }}>{metrics.meta.burn_rate} {c.unit}/day</td>
+                              <td data-label="Cover" style={{ fontFamily: 'monospace', color: 'white' }}>{metrics.coverDays} days</td>
+                              <td data-label="Reorder by" style={{ fontFamily: 'monospace', color: 'var(--brand)' }}>{metrics.orderByDate}</td>
+                              <td data-label="Replace by" style={{ fontFamily: 'monospace', color: '#60A5FA' }}>{metrics.replaceDueDate}</td>
+                              <td data-label="Status">
                                 <span className={`pill ${metrics.status === 'OVERDUE' ? 'crit' : metrics.status === 'ORDER SOON' ? 'warn' : 'ok'}`}>
                                   {metrics.status}
                                 </span>
                               </td>
-                              <td style={{ textAlign: 'right' }}>
+                              <td data-label="Actions" style={{ textAlign: 'right' }}>
                                 <button className="vault-btn vault-btn-danger" style={{ padding: '4px 10px', fontSize: '0.75rem' }} onClick={() => handleDeleteConsumable(c.consumable_id)}>
                                   Delete
                                 </button>
@@ -2854,13 +2855,13 @@ export default function Machines() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
                     <div>
-                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Preventive maintenance</h3>
+                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Preventive maintenance</h3>
                       <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Keep the routine checks visible so this machine stays ahead of repeat trouble.</p>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       {pmCompliancePct !== null && (
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: pmCompliancePct >= 90 ? '#25D366' : pmCompliancePct >= 70 ? '#FBBF24' : '#F87171' }}>{pmCompliancePct}%</div>
+                          <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: pmCompliancePct >= 90 ? '#25D366' : pmCompliancePct >= 70 ? '#FBBF24' : '#F87171' }}>{pmCompliancePct}%</div>
                           <small style={{ color: 'var(--slate)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>PM compliance</small>
                         </div>
                       )}
@@ -2990,19 +2991,19 @@ export default function Machines() {
               {wsTab === 'reliability' && (
                 <div>
                   <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
+                    <h3 style={{ margin: 0, color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
                     <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Stop recurring failures: find the root cause, act on it, and fold the fix into the PM routine.</p>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '18px' }}>
                     <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>RCA card</small>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{rcaReports.length}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{rcaReports.length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Root-cause analyses on this machine</small>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Kaizen card</small>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{machineKaizens.length}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{machineKaizens.length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.8rem' }}>Improvement ideas already captured</small>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
@@ -3023,19 +3024,19 @@ export default function Machines() {
                   {/* Repeat-failure signal */}
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
                     <div style={{ flex: '1 1 200px', background: repeatTickets.length ? 'rgba(248,113,113,0.1)' : 'rgba(0,0,0,0.18)', border: `1px solid ${repeatTickets.length ? '#F87171' : 'var(--border)'}`, borderRadius: '10px', padding: '14px 16px' }}>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: repeatTickets.length ? '#F87171' : '#25D366', lineHeight: 1 }}>{repeatTickets.length}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: repeatTickets.length ? '#F87171' : '#25D366', lineHeight: 1 }}>{repeatTickets.length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Repeat breakdowns (90 days)</small>
                     </div>
                     <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{rcaReports.length}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{rcaReports.length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Root-cause analyses</small>
                     </div>
                     <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }}>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{capaActions.filter((c) => c.action_type === 'preventive' && c.applied_to_pm).length}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>{capaActions.filter((c) => c.action_type === 'preventive' && c.applied_to_pm).length}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Preventive fixes in PM</small>
                     </div>
                     <div style={{ flex: '1 1 200px', background: 'rgba(0,0,0,0.18)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px' }} title="Breakdowns that did not recur, over the last 90 days">
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 700, lineHeight: 1, color: ftfPct === null ? 'var(--slate)' : ftfPct >= 90 ? '#25D366' : ftfPct >= 70 ? '#FBBF24' : '#F87171' }}>{ftfPct === null ? '—' : `${ftfPct}%`}</div>
+                      <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.8rem', fontWeight: 700, lineHeight: 1, color: ftfPct === null ? 'var(--slate)' : ftfPct >= 90 ? '#25D366' : ftfPct >= 70 ? '#FBBF24' : '#F87171' }}>{ftfPct === null ? '—' : `${ftfPct}%`}</div>
                       <small style={{ color: 'var(--slate)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>First-time fix rate</small>
                     </div>
                   </div>
@@ -3154,7 +3155,7 @@ export default function Machines() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
-                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities</h3>
+                      <h3 style={{ margin: 0, color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Kaizen Opportunities</h3>
                       <p style={{ margin: '4px 0 0', color: 'var(--slate)', fontSize: '0.85rem' }}>Continuous improvement opportunities recorded for {selectedMachine.machine_name}.</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -3286,9 +3287,9 @@ export default function Machines() {
                 <div className="printable-sticker-tag" style={{ textAlign: 'center', padding: '20px 0' }}>
                   <div className="sticker-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '14px' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 0 3px rgba(245,158,11,0.6))' }}><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', color: '#fff', fontFamily: 'Rajdhani, sans-serif' }}>TURBOFIX</span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', color: '#fff', fontFamily: 'Outfit, sans-serif' }}>TURBOFIX</span>
                   </div>
-                  <h3 className="sticker-title" style={{ margin: '0 0 16px', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Tag</h3>
+                  <h3 className="sticker-title" style={{ margin: '0 0 16px', fontFamily: 'Outfit, sans-serif', fontSize: '1.25rem', textTransform: 'uppercase', color: 'white' }}>{selectedMachine.machine_name} Tag</h3>
                   
                   <div className="sticker-qr-box" style={{ background: 'white', padding: '14px', borderRadius: '8px', display: 'inline-block', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                     <QRCodeSVG
@@ -3346,7 +3347,7 @@ export default function Machines() {
                 const urgencyColor = { low: '#94a3b8', medium: '#60A5FA', high: '#FBBF24', critical: '#F87171' }[issueUrgency] || '#60A5FA';
                 const TechChip = (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: techName ? 'rgba(37,211,102,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${techName ? 'rgba(37,211,102,0.4)' : 'rgba(239,68,68,0.4)'}`, borderRadius: '10px', padding: '10px 14px' }}>
-                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: techName ? 'var(--brand)' : '#F87171', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif' }}>{techName ? techName.charAt(0).toUpperCase() : '!'}</span>
+                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: techName ? 'var(--brand)' : '#F87171', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>{techName ? techName.charAt(0).toUpperCase() : '!'}</span>
                     <div style={{ lineHeight: 1.3 }}>
                       <div style={{ fontSize: '0.68rem', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Will be assigned to</div>
                       <strong style={{ color: techName ? '#25D366' : '#F87171', fontSize: '1rem' }}>{techName || 'No technician assigned'}</strong>
@@ -3355,7 +3356,7 @@ export default function Machines() {
                 );
                 if (reportStep === 'confirm') {
                   return (<>
-                    <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Confirm the issue</h3>
+                    <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Confirm the issue</h3>
                     <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>Please check this is correct before it goes to the technician.</p>
                     {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
                     <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '12px' }}>
@@ -3371,7 +3372,7 @@ export default function Machines() {
                   </>);
                 }
                 return (<>
-                  <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
+                  <h3 style={{ margin: '0 0 4px', color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Report issue</h3>
                   <p style={{ margin: '0 0 16px', color: 'var(--slate)', fontSize: '0.85rem' }}>{issueTarget.machine_name} · {issueTarget.location || 'Plant floor'}</p>
                   {reportIssueError && <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '0.85rem' }}>{reportIssueError}</div>}
                   <button type="button" onClick={toggleIssueVoice} disabled={issueTranscribing} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: issueListening ? 'rgba(239,68,68,0.15)' : 'rgba(37,211,102,0.12)', color: issueListening ? '#F87171' : '#25D366', border: `1px solid ${issueListening ? 'rgba(239,68,68,0.4)' : 'rgba(37,211,102,0.4)'}`, borderRadius: '8px', padding: '12px', marginBottom: '12px', fontWeight: 600, cursor: 'pointer' }}>

@@ -193,7 +193,7 @@ export default function Team() {
       <div className="vault-wrap workspace-page team-page" style={{ maxWidth: '1000px', padding: '20px 24px 80px' }}>
         <div className="workspace-page-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
+            <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>See who's assigned to what now. Quick reassign or view more options.</p>
           </div>
 
@@ -283,7 +283,7 @@ export default function Team() {
 
           {showAddForm && (
             <div className="vault-card" style={{ marginBottom: '20px' }}>
-              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
+              <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
               <form onSubmit={handleAddSubmit}>
                 <div className="team-onboard-grid">
                   <p className="team-onboard-legend">Identity &amp; role</p>

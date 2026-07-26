@@ -1,12 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import { defaultRoles, getRoleLabel, canViewWorkspace, roleContribution } from '../lib/roles';
+import { defaultRoles, getRoleLabel, canViewWorkspace, normalizeRole, roleContribution } from '../lib/roles';
 
 describe('src/lib/roles', () => {
+  describe('normalizeRole', () => {
+    it('normalizes formatting and known legacy aliases', () => {
+      expect(normalizeRole(' Technician ')).toBe('maintenance_technician');
+      expect(normalizeRole('factory-owner')).toBe('owner');
+      expect(normalizeRole('Maintenance Manager')).toBe('maintenance_head');
+    });
+
+    it('returns an empty role for non-string values', () => {
+      expect(normalizeRole(null)).toBe('');
+      expect(normalizeRole(undefined)).toBe('');
+    });
+  });
+
   describe('getRoleLabel', () => {
     it('should return label for predefined default roles', () => {
       expect(getRoleLabel('supervisor')).toBe('Maintenance Supervisor');
       expect(getRoleLabel('owner')).toBe('Owner / Plant Director');
       expect(getRoleLabel('maintenance_technician')).toBe('Maintenance Technician');
+      expect(getRoleLabel('technician')).toBe('Maintenance Technician');
     });
 
     it('should return label for custom role if present in customRoles array', () => {
@@ -44,9 +58,17 @@ describe('src/lib/roles', () => {
       expect(canViewWorkspace('owner', 'team')).toBe(true);
     });
 
-    it('should return true for unmapped or custom roles without restrictions', () => {
-      expect(canViewWorkspace('custom_role', 'settings')).toBe(true);
-      expect(canViewWorkspace(null, 'settings')).toBe(true);
+    it('should deny access for missing or unmapped roles', () => {
+      expect(canViewWorkspace('custom_role', 'settings')).toBe(false);
+      expect(canViewWorkspace(null, 'settings')).toBe(false);
+      expect(canViewWorkspace(undefined, 'machines')).toBe(false);
+    });
+
+    it('should apply canonical permissions to known aliases', () => {
+      expect(canViewWorkspace('technician', 'technician')).toBe(true);
+      expect(canViewWorkspace('technician', 'settings')).toBe(false);
+      expect(canViewWorkspace('factory_owner', 'settings')).toBe(true);
+      expect(canViewWorkspace('Maintenance Manager', 'team')).toBe(true);
     });
 
     // A suggestion scheme only management can open collects nothing. The

@@ -2295,8 +2295,8 @@
     "semantic_hash": ""
   },
   "src/components/breakdown/IssueCapture.jsx": {
-    "mtime": 1785093803.3687675,
-    "ast_hash": "acc4cfdd4a6d6ff87493d3d87e7f6c98",
+    "mtime": 1785093414.0874784,
+    "ast_hash": "82f1d616e252ab09ae0f9b36247be15b",
     "semantic_hash": ""
   },
   "src/components/breakdown/MachineSelector.jsx": {
@@ -2445,8 +2445,8 @@
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
-    "mtime": 1785093795.1202283,
-    "ast_hash": "1237a32efa8cec8f0bb0d92331505765",
+    "mtime": 1785093414.3041298,
+    "ast_hash": "7944fcddb2b383ca5e68a14856bb4060",
     "semantic_hash": ""
   }
 }

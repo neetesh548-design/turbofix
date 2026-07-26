@@ -287,7 +287,7 @@ export default function Settings() {
                     <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-600 dark:text-teal-400">
                       Plant setup & security
                     </Text>
-                    <Title level={2} className="!mb-0 !mt-1 !text-slate-900 dark:!text-white !font-semibold tracking-tight">
+                    <Title level={1} className="!mb-0 !mt-1 !text-slate-900 dark:!text-white !font-semibold tracking-tight">
                       Settings
                     </Title>
                   </div>
@@ -384,7 +384,7 @@ export default function Settings() {
                     {tab.key === 'general' && (
                       <div className="max-w-4xl space-y-4">
                         <div className="space-y-1">
-                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                             <Building2 className="h-5 w-5 text-teal-500" />
                             Personal & local preferences
                           </Title>
@@ -409,6 +409,7 @@ export default function Settings() {
                                 checked={preferences.autoRefresh}
                                 onChange={(val) => updatePreference('autoRefresh', val)}
                                 aria-label="Toggle auto refresh"
+                                className="min-h-11"
                               />
                             </div>
                             <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/50 text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1.5 font-medium">
@@ -430,6 +431,7 @@ export default function Settings() {
                                 value={preferences.approvalMode}
                                 onChange={(val) => updatePreference('approvalMode', val)}
                                 className="w-full"
+                                aria-label="Internet AI enrichment approval mode"
                                 options={[
                                   { value: 'always-ask', label: 'Always ask before internet lookup' },
                                   { value: 'disabled', label: 'Strictly disable external lookups' },
@@ -445,7 +447,7 @@ export default function Settings() {
                     {tab.key === 'company' && (
                       <div className="max-w-4xl space-y-6">
                         <div className="space-y-1">
-                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                             <Building2 className="h-5 w-5 text-teal-500" />
                             Plant & quota information
                           </Title>
@@ -501,7 +503,7 @@ export default function Settings() {
                     {tab.key === 'ai-data' && (
                       <div className="max-w-4xl space-y-6">
                         <div className="space-y-1">
-                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                             <BrainCircuit className="h-5 w-5 text-teal-500" />
                             AI knowledge & documentation audit
                           </Title>
@@ -517,7 +519,7 @@ export default function Settings() {
                                 <Sparkles className="w-6 h-6" />
                               </div>
                               <div className="space-y-1 flex-1">
-                                <Title level={5} className="!mb-0 !text-slate-900 dark:!text-white">
+                                <Title level={3} className="!mb-0 !text-slate-900 dark:!text-white">
                                   {knowledgeStats.gaps ? 'Documentation Gaps Identified' : 'Fleet Fully Knowledge-Mapped'}
                                 </Title>
                                 <Text className="text-xs text-slate-500 dark:text-slate-400 block">
@@ -574,7 +576,7 @@ export default function Settings() {
                       <div className="max-w-4xl space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
-                            <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                               <Shield className="h-5 w-5 text-teal-500" />
                               Breakdown alert escalation chain
                             </Title>
@@ -694,7 +696,7 @@ export default function Settings() {
                       <div className="max-w-4xl space-y-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                            <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                               <Users className="h-5 w-5 text-teal-500" />
                               Custom plant responsibilities
                             </Title>
@@ -786,7 +788,7 @@ export default function Settings() {
                     {tab.key === 'smart-modules' && (
                       <div className="max-w-4xl space-y-6">
                         <div className="space-y-1">
-                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                             <Settings2 className="h-5 w-5 text-teal-500" />
                             Smart modules
                           </Title>
@@ -833,7 +835,7 @@ export default function Settings() {
                     {tab.key === 'security' && (
                       <div className="max-w-4xl space-y-6">
                         <div className="space-y-1">
-                          <Title level={4} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
+                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
                             <KeyRound className="h-5 w-5 text-teal-500" />
                             Security keys & URL encryption
                           </Title>

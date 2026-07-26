@@ -48,7 +48,7 @@ export function EmptyState({
 
       <h3
         style={{
-          fontFamily: 'Rajdhani, sans-serif',
+          fontFamily: 'Outfit, sans-serif',
           fontSize: '1.4rem',
           fontWeight: 700,
           margin: '0 0 8px 0',

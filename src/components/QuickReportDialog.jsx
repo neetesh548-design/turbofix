@@ -13,6 +13,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { supabase } from '../supabaseClient';
+import { microphoneErrorMessage } from '../utils/mediaErrors';
 
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
   const [step, setStep] = useState('machine'); // machine, issue, review, submitting
@@ -42,6 +43,10 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const selectedMachine = (machines || []).find(m => m.machine_id === selectedMachineId);
 
   const startRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setError(microphoneErrorMessage());
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -63,7 +68,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       recorder.start();
       mediaRecorderRef.current = recorder;
     } catch (err) {
-      setError('Microphone access denied. Please use text instead.');
+      setError(microphoneErrorMessage(err));
     }
   };
 

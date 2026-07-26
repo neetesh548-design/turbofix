@@ -4,6 +4,7 @@ import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
+import { microphoneErrorMessage } from '@/utils/mediaErrors';
 
 const defaultWork = {
   status: 'assigned',
@@ -234,7 +235,7 @@ export default function Technician() {
 
   const startVoiceCapture = async (context) => {
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setError('Live recording is not supported here. Use Upload audio instead.');
+      setError(microphoneErrorMessage(null, 'use Upload audio instead'));
       return;
     }
     try {
@@ -253,7 +254,7 @@ export default function Technician() {
       setRecordingContext(context);
       recorder.start();
     } catch (err) {
-      setError(err.message || 'Microphone access was not available.');
+      setError(microphoneErrorMessage(err, 'use Upload audio instead'));
     }
   };
 

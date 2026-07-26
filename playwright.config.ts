@@ -13,16 +13,16 @@ export default defineConfig({
     ['list']
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
 
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+    url: 'http://localhost:4173',
+    reuseExistingServer: false,
     timeout: 120000,
   },
 
