@@ -1053,6 +1053,13 @@ describe('reorderSuggestion', () => {
     expect(() => reorderSuggestion({}, NOW)).not.toThrow();
     expect(reorderSuggestion({}, NOW).qty).toBe(1);
   });
+
+  it('accepts raw inventory columns as well as normalized ones', () => {
+    const suggestion = reorderSuggestion(
+      { reorder_level: 10, stock_qty: 3, max_level: 40, unit_cost: 1000, lead_time_days: 7 }, NOW,
+    );
+    expect(suggestion.qty).toBe(17);
+  });
 });
 
 describe('reorderQueue', () => {

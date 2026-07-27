@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785138895.5663779,
-    "ast_hash": "ef55522462fe57edabef8cb88602ebad",
+    "mtime": 1785139133.9997044,
+    "ast_hash": "b30c53c998d0a2e65a4b12bd4d8aa96b",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -2480,8 +2480,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20260727_setup_demo_auth_users.sql": {
-    "mtime": 1785138882.9013417,
-    "ast_hash": "9d8c03938bef173d4bce8bdde467da9f",
+    "mtime": 1785139121.4384966,
+    "ast_hash": "c4e66c3662f4fa7548780238e71445c0",
     "semantic_hash": ""
   }
 }

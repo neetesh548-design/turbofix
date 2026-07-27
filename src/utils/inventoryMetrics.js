@@ -205,13 +205,13 @@ export function partCriticality(item) {
 export function normalizeItem(item, { type = 'part', now = new Date() } = {}) {
   const reference = toDate(now);
   // Map database columns to expected format
-  const stock = asNumber(item?.stock_qty || item?.qty_on_hand);
+  const stock = asNumber(item?.stock_qty ?? item?.qty_on_hand ?? item?.stock_on_hand);
   const reserved = asNumber(item?.reserved_qty || 0);
   const available = stock - reserved;
-  const reorder = asNumber(item?.reorder_level);
-  const unitCost = asNumber(item?.unit_price || item?.unit_cost || 0);
-  const leadTimeDays = asNumber(item?.lead_time_days || 0);
-  const monthlyUsage = asNumber(item?.monthly_usage || 0);
+  const reorder = asNumber(item?.reorder_level ?? item?.reorder ?? item?.reorderLevel ?? 0);
+  const unitCost = asNumber(item?.unit_price ?? item?.unit_cost ?? item?.unitCost ?? 0);
+  const leadTimeDays = asNumber(item?.lead_time_days ?? item?.leadTimeDays ?? 0);
+  const monthlyUsage = asNumber(item?.monthly_usage ?? item?.monthlyUsage ?? 0);
 
   // Nobody sets a max level by hand, so infer one: four reorder-levels of
   // cover is comfortably more than any reorder cycle needs.
@@ -238,10 +238,10 @@ export function normalizeItem(item, { type = 'part', now = new Date() } = {}) {
     id: item?.id ?? item?.part_number ?? item?.name ?? item?.part_name,
     name: item?.name || item?.part_name || 'Unnamed item',
     partNumber: item?.part_number || '',
-    machine: item?.associated_machine || 'Unassigned',
+    machine: item?.associated_machine || item?.machine_name || item?.machine_id || 'Unassigned',
     machinePriority: criticality.priority,
     itemType: item?.item_type || (type === 'consumable' ? 'Consumable' : 'Part'),
-    supplier: item?.supplier || 'Unassigned supplier',
+    supplier: item?.supplier || item?.supplier_name || item?.supplierName || 'Unassigned supplier',
     location: item?.location || '',
     binSection: binSectionOf(item?.location),
     note: item?.store_manager_note || '',
@@ -352,16 +352,16 @@ export function stockHealthSummary(items) {
  * creates the overstock the same board is trying to eliminate.
  */
 export function reorderSuggestion(item, now = new Date()) {
-  const reorder = asNumber(item?.reorder);
-  const available = asNumber(item?.available);
-  const maxLevel = asNumber(item?.maxLevel);
+  const reorder = asNumber(item?.reorder ?? item?.reorder_level ?? item?.reorderLevel);
+  const available = asNumber(item?.available ?? item?.stock_qty ?? item?.qty_on_hand ?? item?.stock_on_hand);
+  const maxLevel = asNumber(item?.maxLevel ?? item?.max_level ?? item?.max_level_qty);
 
   const rawTarget = reorder > 0 ? reorder * 2 : Math.max(1, available + 1);
   const target = maxLevel > 0 ? Math.min(maxLevel, Math.max(rawTarget, reorder)) : rawTarget;
   const qty = Math.max(1, Math.ceil(target - available));
-  const cost = qty * asNumber(item?.unitCost);
+  const cost = qty * asNumber(item?.unitCost ?? item?.unit_cost ?? item?.unit_price);
 
-  const lead = asNumber(item?.leadTimeDays);
+  const lead = asNumber(item?.leadTimeDays ?? item?.lead_time_days);
   const eta = new Date(toDate(now).getTime() + lead * MS_PER_DAY);
 
   return { qty, cost, leadTimeDays: lead, etaIso: eta.toISOString(), eta };
