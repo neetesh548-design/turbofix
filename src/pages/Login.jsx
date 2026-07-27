@@ -36,29 +36,41 @@ export default function Login() {
 
   // Quick Demo Logins
   const demoAccounts = [
-    { role: 'Plant Owner', email: 'owner@turbofix.co.in', name: 'Rajesh Sharma', company: 'PUNE-PLANT-01', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'Maintenance Lead', email: 'lead@turbofix.co.in', name: 'Vikram Patil', company: 'PUNE-PLANT-01', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'Technician', email: 'tech@turbofix.co.in', name: 'Amit Kumar', company: 'PUNE-PLANT-01', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
+    { role: 'Plant Owner', email: 'rajesh@turbofix-demo', name: 'Rajesh Sharma', company: 'TFDEMO', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
+    { role: 'Maintenance Lead', email: 'vikram@turbofix-demo', name: 'Vikram Patil', company: 'TFDEMO', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
+    { role: 'Technician', email: 'amit@turbofix-demo', name: 'Amit Kumar', company: 'TFDEMO', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
   ];
 
-  const handleDemoLogin = (demo) => {
+  const handleDemoLogin = async (demo) => {
     setLoading(true);
     setError(null);
-    const appUser = {
-      user_id: `demo-${demo.role.toLowerCase().replace(/\s+/g, '-')}`,
-      name: demo.name,
-      role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'maintenance_technician',
-      company_code: demo.company,
-      email: demo.email,
-    };
-    
-    setTimeout(() => {
-      localStorage.setItem('tf_token', `demo-token-${Date.now()}`);
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: demo.email,
+        password: 'demo-password-123',
+      });
+
+      if (signInError || !data?.user) {
+        throw new Error(signInError?.message || 'Demo authentication failed');
+      }
+
+      const appUser = {
+        user_id: data.user.id,
+        name: demo.name,
+        role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'technician',
+        company_code: demo.company,
+        email: demo.email,
+      };
+
+      localStorage.setItem('tf_token', data.session?.access_token || '');
       localStorage.setItem('tf_user', JSON.stringify(appUser));
       window.dispatchEvent(new Event('authChanged'));
       setLoading(false);
       navigate('/dashboard.html', { replace: true });
-    }, 400);
+    } catch (err) {
+      setError(err.message || 'Demo login failed');
+      setLoading(false);
+    }
   };
 
   const handleLogin = async (e) => {

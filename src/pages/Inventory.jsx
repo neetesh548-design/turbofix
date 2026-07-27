@@ -100,7 +100,7 @@ function fetchWithTimeout(promise, ms = 3000) {
 
 async function fetchInventorySources() {
   const [parts, consumables, pos, suppliers] = await Promise.all([
-    fetchWithTimeout(supabase.from('parts').select('*').order('name')),
+    fetchWithTimeout(supabase.from('parts').select('*').order('part_name')),
     fetchWithTimeout(supabase.from('consumables').select('*').order('name')),
     fetchWithTimeout(supabase.from('purchase_orders').select('*').order('created_at', { ascending: false })),
     fetchWithTimeout(supabase.from('suppliers').select('*')),
