@@ -29,6 +29,24 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const [error, setError] = useState('');
   const [urgencyOverride, setUrgencyOverride] = useState('');
   const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+
+  const classification = useMemo(() => classifyIssue(issueText), [issueText]);
+  const effectiveUrgency = urgencyOverride || classification.urgency;
+  const effectiveUrgencyMeta = urgencyMeta(effectiveUrgency);
+
+  const normalizedMachines = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    for (const m of machines || []) {
+      const machine_id = m.machine_id ?? m.id;
+      if (seen.has(machine_id)) continue;
+      seen.add(machine_id);
+      result.push({ ...m, machine_id, machine_name: m.machine_name ?? m.name });
+    }
+    return result;
+  }, [machines]);
 
   const startRecording = async () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -176,6 +194,10 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       setBusy(false);
     }
   };
+
+  if (!open) return null;
+
+  const selectedMachine = normalizedMachines.find((m) => m.machine_id === selectedMachineId);
 
   return (
     <div className="quick-report-overlay" role="dialog" aria-modal="true" aria-labelledby="quick-report-title">
