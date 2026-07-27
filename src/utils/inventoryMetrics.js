@@ -209,7 +209,7 @@ export function normalizeItem(item, { type = 'part', now = new Date() } = {}) {
   const reserved = asNumber(item?.reserved_qty || 0);
   const available = stock - reserved;
   const reorder = asNumber(item?.reorder_level);
-  const unitCost = asNumber(item?.unit_cost || 0);
+  const unitCost = asNumber(item?.unit_price || item?.unit_cost || 0);
   const leadTimeDays = asNumber(item?.lead_time_days || 0);
   const monthlyUsage = asNumber(item?.monthly_usage || 0);
 
