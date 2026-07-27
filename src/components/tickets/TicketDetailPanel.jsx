@@ -31,6 +31,7 @@ export default function TicketDetailPanel({
   onFieldChange,
   now,
 }) {
+  const [showPartModal, setShowPartModal] = React.useState(false);
   const closed = isTicketClosed(ticket);
   const sla = computeSla(ticket, now);
   const hasRecord =
@@ -368,6 +369,21 @@ export default function TicketDetailPanel({
               {label}
             </button>
           ))}
+          <button
+            type="button"
+            className="tickets-stage-btn"
+            style={{
+              background: 'rgba(245,158,11,0.2)',
+              color: '#FBBF24',
+              border: '1px solid rgba(245,158,11,0.4)',
+            }}
+            onClick={() => {
+              onStageChange(ticketId, 'waiting_spare');
+              setShowPartModal(true);
+            }}
+          >
+            📦 Request Part
+          </button>
           <a
             className="tickets-stage-btn"
             href={`rca.html?machine=${encodeURIComponent(ticket.machine_id || '')}&ticket=${encodeURIComponent(ticketId || '')}&repeat=${ticket.repeat_failure_flag || ticket.repeat_failure_count ? 1 : 0}`}
@@ -383,6 +399,40 @@ export default function TicketDetailPanel({
           >
             Verify &amp; close
           </button>
+        </div>
+      )}
+
+      {showPartModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#1E293B', padding: 20, borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', maxWidth: 450, width: '100%', color: '#F8FAFC' }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>Request Spare Part for {ticket.machine_name || 'Machine'}</h4>
+            <p style={{ fontSize: '0.8rem', color: '#94A3B8', margin: '0 0 12px 0' }}>Select from available inventory stock:</p>
+            <div style={{ display: 'grid', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 16 }}>
+              {[
+                { name: 'Hydraulic Seal Kit (HS-9021-HP)', stock: 3 },
+                { name: 'Air Filter Element 75kW (FLT-AIR-75)', stock: 5 },
+                { name: 'Relief Valve 200 bar (RV-200-BAR)', stock: 2 },
+                { name: 'Way-Lube VG68 5L (OIL-VG68)', stock: 7 },
+              ].map((p) => (
+                <button
+                  key={p.name}
+                  onClick={() => {
+                    if (onFieldChange) {
+                      onFieldChange(ticketId, { parts_used: ticket.parts_used ? `${ticket.parts_used}, ${p.name}` : p.name });
+                    }
+                    setShowPartModal(false);
+                  }}
+                  style={{ textAlign: 'left', padding: '10px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#F8FAFC', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>{p.name}</span>
+                  <span style={{ color: p.stock > 0 ? '#34D399' : '#EF4444', fontSize: '0.75rem' }}>{p.stock} in stock</span>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setShowPartModal(false)} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#94A3B8', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
         </div>
       )}
 

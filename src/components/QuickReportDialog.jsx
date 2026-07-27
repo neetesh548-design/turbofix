@@ -10,11 +10,12 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles, Edit3 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { supabase } from '../supabaseClient';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { classifyIssue, urgencyMeta, URGENCY_ORDER } from '../utils/breakdownRouter';
+import { PhotoAnnotatorModal } from './breakdown/PhotoAnnotatorModal';
 
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
   const [step, setStep] = useState('machine'); // machine, issue, review, submitting
@@ -23,58 +24,50 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const [isListening, setIsListening] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [showAnnotator, setShowAnnotator] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [urgencyOverride, setUrgencyOverride] = useState('');
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
-
-  // Reads plain-language text ("machine won't start, smoke coming out") into
-  // a suggested urgency + category — same classifier the full report flow
-  // uses (IssueCapture.jsx). Pre-filled, never locked: the chips below stay
-  // editable and an explicit tap on one flips urgencyOverride.
-  const classification = useMemo(() => classifyIssue(issueText), [issueText]);
-  const effectiveUrgency = urgencyOverride || classification.urgency;
-  const effectiveUrgencyMeta = urgencyMeta(effectiveUrgency);
-
-  // Callers disagree on shape: raw Supabase rows and Tickets.jsx's machine
-  // list use id/name, while DEMO_MACHINES already uses machine_id/machine_name.
-  // Normalise once so the picker works regardless of which caller passed it.
-  // Callers can also repeat a machine once per open ticket on it, so dedupe
-  // by id — otherwise the <select> gets duplicate keys and duplicate rows.
-  const normalizedMachines = useMemo(() => {
-    const seen = new Set();
-    const result = [];
-    for (const m of machines || []) {
-      const machine_id = m.machine_id ?? m.id;
-      if (seen.has(machine_id)) continue;
-      seen.add(machine_id);
-      result.push({ ...m, machine_id, machine_name: m.machine_name ?? m.name });
-    }
-    return result;
-  }, [machines]);
-
-  useEffect(() => {
-    if (!open) {
-      setStep('machine');
-      setSelectedMachineId('');
-      setIssueText('');
-      setPhotoFile(null);
-      setPhotoPreview('');
-      setError('');
-      setUrgencyOverride('');
-    }
-  }, [open]);
-
-  if (!open) return null;
-
-  const selectedMachine = normalizedMachines.find(m => m.machine_id === selectedMachineId);
+  const recognitionRef = useRef(null);
 
   const startRecording = async () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let speechActive = false;
+
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        let initialText = issueText;
+        recognition.onresult = (e) => {
+          let transcript = '';
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            transcript += e.results[i][0].transcript;
+          }
+          setIssueText(initialText ? `${initialText}\n${transcript}` : transcript);
+        };
+
+        recognition.onerror = () => {};
+        recognition.start();
+        recognitionRef.current = recognition;
+        speechActive = true;
+      } catch (err) {
+        console.warn('SpeechRecognition failed to start:', err);
+      }
+    }
+
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setError(microphoneErrorMessage());
+      if (!speechActive) {
+        setError(microphoneErrorMessage());
+        return;
+      }
+      setIsListening(true);
       return;
     }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -84,27 +77,30 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = async () => {
         setIsListening(false);
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-
-        // For now, just show a note that voice was captured
-        // In a real implementation, this would transcribe via speech-to-text API
-        setIssueText(prev => prev + '\n[Voice message recorded]');
-
+        if (!speechActive && chunksRef.current.length > 0) {
+          setIssueText(prev => prev ? `${prev}\n[Voice message recorded]` : '[Voice message recorded]');
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
       recorder.start();
       mediaRecorderRef.current = recorder;
     } catch (err) {
-      setError(microphoneErrorMessage(err));
+      if (!speechActive) {
+        setError(microphoneErrorMessage(err));
+      }
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      setIsListening(false);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
     }
+    if (mediaRecorderRef.current) {
+      try { mediaRecorderRef.current.stop(); } catch {}
+    }
+    setIsListening(false);
   };
 
   const handlePhotoCapture = (e) => {
@@ -335,17 +331,35 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
             {photoPreview && (
               <div className="quick-report-photo-preview">
                 <img src={photoPreview} alt="Issue photo" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPhotoFile(null);
-                    setPhotoPreview('');
-                  }}
-                >
-                  Remove
-                </button>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  <button
+                    type="button"
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(56,189,248,0.15)', color: '#38BDF8', border: '1px solid rgba(56,189,248,0.3)' }}
+                    onClick={() => setShowAnnotator(true)}
+                  >
+                    <Edit3 size={14} /> Markup
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhotoFile(null);
+                      setPhotoPreview('');
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             )}
+
+            <PhotoAnnotatorModal
+              open={showAnnotator}
+              imageSrc={photoPreview}
+              onClose={() => setShowAnnotator(false)}
+              onSave={(annotatedUrl) => {
+                setPhotoPreview(annotatedUrl);
+              }}
+            />
 
             <div className="quick-report-actions">
               <button

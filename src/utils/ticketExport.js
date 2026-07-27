@@ -41,10 +41,21 @@ function escapeCell(value) {
  * Build a CSV string from a ticket list.
  * @param {Array} tickets
  * @param {Date} [now] injected clock so SLA columns are reproducible
+ * @param {Object} [options] optional { startDate, endDate } filter
  * @returns {string}
  */
-export function buildTicketsCSV(tickets = [], now = new Date()) {
-  const rows = (Array.isArray(tickets) ? tickets : []).map((ticket) => {
+export function buildTicketsCSV(tickets = [], now = new Date(), options = {}) {
+  let list = Array.isArray(tickets) ? tickets : [];
+  if (options.startDate) {
+    const start = new Date(options.startDate).getTime();
+    list = list.filter((t) => new Date(t.created_at || t.reported_at).getTime() >= start);
+  }
+  if (options.endDate) {
+    const end = new Date(options.endDate).getTime();
+    list = list.filter((t) => new Date(t.created_at || t.reported_at).getTime() <= end);
+  }
+
+  const rows = list.map((ticket) => {
     const sla = computeSla(ticket, now);
     const age = ticketAgeHours(ticket, now);
     return COLUMNS.map(([, read]) => escapeCell(read(ticket, sla, age))).join(',');
@@ -56,12 +67,12 @@ export function buildTicketsCSV(tickets = [], now = new Date()) {
  * Trigger a browser download of the given tickets as CSV.
  * No-ops outside a DOM (e.g. during SSR or unit tests).
  */
-export function downloadTicketsCSV(tickets = [], filename) {
+export function downloadTicketsCSV(tickets = [], filename, options = {}) {
   if (typeof document === 'undefined') return;
 
   const name = filename || `turbofix-tickets-${new Date().toISOString().split('T')[0]}.csv`;
   // BOM keeps Excel happy with the non-ASCII machine names this plant uses.
-  const blob = new Blob(['﻿', buildTicketsCSV(tickets)], {
+  const blob = new Blob(['﻿', buildTicketsCSV(tickets, new Date(), options)], {
     type: 'text/csv;charset=utf-8;',
   });
   const url = URL.createObjectURL(blob);

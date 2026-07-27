@@ -240,8 +240,8 @@ describe('demo fleet', () => {
     expect(health.critical).toBe(true);
   });
 
-  it('summarises as two green, one yellow and one red', () => {
-    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 4, running: 2, issues: 1, down: 1 });
+  it('summarises as three green, one yellow and one red', () => {
+    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 5, running: 3, issues: 1, down: 1 });
   });
 });
 

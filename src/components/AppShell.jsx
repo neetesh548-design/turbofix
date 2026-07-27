@@ -15,6 +15,7 @@ import { Tooltip } from '@/components/Tooltip';
 import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
 import { readAuth } from '@/utils/auth';
+import { KeyboardShortcutsModal } from '@/components/KeyboardShortcutsModal';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -124,6 +125,19 @@ export default function AppShell({ children, active }) {
   const recorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [seniorMode, setSeniorMode] = useState(() => localStorage.getItem('tf_senior_mode') === 'true');
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable;
+      if (e.key === '?' && !isInput) {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const toggleSeniorMode = () => {
     setSeniorMode((prev) => {
@@ -584,19 +598,18 @@ export default function AppShell({ children, active }) {
       </aside>
       
       {/* Help Widget */}
-      <Tooltip content="Need help? Click to restart tour." position="top" delay={0}>
+      <Tooltip content="Need help? Click for keyboard shortcuts & tour." position="top" delay={0}>
         <button
           className="app-help-trigger"
           style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100, width: '36px', height: '36px', borderRadius: '50%', background: '#334155', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontFamily: 'monospace', fontWeight: 'bold' }}
-          onClick={() => {
-            localStorage.setItem('onboarding-completed', '[]');
-            window.location.reload();
-          }}
-          aria-label="Help & Context"
+          onClick={() => setShowShortcuts(true)}
+          aria-label="Keyboard shortcuts and help"
         >
           ?
         </button>
       </Tooltip>
+
+      <KeyboardShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </div>
       </ErrorBoundary>
     </ThemeProvider>
