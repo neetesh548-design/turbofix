@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785149116.715791,
-    "ast_hash": "57dc8ec3df0eb340287f8e60bb3889ee",
+    "mtime": 1785163248.635265,
+    "ast_hash": "e2d2c899786af21913d3bdacd39b4929",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785149053.8222153,
-    "ast_hash": "d534a93347db6681bb85e79fdcb2dff2",
+    "mtime": 1785161934.7901642,
+    "ast_hash": "cf0f1165b21522de91897e1bed5dd4e9",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1785149054.5830073,
-    "ast_hash": "5c639c108f8f83bb294cc59ca8a5e3cd",
+    "mtime": 1785163238.1478002,
+    "ast_hash": "92376d88444f95ede75e7fdd8450e92d",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -875,9 +875,9 @@
     "semantic_hash": "e457d1894b6e8389007fa1f18e92fbeb"
   },
   "src/utils/accessibility.js": {
-    "mtime": 1784572675.531535,
-    "ast_hash": "ba4646de8f69f83cdd94aa2fb0437f37",
-    "semantic_hash": "ba4646de8f69f83cdd94aa2fb0437f37"
+    "mtime": 1785163228.8607793,
+    "ast_hash": "a255cb4fb02680ca36b8bfa1ca5f7dfb",
+    "semantic_hash": ""
   },
   "src/utils/i18n.js": {
     "mtime": 1785002708.213148,
@@ -1810,8 +1810,8 @@
     "semantic_hash": "4b648735d9b1e454df986d966b9adadf"
   },
   "src/components/QuickReportDialog.jsx": {
-    "mtime": 1785095866.7525089,
-    "ast_hash": "61cd75f23cb5ad614b29f6fcf72ac087",
+    "mtime": 1785163967.8647628,
+    "ast_hash": "bbdb9f2edec6301fc0dae58201d27cb4",
     "semantic_hash": ""
   },
   "PHASE_2_COMPLETION.md": {
@@ -2185,8 +2185,8 @@
     "semantic_hash": ""
   },
   "src/components/machines/MachineCard.jsx": {
-    "mtime": 1785146990.8213637,
-    "ast_hash": "b8dd4ebb57c556e71af7b6f6f10bce69",
+    "mtime": 1785161858.9287143,
+    "ast_hash": "de497c1e14a41e3b87d84a1ed11c7169",
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
@@ -2400,8 +2400,8 @@
     "semantic_hash": ""
   },
   "src/components/inventory/POApprovalCard.jsx": {
-    "mtime": 1785062192.571169,
-    "ast_hash": "11d5963d8c4f73dddd5b5cd8457e29ee",
+    "mtime": 1785161973.9467556,
+    "ast_hash": "ad86c7a2b9596fcc8aeefcdae46716ae",
     "semantic_hash": ""
   },
   "src/components/inventory/StockHealthIndicator.jsx": {
@@ -2415,8 +2415,8 @@
     "semantic_hash": ""
   },
   "src/components/inventory/SupervisorInventory.jsx": {
-    "mtime": 1785077528.2997067,
-    "ast_hash": "5b32a7096461c30b33b1b5715fa9ec9d",
+    "mtime": 1785163165.7992377,
+    "ast_hash": "675916f1dde50e52440c928b789881df",
     "semantic_hash": ""
   },
   "src/utils/demoInventory.js": {
@@ -2502,6 +2502,11 @@
   "SUPABASE_GUIDE.md": {
     "mtime": 1785150222.4517543,
     "ast_hash": "67d1a94b6a0664924d7d2674b7978d4a",
+    "semantic_hash": ""
+  },
+  "src/utils/machineExport.js": {
+    "mtime": 1785161884.769092,
+    "ast_hash": "387fc1bb7423c62e942c1e6d48c8adc7",
     "semantic_hash": ""
   }
 }
