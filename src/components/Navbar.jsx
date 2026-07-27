@@ -114,85 +114,104 @@ export default function Navbar() {
   );
 
   return (
-    <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
-      <div className="container nav-inner public-nav-inner flex items-center justify-between gap-4">
-        <div className="public-nav-brand-cluster">
-          <button
-            type="button"
-            className="public-nav-waffle-btn"
-            onClick={() => setAppLauncherOpen(true)}
-            aria-label="Open Microsoft-style App Launcher"
-            title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
-          >
-            <Grid />
-          </button>
+    <>
+      <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
+        <div className="container nav-inner public-nav-inner flex items-center justify-between gap-4">
+          <div className="public-nav-brand-cluster">
+            <button
+              type="button"
+              className="public-nav-waffle-btn"
+              onClick={() => setAppLauncherOpen(true)}
+              aria-label="Open Microsoft-style App Launcher"
+              title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+            >
+              <Grid />
+            </button>
 
-          <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
-            <div className="brand-logo-icon">
-              <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
-                <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
-              </svg>
-            </div>
-            <span className="public-nav-brand-copy">
-              <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-              <small className="public-nav-brand-sub">WORKFLOW LAYER · ANALYTICS UNDERNEATH</small>
-            </span>
-          </Link>
-        </div>
-
-        <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
-          <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
-          <div className="public-nav-primary">
-            {navItems.map(sectionLink)}
-            <div className="public-nav-language-wrapper">
-              <label className="public-nav-language">
-                <span className="sr-only">{t('menu.language')}</span>
-                <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
-                  <option value="en">EN</option>
-                  <option value="hi">HI</option>
-                  <option value="mr">MR</option>
-                </select>
-                <ChevronDown className="lang-chevron" aria-hidden="true" />
-              </label>
-            </div>
+            <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
+              <div className="brand-logo-icon">
+                <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
+                  <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
+                </svg>
+              </div>
+              <span className="public-nav-brand-copy">
+                <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+                <small className="public-nav-brand-sub">WORKFLOW LAYER · ANALYTICS UNDERNEATH</small>
+              </span>
+            </Link>
           </div>
-          <div className="public-nav-mobile-actions">
-            {accountLink}
+
+          <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
+            <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
+            <div className="public-nav-primary">
+              {navItems.map(sectionLink)}
+              <div className="public-nav-language-wrapper">
+                <label className="public-nav-language">
+                  <span className="sr-only">{t('menu.language')}</span>
+                  <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
+                    <option value="en">EN</option>
+                    <option value="hi">HI</option>
+                    <option value="mr">MR</option>
+                  </select>
+                  <ChevronDown className="lang-chevron" aria-hidden="true" />
+                </label>
+              </div>
+            </div>
+            <div className="public-nav-mobile-actions">
+              {accountLink}
+              {showMarketingCta && (
+                <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>
+                  <span>{t('menu.start')}</span>
+                  <ArrowRight />
+                </a>
+              )}
+            </div>
+          </nav>
+
+          <div className="public-nav-actions">
+            <div className="public-nav-desktop-account">{accountLink}</div>
             {showMarketingCta && (
-              <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>
+              <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>
                 <span>{t('menu.start')}</span>
                 <ArrowRight />
               </a>
             )}
+            <button
+              type="button"
+              className="public-nav-toggle"
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isOpen}
+              aria-controls="mainNavigation"
+              onClick={() => setIsOpen((open) => !open)}
+            >
+              {isOpen ? <X /> : <Menu />}
+            </button>
           </div>
-        </nav>
+        </div>
+        {isOpen && <button type="button" className="public-nav-backdrop" aria-label="Close menu" onClick={() => setIsOpen(false)} />}
+        <MicrosoftAppLauncher
+          open={appLauncherOpen}
+          onClose={() => setAppLauncherOpen(false)}
+        />
+      </header>
 
-        <div className="public-nav-actions">
-          <div className="public-nav-desktop-account">{accountLink}</div>
-          {showMarketingCta && (
-            <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>
-              <span>{t('menu.start')}</span>
-              <ArrowRight />
-            </a>
-          )}
-          <button
-            type="button"
-            className="public-nav-toggle"
-            aria-label={isOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isOpen}
-            aria-controls="mainNavigation"
-            onClick={() => setIsOpen((open) => !open)}
-          >
-            {isOpen ? <X /> : <Menu />}
-          </button>
+      {/* Secondary Sub-Navigation Bar with Quick Sign In */}
+      <div className="public-nav-subbar">
+        <div className="container public-nav-subbar-inner flex items-center justify-between gap-3">
+          <div className="subbar-left flex items-center gap-2">
+            <span className="subbar-badge">⚡ WORKSPACE PORTAL</span>
+            <span className="subbar-label">Already registered? Sign in to manage plant maintenance & tickets</span>
+          </div>
+          <div className="subbar-actions flex items-center gap-2">
+            <Link to={isAuth ? '/dashboard.html' : '/login.html'} className="subbar-signin-btn">
+              <LogIn className="subbar-btn-icon" />
+              <span>{isAuth ? t('menu.dashboard') : 'Staff Sign In'}</span>
+              <ArrowRight className="subbar-btn-arrow" />
+            </Link>
+          </div>
         </div>
       </div>
-      {isOpen && <button type="button" className="public-nav-backdrop" aria-label="Close menu" onClick={() => setIsOpen(false)} />}
-      <MicrosoftAppLauncher
-        open={appLauncherOpen}
-        onClose={() => setAppLauncherOpen(false)}
-      />
-    </header>
+    </>
   );
 }
 
