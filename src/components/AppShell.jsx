@@ -461,6 +461,30 @@ export default function AppShell({ children, active }) {
           onOpenQuickReport={() => { window.location.href = REPORT_BREAKDOWN_URL; }}
         />
 
+        {/* Demo Mode Sticky Banner */}
+        {user?.inventory_mode === 'demo' && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'sticky', top: 0, zIndex: 80,
+              background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+              color: '#1c1917', padding: '7px 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 10, fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.01em',
+              boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+            }}
+          >
+            <span>🧪</span>
+            <span>Demo Mode — all data below is sample data, not your plant.</span>
+            <a
+              href={BASE + 'login.html'}
+              style={{ color: '#1c1917', textDecoration: 'underline', fontWeight: 700, marginLeft: 8 }}
+            >
+              Sign in with real account →
+            </a>
+          </div>
+        )}
         <main className="app-content" id="main-content" tabIndex="-1">{workspaceAllowed ? children : <div className="role-view-message"><strong>This workspace is not part of your role view.</strong><span>{roleContribution(user?.role)}</span><a href={BASE + 'support.html'}>Open your Support &amp; Decisions view</a></div>}</main>
 
         {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) - Role-Filtered */}
@@ -584,7 +608,9 @@ export default function AppShell({ children, active }) {
           {answer && (
             <div className="app-sidebar-response">
               <div className="response-header">
-                {answerSource === 'ai' ? 'TurboFix Recommendation' : 'Live Maintenance Summary'}
+                {answerSource === 'ai'
+                ? '🤖 TurboFix AI Answer'
+                : '⚡ Quick Answer (not AI — based on live ticket data)'}
               </div>
               <div className="response-text">{answer}</div>
               {contextFiles.length > 0 && (

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import AuditLog from '../components/AuditLog';
 import {
   AlertCircle,
   BellRing,
@@ -8,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  History,
   Plus,
   Save,
   Settings2,
@@ -53,6 +55,7 @@ const SETTING_TABS = [
   { key: 'roles', label: 'Roles & Access', icon: <Users className="w-4 h-4" /> },
   { key: 'smart-modules', label: 'Smart Modules', icon: <Settings2 className="w-4 h-4" /> },
   { key: 'security', label: 'Security & Encryption', icon: <KeyRound className="w-4 h-4" /> },
+  { key: 'audit-log', label: 'Activity Audit Log', icon: <History className="w-4 h-4" /> },
 ];
 
 function readCurrentUser() {
@@ -77,10 +80,10 @@ function responseStepLabel(index, total) {
 
 function getVisibleSettingTabs(role) {
   if (role === 'owner' || role === 'admin') return SETTING_TABS;
-  if (role === 'maintenance_head') return SETTING_TABS.filter((tab) => ['general', 'company', 'ai-data', 'escalation', 'roles'].includes(tab.key));
-  if (role === 'supervisor') return SETTING_TABS.filter((tab) => ['general', 'company', 'escalation'].includes(tab.key));
+  if (role === 'maintenance_head') return SETTING_TABS.filter((tab) => ['general', 'company', 'ai-data', 'escalation', 'roles', 'audit-log'].includes(tab.key));
+  if (role === 'supervisor') return SETTING_TABS.filter((tab) => ['general', 'company', 'escalation', 'audit-log'].includes(tab.key));
   if (role === 'maintenance_technician' || role === 'technician') return SETTING_TABS.filter((tab) => ['general', 'ai-data'].includes(tab.key));
-  if (role === 'support') return SETTING_TABS.filter((tab) => ['general', 'ai-data', 'security'].includes(tab.key));
+  if (role === 'support') return SETTING_TABS.filter((tab) => ['general', 'ai-data', 'security', 'audit-log'].includes(tab.key));
   return SETTING_TABS.filter((tab) => ['general'].includes(tab.key));
 }
 
@@ -938,6 +941,13 @@ export default function Settings() {
                             </div>
                           </div>
                         </Card>
+                      </div>
+                    )}
+
+                    {/* Activity Audit Log Tab */}
+                    {tab.key === 'audit-log' && (
+                      <div className="max-w-4xl space-y-6">
+                        <AuditLog limit={50} />
                       </div>
                     )}
                   </div>

@@ -65,6 +65,37 @@ const TRANSLATIONS = {
     'msg.loading_data': 'Loading data...',
     'msg.no_data': 'No data available',
     'msg.confirm_delete': 'Are you sure you want to delete this item?',
+
+    // Urgency
+    'urgency.critical': 'Critical',
+    'urgency.high': 'High',
+    'urgency.medium': 'Medium',
+    'urgency.low': 'Low',
+
+    // RCA & 5-Why
+    'rca.title': 'Root Cause Analysis',
+    'rca.five_whys': '5-Why Analysis',
+    'rca.fishbone': 'Fishbone Category',
+    'rca.failure_mode': 'Failure Mode / Symptom',
+    'rca.loto_required': 'LOTO Applied & Isolated',
+    'rca.submit': 'Submit RCA',
+
+    // Plant Metrics & Operations
+    'plant.mttr': 'Mean Time to Repair (MTTR)',
+    'plant.mtbf': 'Mean Time Between Failures (MTBF)',
+    'plant.downtime_cost': 'Estimated Downtime Cost',
+    'plant.loto_status': 'Safety & LOTO Status',
+    'plant.kaizen_proposal': 'Kaizen Proposal',
+    'plant.audit_log': 'Activity Audit Log',
+    'plant.demo_mode_banner': 'Demo Mode — Sample plant data loaded',
+    'plant.export_csv': 'Export CSV',
+
+    // Workflow Actions
+    'action.report_breakdown': 'Report Breakdown',
+    'action.assign_technician': 'Assign Technician',
+    'action.verify_close': 'Verify & Close',
+    'action.create_ticket': 'Create Ticket',
+    'action.view_machine': 'View Machine Workspace',
   },
 
   es: {
@@ -486,6 +517,37 @@ const TRANSLATIONS = {
     'counter.range_info': 'श्रेणी: {min} से {max}',
     'counter.min_info': 'न्यूनतम: {min}',
     'counter.max_info': 'अधिकतम: {max}',
+
+    // Urgency
+    'urgency.critical': 'अति गंभीर (Critical)',
+    'urgency.high': 'उच्च (High)',
+    'urgency.medium': 'मध्यम (Medium)',
+    'urgency.low': 'निम्न (Low)',
+
+    // RCA & 5-Why
+    'rca.title': 'मूल कारण विश्लेषण (RCA)',
+    'rca.five_whys': '5-क्यों विश्लेषण',
+    'rca.fishbone': 'इशिकावा / फिशबोन श्रेणी',
+    'rca.failure_mode': 'खराबी का प्रकार / लक्षण',
+    'rca.loto_required': 'सुरक्षा LOTO लागू और पृथक',
+    'rca.submit': 'RCA जमा करें',
+
+    // Plant Metrics & Operations
+    'plant.mttr': 'औसत मरम्मत समय (MTTR)',
+    'plant.mtbf': 'विफलता के बीच का समय (MTBF)',
+    'plant.downtime_cost': 'अनुमानित डाउनटाइम लागत',
+    'plant.loto_status': 'सुरक्षा एवं LOTO स्थिति',
+    'plant.kaizen_proposal': 'काइज़ेन सुधार प्रस्ताव',
+    'plant.audit_log': 'गतिविधि ऑडिट लॉग',
+    'plant.demo_mode_banner': 'डेमो मोड — नमूना प्लांट डेटा',
+    'plant.export_csv': 'CSV निर्यात करें',
+
+    // Workflow Actions
+    'action.report_breakdown': 'ब्रेकडाउन की रिपोर्ट करें',
+    'action.assign_technician': 'तकनीशियन असाइन करें',
+    'action.verify_close': 'सत्यापित और बंद करें',
+    'action.create_ticket': 'टिकट बनाएं',
+    'action.view_machine': 'मशीन वर्कस्पेस देखें',
   },
 
   mr: {

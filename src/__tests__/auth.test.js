@@ -5,7 +5,8 @@ const jwt = (payload) => `x.${btoa(JSON.stringify(payload))}.x`;
 
 describe('client authentication state', () => {
   it('accepts only explicit demo roles and valid unexpired sessions', () => {
-    expect(isTokenExpired('demo:owner')).toBe(false);
+    expect(isTokenExpired('demo:operator')).toBe(false);
+    expect(isTokenExpired('demo:owner')).toBe(true);
     expect(isTokenExpired('demo:admin')).toBe(true);
     expect(isTokenExpired('demo-token-123')).toBe(true);
     expect(isTokenExpired(jwt({ exp: 2 }), 1000)).toBe(false);
@@ -13,9 +14,9 @@ describe('client authentication state', () => {
   });
 
   it('never reports signed in without both a valid token and user', () => {
-    const values = new Map([['tf_token', 'demo:owner']]);
+    const values = new Map([['tf_token', 'demo:operator']]);
     expect(readAuth({ getItem: (key) => values.get(key) || null })).toEqual({ authed: false, user: null });
-    values.set('tf_user', JSON.stringify({ name: 'Demo Owner', role: 'owner' }));
+    values.set('tf_user', JSON.stringify({ name: 'Demo Operator', role: 'operator' }));
     expect(readAuth({ getItem: (key) => values.get(key) || null }).authed).toBe(true);
   });
 });

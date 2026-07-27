@@ -44,7 +44,7 @@ const contentByLanguage = {
     heroBody: 'From Machine Stress to Maintenance Peace — TurboFix turns paper records and floor signals into approved machine memory, clear 4-step accountability, and reassuring plant operational peace.',
     bookDemo: 'Book a guided demo',
     explore: 'Explore the product',
-    trust: ['Direct WhatsApp API Integration', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
+    trust: ['WhatsApp Notifications & alerts', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
     previewQuestion: 'What should we service this Sunday?',
     previewScope: 'Plant-wide question • 2 machines reviewed',
     previewFinding: 'Hydraulic Press needs attention first',
@@ -628,6 +628,75 @@ export default function Home() {
             <div className="marketing-role-grid">
               {roleCards.map(({ icon: Icon, title, body }) => <article key={title}><Icon /><h3>{title}</h3><p>{body}</p></article>)}
             </div>
+          </div>
+        </section>
+
+        {/* ── Pricing Section ── */}
+        <section className="marketing-section" id="pricing" style={{ background: 'rgba(0,0,0,0.2)' }}>
+          <div className="container">
+            <div className="marketing-section-heading">
+              <span>Simple, transparent pricing</span>
+              <h2>Start small. Scale as your plant grows.</h2>
+              <p>All plans include a 30-day free trial. No credit card required to start.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 900, margin: '40px auto 0' }}>
+              {/* Starter */}
+              <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Starter</span>
+                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹999</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/month</span>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For small workshops, up to 20 machines</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                  {['Up to 5 team members', 'Machine breakdown tickets', 'WhatsApp notifications', 'Basic maintenance records', 'Mobile-ready PWA'].map(f => (
+                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/login.html" className="marketing-btn marketing-btn-ghost" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }}>Start free trial <ArrowRight size={14} /></Link>
+              </div>
+              {/* Growth — highlighted */}
+              <div style={{ border: '1px solid rgba(37,211,102,0.4)', borderRadius: 16, padding: 28, background: 'rgba(37,211,102,0.05)', position: 'relative' }}>
+                <span style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#25D366', color: '#000', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', padding: '3px 12px', borderRadius: 999, textTransform: 'uppercase' }}>Most Popular</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: '#25D366', textTransform: 'uppercase' }}>Growth</span>
+                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹2,499</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/month</span>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For growing plants, up to 100 machines</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                  {['Up to 25 team members', 'Full ticket & SLA management', 'AI maintenance assistant', 'Shutdown planner', 'Kaizen improvement board', 'Inventory management', 'Records & document upload', 'MTTR / downtime reports', 'CSV data export'].map(f => (
+                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/login.html" className="marketing-btn marketing-btn-primary" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }}>Start free trial <ArrowRight size={14} /></Link>
+              </div>
+              {/* Enterprise */}
+              <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Enterprise</span>
+                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>Custom</span>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>Multi-plant, 100+ machines, OEM & vendor access</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                  {['Unlimited team members', 'Multi-plant hierarchy', 'Dedicated onboarding', 'Custom SLA configuration', 'Priority support SLA', 'Data residency options', 'Bulk CSV asset import', 'Annual contract pricing'].map(f => (
+                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
+                    </li>
+                  ))}
+                </ul>
+                <a href={`https://wa.me/${SALES_WHATSAPP}?text=I'd like to discuss an Enterprise plan for my plant`} className="marketing-btn marketing-btn-ghost" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }} target="_blank" rel="noopener noreferrer">Talk to sales <ArrowRight size={14} /></a>
+              </div>
+            </div>
+            <p style={{ textAlign: 'center', marginTop: 28, fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+              <LockKeyhole size={12} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
+              All data stored in Supabase (AWS ap-south-1 — Mumbai). Your plant data is never shared with other companies.
+              · <a href={`https://wa.me/${SALES_WHATSAPP}`} style={{ color: 'var(--muted-foreground)', textDecoration: 'underline' }}>Privacy questions? WhatsApp us</a>
+            </p>
           </div>
         </section>
 
