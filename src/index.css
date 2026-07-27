@@ -9886,6 +9886,11 @@ a:focus-visible,
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
+/* Mobile-only bottom tab bar. Hidden by default; the media query below is
+   the only place that turns it on, so it never leaks into desktop as an
+   unstyled block of links. */
+.app-bottom-nav { display: none; }
+
 /* Mobile Floating Action Button (FAB) & Mobile Bottom Nav Bar (Pillar 8 & Mobile-First Plan) */
 @media (max-width: 768px) {
   .app-quick-report-btn {
@@ -9910,9 +9915,11 @@ a:focus-visible,
     bottom: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    background: #12171d;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(18, 23, 29, 0.92);
     border-top: 1px solid var(--ui-border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -9922,22 +9929,59 @@ a:focus-visible,
 
   .app-bottom-nav-item {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    justify-content: center;
+    gap: 3px;
+    height: 52px;
     color: var(--muted-foreground);
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+    font-weight: 600;
     text-decoration: none;
-    padding: 6px;
+    transition: color 0.18s ease;
+  }
+
+  .app-bottom-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 26px;
+    border-radius: 999px;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .app-bottom-nav-label {
+    line-height: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 2px;
   }
 
   .app-bottom-nav-item.active {
     color: var(--primary);
-    font-weight: 700;
+  }
+
+  .app-bottom-nav-item.active .app-bottom-nav-icon {
+    background: rgba(37, 211, 102, 0.16);
+    color: var(--primary);
+    transform: translateY(-1px);
+  }
+
+  .app-bottom-nav-item:active .app-bottom-nav-icon {
+    transform: scale(0.92);
   }
 
   .app-content {
-    padding-bottom: 80px !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Clear the fixed bottom nav instead of sitting on top of its last two items. */
+  .app-sidebar-trigger {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 16px);
   }
 }
 

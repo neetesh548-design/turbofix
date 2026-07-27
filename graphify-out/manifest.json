@@ -605,8 +605,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785158286.047149,
-    "ast_hash": "f40b389eac9779f89690b9134ba2eeba",
+    "mtime": 1785178764.7019815,
+    "ast_hash": "fc894c2fa29f8a806d95095d11e2c43e",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
