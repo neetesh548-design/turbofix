@@ -34,6 +34,7 @@ export default function Navbar() {
     { id: 'how', label: t('menu.how'), description: t('menu.howDesc'), icon: Route },
     { id: 'demo', label: t('menu.demo'), description: t('menu.demoDesc'), icon: PlayCircle },
   ];
+  const showMarketingCta = !isAuth;
 
   useEffect(() => {
     const handleAuth = () => {
@@ -115,39 +116,45 @@ export default function Navbar() {
   return (
     <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
       <div className="container nav-inner public-nav-inner flex items-center gap-2">
-        <button
-          type="button"
-          className="public-nav-waffle-btn p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-          onClick={() => setAppLauncherOpen(true)}
-          aria-label="Open Microsoft-style App Launcher"
-          title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
-        >
-          <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-        </button>
+        <div className="public-nav-brand-cluster">
+          <button
+            type="button"
+            className="public-nav-waffle-btn"
+            onClick={() => setAppLauncherOpen(true)}
+            aria-label="Open Microsoft-style App Launcher"
+            title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+          >
+            <Grid />
+          </button>
 
-        <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
-          <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
-            <defs><linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stopColor="#22a35a" /><stop offset="100%" stopColor="#125c31" /></linearGradient></defs>
-            <circle cx="50" cy="50" r="12" fill="#0f172a" />
-            <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-          </svg>
-          <span className="public-nav-brand-copy">
-            <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-            <small>Workflow layer · analytics underneath</small>
-          </span>
-        </Link>
+          <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
+            <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
+              <defs><linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stopColor="#22a35a" /><stop offset="100%" stopColor="#125c31" /></linearGradient></defs>
+              <circle cx="50" cy="50" r="12" fill="#0f172a" />
+              <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
+            </svg>
+            <span className="public-nav-brand-copy">
+              <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+              <small>Workflow layer · analytics underneath</small>
+            </span>
+          </Link>
+        </div>
 
         <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
           <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
           <div className="public-nav-primary">{navItems.map(sectionLink)}</div>
           <div className="public-nav-mobile-actions">
             {accountLink}
-            {!isAuth && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
+            {showMarketingCta && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
           </div>
         </nav>
 
         <div className="public-nav-actions">
+          <div className="public-nav-meta">
+            <span className="public-nav-meta-kicker">For plant teams</span>
+            <strong>Breakdowns, records, workflow</strong>
+          </div>
           <label className="public-nav-language">
             <Globe2 aria-hidden="true" />
             <span className="sr-only">{t('menu.language')}</span>
@@ -158,7 +165,7 @@ export default function Navbar() {
             </select>
           </label>
           <div className="public-nav-desktop-account">{accountLink}</div>
-          {!isAuth && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
+          {showMarketingCta && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
           <button
             type="button"
             className="public-nav-toggle"

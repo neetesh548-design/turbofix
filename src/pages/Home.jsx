@@ -323,6 +323,7 @@ export default function Home() {
   const [machineCount, setMachineCount] = useState(15);
   const [isAnnual, setIsAnnual] = useState(true);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const videoRef = useRef(null);
 
   const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
@@ -335,11 +336,28 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setShowStickyCta(window.scrollY > 450);
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const contactSection = document.getElementById('contact');
+
+    const updateStickyState = () => {
+      if (!mediaQuery.matches) {
+        setShowStickyCta(false);
+        return;
+      }
+
+      const contactTop = contactSection?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+      const isBeforeContact = contactTop > window.innerHeight - 140;
+      setShowStickyCta(window.scrollY > 450 && isBeforeContact);
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    updateStickyState();
+    window.addEventListener('scroll', updateStickyState, { passive: true });
+    window.addEventListener('resize', updateStickyState);
+
+    return () => {
+      window.removeEventListener('scroll', updateStickyState);
+      window.removeEventListener('resize', updateStickyState);
+    };
   }, []);
 
   const handleLeadSubmit = (event) => {
@@ -471,10 +489,10 @@ export default function Home() {
           <div className="container">
             <div className="marketing-outcomes-heading">
               <div>
-                <span>Built for plant leadership</span>
+                <span>One operating story</span>
                 <h2>From breakdown signal to verified closure—without the daily chase.</h2>
               </div>
-              <p>TurboFix replaces scattered calls, registers, and WhatsApp follow-ups with one accountable maintenance workflow.</p>
+              <p>Bring in old machine history, verify what is trustworthy, and then run daily maintenance from the same system instead of switching between records and execution.</p>
             </div>
             <div className="marketing-outcomes-grid">
               <article>
@@ -793,7 +811,22 @@ export default function Home() {
           <div className="container marketing-faq-grid">
             <div><span>Clear before you commit</span><h2>{copy.faqTitle}</h2><p>TurboFix is designed to support maintenance judgment, preserve accountability, and make plant knowledge easier to use.</p></div>
             <div className="marketing-faq-list">
-              {faqs.map(({ question, answer }, index) => <details key={question} open={index === 0}><summary>{question}<span>+</span></summary><p>{answer}</p></details>)}
+              {faqs.map(({ question, answer }, index) => (
+                <details
+                  key={question}
+                  open={openFaqIndex === index}
+                  onToggle={(event) => {
+                    if (event.currentTarget.open) {
+                      setOpenFaqIndex(index);
+                    } else if (openFaqIndex === index) {
+                      setOpenFaqIndex(null);
+                    }
+                  }}
+                >
+                  <summary>{question}<span>+</span></summary>
+                  <p>{answer}</p>
+                </details>
+              ))}
             </div>
           </div>
         </section>
@@ -854,4 +887,3 @@ export default function Home() {
     </MainLayout>
   );
 }
-
