@@ -59,7 +59,6 @@ npm run test:ux:a11y
 ```
 
 **Keyboard Shortcuts Tested:**
-- `Cmd+Shift+R` / `Ctrl+Shift+R` — Open Quick Report
 - `Tab` — Navigate form fields
 - `Escape` — Close dialogs
 - `Enter` — Submit forms
@@ -376,4 +375,3 @@ npx playwright test --project=chromium --reporter=list --headed --video=on
 **Test Count:** 72+ scenarios  
 **Expected Runtime:** 15-20 minutes  
 **Browsers:** Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
-

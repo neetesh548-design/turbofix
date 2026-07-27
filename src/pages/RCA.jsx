@@ -65,9 +65,13 @@ export default function RCA() {
       }
       setLoading(true);
       setError('');
+
+      // Only query ticket if ticketId looks like a valid UUID
+      const isValidUuid = ticketId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ticketId);
+
       const [machineRes, ticketRes] = await Promise.all([
         supabase.from('machines').select('id,name,location,status,company_id,supervisor_id').eq('id', machineId).maybeSingle(),
-        ticketId ? supabase.from('tickets').select('*').eq('id', ticketId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+        isValidUuid ? supabase.from('tickets').select('*').eq('id', ticketId).maybeSingle() : Promise.resolve({ data: null, error: null }),
       ]);
       if (!mounted) return;
 

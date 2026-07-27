@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785097532.737082,
-    "ast_hash": "c3026268a4550a5b176ce8ada3813e38",
+    "mtime": 1785150039.0658522,
+    "ast_hash": "c351402a01e31fdbe4baf75f31907017",
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
@@ -2497,6 +2497,11 @@
   "src/utils/auth.js": {
     "mtime": 1785147057.6829767,
     "ast_hash": "b2ba763232089897984fa34769e2c7c4",
+    "semantic_hash": ""
+  },
+  "SUPABASE_GUIDE.md": {
+    "mtime": 1785150222.4517543,
+    "ast_hash": "67d1a94b6a0664924d7d2674b7978d4a",
     "semantic_hash": ""
   }
 }

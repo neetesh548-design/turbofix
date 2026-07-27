@@ -95,23 +95,9 @@ export default function AppShell({ children, active }) {
     window.addEventListener('storage', refresh);
     enableKeyboardNavigation();
 
-    // Global Shortcut: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Win) for Quick Report
-    const handleGlobalKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
-        e.preventDefault();
-        // No-op if we are already on the logger, so the shortcut cannot
-        // discard a half-written report by reloading the page.
-        if (!window.location.pathname.endsWith('report-breakdown.html')) {
-          window.location.href = REPORT_BREAKDOWN_URL;
-        }
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-
     return () => {
       window.removeEventListener('authChanged', refresh);
       window.removeEventListener('storage', refresh);
-      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, [refresh]);
 
@@ -413,7 +399,7 @@ export default function AppShell({ children, active }) {
             <a
               href={REPORT_BREAKDOWN_URL}
               className="app-quick-report-btn"
-              title="Report Breakdown / Ticket (Cmd+Shift+R)"
+              title="Report Breakdown / Ticket"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

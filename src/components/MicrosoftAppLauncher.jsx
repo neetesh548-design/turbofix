@@ -213,10 +213,6 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
           )}
         </div>
 
-        {/* Footer Note */}
-        <div className="px-5 py-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500">
-          Tip: Press <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-200 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700">Cmd+Shift+R</kbd> anywhere to quickly report a breakdown.
-        </div>
       </div>
     </div>
   );

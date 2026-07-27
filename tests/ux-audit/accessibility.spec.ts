@@ -60,18 +60,6 @@ test.describe('Keyboard Navigation & Accessibility', () => {
     await expect(dialog).not.toBeVisible();
   });
 
-  test('should support Cmd+Shift+R keyboard shortcut', async ({ page }) => {
-    await page.goto('/settings'); // Start on different page
-
-    // Press Cmd+Shift+R
-    const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
-    await page.keyboard.press(`${modifier}+Shift+R`);
-
-    // Quick Report dialog should open instantly
-    const dialog = page.locator('[role="dialog"]');
-    await expect(dialog).toBeVisible({ timeout: 500 });
-  });
-
   test('should allow form submission via keyboard', async ({ page }) => {
     await page.goto('/tickets');
 
