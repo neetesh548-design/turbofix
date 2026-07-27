@@ -549,6 +549,8 @@ class I18nManager {
     this.currentLanguage = this.getInitialLanguage();
     this.translations = TRANSLATIONS;
     this.listeners = new Set();
+    // Apply font for the initial language immediately
+    this._applyLangAttributes(this.currentLanguage);
   }
 
   getInitialLanguage() {
@@ -575,13 +577,20 @@ class I18nManager {
 
     this.currentLanguage = langCode;
     localStorage.setItem('tf_language', langCode);
+    this._applyLangAttributes(langCode);
     this.notifyListeners();
+  }
 
-    // Update HTML lang attribute and dir
+  // Centralised helper — applies lang, dir, and data-lang to <html>
+  // so that CSS font-stack overrides keyed on [data-lang] fire correctly.
+  _applyLangAttributes(langCode) {
+    if (typeof document === 'undefined') return;
+    const isRTL = SUPPORTED_LANGUAGES[langCode]?.rtl ?? false;
     document.documentElement.lang = langCode;
-    const isRTL = SUPPORTED_LANGUAGES[langCode].rtl;
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
     document.documentElement.setAttribute('data-dir', isRTL ? 'rtl' : 'ltr');
+    // data-lang drives the per-language font-family overrides in index.css
+    document.documentElement.setAttribute('data-lang', langCode);
   }
 
   getLanguage() {

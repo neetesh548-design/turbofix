@@ -225,6 +225,97 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─── Per-language font stacks ────────────────────────────────────────────────
+   Triggered by data-lang="xx" set on <html> by i18n._applyLangAttributes().
+   System fonts are listed first so the page renders instantly even before any
+   web font loads. Google Fonts are declared via @font-face below for the
+   scripts that need explicit loading (CJK, Arabic, Devanagari).
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Japanese — Noto Sans JP gives full kanji coverage */
+:root:is([data-lang="ja"]) body,
+:root:is([data-lang="ja"]) h1,
+:root:is([data-lang="ja"]) h2,
+:root:is([data-lang="ja"]) h3,
+:root:is([data-lang="ja"]) h4,
+:root:is([data-lang="ja"]) button,
+:root:is([data-lang="ja"]) input,
+:root:is([data-lang="ja"]) select,
+:root:is([data-lang="ja"]) textarea,
+:root:is([data-lang="ja"]) * {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+    'Yu Gothic', 'Meiryo', sans-serif !important;
+}
+
+/* Chinese (Simplified) — Noto Sans SC */
+:root:is([data-lang="zh"]) body,
+:root:is([data-lang="zh"]) h1,
+:root:is([data-lang="zh"]) h2,
+:root:is([data-lang="zh"]) h3,
+:root:is([data-lang="zh"]) h4,
+:root:is([data-lang="zh"]) button,
+:root:is([data-lang="zh"]) input,
+:root:is([data-lang="zh"]) select,
+:root:is([data-lang="zh"]) textarea,
+:root:is([data-lang="zh"]) * {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'SimHei',
+    sans-serif !important;
+}
+
+/* Arabic — Noto Naskh Arabic for readability in RTL */
+:root:is([data-lang="ar"]) body,
+:root:is([data-lang="ar"]) h1,
+:root:is([data-lang="ar"]) h2,
+:root:is([data-lang="ar"]) h3,
+:root:is([data-lang="ar"]) h4,
+:root:is([data-lang="ar"]) button,
+:root:is([data-lang="ar"]) input,
+:root:is([data-lang="ar"]) select,
+:root:is([data-lang="ar"]) textarea,
+:root:is([data-lang="ar"]) * {
+  font-family: 'Noto Naskh Arabic', 'Segoe UI', 'Tahoma', 'Arial Unicode MS',
+    sans-serif !important;
+}
+
+/* Hindi — Noto Sans Devanagari */
+:root:is([data-lang="hi"]) body,
+:root:is([data-lang="hi"]) h1,
+:root:is([data-lang="hi"]) h2,
+:root:is([data-lang="hi"]) h3,
+:root:is([data-lang="hi"]) h4,
+:root:is([data-lang="hi"]) button,
+:root:is([data-lang="hi"]) input,
+:root:is([data-lang="hi"]) select,
+:root:is([data-lang="hi"]) textarea,
+:root:is([data-lang="hi"]) * {
+  font-family: 'Noto Sans Devanagari', 'Mangal', 'Kokila', sans-serif !important;
+}
+
+/* Marathi — same Devanagari stack as Hindi */
+:root:is([data-lang="mr"]) body,
+:root:is([data-lang="mr"]) h1,
+:root:is([data-lang="mr"]) h2,
+:root:is([data-lang="mr"]) h3,
+:root:is([data-lang="mr"]) h4,
+:root:is([data-lang="mr"]) button,
+:root:is([data-lang="mr"]) input,
+:root:is([data-lang="mr"]) select,
+:root:is([data-lang="mr"]) textarea,
+:root:is([data-lang="mr"]) * {
+  font-family: 'Noto Sans Devanagari', 'Mangal', 'Kokila', sans-serif !important;
+}
+
+/* Latin-script languages (es, fr, de, pt) — Outfit already covers these,
+   but restate explicitly for clarity and to override any ad-hoc hardcoding. */
+:root:is([data-lang="en"]) body,
+:root:is([data-lang="es"]) body,
+:root:is([data-lang="fr"]) body,
+:root:is([data-lang="de"]) body,
+:root:is([data-lang="pt"]) body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .route-loading { min-height: 100vh; display: grid; place-items: center; color: var(--slate); background: var(--bg); font-weight: 700; letter-spacing: .04em; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
