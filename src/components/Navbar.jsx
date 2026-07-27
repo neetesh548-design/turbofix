@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ArchiveRestore,
   ArrowRight,
-  Globe2,
+  ChevronDown,
   Grid,
   Layers3,
   LogIn,
@@ -106,8 +106,8 @@ export default function Navbar() {
   const accountLink = (
     <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/login.html'} onClick={() => setIsOpen(false)}>
       <span className="public-nav-avatar">{isAuth ? (user?.name?.charAt(0) || 'S').toUpperCase() : <LogIn />}</span>
-      <span>
-        <small>{isAuth ? `${t('menu.signedIn')} • ${user?.company_code || 'TurboFix'}` : 'TurboFix workspace'}</small>
+      <span className="public-nav-account-text">
+        <small>{isAuth ? `${t('menu.signedIn')} • ${user?.company_code || 'TurboFix'}` : 'TURBOFIX WORKSPACE'}</small>
         <strong>{isAuth ? t('menu.dashboard') : t('menu.login')}</strong>
       </span>
     </Link>
@@ -128,40 +128,53 @@ export default function Navbar() {
           </button>
 
           <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
-            <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect width="100" height="100" rx="20" fill="url(#brand-grad)" />
-              <defs><linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stopColor="#22a35a" /><stop offset="100%" stopColor="#125c31" /></linearGradient></defs>
-              <circle cx="50" cy="50" r="12" fill="#0f172a" />
-              <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-            </svg>
+            <div className="brand-logo-icon">
+              <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
+                <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
+              </svg>
+            </div>
             <span className="public-nav-brand-copy">
               <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-              <small className="public-nav-brand-sub">Workflow layer · analytics underneath</small>
+              <small className="public-nav-brand-sub">WORKFLOW LAYER · ANALYTICS UNDERNEATH</small>
             </span>
           </Link>
         </div>
 
         <nav className={`public-nav-menu ${isOpen ? 'open' : ''}`} id="mainNavigation" aria-label="Main navigation">
           <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
-          <div className="public-nav-primary">{navItems.map(sectionLink)}</div>
+          <div className="public-nav-primary">
+            {navItems.map(sectionLink)}
+            <div className="public-nav-language-wrapper">
+              <label className="public-nav-language">
+                <span className="sr-only">{t('menu.language')}</span>
+                <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
+                  <option value="en">EN</option>
+                  <option value="hi">HI</option>
+                  <option value="mr">MR</option>
+                </select>
+                <ChevronDown className="lang-chevron" aria-hidden="true" />
+              </label>
+            </div>
+          </div>
           <div className="public-nav-mobile-actions">
             {accountLink}
-            {showMarketingCta && <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
+            {showMarketingCta && (
+              <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>
+                <span>{t('menu.start')}</span>
+                <ArrowRight />
+              </a>
+            )}
           </div>
         </nav>
 
         <div className="public-nav-actions">
-          <label className="public-nav-language">
-            <Globe2 aria-hidden="true" />
-            <span className="sr-only">{t('menu.language')}</span>
-            <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
-              <option value="en">EN</option>
-              <option value="hi">हिंदी</option>
-              <option value="mr">मराठी</option>
-            </select>
-          </label>
           <div className="public-nav-desktop-account">{accountLink}</div>
-          {showMarketingCta && <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>{t('menu.start')}<ArrowRight /></a>}
+          {showMarketingCta && (
+            <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>
+              <span>{t('menu.start')}</span>
+              <ArrowRight />
+            </a>
+          )}
           <button
             type="button"
             className="public-nav-toggle"
@@ -182,3 +195,4 @@ export default function Navbar() {
     </header>
   );
 }
+
