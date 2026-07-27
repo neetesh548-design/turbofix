@@ -2425,8 +2425,8 @@
     "semantic_hash": ""
   },
   "src/utils/inventoryMetrics.js": {
-    "mtime": 1785137086.31344,
-    "ast_hash": "3fa97b11801efdffefdf1a31fa693e56",
+    "mtime": 1785142263.4185634,
+    "ast_hash": "7f567469e1971fb85ecb9a334184475c",
     "semantic_hash": ""
   },
   "tests/settings-role-boundary.spec.js": {
@@ -2435,8 +2435,8 @@
     "semantic_hash": ""
   },
   "src/__tests__/inventoryMetrics.test.js": {
-    "mtime": 1785077441.1725626,
-    "ast_hash": "9c0d1a61c9c3d2ee493a250b0bfeee05",
+    "mtime": 1785142269.0727696,
+    "ast_hash": "f73af5f23b8da847142a0bd7f38676a4",
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
