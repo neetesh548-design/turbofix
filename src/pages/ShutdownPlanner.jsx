@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
+import { DEMO_MACHINES } from '@/utils/demoMachines';
 
 const priorityRank = { Critical: 0, Recommended: 1, Preventive: 2 };
 const estimationStorageKey = 'tf_shutdown_estimation_rules';
@@ -66,8 +67,23 @@ export default function ShutdownPlanner() {
       supabase.from('machines').select('id,name,location,status'),
       supabase.from('tickets').select('id,machine_id,status,issue_text,ai_summary,created_at'),
     ]).then(([machinesRes, ticketsRes]) => {
-        const machineData = (machinesRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location, status: m.status }));
-        const ticketData = (ticketsRes.data || []).map(t => ({ ticket_id: t.id, machine_id: t.machine_id, status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at }));
+        let machineData = (machinesRes.data || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location, status: m.status }));
+        let ticketData = (ticketsRes.data || []).map(t => ({ ticket_id: t.id, machine_id: t.machine_id, status: t.status, issue_text: t.issue_text, ai_summary: t.ai_summary, created_at: t.created_at, urgency: t.urgency }));
+
+        // Demo logins don't create a real Supabase auth session, so RLS
+        // blocks these queries and returns nothing. Fall back to the same
+        // demo fleet Machines/Dashboard/Tickets already show.
+        if (!machineData.length) {
+          let demoUser = null;
+          try { demoUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
+          if (demoUser?.inventory_mode === 'demo') {
+            machineData = DEMO_MACHINES.map((m) => ({ machine_id: m.machine_id, machine_name: m.machine_name, location: m.location, status: m.status }));
+            ticketData = DEMO_MACHINES.flatMap((m) => (m.track_record?.open_list || []).map((t) => ({
+              ticket_id: t.id, machine_id: m.machine_id, status: 'open', issue_text: t.issue_text, ai_summary: null, created_at: t.created_at, urgency: t.urgency,
+            })));
+          }
+        }
+
         setMachines(machineData);
         setTickets(ticketData);
         setSelectedIds(machineData.map((machine) => machine.machine_id));

@@ -6,6 +6,7 @@ import EmptyState from '../components/EmptyState';
 import { Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
+import { DEMO_TEAM } from '@/utils/demoMachines';
 
 export default function Team() {
   const [team, setTeam] = useState([]);
@@ -80,7 +81,21 @@ export default function Team() {
       const localRoles = window.localStorage.getItem('tf_settings_custom_roles');
       setCustomRoles(localRoles ? JSON.parse(localRoles) : []);
     } catch (err) {
-      setError(err.message || 'An error occurred while loading team list.');
+      // Demo logins don't create a real Supabase auth session, so the
+      // onboard_team_member function rejects the call as unauthenticated.
+      // Show the same demo roster the rest of the app (Machines, Tickets)
+      // already references as "Assigned to" instead of a scary error.
+      let demoUser = currentUser;
+      try {
+        demoUser = demoUser || JSON.parse(localStorage.getItem('tf_user') || 'null');
+      } catch {}
+      if (demoUser?.inventory_mode === 'demo') {
+        const namesById = Object.fromEntries(DEMO_TEAM.map((member) => [member.user_id, member.name]));
+        setTeam(DEMO_TEAM.map((member) => ({ ...member, manager_name: namesById[member.manager_user_id] || '' })));
+        setCustomRoles([]);
+      } else {
+        setError(err.message || 'An error occurred while loading team list.');
+      }
     } finally {
       setLoading(false);
     }

@@ -835,9 +835,9 @@
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
-    "mtime": 1784906040.704173,
-    "ast_hash": "f5ecfac1145cd8c1581958bd7645d701",
-    "semantic_hash": "f5ecfac1145cd8c1581958bd7645d701"
+    "mtime": 1785175130.683491,
+    "ast_hash": "444294c8f4c6c87580629ab98d6a2f85",
+    "semantic_hash": ""
   },
   "src/pages/Support.jsx": {
     "mtime": 1784905951.603235,
@@ -845,8 +845,8 @@
     "semantic_hash": "73820b5dd86612b98c3782f8c575b855"
   },
   "src/pages/Team.jsx": {
-    "mtime": 1785096718.4167562,
-    "ast_hash": "d5540ce02c703a2494afef00ecfc8d53",
+    "mtime": 1785175317.4333565,
+    "ast_hash": "c56fc67e584ba90ac89a801bdaeabf6c",
     "semantic_hash": ""
   },
   "src/pages/Technician.jsx": {
@@ -2205,8 +2205,8 @@
     "semantic_hash": ""
   },
   "src/utils/demoMachines.js": {
-    "mtime": 1785149084.7302773,
-    "ast_hash": "2484bd7b3bc38736b1821991ba3a3c3f",
+    "mtime": 1785174997.9425561,
+    "ast_hash": "cc2389df11e4696e3e4569ea2c8289ec",
     "semantic_hash": ""
   },
   "src/utils/machineHealth.js": {
@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785152253.9231005,
-    "ast_hash": "38e813809ba00145b17edfa774aa4292",
+    "mtime": 1785177055.5429373,
+    "ast_hash": "0e0d8a4d3e7d0c2fe9f014c7e8381b9e",
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
@@ -2510,8 +2510,8 @@
     "semantic_hash": ""
   },
   "LAYOUT_AUDIT.md": {
-    "mtime": 1785174447.335566,
-    "ast_hash": "9563c1606b1357fe9fd36dddb50c57ce",
+    "mtime": 1785177420.0475314,
+    "ast_hash": "aa8fb07d79cd2a570a4738f159ca33e2",
     "semantic_hash": ""
   }
 }

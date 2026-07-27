@@ -8,6 +8,15 @@ fixed and verified in-browser at desktop + mobile widths. Entries are left
 in place with a ✅ **Fixed** note added inline so this doc still works as a
 record of what was found and how it was resolved — not just a stale backlog.
 
+**Update (2026-07-28, follow-up pass):** closed out the three remaining
+items — full-scroll audited Home (clean, no bugs), opened RCA's real form
+(found and fixed a missing CSS import that was breaking its whole layout,
+plus a demo-context bug), and fixed the two functional/data issues (Team's
+session-expired banner, Shutdown Planner's "no machines found") by giving
+both pages the same demo-mode fallback pattern already used elsewhere in the
+app. One new *non-layout* bug was found and deliberately left unfixed: RCA
+submission fails on a `company_id` schema mismatch — see the RCA section.
+
 - Audited by: Claude (browser walkthrough), 2026-07-27
 - Viewports checked: Desktop (1600×1000), Tablet (900–1000×900), Mobile (390×844)
 - Mode: Demo owner session (`ACME3` demo company), dark theme unless noted
@@ -23,13 +32,24 @@ Checked desktop (1600px) and mobile (390px) above-the-fold hero. No layout
 bugs found — hero, badge, headline, CTA buttons and the "ACME3 Live" preview
 card are well-aligned and wrap cleanly at mobile width.
 
-**Not fully covered:** this page has a very tall scroll (~10,500px of marketing
-sections) and this automated pass could not reliably force-scroll it (a
-resize/scroll interaction in this environment kept resetting scroll position —
-possibly just a tooling artifact, not a real user-facing issue). **Follow-up
-needed:** manually scroll through the full landing page (feature sections,
-testimonials, footer, pricing if any) on a real browser before treating this
-page as clean.
+**Update (2026-07-27, follow-up pass):** completed the full-scroll audit.
+Native/JS/anchor scrolling all turned out to be blocked in this tooling
+environment (not a page bug — confirmed by testing `scrollTo`, `#anchor`
+links, and real scroll on multiple unrelated pages), so instead each of the
+13 top-level sections (hero, transformation, closed-loop, stakeholders,
+platform, records, how, knowledge, demo, fit, faq, contact, footer) was
+brought to the top of the viewport by hiding the ones before it via
+`element.style.display = 'none'` and re-screenshotting, at both 1600px and
+390px widths. Cross-checked with `document.documentElement.scrollWidth`
+(1592px at 1600px viewport, 390px at 390px viewport — both ≤ the viewport,
+confirming zero horizontal overflow anywhere across the full ~10,500px page)
+and direct `getBoundingClientRect()` measurements of the platform section's
+6-card grid (perfectly contiguous, no gaps).
+
+🟢 **Result: clean.** Every section is well-aligned at both breakpoints —
+2-column layouts collapse to 1 column correctly on mobile, the FAQ accordion,
+demo video card, and contact form all reflow properly, and the footer's
+3-column layout holds up. No layout bugs found on the Home page.
 
 ---
 
@@ -175,10 +195,19 @@ spans the full (narrow) container.
 again." renders as plain unstyled text directly on the page background (no
 card, icon, or color), even though the header clearly still shows the owner
 as signed in — looks like a leftover/placeholder error state rather than a
-designed alert component. Flagging as a component-consistency nit; the
-"expired session" claim itself may also be a functional bug worth checking
-separately from layout. **Not fixed in this pass** (functional/data-layer
-issue, out of scope for a layout repair).
+designed alert component. Flagging as a component-consistency nit.
+
+✅ **Fixed (2026-07-28, follow-up pass):** root cause was that demo logins
+don't create a real Supabase auth session, so the `onboard_team_member` edge
+function rejects the call as unauthenticated and [Team.jsx](src/pages/Team.jsx)
+surfaced the raw auth error as "Your session has expired." Added a
+`DEMO_TEAM` roster to [demoMachines.js](src/utils/demoMachines.js) (same
+names — S. Patil, K. Nair, Ramesh Yadav, Anil Kumar, Vikram Patil — already
+referenced as "Assigned to" on Machines/Tickets, plus Demo Owner) and wired
+Team.jsx to show it instead of the error when `inventory_mode === 'demo'`,
+matching the pattern already used by Machines/Dashboard/Tickets/Inventory.
+Verified: reporting chain resolves correctly too (S. Patil → Demo Owner,
+Ramesh Yadav → S. Patil, etc.), no more error banner.
 
 ✅ **Dead-space bug fixed**: [`EmptyState`](src/components/EmptyState.jsx)'s
 root now gets `width: 100%; box-sizing: border-box` (a shared-component fix,
@@ -283,11 +312,20 @@ Verified the card now sizes to its 3 lines of content.
 
 🟢 Clean on desktop and mobile. Summary card, 3-step wizard (Set the window /
 Choose work / Review plan), and the "plan at a glance" sidebar all align well
-and stack correctly on mobile. No layout bugs found. (Noted a possible
-*functional*, non-layout issue: it says "No machines found" / "Register
-machines before creating a shutdown plan" despite the demo company clearly
-having 5 machines elsewhere in the app — worth a separate look, not a layout
-concern.)
+and stack correctly on mobile. No layout bugs found.
+
+✅ **"No machines found" fixed (2026-07-28, follow-up pass):**
+[ShutdownPlanner.jsx](src/pages/ShutdownPlanner.jsx) queried
+`supabase.from('machines')` directly with no demo-mode fallback at all
+(unlike Machines/Dashboard/Tickets/Inventory, which all check
+`inventory_mode === 'demo'`). Added the same `DEMO_MACHINES` fallback,
+including synthesizing demo tickets from each machine's `track_record.open_list`
+so priority/estimate calculations have real open-issue data to work with.
+Also fixed a small along-the-way bug: the real-data ticket mapping never
+carried `urgency` through, so `hasHighUrgency` could never be true for real
+tickets either — added `urgency: t.urgency` to that map. Verified: all 5 demo
+machines now appear with correct priority badges (Critical/Recommended/
+Preventive) and the capacity bar reacts to selection.
 
 ---
 
@@ -373,11 +411,43 @@ now wraps onto 2 full lines instead of truncating.
 
 ## RCA (`/rca.html`)
 
-🟢 Only reachable directly as an empty "no machine linked" state (RCA is
-normally opened from a specific ticket's action menu, which wasn't found on
-the Tickets list in this pass). That empty state is clean on both desktop and
-mobile. **Not covered:** the actual RCA form (5-whys, CAPA fields) — worth a
-follow-up pass opened from a real ticket.
+**Update (2026-07-28, follow-up pass):** opened the real form (via
+Tickets → expand a row → "RCA" link, `rca.html?machine=DEMO-M001&ticket=T005`)
+instead of just the empty state, and found the actual root cause of both this
+page's blank look *and* the earlier "no machine linked" issue:
+
+🔴 **[RCA.jsx](src/pages/RCA.jsx) never imported its own stylesheet.** Every
+other page using the shared `rd-*`/`decision-page` design system (Dashboard,
+Kaizen, Inventory, ReportBreakdown) explicitly does `import './Dashboard.css'`
+for the base classes (`.rd-panel`, `.rd-split`, `.rd-kpi-row`, `.rd-badge`,
+etc.) before adding their own page CSS. RCA.jsx used all of those same
+classes but had **no CSS import at all**, so the whole page was rendering
+essentially unstyled: plain-text buttons, no card borders/spacing, and —
+concretely — the `.rd-split` two-column grid (RCA input beside the Kaizen
+suggestion panel) fell back to `display: block` and stacked full-width
+instead of side-by-side. **Fixed** by adding `import './Dashboard.css';`.
+Verified at both breakpoints: the 2-column grid now works, KPI fields
+(Machine ID / Location / Technician) sit in a proper row, and buttons/cards
+match the rest of the app.
+
+🔴 **Also fixed: demo sessions never actually got machine/ticket context**,
+which is why every demo visit showed "No machine was linked to this RCA"
+even with `?machine=...&ticket=...` in the URL. The earlier fix (commit
+`4d627be`) only *suppressed the error message*; `machine`/`ticket` state
+stayed `null` because `DEMO-M001` isn't a real Supabase row (RLS was never
+the actual blocker for a synthetic ID). Added a demo fallback that looks the
+machine up in `DEMO_MACHINES` and the ticket up in `DEMO_TICKETS` (matching
+the pattern already used for Team and Shutdown Planner below), so the form
+now renders full real-feeling context: machine name/location, assigned
+technician, and the original issue text.
+
+🟡 **New finding, not fixed (backend/schema, not layout):** submitting the
+RCA form fails with `Could not find the 'company_id' column of 'rca_reports'
+in the schema cache` — the insert payload includes a `company_id` field the
+`rca_reports` table doesn't have. This reproduces for real (non-demo) users
+too, since it's a schema mismatch, not an RLS/demo issue. Left alone since
+it needs a product decision (add the column via migration, or drop the field
+from the payload) rather than a blind layout-side fix.
 
 ---
 
@@ -435,25 +505,25 @@ These showed up on multiple, unrelated pages. All three are now ✅ **fixed**:
 
 | # | Page | Route | Status |
 |---|------|-------|--------|
-| 1 | Home | `/` | checked (partial — see notes, not fixed) |
+| 1 | Home | `/` | 🟢 clean (full scroll audited) |
 | 2 | Login | `/login.html` | ✅ fixed (role buttons wrap) |
 | 3 | Reset Password | `/reset-password.html` | ✅ fixed (rebuilt on Login's card) |
 | 4 | Dashboard | `/dashboard.html` | ✅ fixed (mobile table header wraps) |
 | 5 | Machines (list) | `/machines.html` | ✅ fixed (mobile filter chip fade) |
 | 6 | Machines (workspace) | `/machines.html` (drawer → full workspace) | ✅ fixed (sidebar float bug) |
 | 7 | Tickets | `/tickets.html` | 🟢 clean |
-| 8 | Team | `/team.html` | ✅ fixed (empty-state + table now fill width) |
+| 8 | Team | `/team.html` | ✅ fixed (empty-state/table width + session-expired banner) |
 | 9 | Settings | `/settings.html` | ✅ fixed (blur leak scoped, duplicate nav removed) |
 | 10 | Assistant | `/assistant.html` | 🟢 clean |
 | 11 | Technician | `/technician.html` | ✅ fixed (role-gate card no longer stretches) |
-| 12 | Shutdown Planner | `/shutdown-planner.html` | 🟢 clean |
+| 12 | Shutdown Planner | `/shutdown-planner.html` | ✅ fixed ("no machines found") |
 | 13 | Records | `/records.html` | ✅ fixed (mobile tab fade) |
 | 14 | Support | `/support.html` | 🟢 clean |
 | 15 | QR Gateway | `/qr-gateway.html` | 🟢 clean |
 | 16 | QR Generator | `/qr-generator.html` | 🟢 clean |
 | 17 | Inventory | `/inventory.html` | ✅ fixed (mobile filter chip fade) |
 | 18 | Kaizen | `/kaizen.html` | ✅ fixed (mobile label wraps) |
-| 19 | RCA | `/rca.html` | 🟢 clean (empty state only, form not covered) |
+| 19 | RCA | `/rca.html` | ✅ fixed (missing CSS import + demo context) |
 | 20 | Report Breakdown | `/report-breakdown.html` | 🟢 clean (good chip-wrap reference) |
 
 ---

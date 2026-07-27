@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785147036.0938616,
-    "ast_hash": "7279416cb8f72be74de6aa9921b5e6fe",
+    "mtime": 1785173490.5621796,
+    "ast_hash": "e000e0f0ac530ee6bba499d52cdea258",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -825,13 +825,13 @@
     "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
-    "mtime": 1785001667.5185182,
-    "ast_hash": "40c4b4a681ee3d34911a3f3da17f6fce",
-    "semantic_hash": "40c4b4a681ee3d34911a3f3da17f6fce"
+    "mtime": 1785173000.8507228,
+    "ast_hash": "a1f6e59c8ef4b527059b6f65e52fc47a",
+    "semantic_hash": ""
   },
   "src/pages/Settings.jsx": {
-    "mtime": 1785096517.8392236,
-    "ast_hash": "b36d9f3a45f5fa8fb13908adf0ff5be7",
+    "mtime": 1785172583.25327,
+    "ast_hash": "9aa7ddd74e5c7118558007ec04bc7f03",
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
@@ -1825,8 +1825,8 @@
     "semantic_hash": "b911f0255bc360c8d019474a688657a7"
   },
   "src/components/EmptyState.jsx": {
-    "mtime": 1785096718.4173431,
-    "ast_hash": "ef7278dd6b048349b4627a09b3563853",
+    "mtime": 1785173177.4785495,
+    "ast_hash": "ee2b6d51a570f1af0be72c3f98387d1c",
     "semantic_hash": ""
   },
   "NAVIGATION_OPTIMIZATION_PLAN.md": {
@@ -2507,6 +2507,11 @@
   "src/utils/machineExport.js": {
     "mtime": 1785161884.769092,
     "ast_hash": "387fc1bb7423c62e942c1e6d48c8adc7",
+    "semantic_hash": ""
+  },
+  "LAYOUT_AUDIT.md": {
+    "mtime": 1785174447.335566,
+    "ast_hash": "9563c1606b1357fe9fd36dddb50c57ce",
     "semantic_hash": ""
   }
 }

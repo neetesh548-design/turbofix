@@ -191,3 +191,16 @@ export const DEMO_MACHINES = [
     assignments: { ...emptyAssignments, technician: demoPerson('Vikram Patil', 'maintenance_technician') },
   },
 ];
+
+/** Roster behind the assignments above — shown on Team when the signed-in
+ *  demo account has no real Supabase auth session (so RLS blocks the real
+ *  team query). Keeps the same names Machines/Tickets already show as
+ *  "Assigned to" so the demo reads as one consistent company. */
+export const DEMO_TEAM = [
+  { user_id: 'demo-owner', name: 'Demo Owner', role: 'owner', email_masked: 'o***@turbofix.co.in', phone_masked: null, has_email: true, has_phone: false, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: true, manager_user_id: '', department: 'Plant Management', plant_location: 'Head Office', shift: '' },
+  { user_id: 'demo-supervisor-1', name: 'S. Patil', role: 'supervisor', email_masked: 's***@turbofix.co.in', phone_masked: '98*****210', has_email: true, has_phone: true, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: true, manager_user_id: 'demo-owner', department: 'Forming', plant_location: 'Bay 1', shift: 'Day' },
+  { user_id: 'demo-head-1', name: 'K. Nair', role: 'maintenance_head', email_masked: 'k***@turbofix.co.in', phone_masked: '98*****211', has_email: true, has_phone: true, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: true, manager_user_id: 'demo-owner', department: 'Utilities', plant_location: 'Utility Room', shift: 'Day' },
+  { user_id: 'demo-tech-ramesh', name: 'Ramesh Yadav', role: 'maintenance_technician', email_masked: null, phone_masked: '98*****212', has_email: false, has_phone: true, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: true, manager_user_id: 'demo-supervisor-1', department: 'Forming', plant_location: 'Bay 1', shift: 'Day' },
+  { user_id: 'demo-tech-anil', name: 'Anil Kumar', role: 'maintenance_technician', email_masked: null, phone_masked: '98*****213', has_email: false, has_phone: true, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: true, manager_user_id: 'demo-head-1', department: 'Machining', plant_location: 'Bay 2', shift: 'Day' },
+  { user_id: 'demo-tech-vikram', name: 'Vikram Patil', role: 'maintenance_technician', email_masked: null, phone_masked: '98*****214', has_email: false, has_phone: true, has_contact: true, can_reveal_contact: false, portal_access: true, can_receive_alerts: false, manager_user_id: 'demo-supervisor-1', department: 'Dispatch', plant_location: 'Dispatch', shift: 'Night' },
+];

@@ -3,6 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { ArrowLeft, BadgeInfo, CheckCircle2, Send } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '../supabaseClient';
+import { DEMO_MACHINES } from '../utils/demoMachines';
+import { DEMO_TICKETS } from '../utils/demoTickets';
+import './Dashboard.css';
 
 function readStoredUser() {
   try {
@@ -83,15 +86,40 @@ export default function RCA() {
         setMachine(machineRes.data || null);
       }
 
-      // For demo users with no data, don't show error - they may still interact with RCA
-      if (!machineRes.data && user?.inventory_mode === 'demo') {
-        setError('');
-      }
-
       if (ticketRes?.error) {
         setError(ticketRes.error.message || 'Could not load ticket context.');
       } else {
         setTicket(ticketRes?.data || null);
+      }
+
+      // Demo logins don't create a real Supabase auth session, so RLS blocks
+      // these queries and returns nothing (DEMO-M001 also isn't a real row —
+      // it only exists in the client-side demo fixtures). Build the same
+      // context from those fixtures instead of leaving the page empty.
+      if (!machineRes.data && user?.inventory_mode === 'demo') {
+        setError('');
+        const demoMachine = DEMO_MACHINES.find((m) => m.machine_id === machineId);
+        if (demoMachine) {
+          setMachine({
+            id: demoMachine.machine_id,
+            name: demoMachine.machine_name,
+            location: demoMachine.location,
+            status: demoMachine.status,
+            company_id: null,
+            supervisor_id: null,
+          });
+          const demoTicket = DEMO_TICKETS.find((t) => t.id === ticketId || t.ticket_id === ticketId);
+          if (demoTicket) {
+            setTicket({
+              id: demoTicket.id,
+              issue_text: demoTicket.description,
+              created_at: demoTicket.reported_at,
+              technician_name: demoMachine.assignments?.technician?.name || null,
+              repeat_failure_count: 0,
+              repeat_failure_flag: repeatIssue,
+            });
+          }
+        }
       }
       setLoading(false);
     }
