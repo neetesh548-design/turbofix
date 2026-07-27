@@ -9,11 +9,12 @@
  * Integrates with Tickets page to enable rapid issue reporting
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { supabase } from '../supabaseClient';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
+import { classifyIssue, urgencyMeta, URGENCY_ORDER } from '../utils/breakdownRouter';
 
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
   const [step, setStep] = useState('machine'); // machine, issue, review, submitting
@@ -24,8 +25,34 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const [photoPreview, setPhotoPreview] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [urgencyOverride, setUrgencyOverride] = useState('');
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+
+  // Reads plain-language text ("machine won't start, smoke coming out") into
+  // a suggested urgency + category — same classifier the full report flow
+  // uses (IssueCapture.jsx). Pre-filled, never locked: the chips below stay
+  // editable and an explicit tap on one flips urgencyOverride.
+  const classification = useMemo(() => classifyIssue(issueText), [issueText]);
+  const effectiveUrgency = urgencyOverride || classification.urgency;
+  const effectiveUrgencyMeta = urgencyMeta(effectiveUrgency);
+
+  // Callers disagree on shape: raw Supabase rows and Tickets.jsx's machine
+  // list use id/name, while DEMO_MACHINES already uses machine_id/machine_name.
+  // Normalise once so the picker works regardless of which caller passed it.
+  // Callers can also repeat a machine once per open ticket on it, so dedupe
+  // by id — otherwise the <select> gets duplicate keys and duplicate rows.
+  const normalizedMachines = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    for (const m of machines || []) {
+      const machine_id = m.machine_id ?? m.id;
+      if (seen.has(machine_id)) continue;
+      seen.add(machine_id);
+      result.push({ ...m, machine_id, machine_name: m.machine_name ?? m.name });
+    }
+    return result;
+  }, [machines]);
 
   useEffect(() => {
     if (!open) {
@@ -35,12 +62,13 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       setPhotoFile(null);
       setPhotoPreview('');
       setError('');
+      setUrgencyOverride('');
     }
   }, [open]);
 
   if (!open) return null;
 
-  const selectedMachine = (machines || []).find(m => m.machine_id === selectedMachineId);
+  const selectedMachine = normalizedMachines.find(m => m.machine_id === selectedMachineId);
 
   const startRecording = async () => {
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
@@ -108,7 +136,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       const payload = {
         machine_id: selectedMachineId,
         issue_text: issueText,
-        urgency: 'high', // Quick reports default to high urgency
+        urgency: effectiveUrgency,
       };
 
       let ticket = null;
@@ -129,7 +157,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
         const ticketRecord = {
           machine_id: selectedMachineId,
           issue_text: issueText,
-          urgency: 'high',
+          urgency: effectiveUrgency,
           status: 'open',
           created_at: new Date().toISOString(),
         };
@@ -193,7 +221,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
                 autoFocus
               >
                 <option value="">Choose a machine...</option>
-                {machines.map((machine) => (
+                {normalizedMachines.map((machine) => (
                   <option key={machine.machine_id} value={machine.machine_id}>
                     {machine.machine_name} · {machine.location || machine.machine_id}
                   </option>
@@ -240,6 +268,41 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
                 rows={4}
               />
             </label>
+
+            {classification.confidence !== 'none' && (
+              <div className={`quick-report-suggestion tone-${effectiveUrgencyMeta.tone}`} role="status">
+                <Sparkles size={14} aria-hidden="true" />
+                <span>
+                  Reads as {effectiveUrgencyMeta.label.toLowerCase()}
+                  {urgencyOverride ? ' — you set this' : ''}
+                  {classification.categoryLabel && classification.category !== 'general'
+                    ? ` · likely ${classification.categoryLabel.toLowerCase()}`
+                    : ''}
+                </span>
+              </div>
+            )}
+
+            <fieldset className="quick-report-urgency">
+              <legend>How urgent?</legend>
+              <div className="quick-report-urgency-row" role="radiogroup" aria-label="Urgency">
+                {URGENCY_ORDER.map((level) => {
+                  const option = urgencyMeta(level);
+                  const active = effectiveUrgency === level;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`quick-report-urgency-btn tone-${option.tone}${active ? ' active' : ''}`}
+                      onClick={() => setUrgencyOverride(level)}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
 
             <div className="quick-report-actions-inline">
               <button
@@ -313,6 +376,13 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
                 <dd>{selectedMachine?.machine_name}</dd>
                 <dt>Location:</dt>
                 <dd>{selectedMachine?.location || 'Not specified'}</dd>
+                <dt>Urgency:</dt>
+                <dd>
+                  {effectiveUrgencyMeta.label}
+                  {classification.categoryLabel && classification.category !== 'general'
+                    ? ` · ${classification.categoryLabel}`
+                    : ''}
+                </dd>
                 <dt>Issue:</dt>
                 <dd className="issue-text">{issueText}</dd>
                 {photoPreview && (
@@ -499,6 +569,85 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
 
         .quick-report-info p {
           margin: 0;
+        }
+
+        .quick-report-suggestion {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          border-radius: 6px;
+          border: 1px solid;
+          font-size: 13px;
+        }
+
+        .quick-report-suggestion.tone-danger {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
+          color: #ef4444;
+        }
+
+        .quick-report-suggestion.tone-warning {
+          background: rgba(245, 158, 11, 0.1);
+          border-color: rgba(245, 158, 11, 0.3);
+          color: #d97706;
+        }
+
+        .quick-report-suggestion.tone-ok {
+          background: rgba(34, 163, 90, 0.1);
+          border-color: rgba(34, 163, 90, 0.3);
+          color: var(--brand);
+        }
+
+        .quick-report-urgency {
+          border: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .quick-report-urgency legend {
+          font-weight: 600;
+          font-size: 14px;
+          padding: 0;
+        }
+
+        .quick-report-urgency-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .quick-report-urgency-btn {
+          padding: 8px 14px;
+          border-radius: 999px;
+          border: 1px solid var(--border-color);
+          background: var(--bg-secondary);
+          color: var(--text-primary);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 150ms ease;
+        }
+
+        .quick-report-urgency-btn.active.tone-danger {
+          background: rgba(239, 68, 68, 0.15);
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+
+        .quick-report-urgency-btn.active.tone-warning {
+          background: rgba(245, 158, 11, 0.15);
+          border-color: #d97706;
+          color: #d97706;
+        }
+
+        .quick-report-urgency-btn.active.tone-ok {
+          background: rgba(34, 163, 90, 0.15);
+          border-color: var(--brand);
+          color: var(--brand);
         }
 
         .quick-report-context {

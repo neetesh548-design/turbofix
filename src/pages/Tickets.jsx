@@ -207,6 +207,14 @@ export default function Tickets() {
     return () => clearInterval(timer);
   }, []);
 
+  // Global Cmd/Ctrl+N shortcut (see accessibility.js) dispatches this instead
+  // of AppShell owning the dialog, since only this page has the machine list.
+  useEffect(() => {
+    const openQuickReport = () => setQuickReportOpen(true);
+    document.addEventListener('open-quick-report', openQuickReport);
+    return () => document.removeEventListener('open-quick-report', openQuickReport);
+  }, []);
+
   // Transient success banners shouldn't linger.
   useEffect(() => {
     if (!success) return undefined;
@@ -218,25 +226,37 @@ export default function Tickets() {
   // Mutations
   // ---------------------------------------------------------------------
 
+  /**
+   * Local-first write: update state, then try to persist. Realtime
+   * subscription (see effect above) reconciles any drift on success, so no
+   * refetch is needed on the happy path.
+   */
   const updateLifecycleStage = useCallback(
     async (ticketId, nextStage, nextStatus = null) => {
       setError('');
+      const patch = { lifecycle_stage: nextStage };
+      if (nextStatus) patch.status = nextStatus;
+      if (nextStage === 'work_started') patch.started_at = new Date().toISOString();
+      if (nextStage === 'repair_completed' || nextStatus === 'resolved') {
+        patch.resolved_at = new Date().toISOString();
+      }
+
+      let previousTickets;
+      setTickets((current) => {
+        previousTickets = current;
+        return current.map((t) => (idOf(t) === ticketId ? { ...t, ...patch } : t));
+      });
+
       try {
-        const patch = { lifecycle_stage: nextStage };
-        if (nextStatus) patch.status = nextStatus;
-        if (nextStage === 'work_started') patch.started_at = new Date().toISOString();
-        if (nextStage === 'repair_completed' || nextStatus === 'resolved') {
-          patch.resolved_at = new Date().toISOString();
-        }
         const { error: updateErr } = await supabase.from('tickets').update(patch).eq('id', ticketId);
         if (updateErr) throw new Error(updateErr.message);
         setSuccess(`Work order ${String(ticketId).substring(0, 8)} updated.`);
-        await fetchTickets();
       } catch (err) {
+        if (previousTickets) setTickets(previousTickets);
         setError(err.message);
       }
     },
-    [fetchTickets]
+    []
   );
 
   const handleCloseTicket = useCallback(
@@ -269,8 +289,13 @@ export default function Tickets() {
       const ticket = tickets.find((t) => idOf(t) === ticketId);
       if (!ticket) return;
 
+      const previousTickets = tickets;
+
       try {
         if ('urgency' in patch) {
+          setTickets((current) =>
+            current.map((t) => (idOf(t) === ticketId ? { ...t, urgency: patch.urgency || '' } : t))
+          );
           const { error: updateErr } = await supabase
             .from('tickets')
             .update({ urgency: patch.urgency || null })
@@ -281,6 +306,17 @@ export default function Tickets() {
 
         if ('assigned_to' in patch) {
           if (!ticket.machine_id) throw new Error('This ticket has no machine to assign.');
+          // Ownership lives on the machine, so every ticket on it reflects the change.
+          const techName =
+            techniciansList.find((t) => t.user_id === patch.assigned_to)?.name ||
+            (patch.assigned_to ? 'Assigned' : 'Unassigned');
+          setTickets((current) =>
+            current.map((t) =>
+              t.machine_id === ticket.machine_id
+                ? { ...t, technician_id: patch.assigned_to || null, technician_name: techName }
+                : t
+            )
+          );
           const { error: updateErr } = await supabase
             .from('machines')
             .update({ technician_user_id: patch.assigned_to })
@@ -290,13 +326,12 @@ export default function Tickets() {
             `Technician updated for ${ticket.machine_name}. This applies to all work orders on that machine.`
           );
         }
-
-        await fetchTickets();
       } catch (err) {
+        setTickets(previousTickets);
         setError(err.message);
       }
     },
-    [tickets, fetchTickets]
+    [tickets, techniciansList]
   );
 
   /** Row-level "assign" shortcut: opens the drill-down where the picker lives. */
@@ -505,35 +540,45 @@ export default function Tickets() {
     }
 
     setError('');
+    const idSet = new Set(ids);
+    const resolvedAt = new Date().toISOString();
+    let previousTickets;
+    setTickets((current) => {
+      previousTickets = current;
+      return current.map((t) =>
+        idSet.has(idOf(t))
+          ? { ...t, status: 'resolved', lifecycle_stage: 'closed', resolved_at: resolvedAt }
+          : t
+      );
+    });
+    setSelectedIds(new Set());
+
     try {
       const { error: updateErr } = await supabase
         .from('tickets')
         .update({
           status: 'resolved',
           lifecycle_stage: 'closed',
-          resolved_at: new Date().toISOString(),
+          resolved_at: resolvedAt,
         })
         .in('id', ids);
       if (updateErr) throw new Error(updateErr.message);
       setSuccess(`Closed ${ids.length} work order${ids.length === 1 ? '' : 's'}.`);
-      setSelectedIds(new Set());
-      await fetchTickets();
     } catch (err) {
+      if (previousTickets) setTickets(previousTickets);
       setError(err.message);
     }
-  }, [selectedIds, fetchTickets]);
+  }, [selectedIds]);
 
   const bulkAssign = useCallback(
     async (technicianUserId) => {
       const ids = [...selectedIds];
       if (ids.length === 0 || !technicianUserId) return;
 
-      const machineIds = [
-        ...new Set(
-          tickets.filter((t) => ids.includes(idOf(t))).map((t) => t.machine_id).filter(Boolean)
-        ),
-      ];
-      if (machineIds.length === 0) {
+      const machineIdSet = new Set(
+        tickets.filter((t) => ids.includes(idOf(t))).map((t) => t.machine_id).filter(Boolean)
+      );
+      if (machineIdSet.size === 0) {
         setError('None of the selected work orders have a machine to assign.');
         return;
       }
@@ -542,27 +587,37 @@ export default function Tickets() {
         techniciansList.find((t) => t.user_id === technicianUserId)?.name || 'technician';
       if (
         !window.confirm(
-          `Assign ${techName} to ${machineIds.length} machine${machineIds.length === 1 ? '' : 's'}? Ownership is stored per machine, so this affects every work order on them.`
+          `Assign ${techName} to ${machineIdSet.size} machine${machineIdSet.size === 1 ? '' : 's'}? Ownership is stored per machine, so this affects every work order on them.`
         )
       ) {
         return;
       }
 
       setError('');
+      let previousTickets;
+      setTickets((current) => {
+        previousTickets = current;
+        return current.map((t) =>
+          machineIdSet.has(t.machine_id)
+            ? { ...t, technician_id: technicianUserId, technician_name: techName }
+            : t
+        );
+      });
+      setSelectedIds(new Set());
+
       try {
         const { error: updateErr } = await supabase
           .from('machines')
           .update({ technician_user_id: technicianUserId })
-          .in('id', machineIds);
+          .in('id', [...machineIdSet]);
         if (updateErr) throw new Error(updateErr.message);
-        setSuccess(`Assigned ${techName} to ${machineIds.length} machine(s).`);
-        setSelectedIds(new Set());
-        await fetchTickets();
+        setSuccess(`Assigned ${techName} to ${machineIdSet.size} machine(s).`);
       } catch (err) {
+        if (previousTickets) setTickets(previousTickets);
         setError(err.message);
       }
     },
-    [selectedIds, tickets, techniciansList, fetchTickets]
+    [selectedIds, tickets, techniciansList]
   );
 
   const resetFilters = useCallback(() => {

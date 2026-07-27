@@ -5,6 +5,7 @@ import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
   ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus, Wrench,
+  UserPlus, Download, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -17,6 +18,7 @@ import { generateMachineQRUrl } from '../utils/urlEncryption';
 import { filterMachines, summarizeFleet, sortByHealth } from '../utils/machineHealth';
 import { DEMO_MACHINES } from '../utils/demoMachines';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
+import { downloadMachinesCSV } from '../utils/machineExport';
 import './Machines.css';
 
 const WORKSPACE_TABS = [
@@ -105,6 +107,8 @@ export default function Machines() {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'running' | 'issues' | 'down'
+  const [selectedMachineIds, setSelectedMachineIds] = useState(() => new Set());
+  const [bulkAssignSaving, setBulkAssignSaving] = useState(false);
 
   // Health-board drawer: the one-click-deeper view. `selectedMachine` stays
   // reserved for the full workspace so the two levels never fight over state.
@@ -1696,6 +1700,120 @@ export default function Machines() {
     [machines, searchTerm, statusFilter],
   );
 
+  // Drop selections that scrolled out of the current filter/search.
+  useEffect(() => {
+    setSelectedMachineIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(boardMachines.map((m) => m.machine_id));
+      const next = new Set([...prev].filter((id) => visible.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [boardMachines]);
+
+  const toggleMachineSelect = (machineId) => {
+    setSelectedMachineIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(machineId)) next.delete(machineId);
+      else next.add(machineId);
+      return next;
+    });
+  };
+
+  const allBoardSelected =
+    boardMachines.length > 0 && boardMachines.every((m) => selectedMachineIds.has(m.machine_id));
+
+  const toggleSelectAllMachines = () => {
+    setSelectedMachineIds((prev) => {
+      const ids = boardMachines.map((m) => m.machine_id);
+      const everySelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      return everySelected ? new Set() : new Set(ids);
+    });
+  };
+
+  /**
+   * Bulk-reassign technician across selected machines. Machine writes go
+   * through the `update_machine` edge-function action (same path as
+   * `saveQuickEdit`) rather than a direct table write, so each call resends
+   * that machine's existing fields alongside the new technician.
+   */
+  const bulkReassignTechnician = async (technicianUserId) => {
+    const ids = [...selectedMachineIds];
+    if (ids.length === 0 || !technicianUserId) return;
+
+    const techName = technicians.find((t) => t.user_id === technicianUserId)?.name || 'technician';
+    if (
+      !window.confirm(
+        `Assign ${techName} to ${ids.length} machine${ids.length === 1 ? '' : 's'}?`
+      )
+    ) {
+      return;
+    }
+
+    setBulkAssignSaving(true);
+    setError('');
+    const targets = machines.filter((m) => ids.includes(m.machine_id));
+
+    const results = await Promise.allSettled(
+      targets.map((m) =>
+        supabase.functions.invoke('onboard_team_member', {
+          body: {
+            action: 'update_machine',
+            machine_id: m.machine_id,
+            name: m.machine_name || '',
+            location: m.location || '',
+            technician_user_id: technicianUserId,
+            status: m.status || 'healthy',
+            hourly_downtime_cost: m.hourly_downtime_cost ?? '',
+            maintenance_interval_days: m.maintenance_interval_days || 90,
+            last_maintenance_date: m.last_maintenance_date?.slice(0, 10) || '',
+            supervisor_id: m.supervisor_id || '',
+            engineer_user_id: m.engineer_user_id || '',
+            maintenance_head_user_id: m.maintenance_head_user_id || '',
+          },
+        })
+      )
+    );
+
+    const succeededIds = new Set(
+      targets
+        .filter((_, index) => {
+          const result = results[index];
+          return result.status === 'fulfilled' && !result.value?.error && !result.value?.data?.error;
+        })
+        .map((m) => m.machine_id)
+    );
+    const failedCount = targets.length - succeededIds.size;
+
+    if (succeededIds.size > 0) {
+      const newTech = { user_id: technicianUserId, name: techName };
+      setMachines((current) =>
+        current.map((m) =>
+          succeededIds.has(m.machine_id)
+            ? {
+                ...m,
+                technician_user_id: technicianUserId,
+                assignments: { ...m.assignments, technician: newTech },
+              }
+            : m
+        )
+      );
+      setSuccess(
+        `Assigned ${techName} to ${succeededIds.size} machine${succeededIds.size === 1 ? '' : 's'}.` +
+          (failedCount > 0 ? ` ${failedCount} could not be updated.` : '')
+      );
+      setSelectedMachineIds(new Set());
+    } else {
+      setError('Could not assign the technician to any selected machines.');
+    }
+    setBulkAssignSaving(false);
+  };
+
+  const bulkExportMachines = () => {
+    const selected = boardMachines.filter((m) => selectedMachineIds.has(m.machine_id));
+    if (selected.length === 0) return;
+    downloadMachinesCSV(selected);
+  };
+
   // The modal targets whichever machine the report was launched from.
   const issueTarget = issueMachine || selectedMachine;
 
@@ -2065,6 +2183,55 @@ export default function Machines() {
               summary={fleetSummary}
             />
 
+            {boardMachines.length > 0 && (
+              <div className="machine-select-row">
+                <label className="machine-select-all">
+                  <input
+                    type="checkbox"
+                    className="machine-checkbox"
+                    checked={allBoardSelected}
+                    onChange={toggleSelectAllMachines}
+                    aria-label="Select all visible machines"
+                  />
+                  Select all {boardMachines.length} visible
+                </label>
+
+                {selectedMachineIds.size > 0 && (
+                  <div className="machine-bulk-bar" role="region" aria-label="Bulk actions">
+                    <strong>{selectedMachineIds.size} selected</strong>
+                    <div className="machine-bulk-spacer" />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <UserPlus size={14} aria-hidden="true" style={{ color: 'var(--slate-light)' }} />
+                      <select
+                        className="machine-bulk-select"
+                        value=""
+                        disabled={bulkAssignSaving}
+                        onChange={(event) => bulkReassignTechnician(event.target.value)}
+                        aria-label="Assign selected machines to a technician"
+                      >
+                        <option value="">Assign to…</option>
+                        {technicians.map((tech) => (
+                          <option key={tech.user_id} value={tech.user_id}>{tech.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <button type="button" className="machine-bulk-btn" onClick={bulkExportMachines}>
+                      <Download size={14} aria-hidden="true" />
+                      Export selected
+                    </button>
+                    <button
+                      type="button"
+                      className="machine-bulk-btn"
+                      onClick={() => setSelectedMachineIds(new Set())}
+                    >
+                      <X size={14} aria-hidden="true" />
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {(() => {
               if (loading) {
                 return (
@@ -2108,6 +2275,8 @@ export default function Machines() {
                       onReportIssue={openReportIssue}
                       onOpenTickets={openTicketsFor}
                       onOpenMaintenance={(machine) => openWorkspace(machine, 'pm')}
+                      selected={selectedMachineIds.has(machine.machine_id)}
+                      onToggleSelect={toggleMachineSelect}
                     />
                   ))}
                 </div>

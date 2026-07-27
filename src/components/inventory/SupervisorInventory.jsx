@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import {
-  FileClock, Wallet, Boxes, AlertOctagon, Zap, TrendingUp, TrendingDown,
+  FileClock, Wallet, Boxes, AlertOctagon, Zap, TrendingUp, TrendingDown, Check,
 } from 'lucide-react';
 import InventoryKpiCard from './InventoryKpiCard.jsx';
 import InventoryChart, { BudgetBars } from './InventoryChart.jsx';
@@ -51,6 +51,37 @@ export default function SupervisorInventory({
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
   });
+
+  // Unlike auto-order candidates, PO approvals start unselected — approving
+  // spend in bulk should be a deliberate opt-in, not a pre-ticked default.
+  const [selectedPoIds, setSelectedPoIds] = useState(() => new Set());
+  const [bulkApproving, setBulkApproving] = useState(false);
+
+  const togglePoSelect = (po) => setSelectedPoIds((current) => {
+    const next = new Set(current);
+    if (next.has(po.id)) next.delete(po.id); else next.add(po.id);
+    return next;
+  });
+
+  const allQueueSelected = queue.length > 0 && queue.every((po) => selectedPoIds.has(po.id));
+
+  const toggleSelectAllPos = () => setSelectedPoIds((current) => {
+    const everySelected = queue.length > 0 && queue.every((po) => current.has(po.id));
+    return everySelected ? new Set() : new Set(queue.map((po) => po.id));
+  });
+
+  const selectedPos = queue.filter((po) => selectedPoIds.has(po.id));
+
+  const bulkApprove = async () => {
+    if (selectedPos.length === 0) return;
+    setBulkApproving(true);
+    try {
+      await Promise.all(selectedPos.map((po) => onApprovePo?.(po)));
+      setSelectedPoIds(new Set());
+    } finally {
+      setBulkApproving(false);
+    }
+  };
 
   const overspending = spend.overBudget;
 
@@ -159,17 +190,57 @@ export default function SupervisorInventory({
         {queue.length === 0 ? (
           <p className="rd-empty">Nothing waiting for approval. Every raised PO has been decided.</p>
         ) : (
-          <div className="inv-po-grid" data-testid="inv-po-queue">
-            {queue.map((po) => (
-              <POApprovalCard
-                key={po.id}
-                po={po}
-                onApprove={onApprovePo}
-                onRequestChanges={onRequestChanges}
-                busy={loading}
-              />
-            ))}
-          </div>
+          <>
+            <div className="inv-po-select-row">
+              <label className="inv-po-select-all">
+                <input
+                  type="checkbox"
+                  checked={allQueueSelected}
+                  onChange={toggleSelectAllPos}
+                  aria-label="Select all POs waiting for approval"
+                />
+                Select all {queue.length}
+              </label>
+
+              {selectedPoIds.size > 0 && (
+                <div className="inv-po-bulk-bar" role="region" aria-label="Bulk PO actions">
+                  <strong>{selectedPoIds.size} selected</strong>
+                  <div className="inv-po-bulk-spacer" />
+                  <button
+                    type="button"
+                    className="inv-btn primary"
+                    disabled={bulkApproving || loading}
+                    onClick={bulkApprove}
+                    data-testid="inv-bulk-approve"
+                  >
+                    <Check size={13} aria-hidden="true" />
+                    Approve {selectedPoIds.size} · {formatInr(selectedPos.reduce((sum, po) => sum + po.total, 0))}
+                  </button>
+                  <button
+                    type="button"
+                    className="inv-btn ghost"
+                    onClick={() => setSelectedPoIds(new Set())}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="inv-po-grid" data-testid="inv-po-queue">
+              {queue.map((po) => (
+                <POApprovalCard
+                  key={po.id}
+                  po={po}
+                  onApprove={onApprovePo}
+                  onRequestChanges={onRequestChanges}
+                  busy={loading || bulkApproving}
+                  selected={selectedPoIds.has(po.id)}
+                  onToggleSelect={togglePoSelect}
+                />
+              ))}
+            </div>
+          </>
         )}
       </InventoryChart>
 

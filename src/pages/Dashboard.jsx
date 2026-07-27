@@ -198,6 +198,13 @@ export default function Dashboard() {
   const companyName = legacyData.company_name || 'TurboFix';
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
 
+  // Global Cmd/Ctrl+N shortcut (see accessibility.js) dispatches this instead
+  // of AppShell owning the dialog, since only this page has the machine list.
+  useEffect(() => {
+    document.addEventListener('open-quick-report', openQuickReport);
+    return () => document.removeEventListener('open-quick-report', openQuickReport);
+  }, [openQuickReport]);
+
   return (
     <AppShell active="overview">
       <div className="decision-page md-dashboard rd-page" data-role={role} data-testid="dashboard-page">

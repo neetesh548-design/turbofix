@@ -533,6 +533,46 @@
   gap: 12px;
 }
 
+.inv-po-checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--md-accent);
+  cursor: pointer;
+}
+
+.inv-po-select-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.inv-po-select-all {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  color: var(--md-ink-dim);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inv-po-bulk-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 9px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--md-accent);
+  background: rgba(250, 245, 238, 0.05);
+  flex: 1;
+}
+
+.inv-po-bulk-bar strong { font-size: 0.82rem; color: var(--md-ink); }
+.inv-po-bulk-spacer { flex: 1; }
+
 .inv-po-card {
   display: grid;
   gap: 9px;

@@ -605,8 +605,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785149090.9990442,
-    "ast_hash": "febaf189a38831049f77a77066871c3e",
+    "mtime": 1785158286.047149,
+    "ast_hash": "f40b389eac9779f89690b9134ba2eeba",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -1850,9 +1850,9 @@
     "semantic_hash": "bdb7856355bd377213134eacc80c8d41"
   },
   "tests/ux-audit/accessibility.spec.ts": {
-    "mtime": 1785002708.2135198,
-    "ast_hash": "56527440464bbd10f0398d796aba2db7",
-    "semantic_hash": "56527440464bbd10f0398d796aba2db7"
+    "mtime": 1785158290.9756918,
+    "ast_hash": "f0467289226b2cdcbb79ca97cc40c626",
+    "semantic_hash": ""
   },
   "tests/ux-audit/dark-mode.spec.ts": {
     "mtime": 1785005985.7181268,
@@ -1875,9 +1875,9 @@
     "semantic_hash": "531188f92d35c06468f15389f9b13048"
   },
   "tests/ux-audit/README.md": {
-    "mtime": 1785002708.2133794,
-    "ast_hash": "36468bff814d2fa324d7acef0a3f40ae",
-    "semantic_hash": "36468bff814d2fa324d7acef0a3f40ae"
+    "mtime": 1785158286.5047588,
+    "ast_hash": "d4c690bebece7cd0499d786fc0a97b26",
+    "semantic_hash": ""
   },
   "PLAYWRIGHT_AUDIT_SUMMARY.md": {
     "mtime": 1785002708.1471589,
@@ -2105,8 +2105,8 @@
     "semantic_hash": ""
   },
   "src/components/MicrosoftAppLauncher.jsx": {
-    "mtime": 1785010317.3863242,
-    "ast_hash": "5f0c8cb50797a7b7f7926a4f3fbf9bd1",
+    "mtime": 1785158286.2752345,
+    "ast_hash": "9e619b616c6ab67cef54e66c9bcb0fe2",
     "semantic_hash": ""
   },
   "src/utils/ticketArchive.js": {
@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785150039.0658522,
-    "ast_hash": "c351402a01e31fdbe4baf75f31907017",
+    "mtime": 1785152253.9231005,
+    "ast_hash": "38e813809ba00145b17edfa774aa4292",
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {

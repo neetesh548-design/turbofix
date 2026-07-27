@@ -14,6 +14,7 @@
  * - onApprove (fn)     called with the PO
  * - onRequestChanges (fn) called with (po, comment)
  * - busy      (bool)   disables both actions while a decision is in flight
+ * - selected  (bool), onToggleSelect (fn(po)): batch-approval checkbox
  */
 
 import React, { useState } from 'react';
@@ -31,7 +32,7 @@ function deliveryCopy(po) {
   return `arrives in ${po.daysToDelivery} day${po.daysToDelivery === 1 ? '' : 's'}`;
 }
 
-export default function POApprovalCard({ po, onApprove, onRequestChanges, busy = false }) {
+export default function POApprovalCard({ po, onApprove, onRequestChanges, busy = false, selected = false, onToggleSelect }) {
   const [expanded, setExpanded] = useState(false);
   const [commenting, setCommenting] = useState(false);
   const [comment, setComment] = useState('');
@@ -53,6 +54,16 @@ export default function POApprovalCard({ po, onApprove, onRequestChanges, busy =
     <article className={`inv-po-card ${tone}`} data-testid="inv-po-card" data-po={po.poNumber}>
       <header className="inv-po-head">
         <div className="inv-po-title">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              className="inv-po-checkbox"
+              checked={!!selected}
+              onChange={() => onToggleSelect(po)}
+              aria-label={`Select PO ${po.poNumber} for bulk approval`}
+              data-testid="inv-po-select"
+            />
+          )}
           <code className="inv-po-number">{po.poNumber}</code>
           <strong>{po.vendor}</strong>
           {po.priority === 'critical' && (

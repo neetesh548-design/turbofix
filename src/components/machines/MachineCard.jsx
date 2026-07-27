@@ -19,8 +19,9 @@ import { computeMachineHealth } from '@/utils/machineHealth';
  * - onReportIssue (fn(machine)): "Report issue" clicked
  * - onOpenTickets (fn(machine)): open-ticket metric clicked
  * - onOpenMaintenance (fn(machine)): PM metric clicked
+ * - selected (bool), onToggleSelect (fn(machineId)): batch-selection checkbox
  */
-function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMaintenance }) {
+function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMaintenance, selected, onToggleSelect }) {
   const health = computeMachineHealth(machine);
   const { pm, service, openCount, critical } = health;
 
@@ -38,7 +39,19 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
       aria-label={`${machine.machine_name}, ${health.label}`}
     >
       <header className="machine-card-head">
-        <MachineHealthIndicator machine={machine} health={health} size="lg" />
+        <div className="machine-card-head-start">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              className="machine-checkbox"
+              checked={!!selected}
+              onClick={(event) => event.stopPropagation()}
+              onChange={() => onToggleSelect(machine.machine_id)}
+              aria-label={`Select ${machine.machine_name || machine.machine_id}`}
+            />
+          )}
+          <MachineHealthIndicator machine={machine} health={health} size="lg" />
+        </div>
         {critical && (
           <span className="machine-card-flag" title="A critical ticket is open on this machine">
             <TriangleAlert size={13} aria-hidden="true" /> Critical

@@ -24,6 +24,27 @@ export function enableKeyboardNavigation() {
       const event = new CustomEvent('show-keyboard-shortcuts');
       document.dispatchEvent(event);
     }
+
+    const cmdOrCtrl = e.ctrlKey || e.metaKey;
+    if (!cmdOrCtrl) return;
+
+    // Cmd/Ctrl+K — jump to this page's search box, wherever it lives.
+    if (e.key === 'k' || e.key === 'K') {
+      const search = document.querySelector('input[type="search"]');
+      if (search) {
+        e.preventDefault();
+        search.focus();
+        search.select?.();
+      }
+    }
+
+    // Cmd/Ctrl+N — open Quick Report. Pages that own the dialog (Tickets,
+    // Dashboard) listen for this instead of AppShell owning the dialog
+    // itself, so it works without every page carrying a machine list.
+    if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('open-quick-report'));
+    }
   });
 }
 
