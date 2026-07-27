@@ -2,58 +2,130 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <link rel="manifest" href="%BASE_URL%manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1118" />
+
+    <!-- HTTPS Redirect Enforcement for Production Domain -->
+    <script>
+      if (window.location.protocol === 'http:' && window.location.hostname === 'turbofix.co.in') {
+        window.location.href = window.location.href.replace('http:', 'https:');
+      }
+    </script>
+
     <!-- iOS Safari PWA Optimizations -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="TurboFix" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+
+    <!-- Preconnect & Fonts -->
     <link rel="preconnect" href="https://wcqgbleppiaddgfjrnpq.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://wcqgbleppiaddgfjrnpq.supabase.co" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Naskh+Arabic:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-    <meta name="description" content="TurboFix helps manufacturing SMEs turn machine knowledge, breakdowns, preventive work, and shutdown capacity into clearer maintenance decisions." />
+
+    <!-- Primary Title & SEO Meta Tags -->
+    <title>TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs</title>
+    <meta name="description" content="TurboFix is the AI-powered plant maintenance platform for Indian manufacturing SMEs. Digitized logbooks, 10-second WhatsApp breakdown reporting, 5-Why RCA, and zero repeat machine downtime." />
+    <meta name="keywords" content="AI Maintenance Platform, Manufacturing SME Maintenance, Machine Memory, Breakdown Management Software, 5-Why Root Cause Analysis, WhatsApp Maintenance Dispatch, Plant Reliability Software India, Preventive Maintenance Software" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://turbofix.co.in/" />
-    <meta property="og:title" content="TurboFix — AI Maintenance Decision Platform" />
-    <meta property="og:description" content="Know what to fix next with machine-specific AI, guided shutdown planning, and closed-loop technician work." />
+
+    <!-- Open Graph & Social Cards -->
+    <meta property="og:title" content="TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs" />
+    <meta property="og:description" content="Turn existing paper maintenance logbooks into trusted AI machine memory. 10-second breakdown reporting, verified technician repair loops, and real-time downtime cost tracking." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://turbofix.co.in/" />
     <meta property="og:site_name" content="TurboFix" />
     <meta property="og:image" content="https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>TurboFix — AI Maintenance Decision Platform</title>
+    <meta name="twitter:site" content="@turbofix_ai" />
+
+    <!-- Analytics Tracking Script (Google Analytics GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TURBOFIX2026"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TURBOFIX2026', { send_page_view: true });
+    </script>
+
+    <!-- Facebook Pixel Tracking -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'FB_PIXEL_TURBOFIX_2026');
+      fbq('track', 'PageView');
+    </script>
+
+    <!-- Local Business & Software JSON-LD Schema (SEO Optimization) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://turbofix.co.in/#localbusiness",
+            "name": "TurboFix Systems India",
+            "url": "https://turbofix.co.in/",
+            "logo": "https://turbofix.co.in/favicon.svg",
+            "image": "https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png",
+            "description": "TurboFix builds AI-assisted breakdown control and maintenance decision software for Indian manufacturing SMEs.",
+            "telephone": "+91-9637438044",
+            "priceRange": "₹499 - ₹699 / machine / month",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "MIDC Industrial Zone",
+              "addressLocality": "Mumbai",
+              "addressRegion": "Maharashtra",
+              "postalCode": "400093",
+              "addressCountry": "IN"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 19.0760,
+              "longitude": 72.8777
+            },
+            "sameAs": [
+              "https://www.linkedin.com/company/turbofix-ai",
+              "https://x.com/turbofix_ai",
+              "https://www.facebook.com/turbofix.ai",
+              "https://www.instagram.com/turbofix_ai",
+              "https://www.youtube.com/@turbofix-ai"
+            ]
+          },
           {
             "@type": "Organization",
             "@id": "https://turbofix.co.in/#organization",
             "name": "TurboFix",
             "url": "https://turbofix.co.in/",
             "logo": "https://turbofix.co.in/favicon.svg",
-            "description": "TurboFix builds AI-assisted maintenance decision software for manufacturing SMEs."
-          },
-          {
-            "@type": "WebSite",
-            "@id": "https://turbofix.co.in/#website",
-            "url": "https://turbofix.co.in/",
-            "name": "TurboFix",
-            "publisher": { "@id": "https://turbofix.co.in/#organization" }
+            "description": "AI-assisted maintenance control software for manufacturing plants."
           },
           {
             "@type": "SoftwareApplication",
             "@id": "https://turbofix.co.in/#software",
-            "name": "TurboFix",
+            "name": "TurboFix Plant Maintenance Platform",
             "url": "https://turbofix.co.in/",
             "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web",
-            "description": "AI-assisted maintenance decision platform for manufacturing SMEs, with machine records, preventive maintenance, breakdown workflows, shutdown planning, technician work, and human-approved machine knowledge.",
+            "operatingSystem": "Web, Android, iOS PWA",
+            "description": "AI-driven machine maintenance control system with 10-second QR breakdown reporting, 5-Why root cause analysis, spare parts inventory, and shutdown planning.",
+            "offers": {
+              "@type": "Offer",
+              "price": "499.00",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
             "publisher": { "@id": "https://turbofix.co.in/#organization" }
           }
         ]

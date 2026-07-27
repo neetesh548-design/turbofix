@@ -329,7 +329,7 @@ export default function Home() {
   const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
 
   useEffect(() => {
-    document.title = 'TurboFix — AI Maintenance Decision Platform';
+    document.title = 'TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs';
     if (!window.location.hash) return;
     const sectionId = window.location.hash.slice(1);
     window.setTimeout(() => document.getElementById(sectionId)?.scrollIntoView(), 80);
