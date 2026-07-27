@@ -321,7 +321,7 @@ export default function Home() {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState(0);
   const [machineCount, setMachineCount] = useState(15);
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const videoRef = useRef(null);
