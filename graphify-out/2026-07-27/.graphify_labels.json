@@ -284,7 +284,15 @@
   "282": "check_threshold_drift",
   "283": "ticketQueues.js",
   "284": "_lifespan",
+  "285": "test_vault_auth.py",
   "286": "_rate_limit_handler",
+  "287": "dynamicChecklist.js",
   "288": "SecurityHeadersMiddleware",
-  "290": "test_contact_privacy.py"
+  "289": "ReportBreakdown.jsx",
+  "290": "test_contact_privacy.py",
+  "291": "LanguageContext.jsx",
+  "292": "alert.jsx",
+  "293": "._company_to_dict",
+  "294": "send_po_notification",
+  "295": "create_live_sheet.py"
 }
