@@ -115,7 +115,7 @@ export default function Navbar() {
 
   return (
     <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
-      <div className="container nav-inner public-nav-inner flex items-center gap-2">
+      <div className="container nav-inner public-nav-inner flex items-center justify-between gap-4">
         <div className="public-nav-brand-cluster">
           <button
             type="button"
@@ -136,7 +136,7 @@ export default function Navbar() {
             </svg>
             <span className="public-nav-brand-copy">
               <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-              <small>Workflow layer · analytics underneath</small>
+              <small className="public-nav-brand-sub">Workflow layer · analytics underneath</small>
             </span>
           </Link>
         </div>
@@ -151,10 +151,6 @@ export default function Navbar() {
         </nav>
 
         <div className="public-nav-actions">
-          <div className="public-nav-meta">
-            <span className="public-nav-meta-kicker">For plant teams</span>
-            <strong>Breakdowns, records, workflow</strong>
-          </div>
           <label className="public-nav-language">
             <Globe2 aria-hidden="true" />
             <span className="sr-only">{t('menu.language')}</span>
