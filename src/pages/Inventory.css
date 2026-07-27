@@ -1209,8 +1209,11 @@
     overflow-x: auto;
     scrollbar-width: none;
     padding-bottom: 2px;
+    padding-right: 20px;
     margin: 0 -2px;
     width: 100%;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
   .inv-status-filters::-webkit-scrollbar { display: none; }
   .inv-chip { flex: none; }

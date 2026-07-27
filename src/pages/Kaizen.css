@@ -573,9 +573,8 @@
 .kz-catbar-label {
   font-size: 0.75rem;
   color: var(--md-ink-dim);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 .kz-catbar-track {
   display: flex;

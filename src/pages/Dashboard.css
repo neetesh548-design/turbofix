@@ -1196,9 +1196,14 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
 }
 
 @media (max-width: 720px) {
+  .rd-status-grid-wrap {
+    padding-right: 14px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 14px), transparent 100%);
+  }
   .rd-status-grid { min-width: 100%; table-layout: fixed; }
-  .rd-status-grid th, .rd-status-grid td { padding: 6px 2px; }
-  .rd-status-grid thead th { font-size: 0.58rem; letter-spacing: 0; }
+  .rd-status-grid th, .rd-status-grid td { padding: 6px 2px; white-space: normal; word-break: break-word; }
+  .rd-status-grid thead th { font-size: 0.58rem; letter-spacing: 0; line-height: 1.2; }
   .rd-kpi-row, .rd-kpi-row-3 { grid-template-columns: minmax(0, 1fr); }
   .rd-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rd-fleet-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }

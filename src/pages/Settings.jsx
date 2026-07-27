@@ -370,6 +370,7 @@ export default function Settings() {
                   onChange={handleTabChange}
                   size="large"
                   className="settings-content"
+                  renderTabBar={() => null}
                   items={visibleTabs.map((tab) => ({
                     key: tab.key,
                     label: (

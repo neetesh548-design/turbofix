@@ -133,6 +133,17 @@
 
 .machine-filter-chips::-webkit-scrollbar { display: none; }
 
+/* Below tablet width the chips reliably overflow their row (4 chips don't
+   fit a phone screen) with a hidden scrollbar and no other affordance, so
+   the last chip just looked cut off. A trailing fade hints there's more. */
+@media (max-width: 719px) {
+  .machine-filter-chips {
+    padding-right: 20px;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+  }
+}
+
 .machine-chip {
   display: inline-flex;
   align-items: center;

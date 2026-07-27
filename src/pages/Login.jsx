@@ -144,7 +144,7 @@ export default function Login() {
                 {/* Quick 1-Tap Demo Logins */}
                 <div className="mb-6">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 text-center">Quick Demo Access (1-Tap)</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {demoAccounts.map((demo) => {
                       const Icon = demo.icon;
                       return (
@@ -153,11 +153,11 @@ export default function Login() {
                           type="button"
                           onClick={() => handleDemoLogin(demo)}
                           disabled={loading}
-                          className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${demo.color} disabled:opacity-50`}
+                          className={`flex flex-col items-center justify-center gap-1 px-1 py-2.5 min-h-[64px] rounded-xl border text-[11px] font-medium transition-all ${demo.color} disabled:opacity-50`}
                           title={`Log in as ${demo.name} (${demo.role})`}
                         >
-                          <Icon size={18} className="mb-1" />
-                          <span className="truncate w-full text-center">{demo.role}</span>
+                          <Icon size={18} />
+                          <span className="w-full text-center leading-tight whitespace-normal">{demo.role}</span>
                         </button>
                       );
                     })}

@@ -19,6 +19,8 @@ export function EmptyState({
       className={`ui-empty-state glass-panel ${className}`}
       style={{
         display: 'flex',
+        width: '100%',
+        boxSizing: 'border-box',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
