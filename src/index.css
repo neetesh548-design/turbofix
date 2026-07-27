@@ -8197,6 +8197,133 @@ details.faq-item p {
 }
 .public-nav-demo svg { width: 16px; height: 16px; stroke-width: 2.5px; transition: transform .18s ease; }
 .public-nav-demo:hover svg { transform: translateX(3px); }
+
+/* ===========================================================
+   LightMem Light Style Theme Override
+   =========================================================== */
+[data-theme="light"] .public-nav,
+.public-nav.light-style {
+  background: rgba(255, 255, 255, .95);
+  border-bottom: 1px solid rgba(226, 232, 240, .85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .03);
+}
+[data-theme="light"] .public-nav.scrolled,
+.public-nav.light-style.scrolled {
+  background: rgba(255, 255, 255, .98);
+  border-bottom-color: rgba(203, 213, 225, .8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .06);
+}
+[data-theme="light"] .public-nav-waffle-btn,
+.public-nav.light-style .public-nav-waffle-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #059669;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
+[data-theme="light"] .public-nav-waffle-btn:hover,
+.public-nav.light-style .public-nav-waffle-btn:hover {
+  border-color: #10b981;
+  background: #f0fdf4;
+  color: #047857;
+}
+[data-theme="light"] .brand-turbo,
+.public-nav.light-style .brand-turbo {
+  color: #0f172a;
+}
+[data-theme="light"] .brand-fix,
+.public-nav.light-style .brand-fix {
+  color: #d97706;
+}
+[data-theme="light"] .public-nav-brand-copy > small,
+.public-nav.light-style .public-nav-brand-copy > small {
+  color: #64748b;
+}
+[data-theme="light"] .public-nav-primary,
+.public-nav.light-style .public-nav-primary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .02);
+}
+[data-theme="light"] .public-nav-link,
+.public-nav.light-style .public-nav-link {
+  color: #475569;
+}
+[data-theme="light"] .public-nav-link:hover,
+.public-nav.light-style .public-nav-link:hover {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+[data-theme="light"] .public-nav-link.active,
+.public-nav.light-style .public-nav-link.active {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .1), inset 0 0 0 1px #cbd5e1;
+}
+[data-theme="light"] .public-nav-language,
+.public-nav.light-style .public-nav-language {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+}
+[data-theme="light"] .public-nav-language:hover,
+.public-nav.light-style .public-nav-language:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+[data-theme="light"] .public-nav-language select,
+.public-nav.light-style .public-nav-language select {
+  color: #0f172a;
+}
+[data-theme="light"] .public-nav-language select option,
+.public-nav.light-style .public-nav-language select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+[data-theme="light"] .lang-chevron,
+.public-nav.light-style .lang-chevron {
+  color: #64748b;
+}
+[data-theme="light"] .public-nav-account,
+.public-nav.light-style .public-nav-account {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+[data-theme="light"] .public-nav-account:hover,
+.public-nav.light-style .public-nav-account:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+}
+[data-theme="light"] .public-nav-avatar,
+.public-nav.light-style .public-nav-avatar {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
+}
+[data-theme="light"] .public-nav-account small,
+.public-nav.light-style .public-nav-account small {
+  color: #64748b;
+}
+[data-theme="light"] .public-nav-account strong,
+.public-nav.light-style .public-nav-account strong {
+  color: #0f172a;
+}
+[data-theme="light"] .public-nav-demo,
+.public-nav.light-style .public-nav-demo {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, .25);
+}
+[data-theme="light"] .public-nav-demo:hover,
+.public-nav.light-style .public-nav-demo:hover {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, .35);
+}
 .public-nav-toggle,
 .public-nav-mobile-heading,
 .public-nav-mobile-actions,
