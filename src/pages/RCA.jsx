@@ -70,11 +70,20 @@ export default function RCA() {
         ticketId ? supabase.from('tickets').select('*').eq('id', ticketId).maybeSingle() : Promise.resolve({ data: null, error: null }),
       ]);
       if (!mounted) return;
+
+      // Fallback for demo users: if queries return empty due to RLS, still proceed
+      // (RLS blocks when auth.uid() is not set in demo mode)
       if (machineRes.error) {
         setError(machineRes.error.message || 'Could not load machine context.');
       } else {
         setMachine(machineRes.data || null);
       }
+
+      // For demo users with no data, don't show error - they may still interact with RCA
+      if (!machineRes.data && user?.inventory_mode === 'demo') {
+        setError('');
+      }
+
       if (ticketRes?.error) {
         setError(ticketRes.error.message || 'Could not load ticket context.');
       } else {
@@ -84,7 +93,7 @@ export default function RCA() {
     }
     load();
     return () => { mounted = false; };
-  }, [machineId, ticketId]);
+  }, [machineId, ticketId, user]);
 
   const repeatCount = Number(ticket?.repeat_failure_count || (ticket?.repeat_failure_flag ? 1 : 0) || (repeatIssue ? 1 : 0));
   const businessValue = repeatCount >= 2 ? 'High' : repeatCount === 1 ? 'Medium' : 'Review';
