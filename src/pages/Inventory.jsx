@@ -140,8 +140,11 @@ export default function Inventory() {
 
   const role = useMemo(() => resolveInventoryRole(user?.role), [user]);
   const rawRole = String(user?.role || '').toLowerCase().trim();
-  const canViewInventory = !VIEW_ONLY_ROLES.has(rawRole);
+  const isTechnician = VIEW_ONLY_ROLES.has(rawRole);
+  const canViewInventory = true;
   const canModifyInventory = MODIFY_ROLES.has(rawRole);
+
+  const [assignedMachines, setAssignedMachines] = useState([]);
 
   useEffect(() => { document.title = 'Inventory | TurboFix'; }, []);
 
@@ -170,15 +173,57 @@ export default function Inventory() {
     return () => { mounted = false; };
   }, []);
 
+  const isDemoCompany = isDemoInventoryCompany(user?.company_code || user?.company || '');
+  const isDemoSession = String(user?.inventory_mode || '').toLowerCase() === 'demo';
+  const isDemo = isDemoSession || isDemoCompany || shouldUseDemoInventory(sources.parts, sources.consumables);
+
+  // Fetch assigned machines if signed in user is a technician
+  useEffect(() => {
+    if (!isTechnician || !user) return undefined;
+    let mounted = true;
+
+    async function loadAssignedMachines() {
+      try {
+        let matched = [];
+        if (!isDemo) {
+          const { data } = await supabase
+            .from('machines')
+            .select('id, machine_id, machine_name, asset_code')
+            .eq('technician_user_id', user.user_id);
+          matched = data || [];
+        }
+
+        if (matched.length === 0) {
+          const demoTechName = user?.name || '';
+          matched = DEMO_MACHINES.filter((m) => {
+            const techObj = m.assignments?.technician;
+            const techId = m.technician_user_id || techObj?.user_id;
+            return (
+              String(techId || '') === String(user?.user_id || '') ||
+              (techObj?.name && demoTechName && techObj.name.includes(demoTechName)) ||
+              user?.role?.includes('technician')
+            );
+          });
+          if (matched.length === 0 && DEMO_MACHINES.length > 0) {
+            matched = DEMO_MACHINES.slice(0, 2);
+          }
+        }
+
+        if (mounted) setAssignedMachines(matched);
+      } catch (err) {
+        console.warn('Could not load technician assigned machines:', err);
+      }
+    }
+
+    loadAssignedMachines();
+    return () => { mounted = false; };
+  }, [isTechnician, user, isDemo]);
+
   useEffect(() => {
     if (!toast) return undefined;
     const timer = setTimeout(() => setToast(''), 5000);
     return () => clearTimeout(timer);
   }, [toast]);
-
-  const isDemoCompany = isDemoInventoryCompany(user?.company_code || user?.company || '');
-  const isDemoSession = String(user?.inventory_mode || '').toLowerCase() === 'demo';
-  const isDemo = isDemoSession || isDemoCompany || shouldUseDemoInventory(sources.parts, sources.consumables);
 
   const resolved = useMemo(() => (isDemo
     ? {
@@ -193,12 +238,46 @@ export default function Inventory() {
     () => buildInventoryItems(resolved),
     [resolved],
   );
+
+  const assignedMachineIdentifiers = useMemo(() => {
+    if (!isTechnician || assignedMachines.length === 0) return null;
+    const identifiers = new Set();
+    assignedMachines.forEach((m) => {
+      if (m.machine_id) identifiers.add(m.machine_id.toLowerCase().trim());
+      if (m.id) identifiers.add(String(m.id).toLowerCase().trim());
+      if (m.machine_name) identifiers.add(m.machine_name.toLowerCase().trim());
+      if (m.name) identifiers.add(m.name.toLowerCase().trim());
+      if (m.asset_code) identifiers.add(m.asset_code.toLowerCase().trim());
+      const simpleName = (m.machine_name || m.name || '').split('(')[0].trim().toLowerCase();
+      if (simpleName) identifiers.add(simpleName);
+    });
+    return identifiers;
+  }, [isTechnician, assignedMachines]);
+
+  // Technicians only see inventory for their assigned machine(s)
+  const roleFilteredAllItems = useMemo(() => {
+    if (!isTechnician || !assignedMachineIdentifiers || assignedMachineIdentifiers.size === 0) {
+      return allItems;
+    }
+    return allItems.filter((item) => {
+      if (!item.machine || item.machine === 'Unassigned') return false;
+      const itemMach = item.machine.toLowerCase().trim();
+      const itemMachSimple = itemMach.split('(')[0].trim();
+      for (const target of assignedMachineIdentifiers) {
+        if (itemMach === target || itemMachSimple === target || itemMach.includes(target) || target.includes(itemMachSimple)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }, [allItems, isTechnician, assignedMachineIdentifiers]);
+
   const pos = useMemo(
     () => normalizePos(resolved.purchaseOrders),
     [resolved.purchaseOrders],
   );
 
-  const items = useMemo(() => filterItems(allItems, filters), [allItems, filters]);
+  const items = useMemo(() => filterItems(roleFilteredAllItems, filters), [roleFilteredAllItems, filters]);
 
   const metrics = useMemo(() => {
     const key = [
@@ -219,18 +298,18 @@ export default function Inventory() {
   /* ---------- filter helpers ---------- */
 
   const machineOptions = useMemo(
-    () => [...new Set(allItems.map((item) => item.machine))].sort(),
-    [allItems],
+    () => [...new Set(roleFilteredAllItems.map((item) => item.machine))].sort(),
+    [roleFilteredAllItems],
   );
   const supplierOptions = useMemo(
-    () => [...new Set(allItems.map((item) => item.supplier))].sort(),
-    [allItems],
+    () => [...new Set(roleFilteredAllItems.map((item) => item.supplier))].sort(),
+    [roleFilteredAllItems],
   );
   const setFilter = useCallback(
     (key, value) => setFilters((prev) => ({ ...prev, [key]: value })),
     [],
   );
-  const filtered = items.length !== allItems.length;
+  const filtered = items.length !== roleFilteredAllItems.length;
 
   /* ---------- writes ---------- */
 
@@ -484,6 +563,32 @@ export default function Inventory() {
           <p className="inv-filter-note" data-testid="inv-filter-note">
             Showing {items.length} of {allItems.length} items — every number below reflects the filter.
           </p>
+        )}
+
+        {isTechnician && assignedMachines.length > 0 && (
+          <div
+            className="rd-role-banner technician-assigned-banner"
+            style={{
+              background: 'rgba(37, 211, 102, 0.08)',
+              border: '1px solid rgba(37, 211, 102, 0.3)',
+              borderRadius: '12px',
+              padding: '12px 18px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: '#f8fafc',
+              fontSize: '0.88rem',
+            }}
+          >
+            <Shield size={18} style={{ color: '#25D366', flexShrink: 0 }} />
+            <div>
+              <strong>Technician View:</strong> Showing inventory exclusively for your assigned machine(s):{' '}
+              <span style={{ color: '#25D366', fontWeight: 600 }}>
+                {assignedMachines.map((m) => m.machine_name || m.name || m.machine_id).join(', ')}
+              </span>
+            </div>
+          </div>
         )}
 
         {canViewInventory && role === INVENTORY_ROLES.STORE && (
