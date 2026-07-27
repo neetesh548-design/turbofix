@@ -17,9 +17,10 @@ import { computeMachineHealth } from '@/utils/machineHealth';
  * - machine (object, required)
  * - onOpen (fn(machine)): card clicked — opens the detail drawer
  * - onReportIssue (fn(machine)): "Report issue" clicked
- * - onViewDetails (fn(machine)): "View details" clicked — full workspace
+ * - onOpenTickets (fn(machine)): open-ticket metric clicked
+ * - onOpenMaintenance (fn(machine)): PM metric clicked
  */
-function MachineCard({ machine, onOpen, onReportIssue, onViewDetails }) {
+function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMaintenance }) {
   const health = computeMachineHealth(machine);
   const { pm, service, openCount, critical } = health;
 
@@ -28,25 +29,12 @@ function MachineCard({ machine, onOpen, onReportIssue, onViewDetails }) {
 
   const technician = machine.assignments?.technician?.name;
 
-  // Keyboard parity with the click target: the card is a div (it contains
-  // buttons, so it cannot be a <button>) and therefore needs explicit keys.
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onOpen?.(machine);
-    }
-  };
-
   return (
     <article
       className={`machine-card machine-card-${health.status}`}
       data-testid="machine-card"
       data-machine-id={machine.machine_id}
       data-health={health.status}
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen?.(machine)}
-      onKeyDown={handleKeyDown}
       aria-label={`${machine.machine_name}, ${health.label}`}
     >
       <header className="machine-card-head">
@@ -68,31 +56,47 @@ function MachineCard({ machine, onOpen, onReportIssue, onViewDetails }) {
         </div>
       </div>
 
-      <dl className="machine-card-metrics">
-        <div className={`machine-metric ${openCount > 0 ? (critical ? 'is-bad' : 'is-warn') : 'is-good'}`}>
-          <dt><Wrench size={13} aria-hidden="true" />Open tickets</dt>
-          <dd>
+      <div className="machine-card-metrics" aria-label="Machine details">
+        <button
+          type="button"
+          className={`machine-metric ${openCount > 0 ? (critical ? 'is-bad' : 'is-warn') : 'is-good'}`}
+          disabled={openCount === 0}
+          onClick={(event) => { event.stopPropagation(); onOpenTickets?.(machine); }}
+        >
+          <span className="machine-metric-label"><Wrench size={13} aria-hidden="true" />Open tickets</span>
+          <span className="machine-metric-value">
             <strong>{openCount}</strong>
             <small>{openCount === 0 ? 'Nothing pending' : critical ? 'One is critical' : 'Awaiting a fix'}</small>
-          </dd>
-        </div>
+          </span>
+          <ChevronRight className="machine-metric-arrow" size={14} aria-hidden="true" />
+        </button>
 
-        <div className={`machine-metric tone-${service.tone}`}>
-          <dt><CalendarClock size={13} aria-hidden="true" />Last service</dt>
-          <dd>
+        <button
+          type="button"
+          className={`machine-metric tone-${service.tone}`}
+          onClick={(event) => { event.stopPropagation(); onOpen?.(machine); }}
+        >
+          <span className="machine-metric-label"><CalendarClock size={13} aria-hidden="true" />Last service</span>
+          <span className="machine-metric-value">
             <strong>{service.daysAgo === null ? '—' : service.label}</strong>
             <small>{service.tone === 'stale' ? 'Overdue for a check' : service.tone === 'unknown' ? 'Never logged' : 'On record'}</small>
-          </dd>
-        </div>
+          </span>
+          <ChevronRight className="machine-metric-arrow" size={14} aria-hidden="true" />
+        </button>
 
-        <div className={`machine-metric tone-${pm.tone}`}>
-          <dt><CalendarClock size={13} aria-hidden="true" />Next PM</dt>
-          <dd>
+        <button
+          type="button"
+          className={`machine-metric tone-${pm.tone}`}
+          onClick={(event) => { event.stopPropagation(); onOpenMaintenance?.(machine); }}
+        >
+          <span className="machine-metric-label"><CalendarClock size={13} aria-hidden="true" />Next PM</span>
+          <span className="machine-metric-value">
             <strong>{pm.label}</strong>
             <small>{pm.tone === 'overdue' ? 'Schedule it now' : pm.tone === 'unknown' ? 'No schedule set' : 'Preventive maintenance'}</small>
-          </dd>
-        </div>
-      </dl>
+          </span>
+          <ChevronRight className="machine-metric-arrow" size={14} aria-hidden="true" />
+        </button>
+      </div>
 
       <footer className="machine-card-foot">
         <span className="machine-card-tech" title={technician ? `Assigned to ${technician}` : 'No technician assigned'}>
@@ -112,9 +116,9 @@ function MachineCard({ machine, onOpen, onReportIssue, onViewDetails }) {
             type="button"
             className="machine-card-btn primary"
             data-testid="machine-view-details"
-            onClick={(event) => { event.stopPropagation(); onViewDetails?.(machine); }}
+            onClick={(event) => { event.stopPropagation(); onOpen?.(machine); }}
           >
-            View details <ChevronRight size={14} aria-hidden="true" />
+            Details <ChevronRight size={14} aria-hidden="true" />
           </button>
         </div>
       </footer>

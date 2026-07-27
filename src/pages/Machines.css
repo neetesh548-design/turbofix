@@ -366,13 +366,42 @@
 }
 
 .machine-metric {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  padding: 8px;
+  margin: -8px 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-.machine-metric dt {
+.machine-metric:hover,
+.machine-metric:focus-visible {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border);
+  outline: none;
+}
+
+.machine-metric-arrow {
+  position: absolute;
+  right: 5px;
+  top: 7px;
+  color: var(--slate);
+  opacity: 0;
+}
+
+.machine-metric:hover .machine-metric-arrow,
+.machine-metric:focus-visible .machine-metric-arrow {
+  opacity: 1;
+}
+
+.machine-metric-label {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -383,7 +412,7 @@
   letter-spacing: 0.04em;
 }
 
-.machine-metric dd {
+.machine-metric-value {
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -391,7 +420,7 @@
   min-width: 0;
 }
 
-.machine-metric dd strong {
+.machine-metric-value strong {
   font-family: 'Rajdhani', sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
@@ -400,25 +429,34 @@
   overflow-wrap: anywhere;
 }
 
-.machine-metric dd small {
+.machine-metric-value small {
   color: #64748b;
   font-size: 0.68rem;
   line-height: 1.25;
 }
 
 /* Metric tones — used by both the open-ticket count and the date chips. */
-.machine-metric.is-good dd strong,
-.machine-metric.tone-ok dd strong { color: #4ade80; }
+.machine-metric.is-good .machine-metric-value strong,
+.machine-metric.tone-ok .machine-metric-value strong { color: #4ade80; }
 
-.machine-metric.is-warn dd strong,
-.machine-metric.tone-due-soon dd strong,
-.machine-metric.tone-aging dd strong { color: #facc15; }
+.machine-metric.is-warn .machine-metric-value strong,
+.machine-metric.tone-due-soon .machine-metric-value strong,
+.machine-metric.tone-aging .machine-metric-value strong { color: #facc15; }
 
-.machine-metric.is-bad dd strong,
-.machine-metric.tone-overdue dd strong,
-.machine-metric.tone-stale dd strong { color: #f87171; }
+.machine-metric.is-bad .machine-metric-value strong,
+.machine-metric.tone-overdue .machine-metric-value strong,
+.machine-metric.tone-stale .machine-metric-value strong { color: #f87171; }
 
-.machine-metric.tone-unknown dd strong { color: var(--slate); }
+.machine-metric.tone-unknown .machine-metric-value strong { color: var(--slate); }
+
+.machine-metric:disabled {
+  cursor: default;
+}
+
+.machine-metric:disabled:hover {
+  background: transparent;
+  border-color: transparent;
+}
 
 /* ---------- Card footer ---------- */
 
@@ -502,6 +540,57 @@
 
 .machine-board-message p { margin: 0 auto; max-width: 44ch; font-size: 0.9rem; }
 .machine-board-message button { margin-top: 16px; }
+
+/* ---------- Task-first workspace entry ---------- */
+
+.machine-task-menu {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.machine-task-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 12px;
+  color: var(--ink);
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.machine-task-menu > button:hover,
+.machine-task-menu > button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--brand);
+  outline: none;
+}
+
+.machine-task-menu > button > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.machine-task-menu small { color: var(--slate); }
+
+.machine-task-menu .machine-all-tools {
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-height: 42px;
+  color: var(--slate-light);
+}
+
+@media (max-width: 760px) {
+  .machine-task-menu { grid-template-columns: 1fr; }
+  .machine-task-menu .machine-all-tools { grid-column: auto; }
+}
 
 .machine-board-skeleton {
   display: grid;
@@ -1039,15 +1128,15 @@
     gap: 12px;
   }
 
-  .machine-metric dt { flex-shrink: 0; }
+  .machine-metric-label { flex-shrink: 0; }
 
-  .machine-metric dd {
+  .machine-metric-value {
     align-items: flex-end;
     text-align: right;
     min-width: 0;
   }
 
-  .machine-metric dd strong { font-size: 0.95rem; }
+  .machine-metric-value strong { font-size: 0.95rem; }
 
   .machine-card-actions { width: 100%; }
   .machine-card-btn { flex: 1; }

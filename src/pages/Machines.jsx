@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus,
+  ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus, Wrench,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ContactReveal from '../components/ContactReveal';
@@ -290,10 +290,9 @@ export default function Machines() {
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
-      if (directoryRes.error || directoryRes.data?.error) throw new Error(`Response team could not be loaded: ${directoryRes.data?.error || directoryRes.error?.message}`);
-
-      const directoryMembers = directoryRes.data?.members || [];
-      const machineAssignments = directoryRes.data?.machine_assignments || {};
+      const directoryUnavailable = Boolean(directoryRes.error || directoryRes.data?.error);
+      const directoryMembers = directoryUnavailable ? [] : (directoryRes.data?.members || []);
+      const machineAssignments = directoryUnavailable ? {} : (directoryRes.data?.machine_assignments || {});
 
       const trackRecordByMachine = {};
       const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -413,15 +412,17 @@ export default function Machines() {
       // same pattern the Tickets page uses. `?demo=0` opts out and gives the
       // genuine empty state, which is what the empty-state tests exercise.
       const demoAllowed = queryParams.get('demo') !== '0';
-      const useDemo = visibleMachines.length === 0 && demoAllowed;
+      const useDemo = signedInUser?.inventory_mode === 'demo' || (visibleMachines.length === 0 && demoAllowed);
+      const displayedMachines = useDemo ? DEMO_MACHINES : visibleMachines;
       setShowingDemo(useDemo);
-      setMachines(useDemo ? DEMO_MACHINES : visibleMachines);
+      setMachines(displayedMachines);
+      if (directoryUnavailable && !useDemo) setError('Team assignments are temporarily unavailable. Machine details are still available.');
 
       const queryMachineId = queryParams.get('machine') || queryParams.get('machine_id');
       const queryTab = queryParams.get('tab');
       const queryOpen = queryParams.get('open');
       if (queryMachineId) {
-        const found = visibleMachines.find(m => String(m.machine_id) === String(queryMachineId));
+        const found = displayedMachines.find(m => String(m.machine_id) === String(queryMachineId));
         if (found) {
           setSelectedMachine(found);
           setWsTab(['info', 'docs', 'parts', 'consumables', 'pm', 'reliability', 'kaizen', 'calendar', 'qr'].includes(queryTab) ? queryTab : 'info');
@@ -449,7 +450,13 @@ export default function Machines() {
         { role: 'maintenance_technician', label: 'Maintenance Technician', threshold_hours: 2 }
       ]);
     } catch (err) {
-      setError(err.message || 'An error occurred while loading data.');
+      if (signedInUser?.inventory_mode === 'demo') {
+        setShowingDemo(true);
+        setMachines(DEMO_MACHINES);
+        setError('');
+      } else {
+        setError(err.message || 'Machines are temporarily unavailable.');
+      }
     } finally {
       setLoading(false);
     }
@@ -471,11 +478,16 @@ export default function Machines() {
   };
 
   /** "Open full workspace" — the drill-down that still owns the nine tabs. */
-  const openWorkspace = (machine) => {
+  const openWorkspace = (machine, tab = 'info') => {
     closeDrawer();
     setSelectedMachine(machine);
-    setWsTab('info');
-    setShowMoreOptions(false);
+    setWsTab(tab);
+    setShowMoreOptions(tab !== 'info');
+  };
+
+  const openMachineTool = (tab) => {
+    setWsTab(tab);
+    setShowMoreOptions(true);
   };
 
   /** Launch the voice/text report modal against any machine. */
@@ -2094,7 +2106,8 @@ export default function Machines() {
                       machine={machine}
                       onOpen={openDrawer}
                       onReportIssue={openReportIssue}
-                      onViewDetails={openWorkspace}
+                      onOpenTickets={openTicketsFor}
+                      onOpenMaintenance={(machine) => openWorkspace(machine, 'pm')}
                     />
                   ))}
                 </div>
@@ -2263,11 +2276,26 @@ export default function Machines() {
                 <div className={machineData?.missing_sections?.length ? 'warning' : 'good'}><span><ShieldCheck /></span><p><small>AI knowledge</small><strong>{machineDataLoading ? 'Checking…' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} data gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready for decisions'}</strong></p></div>
               </section>
 
-              {/* MVP: Show "More options" button instead of tabs initially */}
+              {/* Start from the client's task; expose the full register only on request. */}
               {!showMoreOptions ? (
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '16px' }}>
-                  <button type="button" className="vault-btn vault-btn-ghost" onClick={() => setShowMoreOptions(true)} style={{ fontSize: '0.95rem', fontWeight: 600, padding: '10px 20px' }}>
-                    More options (Docs, Parts, PM, Reliability, Kaizen, Calendar, QR)
+                <div className="machine-task-menu" aria-label="What do you need to do?">
+                  <button type="button" onClick={() => openMachineTool('info')}>
+                    <Wrench size={18} aria-hidden="true" />
+                    <span><strong>Fix an issue</strong><small>Status, people and open work</small></span>
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={() => openMachineTool('pm')}>
+                    <CalendarDays size={18} aria-hidden="true" />
+                    <span><strong>Plan maintenance</strong><small>PM schedule and calendar</small></span>
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={() => openMachineTool('docs')}>
+                    <BookOpen size={18} aria-hidden="true" />
+                    <span><strong>Machine information</strong><small>Documents, parts and QR tag</small></span>
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                  <button type="button" className="machine-all-tools" onClick={() => setShowMoreOptions(true)}>
+                    All machine tools
                   </button>
                 </div>
               ) : (

@@ -10,6 +10,7 @@ import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
+import { readAuth } from '@/utils/auth';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -66,34 +67,13 @@ function getLiveDataAnswer(machines = [], tickets = [], events = [], selectedMac
   return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${safeMachines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
 }
 
-function isTokenExpired(token) {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(
-      atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
-    );
-    if (!payload.exp) return false;
-    return Date.now() >= payload.exp * 1000;
-  } catch {
-    return false;
-  }
-}
-
-function readAuth() {
-  const token = localStorage.getItem('tf_token');
-  if (!token || isTokenExpired(token)) return { authed: false, user: null };
-  let user = null;
-  try { user = JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch {}
-  return { authed: true, user };
-}
-
 /* Frequency-Driven Navigation Matrix (Pillars 1-9 & Minimal Effort Plan) */
 const NAV_LIVE = [
   { id: 'overview', label: 'Dashboard', href: BASE + 'dashboard.html', icon: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
   { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', icon: 'M4 5h16v5a2 2 0 000 4v5H4v-5a2 2 0 000-4V5z' },
-  { id: 'technician', label: 'Technician', href: BASE + 'technician.html', icon: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 002.4-8.4z' },
   { id: 'machines', label: 'Machines', href: BASE + 'machines.html', icon: 'M12 2l7 4v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-4z' },
   { id: 'inventory', label: 'Inventory', href: BASE + 'inventory.html', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96L12 12.01l8.73-5.05M12 22.08V12' },
+  { id: 'technician', label: 'Technician', href: BASE + 'technician.html', icon: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 002.4-8.4z' },
   { id: 'kaizen', label: 'Kaizen', href: BASE + 'kaizen.html', icon: 'M9 12l2 2 4-4M7.833 4.667H16.17c.92 0 1.667.746 1.667 1.666v11.334c0 .92-.746 1.666-1.667 1.666H7.833c-.92 0-1.666-.746-1.666-1.666V6.333c0-.92.746-1.666 1.666-1.666z' },
   { id: 'assistant', label: 'Maintenance Help', href: BASE + 'assistant.html', icon: 'M12 2a7 7 0 017 7v2a7 7 0 01-5 6.7V21H10v-3.3A7 7 0 015 11V9a7 7 0 017-7zm-3 20h6' },
   { id: 'records', label: 'Work Records', href: BASE + 'records.html', icon: 'M4 3h12l4 4v14H4V3zm11 1v4h4M8 12h8M8 16h6M8 8h3' },
@@ -425,7 +405,7 @@ export default function AppShell({ children, active }) {
             <span className="app-company-name text-xs text-slate-500 dark:text-slate-400 font-medium">{company}</span>
             <span className="app-live text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
               <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Live
+              {user?.inventory_mode === 'demo' ? 'Demo' : 'Live'}
             </span>
           </div>
 

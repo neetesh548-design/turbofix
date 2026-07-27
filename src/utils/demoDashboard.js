@@ -21,11 +21,11 @@ export const DEMO_TEAM = Object.freeze([
 ]);
 
 export const DEMO_MACHINES = Object.freeze([
-  { id: 'demo-m1', name: 'Hydraulic Press', location: 'Shop Floor A', status: 'breakdown', criticality: 'critical', assigned_to: 'demo-tech-1', hourly_downtime_cost: 4200, replacement_cost: 1_800_000 },
-  { id: 'demo-m2', name: 'CNC Lathe 1', location: 'Tool Room', status: 'running', criticality: 'high', assigned_to: 'demo-tech-2', hourly_downtime_cost: 3100, replacement_cost: 2_400_000 },
-  { id: 'demo-m3', name: 'Screw Air Compressor', location: 'Compressor Room', status: 'under_maintenance', criticality: 'critical', assigned_to: 'demo-tech-3', hourly_downtime_cost: 5200, replacement_cost: 1_200_000 },
-  { id: 'demo-m4', name: 'Laser Cutting Bed', location: 'Shop Floor B', status: 'running', criticality: 'medium', assigned_to: 'demo-tech-2', hourly_downtime_cost: 2600, replacement_cost: 3_100_000 },
-  { id: 'demo-m5', name: 'Injection Moulding Machine', location: 'Moulding Bay', status: 'running', criticality: 'low', assigned_to: 'demo-tech-4', hourly_downtime_cost: 1800, replacement_cost: 900_000 },
+  { id: 'DEMO-M001', name: 'CNC Lathe 1', location: 'Bay 2 · Machining', status: 'running', criticality: 'high', assigned_to: 'demo-tech-1', hourly_downtime_cost: 3100, replacement_cost: 2_400_000 },
+  { id: 'DEMO-M002', name: 'Hydraulic Press #2', location: 'Bay 1 · Forming', status: 'breakdown', criticality: 'critical', assigned_to: 'demo-tech-2', hourly_downtime_cost: 4200, replacement_cost: 1_800_000 },
+  { id: 'DEMO-M003', name: 'Surface Grinder', location: 'Bay 3 · Finishing', status: 'running', criticality: 'medium', assigned_to: 'demo-tech-3', hourly_downtime_cost: 2600, replacement_cost: 900_000 },
+  { id: 'DEMO-M004', name: 'Air Compressor 75kW', location: 'Utility Room', status: 'under_maintenance', criticality: 'high', assigned_to: 'demo-tech-2', hourly_downtime_cost: 5200, replacement_cost: 1_200_000 },
+  { id: 'DEMO-M005', name: 'Packing Conveyor', location: 'Dispatch', status: 'running', criticality: 'low', assigned_to: 'demo-tech-4', hourly_downtime_cost: 1800, replacement_cost: 700_000 },
 ]);
 
 /**
@@ -37,33 +37,33 @@ export function buildDemoTickets(now = Date.now()) {
   return [
     // Live breach — critical, 4h target, opened 11h ago.
     {
-      id: 'demo-t1', wo_number: 'WO-1041', machine_id: 'demo-m1', status: 'open',
-      lifecycle_stage: 'work_started', urgency: 'critical', assigned_to: 'demo-tech-1',
+      id: 'demo-t1', wo_number: 'WO-1041', machine_id: 'DEMO-M002', status: 'open',
+      lifecycle_stage: 'work_started', urgency: 'critical', assigned_to: 'demo-tech-2',
       component: 'Main oil seal', issue_text: 'Hydraulic oil leak at the main seal, pressure dropping',
       created_at: hoursAgo(11, now), downtime_minutes: 660,
     },
     {
-      id: 'demo-t2', wo_number: 'WO-1042', machine_id: 'demo-m3', status: 'open',
-      lifecycle_stage: 'waiting_spare', urgency: 'high', assigned_to: 'demo-tech-3',
+      id: 'demo-t2', wo_number: 'WO-1042', machine_id: 'DEMO-M004', status: 'open',
+      lifecycle_stage: 'waiting_spare', urgency: 'high', assigned_to: 'demo-tech-2',
       component: 'Air filter', issue_text: 'Discharge temperature high, unit auto-shutting down',
       created_at: hoursAgo(5, now),
     },
     {
-      id: 'demo-t3', wo_number: 'WO-1043', machine_id: 'demo-m2', status: 'open',
-      lifecycle_stage: 'assigned', urgency: 'medium', assigned_to: 'demo-tech-2',
+      id: 'demo-t3', wo_number: 'WO-1043', machine_id: 'DEMO-M001', status: 'open',
+      lifecycle_stage: 'assigned', urgency: 'medium', assigned_to: 'demo-tech-1',
       component: 'Spindle bearing', issue_text: 'Spindle vibration returns after restart',
       created_at: hoursAgo(9, now),
     },
     {
-      id: 'demo-t4', wo_number: 'WO-1044', machine_id: 'demo-m4', status: 'open',
-      lifecycle_stage: 'reported', urgency: 'low', assigned_to: 'demo-tech-2',
-      component: 'Optical mirror', issue_text: 'Cut edge quality drifting on thin sheet',
+      id: 'demo-t4', wo_number: 'WO-1044', machine_id: 'DEMO-M005', status: 'open',
+      lifecycle_stage: 'reported', urgency: 'low', assigned_to: 'demo-tech-4',
+      component: 'Drive belt', issue_text: 'Conveyor tracking drifts under full load',
       created_at: hoursAgo(30, now),
     },
     // Repeat cluster on the press seal — four failures in 90 days.
     ...[6, 24, 45, 70].map((days, index) => ({
-      id: `demo-r${index + 1}`, wo_number: `WO-10${30 + index}`, machine_id: 'demo-m1',
-      status: 'closed', lifecycle_stage: 'closed', urgency: 'high', assigned_to: 'demo-tech-1',
+      id: `demo-r${index + 1}`, wo_number: `WO-10${30 + index}`, machine_id: 'DEMO-M002',
+      status: 'closed', lifecycle_stage: 'closed', urgency: 'high', assigned_to: 'demo-tech-2',
       component: 'Main oil seal', issue_text: 'Oil seal weeping under load',
       root_cause: index < 2 ? 'Seal groove out of tolerance after re-machining' : null,
       capa_action: index === 0 ? 'Re-machine seal groove to OEM tolerance and re-qualify' : null,

@@ -219,8 +219,9 @@ export default function ReportBreakdown() {
     fetchBreakdownSources()
       .then((sources) => {
         if (!mounted) return;
-        const demoMachines = shouldUseDemoMachines(sources.machines);
-        const demoReports = shouldUseDemoReports(sources.reports);
+        const demoSession = user?.inventory_mode === 'demo';
+        const demoMachines = demoSession || shouldUseDemoMachines(sources.machines);
+        const demoReports = demoSession || shouldUseDemoReports(sources.reports);
         setIsDemo(demoMachines);
         setMachines(demoMachines ? DEMO_BREAKDOWN_MACHINES : sources.machines);
         setReports(demoReports ? DEMO_BREAKDOWN_REPORTS : sources.reports);
@@ -235,7 +236,7 @@ export default function ReportBreakdown() {
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };
-  }, []);
+  }, [user?.inventory_mode]);
 
   /** On demo data a signed-out visitor still gets a filled-in identity. */
   const effectiveUser = useMemo(() => {

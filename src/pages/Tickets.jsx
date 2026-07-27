@@ -93,6 +93,13 @@ export default function Tickets() {
 
   const fetchTickets = useCallback(async () => {
     setError('');
+    if (signedInUser?.inventory_mode === 'demo') {
+      setTickets(DEMO_TICKETS);
+      setMachinesList(DEMO_TICKETS.map(({ machine_id: id, machine_name: name }) => ({ id, name })));
+      setTechniciansList([]);
+      setLoading(false);
+      return;
+    }
     try {
       const [ticketsRes, machinesRes, directoryRes] = await Promise.all([
         supabase.from('tickets').select('*'),
@@ -175,7 +182,7 @@ export default function Tickets() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [signedInUser?.inventory_mode]);
 
   // `fetchTickets` is referentially stable (useCallback with no deps), so this
   // subscribes once on mount rather than re-subscribing on every render.

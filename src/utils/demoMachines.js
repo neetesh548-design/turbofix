@@ -50,7 +50,7 @@ const demoPerson = (name, role) => ({
 export const DEMO_MACHINES = [
   {
     machine_id: 'DEMO-M001',
-    machine_name: 'CNC Turning Center',
+    machine_name: 'CNC Lathe 1',
     location: 'Bay 2 · Machining',
     status: 'healthy',
     is_demo: true,
@@ -77,7 +77,7 @@ export const DEMO_MACHINES = [
   },
   {
     machine_id: 'DEMO-M002',
-    machine_name: 'Hydraulic Press 200T',
+    machine_name: 'Hydraulic Press #2',
     location: 'Bay 1 · Forming',
     status: 'breakdown',
     is_demo: true,
@@ -164,5 +164,30 @@ export const DEMO_MACHINES = [
       technician: demoPerson('Ramesh Yadav', 'maintenance_technician'),
       maintenance_head: demoPerson('K. Nair', 'maintenance_head'),
     },
+  },
+  {
+    machine_id: 'DEMO-M005',
+    machine_name: 'Packing Conveyor',
+    location: 'Dispatch',
+    status: 'healthy',
+    is_demo: true,
+    has_open_tickets: false,
+    asset_code: 'CNV-03',
+    category: 'Conveyor',
+    department: 'Dispatch',
+    criticality: 'low',
+    maintenance_interval_days: 60,
+    last_maintenance_date: isoDate(-20),
+    next_maintenance_due: isoDate(40),
+    track_record: {
+      total: 2, open: 0, resolved: 2, recent: 1,
+      last_issue: 'Belt tracking adjusted',
+      last_issue_at: isoStamp(-8),
+      open_list: [],
+      recent_closed: [
+        { id: 'DEMO-T230', issue_text: 'Belt tracking adjusted', urgency: 'low', created_at: isoStamp(-8), closed_at: isoStamp(-8) },
+      ],
+    },
+    assignments: { ...emptyAssignments, technician: demoPerson('Vikram Patil', 'maintenance_technician') },
   },
 ];

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { Mail, Lock, UserCheck, Phone, Upload, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Wrench, Building2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Wrench, Building2, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [view, setView] = useState('login'); // 'login' or 'register'
@@ -11,15 +11,6 @@ export default function Login() {
   const [success, setSuccess] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
-  // Check existing session
-  const [existingUser, setExistingUser] = useState(null);
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('tf_user');
-      if (stored) setExistingUser(JSON.parse(stored));
-    } catch (_) {}
-  }, []);
 
   // Login form state
   const [identifier, setIdentifier] = useState('');
@@ -32,46 +23,29 @@ export default function Login() {
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [screenshot, setScreenshot] = useState(null);
-
-  // Quick Demo Logins (using ACME3 company which has existing machines and inventory)
+  // Quick demo logins use the app's existing demo-data mode. They must not
+  // depend on remote accounts being provisioned.
   const demoAccounts = [
     { role: 'Plant Owner', email: 'owner@turbofix.co.in', name: 'Demo Owner', company: 'ACME3', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
     { role: 'Maintenance Lead', email: 'lead@turbofix.co.in', name: 'Demo Lead', company: 'ACME3', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
     { role: 'Technician', email: 'tech@turbofix.co.in', name: 'Demo Tech', company: 'ACME3', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
   ];
 
-  const handleDemoLogin = async (demo) => {
+  const handleDemoLogin = (demo) => {
     setLoading(true);
     setError(null);
-    try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: demo.email,
-        password: 'demo-password-123',
-      });
-
-      if (signInError || !data?.user) {
-        throw new Error(signInError?.message || 'Demo authentication failed');
-      }
-
-      const appUser = {
-        user_id: data.user.id,
-        name: demo.name,
-        role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'technician',
-        company_code: demo.company,
-        inventory_mode: 'demo',
-        email: demo.email,
-      };
-
-      localStorage.setItem('tf_token', data.session?.access_token || '');
-      localStorage.setItem('tf_user', JSON.stringify(appUser));
-      window.dispatchEvent(new Event('authChanged'));
-      setLoading(false);
-      navigate('/dashboard.html', { replace: true });
-    } catch (err) {
-      setError(err.message || 'Demo login failed');
-      setLoading(false);
-    }
+    const role = demo.role.includes('Owner') ? 'owner' : demo.role.includes('Lead') ? 'supervisor' : 'maintenance_technician';
+    localStorage.setItem('tf_token', `demo:${role}`);
+    localStorage.setItem('tf_user', JSON.stringify({
+      user_id: `demo-${role}`,
+      name: demo.name,
+      role,
+      company_code: demo.company,
+      inventory_mode: 'demo',
+      email: demo.email,
+    }));
+    window.dispatchEvent(new Event('authChanged'));
+    navigate('/dashboard.html', { replace: true });
   };
 
   const handleLogin = async (e) => {
@@ -81,57 +55,21 @@ export default function Login() {
     try {
       const loginEmail = identifier.includes('@') ? identifier : `${identifier}@phone.turbofix.co.in`;
       
-      let appUser = null;
-      let token = null;
-
-      try {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: loginEmail,
-          password,
-        });
-
-        if (!signInError && data?.user) {
-          const authUser = data.user;
-          const meta = authUser.user_metadata || {};
-          appUser = {
-            user_id: meta.user_id || authUser.id,
-            name: meta.name || meta.full_name || loginEmail.split('@')[0],
-            role: meta.role || 'owner',
-            company_code: meta.company_code || '',
-            email: authUser.email,
-          };
-          token = data.session?.access_token;
-        }
-      } catch (supabaseErr) {
-        console.warn('Supabase auth attempt failed, attempting demo/local authentication:', supabaseErr);
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
+      if (signInError || !data?.user || !data.session?.access_token) {
+        throw new Error('Invalid credentials. Check your phone/email and password, or use Quick Demo Access.');
       }
+      const authUser = data.user;
+      const meta = authUser.user_metadata || {};
+      const appUser = {
+        user_id: meta.user_id || authUser.id,
+        name: meta.name || meta.full_name || loginEmail.split('@')[0],
+        role: meta.role || 'owner',
+        company_code: meta.company_code || '',
+        email: authUser.email,
+      };
 
-      // Fallback local authentication for demo / testing credentials if Supabase auth fails or user is testing offline
-      if (!appUser) {
-        const cleanId = identifier.trim().toLowerCase();
-        if (cleanId === 'demo' || cleanId.includes('owner') || cleanId.includes('admin')) {
-          appUser = { user_id: 'usr-owner-01', name: 'Rajesh Sharma (Owner)', role: 'owner', company_code: 'PUNE-PLANT-01', email: 'owner@turbofix.co.in' };
-        } else if (cleanId.includes('lead') || cleanId.includes('manager') || cleanId.includes('supervisor')) {
-          appUser = { user_id: 'usr-lead-01', name: 'Vikram Patil (Lead)', role: 'supervisor', company_code: 'PUNE-PLANT-01', email: 'lead@turbofix.co.in' };
-        } else if (cleanId.includes('tech')) {
-          appUser = { user_id: 'usr-tech-01', name: 'Amit Kumar (Technician)', role: 'maintenance_technician', company_code: 'PUNE-PLANT-01', email: 'tech@turbofix.co.in' };
-        } else if (password.length >= 4) {
-          // Allow login for custom entered credentials in demo mode
-          appUser = {
-            user_id: `user-${Date.now()}`,
-            name: identifier.split('@')[0].toUpperCase(),
-            role: 'owner',
-            company_code: 'PLANT-DEMO',
-            inventory_mode: 'demo',
-            email: loginEmail,
-          };
-        } else {
-          throw new Error('Invalid credentials. Please check your phone/email and password, or use Quick Demo Access.');
-        }
-        token = `demo-token-${Date.now()}`;
-      }
-
-      localStorage.setItem('tf_token', token);
+      localStorage.setItem('tf_token', data.session.access_token);
       localStorage.setItem('tf_user', JSON.stringify(appUser));
       window.dispatchEvent(new Event('authChanged'));
       
@@ -149,7 +87,6 @@ export default function Login() {
     setError(null);
     setSuccess(null);
     try {
-      if (!screenshot) throw new Error('Payment screenshot is required for company verification.');
       if (regPassword.length < 8) throw new Error('Password must be at least 8 characters.');
 
       try {
@@ -179,8 +116,8 @@ export default function Login() {
         console.warn('Supabase registration API notice:', spErr);
       }
 
-      setSuccess('Your company registration has been submitted successfully! A TurboFix administrator will review and activate your portal within 2 hours.');
-      setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword(''); setScreenshot(null);
+      setSuccess('Registration submitted. A TurboFix administrator will review and activate your workspace within 2 hours.');
+      setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {
       setError(err.message || 'Registration failed.');
     } finally {
@@ -192,21 +129,6 @@ export default function Login() {
     <div className="min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <Navbar />
       <div className="w-full flex-1 flex flex-col justify-center items-center p-4 py-8">
-        {existingUser && (
-          <div className="w-[92vw] sm:w-[460px] max-w-[460px] mb-4 bg-emerald-950/40 border border-emerald-700/50 rounded-xl p-3 flex items-center justify-between text-sm text-emerald-200 backdrop-blur-md">
-            <div className="flex items-center gap-2">
-              <UserCheck size={18} className="text-emerald-400" />
-              <span>Signed in as <strong>{existingUser.name}</strong></span>
-            </div>
-            <button
-              onClick={() => navigate('/dashboard.html')}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-1 rounded-lg text-xs transition-all shadow-md"
-            >
-              Go to Dashboard &rarr;
-            </button>
-          </div>
-        )}
-
         <div className="w-[92vw] sm:w-[460px] max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
           <div className="p-8">
             {view === 'login' ? (
@@ -377,11 +299,6 @@ export default function Login() {
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">Account Password</label>
                     <input type="password" required minLength={8} placeholder="At least 8 characters" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Verification / Payment Evidence</label>
-                    <input type="file" required accept="image/*" onChange={(e) => setScreenshot(e.target.files[0])} className="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-950 file:text-emerald-300 hover:file:bg-emerald-900 cursor-pointer" />
                   </div>
 
                   <button 

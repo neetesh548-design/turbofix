@@ -163,15 +163,16 @@ export default function Dashboard() {
     && (noFleetData || shouldUseDemoTeam(sources.team));
   const usingDemoReliability = role === DASHBOARD_ROLES.ENGINEER
     && (noFleetData || shouldUseDemoReliability(sources.tickets));
-  const isDemo = noFleetData || usingDemoTeam || usingDemoReliability;
+  const demoSession = user?.inventory_mode === 'demo';
+  const isDemo = demoSession || noFleetData || usingDemoTeam || usingDemoReliability;
 
   const metrics = useMemo(() => {
     const input = isDemo
       ? {
-        machines: sources.machines.length ? sources.machines : DEMO_MACHINES,
+        machines: demoSession || !sources.machines.length ? DEMO_MACHINES : sources.machines,
         tickets: buildDemoTickets(),
-        team: sources.team.length ? sources.team : DEMO_TEAM,
-        pmLogs: sources.pmLogs.length ? sources.pmLogs : DEMO_PM_LOGS,
+        team: demoSession || !sources.team.length ? DEMO_TEAM : sources.team,
+        pmLogs: demoSession || !sources.pmLogs.length ? DEMO_PM_LOGS : sources.pmLogs,
         // The demo fleet assigns work to demo-tech-1, so a signed-in
         // technician still sees a populated queue instead of an empty one.
         user: noFleetData && role === DASHBOARD_ROLES.TECHNICIAN
@@ -191,7 +192,7 @@ export default function Dashboard() {
     ].join(':');
 
     return cacheRef.current.resolve(key, () => buildRoleMetrics(role, input));
-  }, [role, sources, user, isDemo, noFleetData]);
+  }, [role, sources, user, isDemo, noFleetData, demoSession]);
 
   const heading = ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
