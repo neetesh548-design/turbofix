@@ -2425,8 +2425,8 @@
     "semantic_hash": ""
   },
   "src/utils/inventoryMetrics.js": {
-    "mtime": 1785061967.8390236,
-    "ast_hash": "7db6f0d66cd0f4b82fd3e4897b804443",
+    "mtime": 1785137086.31344,
+    "ast_hash": "3fa97b11801efdffefdf1a31fa693e56",
     "semantic_hash": ""
   },
   "tests/settings-role-boundary.spec.js": {
@@ -2472,6 +2472,11 @@
   "TURBOFIX_DESIGN_GUIDELINES.md": {
     "mtime": 1785094938.7715962,
     "ast_hash": "b17049b5d9d5597af5a9ac5c6e189d9a",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260727_seed_demo_users.sql": {
+    "mtime": 1785098665.9761522,
+    "ast_hash": "2ba73fd2ae3597353f68d72e3aadd75f",
     "semantic_hash": ""
   }
 }

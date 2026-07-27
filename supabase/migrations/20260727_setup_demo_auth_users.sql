@@ -3,11 +3,16 @@
 -- Import pgcrypto for password hashing if not already imported
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Insert demo users into auth.users table
--- Note: In a real Supabase instance, you'd use the Auth API, but for migrations we can use SQL
--- The user IDs must match those in public.users table
+-- ACME3 Demo Users (existing company with machines and inventory)
+-- Create users in public.users first if they don't exist
+INSERT INTO public.users (id, company_id, name, role, email, phone, created_at)
+VALUES
+  ('a9000000-0000-0000-0000-000000000001'::uuid, 'a1000000-0000-0000-0000-000000000001'::uuid, 'Demo Owner', 'owner', 'owner@turbofix.co.in', '+919876543210', now()),
+  ('a9000000-0000-0000-0000-000000000002'::uuid, 'a1000000-0000-0000-0000-000000000001'::uuid, 'Demo Lead', 'maintenance_head', 'lead@turbofix.co.in', '+919876543211', now()),
+  ('a9000000-0000-0000-0000-000000000003'::uuid, 'a1000000-0000-0000-0000-000000000001'::uuid, 'Demo Tech', 'technician', 'tech@turbofix.co.in', '+919876543212', now())
+ON CONFLICT (id) DO NOTHING;
 
--- Rajesh Sharma (Plant Owner)
+-- Now create auth users with matching IDs
 INSERT INTO auth.users (
   id,
   email,
@@ -18,17 +23,16 @@ INSERT INTO auth.users (
   raw_app_meta_data,
   raw_user_meta_data
 ) VALUES (
-  'd2234567-0000-0000-0000-000000000001'::uuid,
-  'rajesh@turbofix-demo',
+  'a9000000-0000-0000-0000-000000000001'::uuid,
+  'owner@turbofix.co.in',
   crypt('demo-password-123', gen_salt('bf')),
   now(),
   now(),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  '{"name":"Rajesh Sharma","role":"owner","company_code":"TFDEMO"}'::jsonb
+  '{"name":"Demo Owner","role":"owner","company_code":"ACME3"}'::jsonb
 ) ON CONFLICT (id) DO NOTHING;
 
--- Vikram Patil (Maintenance Lead)
 INSERT INTO auth.users (
   id,
   email,
@@ -39,17 +43,16 @@ INSERT INTO auth.users (
   raw_app_meta_data,
   raw_user_meta_data
 ) VALUES (
-  'd2234567-0000-0000-0000-000000000002'::uuid,
-  'vikram@turbofix-demo',
+  'a9000000-0000-0000-0000-000000000002'::uuid,
+  'lead@turbofix.co.in',
   crypt('demo-password-123', gen_salt('bf')),
   now(),
   now(),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  '{"name":"Vikram Patil","role":"maintenance_head","company_code":"TFDEMO"}'::jsonb
+  '{"name":"Demo Lead","role":"maintenance_head","company_code":"ACME3"}'::jsonb
 ) ON CONFLICT (id) DO NOTHING;
 
--- Amit Kumar (Technician)
 INSERT INTO auth.users (
   id,
   email,
@@ -60,12 +63,12 @@ INSERT INTO auth.users (
   raw_app_meta_data,
   raw_user_meta_data
 ) VALUES (
-  'd2234567-0000-0000-0000-000000000003'::uuid,
-  'amit@turbofix-demo',
+  'a9000000-0000-0000-0000-000000000003'::uuid,
+  'tech@turbofix.co.in',
   crypt('demo-password-123', gen_salt('bf')),
   now(),
   now(),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  '{"name":"Amit Kumar","role":"technician","company_code":"TFDEMO"}'::jsonb
+  '{"name":"Demo Tech","role":"technician","company_code":"ACME3"}'::jsonb
 ) ON CONFLICT (id) DO NOTHING;

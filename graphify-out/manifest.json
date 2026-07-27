@@ -795,13 +795,13 @@
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785082292.3886065,
-    "ast_hash": "9b2e2fc6cde3bcb7d42e41c43410f6c4",
+    "mtime": 1785138562.151287,
+    "ast_hash": "766ef62a065457757e496e85c3b92534",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785008645.1481972,
-    "ast_hash": "43b3e68ad79d31c50b993d28807bd22e",
+    "mtime": 1785138895.5663779,
+    "ast_hash": "ef55522462fe57edabef8cb88602ebad",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -2477,6 +2477,11 @@
   "supabase/migrations/20260727_seed_demo_users.sql": {
     "mtime": 1785098665.9761522,
     "ast_hash": "2ba73fd2ae3597353f68d72e3aadd75f",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260727_setup_demo_auth_users.sql": {
+    "mtime": 1785138882.9013417,
+    "ast_hash": "9d8c03938bef173d4bce8bdde467da9f",
     "semantic_hash": ""
   }
 }

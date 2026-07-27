@@ -34,11 +34,11 @@ export default function Login() {
   const [regPassword, setRegPassword] = useState('');
   const [screenshot, setScreenshot] = useState(null);
 
-  // Quick Demo Logins
+  // Quick Demo Logins (using ACME3 company which has existing machines and inventory)
   const demoAccounts = [
-    { role: 'Plant Owner', email: 'rajesh@turbofix-demo', name: 'Rajesh Sharma', company: 'TFDEMO', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'Maintenance Lead', email: 'vikram@turbofix-demo', name: 'Vikram Patil', company: 'TFDEMO', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'Technician', email: 'amit@turbofix-demo', name: 'Amit Kumar', company: 'TFDEMO', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
+    { role: 'Plant Owner', email: 'owner@turbofix.co.in', name: 'Demo Owner', company: 'ACME3', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
+    { role: 'Maintenance Lead', email: 'lead@turbofix.co.in', name: 'Demo Lead', company: 'ACME3', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
+    { role: 'Technician', email: 'tech@turbofix.co.in', name: 'Demo Tech', company: 'ACME3', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
   ];
 
   const handleDemoLogin = async (demo) => {

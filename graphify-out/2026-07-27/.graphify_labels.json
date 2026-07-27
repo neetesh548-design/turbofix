@@ -280,16 +280,10 @@
   "278": "design-guidelines.spec.ts",
   "279": "dashboardLayout.js",
   "280": "Machines.jsx",
-  "281": "MachineContext.jsx",
-  "282": "ViewModeContext.jsx",
-  "283": ".append",
   "284": "_lifespan",
   "285": "SheetsSettingsRepository",
   "286": "_rate_limit_handler",
-  "287": ".get_company_events",
   "288": "SecurityHeadersMiddleware",
-  "289": "analyze_image",
   "290": "test_contact_privacy.py",
-  "291": "detect_language",
   "293": "LocalSettingsRepository"
 }
