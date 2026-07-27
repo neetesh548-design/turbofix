@@ -8021,35 +8021,40 @@ details.faq-item p {
 }
 .public-nav-brand-copy > small {
   color: #64748b;
-  font: 700 .58rem/1 'Outfit', sans-serif;
-  letter-spacing: .05em;
+  font: 700 .55rem/1 'Outfit', sans-serif;
+  letter-spacing: .04em;
   text-transform: uppercase;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .public-nav-menu {
   display: flex;
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
+  margin: 0 8px;
 }
 .public-nav-primary {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 14px;
-  padding: 4px 6px;
+  padding: 3px 5px;
   background: rgba(13, 20, 29, .75);
   backdrop-filter: blur(12px);
 }
 .public-nav-link {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 36px;
   align-items: center;
   border-radius: 10px;
-  padding: 0 16px;
+  padding: 0 12px;
   color: #cbd5e1;
-  font-size: .85rem;
+  font-size: .82rem;
   font-weight: 700;
   white-space: nowrap;
   transition: color .18s ease, background .18s ease, box-shadow .18s ease;
@@ -8071,20 +8076,20 @@ details.faq-item p {
 .public-nav-language-wrapper {
   display: flex;
   align-items: center;
-  padding-left: 4px;
+  padding-left: 2px;
   margin-left: 2px;
 }
 .public-nav-language {
   position: relative;
   display: inline-flex;
-  min-height: 38px;
+  min-height: 36px;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 10px;
-  padding: 0 24px 0 12px;
+  padding: 0 22px 0 10px;
   color: #ffffff;
   background: rgba(22, 33, 46, .8);
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 700;
   cursor: pointer;
   transition: border-color .18s ease, background .18s ease;
@@ -8095,12 +8100,12 @@ details.faq-item p {
   background: rgba(30, 44, 60, .9);
 }
 .public-nav-language select {
-  min-height: 36px;
+  min-height: 34px;
   border: 0;
   padding: 0;
   color: #ffffff;
   background: transparent;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 700;
   cursor: pointer;
   appearance: none;
@@ -8113,9 +8118,9 @@ details.faq-item p {
 .public-nav-language select:focus { border: 0; outline: 0; }
 .lang-chevron {
   position: absolute;
-  right: 8px;
-  width: 14px;
-  height: 14px;
+  right: 6px;
+  width: 13px;
+  height: 13px;
   color: #94a3b8;
   pointer-events: none;
 }
@@ -8124,18 +8129,18 @@ details.faq-item p {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .public-nav-meta { display: none; }
 
 .public-nav-account {
   display: flex;
-  min-height: 44px;
+  min-height: 42px;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 12px;
-  padding: 4px 14px 4px 8px;
+  padding: 4px 12px 4px 8px;
   color: #cbd5e1;
   background: rgba(18, 27, 38, .7);
   transition: border-color .18s ease, background .18s ease, color .18s ease;
@@ -8148,41 +8153,41 @@ details.faq-item p {
 }
 .public-nav-avatar {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid rgba(52, 211, 153, .35);
   border-radius: 10px;
   color: #34d399;
   background: rgba(34, 197, 94, .12);
-  font-size: .8rem;
+  font-size: .78rem;
   font-weight: 800;
 }
-.public-nav-avatar svg { width: 16px; height: 16px; stroke-width: 2.2px; }
+.public-nav-avatar svg { width: 15px; height: 15px; stroke-width: 2.2px; }
 .public-nav-account-text { display: grid; gap: 1px; }
 .public-nav-account small {
   color: #64748b;
-  font-size: .58rem;
+  font-size: .56rem;
   font-weight: 800;
-  letter-spacing: .05em;
+  letter-spacing: .04em;
   text-transform: uppercase;
 }
-.public-nav-account strong { font-size: .85rem; font-weight: 700; color: #ffffff; white-space: nowrap; }
+.public-nav-account strong { font-size: .82rem; font-weight: 700; color: #ffffff; white-space: nowrap; }
 
 .public-nav-demo {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: none;
   border-radius: 12px;
-  padding: 0 20px;
+  padding: 0 16px;
   color: #042f1a;
   background: #34d399;
   box-shadow: 0 4px 16px rgba(52, 211, 153, .25);
-  font-size: .85rem;
+  font-size: .82rem;
   font-weight: 800;
   white-space: nowrap;
   transition: all .18s ease;
@@ -8195,8 +8200,38 @@ details.faq-item p {
   box-shadow: 0 6px 22px rgba(74, 222, 128, .35);
   transform: translateY(-1px);
 }
-.public-nav-demo svg { width: 16px; height: 16px; stroke-width: 2.5px; transition: transform .18s ease; }
+.public-nav-demo svg { width: 15px; height: 15px; stroke-width: 2.5px; transition: transform .18s ease; }
 .public-nav-demo:hover svg { transform: translateX(3px); }
+
+/* Responsive adjustments */
+@media (max-width: 1360px) {
+  .public-nav-brand-sub { display: none; }
+  .public-nav-account small { display: none; }
+  .public-nav-link { padding: 0 10px; font-size: .78rem; }
+  .public-nav-demo { padding: 0 14px; font-size: .78rem; }
+}
+
+@media (max-width: 1140px) {
+  .public-nav,
+  .public-nav-inner { height: 68px; }
+  .public-nav-menu {
+    position: fixed;
+    z-index: 1002;
+    top: 68px;
+    left: 12px;
+    right: 12px;
+    display: none;
+    max-height: calc(100vh - 84px);
+    overflow-y: auto;
+    border: 1px solid #354456;
+    border-radius: 0 0 16px 16px;
+    padding: 18px;
+    background: linear-gradient(145deg, #17222e, #101821);
+    box-shadow: 0 24px 55px rgba(0, 0, 0, .55);
+  }
+  .public-nav-menu.open { display: block; }
+  .public-nav-toggle { display: grid; }
+}
 
 /* ===========================================================
    LightMem Light Style Theme Override
