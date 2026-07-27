@@ -39,82 +39,82 @@ const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const contentByLanguage = {
   en: {
-    eyebrow: 'Intelligent Machine Maintenance & Reliability Platform',
-    heroTitle: 'Machine maintenance without the daily tension.',
-    heroBody: 'From Machine Stress to Maintenance Peace — TurboFix turns paper records and floor signals into approved machine memory, clear 4-step accountability, and reassuring plant operational peace.',
-    bookDemo: 'Book a guided demo',
-    explore: 'Explore the product',
-    trust: ['WhatsApp Notifications & alerts', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
-    previewQuestion: 'What should we service this Sunday?',
-    previewScope: 'Plant-wide question • 2 machines reviewed',
-    previewFinding: 'Hydraulic Press needs attention first',
-    previewReason: 'Overdue inspection, repeated oil leak, and spare seal available.',
-    previewAction: 'Add to shutdown plan',
-    previewSafe: 'Recommendation uses approved machine context',
-    strip: ['WhatsApp Notification dispatch', 'AI across one or all machines', 'Guided shutdown planning', 'Closed-loop technician work'],
-    platformEyebrow: 'One maintenance operating system',
-    platformTitle: 'Move from scattered records to confident decisions',
-    platformBody: 'Bring forward the records you already trust. Every approved source feeds the next decision, while analytics keeps the calculations underneath and TurboFix keeps the workflow simple.',
-    recordsEyebrow: 'Bring your existing maintenance history',
-    recordsTitle: 'Turn paper files and soft copies into AI-ready machine knowledge.',
-    recordsBody: 'Photograph handwritten registers or upload PDFs, Excel, Word, CSV, text files, job cards, inspection sheets, manuals, BOMs, and spare lists. TurboFix reads them into a structured draft your team can verify, then analytics uses the approved version underneath.',
+    eyebrow: 'AI-Powered Maintenance Operating System for Manufacturing Plants',
+    heroTitle: 'Zero Unplanned Downtime. 100% Maintenance Control.',
+    heroBody: 'Built for Plant Owners & Maintenance Heads: Turn paper registers and floor signals into 4-step closed-loop accountability, 5-Why root cause analysis, and real-time plant ROI.',
+    bookDemo: 'Start 30-day free trial',
+    explore: 'Explore product demo',
+    trust: ['10-Sec QR Breakdown Scan', 'WhatsApp Notifications', '5-Why RCA & LOTO Safety', 'AWS Mumbai Data Ownership'],
+    previewQuestion: 'Which critical machine needs Sunday maintenance?',
+    previewScope: 'Plant-wide scan • 12 machines monitored',
+    previewFinding: 'Hydraulic Press 250T (P1-PRS-HYD-250-002)',
+    previewReason: 'Overdue PM inspection, 2 open tickets, oil leak near ram seal.',
+    previewAction: 'Schedule 5-Why RCA & PM',
+    previewSafe: 'Recommendation grounded in approved machine history',
+    strip: ['Instant WhatsApp SLA Alerts', '5-Why Root Cause Analysis', 'Mandatory LOTO Safety Check', 'Verified Photo Repair Proof'],
+    platformEyebrow: 'One platform for plant reliability',
+    platformTitle: 'Eliminate Paper Chaos & Repeat Breakdowns',
+    platformBody: 'Connect floor operators, technicians, maintenance heads, and plant owners in one real-time workflow.',
+    recordsEyebrow: 'Digitize legacy plant history',
+    recordsTitle: 'Turn paper logbooks and soft copies into living machine memory.',
+    recordsBody: 'Snap handwritten registers or upload PDFs, Excel, Word, and manuals. TurboFix extracts structured machine history for Maintenance Head sign-off.',
     recordsSources: [
-      { title: 'Handwritten and scanned', body: 'Registers, job cards, logbooks, marked drawings, and inspection sheets.' },
-      { title: 'Soft-copy records', body: 'PDF, Excel, Word, CSV, text exports, and historic maintenance reports.' },
-      { title: 'Technical knowledge', body: 'Manuals, wiring and hydraulic diagrams, BOMs, spares, and consumable lists.' },
+      { title: 'Handwritten Logbooks', body: 'Registers, job cards, logbooks, and inspection sheets.' },
+      { title: 'Digital Records', body: 'PDFs, Excel, Word, CSV exports, and historic reports.' },
+      { title: 'Technical Docs', body: 'Machine manuals, hydraulic diagrams, BOMs, and spare lists.' },
     ],
-    recordsSafetyTitle: 'AI creates a draft—not a fact.',
-    recordsSafetyBody: 'Your team checks uncertain values. Only the Maintenance Head can approve the extracted data for future AI recommendations.',
+    recordsSafetyTitle: 'Maintenance Head Approval Required',
+    recordsSafetyBody: 'Extracted data creates a draft. Only the Maintenance Head approves trusted records for future AI analysis.',
     recordsReviewKicker: 'AI records review',
     recordsReviewTitle: 'CNC Lathe service register · 2019–2025',
-    recordsReviewMeta: '24 handwritten pages · linked to CNC Lathe 1',
-    recordsDraftLabel: 'Waiting for Maintenance Head approval',
+    recordsReviewMeta: '24 handwritten pages · Linked to CNC Lathe 1',
+    recordsDraftLabel: 'Pending Maintenance Head approval',
     recordsExtracted: ['Maintenance events', 'Breakdown causes', 'Spare references', 'PM tasks'],
     recordsSteps: [
-      { title: 'Capture what you already have', body: 'Photograph physical registers or upload existing files in familiar formats.' },
-      { title: 'AI reads and structures', body: 'TurboFix organizes machine identity, history, work performed, spares, and maintenance signals while the analytics engine keeps the calculations behind the scenes.' },
-      { title: 'Your team verifies', body: 'Low-confidence fields are highlighted so people can correct them against the source.' },
-      { title: 'Maintenance Head approves', body: 'Unapproved drafts remain isolated and cannot influence TurboFix decisions or analytics outputs.' },
-      { title: 'Knowledge starts working', body: 'Approved history supports breakdown guidance, spare planning, consumables, PM, and shutdown decisions.' },
+      { title: 'Capture Existing Logbooks', body: 'Snap photos of physical registers or upload files.' },
+      { title: 'AI Formats & Extracts', body: 'TurboFix structures machine history, spares, and symptoms.' },
+      { title: 'Team Review', body: 'Uncertain values are highlighted for quick human verification.' },
+      { title: 'Maintenance Head Approves', body: 'Only approved records join official plant memory.' },
+      { title: 'Knowledge at Work', body: 'Approved history powers 5-Why RCA and MTTR optimization.' },
     ],
     recordsOutcomes: [
-      { title: 'Better breakdown decisions', body: 'AI can consider recurring symptoms, previous causes, and successful corrective actions.' },
-      { title: 'Smarter material planning', body: 'Historic spare and consumable usage becomes available for preparation and replenishment.' },
-      { title: 'Portable plant backup', body: 'Export originals, structured JSON, Excel-ready CSV, approval history, and MachineData files.' },
+      { title: 'Faster Troubleshooting', body: 'Review previous breakdown causes and verified fixes instantly.' },
+      { title: 'Accurate Spare Planning', body: 'Track spare consumption and reorder points automatically.' },
+      { title: '100% Data Backup', body: 'Export complete plant data in CSV, JSON, and Excel format.' },
     ],
-    recordsCta: 'See the AI Records workflow',
-    workflowEyebrow: 'A complete maintenance loop',
-    workflowTitle: 'From machine data to verified work',
-    workflowBody: 'Start with the information you already have. TurboFix structures it, protects it with human approval, supports the decision, and keeps execution visible while analytics remains the calculation engine underneath.',
-    knowledgeEyebrow: 'Machine intelligence that stays useful',
-    knowledgeTitle: 'Your old records become living machine memory',
-    knowledgeBody: 'Approved historic records and technical documents are consolidated into a machine-specific knowledge file used across TurboFix. Plant data stays distinct from internet-enriched context, which still requires separate approval, and analytics uses the approved plant data underneath.',
-    knowledgeItems: ['Approved service and breakdown history', 'Manuals and technical documents', 'BOM, spares, and consumables', 'Exportable MachineData knowledge'],
-    demoEyebrow: 'AI-generated product walkthrough',
-    demoTitle: 'See the workflow before you explore the product',
-    demoBody: 'This illustrative video shows how TurboFix connects machine records, AI recommendations, and maintenance execution, with analytics supplying the engine underneath. Open the live demo to explore the actual product screens.',
-    demoLogin: 'Open demo sign-in',
-    demoList: ['Upload a handwritten or digital record', 'Review and approve AI-extracted machine data', 'Ask one-machine or plant-wide questions', 'Plan shutdown work and verify technician closure'],
-    fitEyebrow: 'Built for the real factory floor',
-    fitTitle: 'Start where maintenance is hardest today',
-    fitBody: 'TurboFix fits teams that have outgrown paper, spreadsheets, calls, and disconnected files—but want to preserve that history instead of starting from zero while analytics keeps the engine beneath the workflow.',
-    faqTitle: 'Questions maintenance leaders ask first',
-    contactEyebrow: 'Guided onboarding',
-    contactTitle: 'Show us your maintenance reality',
-    contactBody: 'Tell us about your plant and biggest maintenance challenge. We will use the walkthrough to map TurboFix to your current process—not force a generic software demo—and keep analytics as the engine underneath.',
-    contactPoints: ['Review sample paper and soft-copy records', 'Map one representative machine and its history', 'Identify the first useful AI workflow to launch'],
-    formTitle: 'Book your plant walkthrough',
-    name: 'Your name',
+    recordsCta: 'Explore AI Records Workflow',
+    workflowEyebrow: '4-step verified workflow',
+    workflowTitle: 'Zero Breakdown Signals Fall Through the Cracks',
+    workflowBody: 'Every breakdown moves through a 4-stage verified loop from operator scan to Maintenance Head sign-off.',
+    knowledgeEyebrow: 'Machine Memory Engine',
+    knowledgeTitle: 'Your Plant History Becomes Intelligent Knowledge',
+    knowledgeBody: 'Approved records form a machine knowledge base used for RCA troubleshooting and shutdown planning.',
+    knowledgeItems: ['Approved service & breakdown history', 'Machine manuals & schematics', 'BOM, spares & consumables', 'Exportable MachineData files'],
+    demoEyebrow: 'Interactive Product Demo',
+    demoTitle: 'See How TurboFix Solves Shop-Floor Breakdown Chaos',
+    demoBody: 'Watch how operators report issues, technicians log photo proof, and maintenance heads track MTTR in real time.',
+    demoLogin: 'Sign in to Live Demo',
+    demoList: ['Scan QR code to report breakdown', 'Verify technician photo proof', 'Complete 5-Why Root Cause Analysis', 'Track plant downtime cost in ₹ Lakhs'],
+    fitEyebrow: 'Built for SMEs & Enterprise Plants',
+    fitTitle: 'Designed for Factory Floor Realities',
+    fitBody: 'Replace paper registers, fragmented WhatsApp groups, and lost work orders with structured closed-loop execution.',
+    faqTitle: 'Frequently Asked Questions',
+    contactEyebrow: 'Get Started Today',
+    contactTitle: 'Book Your 15-Minute Plant Walkthrough',
+    contactBody: 'We will map TurboFix to one machine in your plant so you can test the 4-step workflow live.',
+    contactPoints: ['Review sample handwritten logbooks', 'Map 1 critical machine & breakdown history', 'Test 10-second QR breakdown reporting'],
+    formTitle: 'Request Plant Walkthrough',
+    name: 'Your Name',
     phone: 'Phone / WhatsApp',
-    company: 'Company name',
-    machines: 'Approximate machines',
-    challenge: 'Biggest maintenance challenge',
-    challengePlaceholder: 'Select one',
-    challengeOptions: ['Digitizing old maintenance records', 'Unplanned breakdowns', 'Shutdown planning', 'Missing machine knowledge', 'Technician follow-through', 'Maintenance visibility', 'Other'],
-    submit: 'Request guided demo',
-    formNote: 'We use these details only to plan your walkthrough.',
-    successTitle: 'Your request is ready',
-    successBody: 'A WhatsApp message has opened with your details. Send it to confirm the walkthrough.',
+    company: 'Company / Plant Name',
+    machines: 'Approximate Machines',
+    challenge: 'Primary Maintenance Goal',
+    challengePlaceholder: 'Select primary goal',
+    challengeOptions: ['Eliminating Unplanned Breakdowns', 'Digitizing Paper Logbooks', 'Technician Follow-through & Proof', '5-Why RCA & Safety Compliance', 'Downtime & MTTR Reduction', 'Other'],
+    submit: 'Request Plant Demo',
+    formNote: 'We use these details only to schedule your walkthrough.',
+    successTitle: 'Walkthrough Request Created',
+    successBody: 'A WhatsApp message has opened with your details. Click send to confirm your appointment.',
   },
   hi: {
     eyebrow: 'मैन्युफैक्चरिंग SMEs के लिए AI मेंटेनेंस निर्णय प्लेटफॉर्म',
@@ -445,39 +445,68 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stakeholder Benefit Cards */}
+        {/* Stakeholder Benefit Cards — Owner & Maintenance Head Spotlight */}
         <section className="marketing-section py-16 bg-slate-900/30" id="stakeholders">
           <div className="container max-w-6xl mx-auto px-4">
             <div className="text-center mb-12">
-              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">BUILT FOR EVERY FACTORY ROLE</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Tailored Peace of Mind Across Your Team</h2>
+              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">BUILT FOR PLANT LEADERSHIP</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Designed for Plant Owners & Maintenance Heads</h2>
+              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Clear ROI for business leaders, total operational control for maintenance managers.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div className="tf-card p-5 border border-slate-700/40 text-center">
-                <div className="text-teal-400 mb-3 flex justify-center"><Factory className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 text-base mb-1">Factory Owner</h4>
-                <p className="text-xs text-slate-400">30-second daily plant health status, revenue at risk visibility, zero surprise expenses.</p>
+            {/* Top 2 Primary Roles: Plant Owner & Maintenance Head */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Plant Owner Card */}
+              <div className="tf-card p-6 border-2 border-teal-500/40 bg-teal-950/20 rounded-2xl relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-4 border-b border-teal-500/20 pb-3">
+                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400"><Factory className="w-7 h-7" /></div>
+                  <div>
+                    <h3 className="font-bold text-slate-100 text-xl">Plant Owner / Managing Director</h3>
+                    <span className="text-xs text-teal-400 font-semibold uppercase tracking-wider">Business & Revenue Protection</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 text-xs text-slate-300">
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>30-Second Daily Health Scan:</strong> Real-time MTTR and downtime cost tracking in ₹ Lakhs.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Zero Revenue Loss from Surprises:</strong> Preventive maintenance alerts before machine failure.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>100% Data Ownership:</strong> Export your plant data to CSV/JSON anytime. No vendor lock-in.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>High Return on Investment:</strong> Pays for itself by preventing a single unplanned breakdown.</li>
+                </ul>
               </div>
-              <div className="tf-card p-5 border border-slate-700/40 text-center">
-                <div className="text-teal-400 mb-3 flex justify-center"><BrainCircuit className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 text-base mb-1">Maintenance Head</h4>
-                <p className="text-xs text-slate-400">Focus on 3 priority items today, AI machine history, zero repeat breakdown anxiety.</p>
+
+              {/* Maintenance Head Card */}
+              <div className="tf-card p-6 border-2 border-teal-500/40 bg-teal-950/20 rounded-2xl relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-4 border-b border-teal-500/20 pb-3">
+                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400"><BrainCircuit className="w-7 h-7" /></div>
+                  <div>
+                    <h3 className="font-bold text-slate-100 text-xl">Maintenance Head / Manager</h3>
+                    <span className="text-xs text-teal-400 font-semibold uppercase tracking-wider">Operational Control & Quality</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 text-xs text-slate-300">
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>4-Step Verified Closure:</strong> Operator report → SLA dispatch → Photo proof → Sign-off.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Structured 5-Why RCA & LOTO:</strong> Ishikawa fishbone root cause tracking and safety isolation.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>No More Repeat Failures:</strong> Convert past breakdowns into permanent machine knowledge.</li>
+                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Audit-Ready Compliance:</strong> Automated activity audit logs for QMS / ISO 45001 audits.</li>
+                </ul>
               </div>
-              <div className="tf-card p-5 border border-slate-700/40 text-center">
-                <div className="text-teal-400 mb-3 flex justify-center"><UsersRound className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 text-base mb-1">Supervisor</h4>
-                <p className="text-xs text-slate-400">Instant ticket routing, work order approvals, clear shift handover logs.</p>
+            </div>
+
+            {/* Supporting Floor Roles */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
+                <div className="text-teal-400 mb-2 flex justify-center"><UsersRound className="w-6 h-6" /></div>
+                <h4 className="font-bold text-slate-100 text-sm mb-1">Shift Supervisor</h4>
+                <p className="text-[11px] text-slate-400">Instant ticket routing, SLA SLA escalation, clear shift handover logs.</p>
               </div>
-              <div className="tf-card p-5 border border-slate-700/40 text-center">
-                <div className="text-teal-400 mb-3 flex justify-center"><Wrench className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 text-base mb-1">Technician</h4>
-                <p className="text-xs text-slate-400">Mobile task checklists, tool & spare guidance, simple 1-tap photo evidence upload.</p>
+              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
+                <div className="text-teal-400 mb-2 flex justify-center"><Wrench className="w-6 h-6" /></div>
+                <h4 className="font-bold text-slate-100 text-sm mb-1">Technician</h4>
+                <p className="text-[11px] text-slate-400">Mobile checklists, spare parts guidance, 1-tap photo repair proof upload.</p>
               </div>
-              <div className="tf-card p-5 border border-slate-700/40 text-center">
-                <div className="text-teal-400 mb-3 flex justify-center"><ScanLine className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 text-base mb-1">Shop Operator</h4>
-                <p className="text-xs text-slate-400">10-second QR scan reporting, local voice recording, instant ticket confirmation.</p>
+              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
+                <div className="text-teal-400 mb-2 flex justify-center"><ScanLine className="w-6 h-6" /></div>
+                <h4 className="font-bold text-slate-100 text-sm mb-1">Shop Operator</h4>
+                <p className="text-[11px] text-slate-400">10-second QR scan reporting, local voice recording, ticket receipts.</p>
               </div>
             </div>
           </div>

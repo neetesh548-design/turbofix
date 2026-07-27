@@ -281,13 +281,8 @@
   "279": "check_threshold_drift",
   "281": "Tickets",
   "282": "check_threshold_drift",
-  "283": "http_client.py",
   "284": "create_live_sheet.py",
   "285": "test_vault_auth.py",
   "286": "_rate_limit_handler",
-  "287": "dashboardLayout.js",
-  "288": "run_predictive_maintenance_check",
-  "290": "test_contact_privacy.py",
-  "291": "get_conversation",
-  "292": "list_conversations"
+  "290": "test_contact_privacy.py"
 }
