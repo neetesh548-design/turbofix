@@ -8024,7 +8024,7 @@ details.faq-item p {
   font: 700 .55rem/1 'Outfit', sans-serif;
   letter-spacing: .04em;
   text-transform: uppercase;
-  max-width: 160px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -8032,10 +8032,10 @@ details.faq-item p {
 .public-nav-menu {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   align-items: center;
   justify-content: center;
-  margin: 0 8px;
+  margin: 0 auto;
 }
 .public-nav-primary {
   display: flex;
@@ -8052,9 +8052,9 @@ details.faq-item p {
   min-height: 36px;
   align-items: center;
   border-radius: 10px;
-  padding: 0 12px;
+  padding: 0 11px;
   color: #cbd5e1;
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 700;
   white-space: nowrap;
   transition: color .18s ease, background .18s ease, box-shadow .18s ease;
@@ -8086,10 +8086,10 @@ details.faq-item p {
   align-items: center;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 10px;
-  padding: 0 22px 0 10px;
+  padding: 0 20px 0 9px;
   color: #ffffff;
   background: rgba(22, 33, 46, .8);
-  font-size: .8rem;
+  font-size: .78rem;
   font-weight: 700;
   cursor: pointer;
   transition: border-color .18s ease, background .18s ease;
@@ -8105,7 +8105,7 @@ details.faq-item p {
   padding: 0;
   color: #ffffff;
   background: transparent;
-  font-size: .8rem;
+  font-size: .78rem;
   font-weight: 700;
   cursor: pointer;
   appearance: none;
@@ -8118,9 +8118,9 @@ details.faq-item p {
 .public-nav-language select:focus { border: 0; outline: 0; }
 .lang-chevron {
   position: absolute;
-  right: 6px;
-  width: 13px;
-  height: 13px;
+  right: 5px;
+  width: 12px;
+  height: 12px;
   color: #94a3b8;
   pointer-events: none;
 }
@@ -8130,6 +8130,7 @@ details.faq-item p {
   flex: 0 0 auto;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 .public-nav-meta { display: none; }
 
@@ -8204,14 +8205,14 @@ details.faq-item p {
 .public-nav-demo:hover svg { transform: translateX(3px); }
 
 /* Responsive adjustments */
-@media (max-width: 1360px) {
+@media (max-width: 1420px) {
   .public-nav-brand-sub { display: none; }
   .public-nav-account small { display: none; }
-  .public-nav-link { padding: 0 10px; font-size: .78rem; }
-  .public-nav-demo { padding: 0 14px; font-size: .78rem; }
+  .public-nav-link { padding: 0 9px; font-size: .78rem; }
+  .public-nav-demo { padding: 0 12px; font-size: .78rem; }
 }
 
-@media (max-width: 1140px) {
+@media (max-width: 1200px) {
   .public-nav,
   .public-nav-inner { height: 68px; }
   .public-nav-menu {

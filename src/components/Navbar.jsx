@@ -122,8 +122,8 @@ export default function Navbar() {
               type="button"
               className="public-nav-waffle-btn"
               onClick={() => setAppLauncherOpen(true)}
-              aria-label="Open Microsoft-style App Launcher"
-              title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+              aria-label="Open Workspace Apps"
+              title="Workspace Apps"
             >
               <Grid />
             </button>
