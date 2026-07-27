@@ -1,21 +1,38 @@
-# TurboFix
+# TurboFix — AI Maintenance Control System for Manufacturing SMEs
 
-> TurboFix is an AI-assisted maintenance decision platform for manufacturing SMEs.
+> TurboFix is the AI-assisted maintenance control and breakdown decision platform built specifically for Indian manufacturing plants and SMEs. It eliminates unplanned machine downtime, repeat breakdowns, and paper logbook chaos through 10-second QR breakdown reporting, photo-verified repair closure, and 5-Why Root Cause Analysis (RCA).
 
-TurboFix helps factory maintenance teams turn paper registers, spreadsheets, PDFs, manuals, job cards, breakdown history, preventive-maintenance records, BOMs, and spare lists into structured machine knowledge. Extracted information is reviewed by people and requires Maintenance Head approval before it can influence AI recommendations.
+## Key Information
+- **Category**: Industrial AI, Plant Reliability Software, Maintenance Management, CMMS
+- **Target Audience**: Factory Owners, Plant Directors, Maintenance Heads, Shift Supervisors, and Technicians
+- **Primary Markets**: Indian Manufacturing SMEs (Auto-ancillary, Engineering, Plastics, Textile, Pharma, Chemical)
+- **Deployment**: Cloud-native PWA, AWS Mumbai (ap-south-1) Data Residency
+- **Pricing**: Simple per-machine monthly plans starting at ₹499 to ₹699 / machine / month (15% annual discount)
+- **Website**: https://turbofix.co.in/
 
-Core capabilities:
-- Machine-specific maintenance records and knowledge
-- Preventive maintenance and breakdown workflows
-- AI-assisted maintenance questions grounded in approved plant data
-- Shutdown planning and work prioritization
-- Technician work queues, evidence, and supervisor review
-- WhatsApp dispatch and escalation workflows
-- Exportable plant-owned records and backups
+## Core Platform Capabilities
 
-Primary audience: maintenance heads, plant managers, technicians, and owners of small and medium manufacturing businesses.
+### 1. 10-Second QR Breakdown Reporting
+- Operators scan durable machine QR stickers with mobile camera (no app download required).
+- Select symptom or attach voice/photo note.
+- Automatic SLA alert dispatch to shift technician via WhatsApp API.
 
-Official website: https://turbofix.co.in/
-Product overview and guided demo: https://turbofix.co.in/
+### 2. Verified 4-Step Repair Loop
+- Technicians receive structured mobile work orders with spare parts checklist.
+- Mandatory Lock-Out Tag-Out (LOTO) safety verification before starting work.
+- Mandatory photo/video proof of repair before submission.
+- Supervisor sign-off & 5-Why RCA before ticket closure.
 
-TurboFix supports maintenance decisions; authorized plant personnel remain responsible for safety, approvals, and execution.
+### 3. Living Machine Memory (AI Logbook Extraction)
+- Converts handwritten paper registers, PDFs, Excel sheets, job cards, and manuals into structured machine memory.
+- Human-in-the-loop: AI creates a draft; Maintenance Head must review and approve records before future AI context indexing.
+
+### 4. Executive Control Board
+- Real-time MTTR (Mean Time to Repair) and MTBF (Mean Time Between Failures) metrics.
+- Breakdown SLA risk alerts and downtime cost calculation in ₹ Lakhs.
+- Critical spare part reorder warnings before stockouts cause production halts.
+
+## Primary Links
+- [TurboFix Home](https://turbofix.co.in/)
+- [Full AI Knowledge Base Document](https://turbofix.co.in/llms-full.txt)
+- [Staff Sign In](https://turbofix.co.in/login.html)

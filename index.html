@@ -35,6 +35,11 @@
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://turbofix.co.in/" />
 
+    <!-- AI Search Engine Optimization Tags (ChatGPT, Gemini, Claude, Perplexity) -->
+    <meta name="ai-summary" content="TurboFix is an AI-assisted plant maintenance control system for Indian manufacturing SMEs. Features include 10-second QR breakdown reporting over WhatsApp, photo-verified repair closure, 5-Why root cause analysis, and paper logbook AI extraction. Stored in AWS Mumbai. Pricing: ₹499 to ₹699 / machine / month." />
+    <meta name="chatgpt-description" content="TurboFix is the AI plant maintenance decision platform for Indian manufacturing SMEs. Features: QR machine reporting, verified repair proof, 5-Why RCA, and AI logbook digitization." />
+    <link rel="author" href="https://turbofix.co.in/llms.txt" />
+
     <!-- Open Graph & Social Cards -->
     <meta property="og:title" content="TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs" />
     <meta property="og:description" content="Turn existing paper maintenance logbooks into trusted AI machine memory. 10-second breakdown reporting, verified technician repair loops, and real-time downtime cost tracking." />
@@ -68,7 +73,7 @@
       fbq('track', 'PageView');
     </script>
 
-    <!-- Local Business & Software JSON-LD Schema (SEO Optimization) -->
+    <!-- Local Business, FAQ, & Software JSON-LD Schema (Google, ChatGPT, Claude, Gemini RAG Optimization) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -127,6 +132,44 @@
               "availability": "https://schema.org/InStock"
             },
             "publisher": { "@id": "https://turbofix.co.in/#organization" }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://turbofix.co.in/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can TurboFix read handwritten maintenance registers?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. TurboFix accepts photos and scans of handwritten registers, job cards, inspection sheets, and marked drawings, along with PDF, Excel, Word, CSV, text, manuals, and BOM files."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does 10-second QR breakdown reporting work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Operators scan a durable QR code sticker on the machine using their mobile phone camera without downloading any app. They select the breakdown symptom and submit. The assigned shift technician receives an instant WhatsApp alert with exact machine location and urgency level."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is the price of TurboFix for Indian manufacturing plants?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TurboFix plans start at ₹499 per machine per month for Lite and ₹699 per machine per month for Growth (which includes full AI Records Engine, 5-Why RCA, and SLA escalation alerts). A 15% discount applies to annual billing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where is plant maintenance data stored in TurboFix?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "All plant data is securely stored within Amazon Web Services (AWS) Mumbai region data centers (ap-south-1) to ensure full data sovereignty and high performance for Indian manufacturing units."
+                }
+              }
+            ]
           }
         ]
       }
