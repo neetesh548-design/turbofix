@@ -1936,7 +1936,15 @@ export default function QRGateway() {
             type="button" 
             onClick={() => {
               const base = import.meta.env.BASE_URL || '/';
-              window.location.href = `${base}machines.html?machine=${machine.id}`;
+              const targetMachineId = machine?.id || machine?.machine_id || searchParams.get('machine') || '';
+              const targetUrl = `${base}machines.html?machine=${encodeURIComponent(targetMachineId)}`;
+              const isAuth = Boolean(localStorage.getItem('tf_token'));
+              if (isAuth) {
+                window.location.href = targetUrl;
+              } else {
+                sessionStorage.setItem('tf_post_login_redirect', targetUrl);
+                window.location.href = `${base}login.html?redirect=${encodeURIComponent(targetUrl)}`;
+              }
             }}
             className="qr-gateway-footer-btn"
             style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 4px', fontSize: '0.75rem', color: '#aab8c8', fontWeight: 'bold', cursor: 'pointer' }}

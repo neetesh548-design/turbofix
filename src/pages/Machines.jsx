@@ -426,7 +426,13 @@ export default function Machines() {
       const queryTab = queryParams.get('tab');
       const queryOpen = queryParams.get('open');
       if (queryMachineId) {
-        const found = displayedMachines.find(m => String(m.machine_id) === String(queryMachineId));
+        const targetSearch = String(queryMachineId).trim().toLowerCase();
+        const found = displayedMachines.find(m => 
+          String(m.machine_id || '').toLowerCase() === targetSearch ||
+          String(m.id || '').toLowerCase() === targetSearch ||
+          String(m.qr_code || '').toLowerCase() === targetSearch ||
+          String(m.machine_name || '').toLowerCase().includes(targetSearch)
+        );
         if (found) {
           setSelectedMachine(found);
           setWsTab(['info', 'docs', 'parts', 'consumables', 'pm', 'reliability', 'kaizen', 'calendar', 'qr'].includes(queryTab) ? queryTab : 'info');

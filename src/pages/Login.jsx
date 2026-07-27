@@ -31,6 +31,32 @@ export default function Login() {
     { role: 'Technician', email: 'tech@turbofix.co.in', name: 'Demo Tech', company: 'ACME3', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
   ];
 
+  const performPostLoginRedirect = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryRedirect = searchParams.get('redirect') || searchParams.get('returnUrl') || searchParams.get('next');
+    const storedRedirect = sessionStorage.getItem('tf_post_login_redirect') || localStorage.getItem('tf_post_login_redirect');
+    const rawTarget = queryRedirect || storedRedirect;
+
+    sessionStorage.removeItem('tf_post_login_redirect');
+    localStorage.removeItem('tf_post_login_redirect');
+
+    if (rawTarget) {
+      let target = decodeURIComponent(rawTarget);
+      const base = import.meta.env.BASE_URL || '/';
+      if (base !== '/' && target.startsWith(base)) {
+        target = target.slice(base.length - 1);
+      }
+      if (target.startsWith('http://') || target.startsWith('https://')) {
+        window.location.href = target;
+      } else {
+        const cleanPath = target.startsWith('/') ? target : `/${target}`;
+        navigate(cleanPath, { replace: true });
+      }
+    } else {
+      navigate('/dashboard.html', { replace: true });
+    }
+  };
+
   const handleDemoLogin = (demo) => {
     setLoading(true);
     setError(null);
@@ -45,7 +71,7 @@ export default function Login() {
       email: demo.email,
     }));
     window.dispatchEvent(new Event('authChanged'));
-    navigate('/dashboard.html', { replace: true });
+    performPostLoginRedirect();
   };
 
   const handleLogin = async (e) => {
@@ -73,7 +99,7 @@ export default function Login() {
       localStorage.setItem('tf_user', JSON.stringify(appUser));
       window.dispatchEvent(new Event('authChanged'));
       
-      navigate('/dashboard.html', { replace: true });
+      performPostLoginRedirect();
     } catch (err) {
       setError(err.message || 'Invalid credentials.');
     } finally {

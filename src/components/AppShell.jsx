@@ -349,7 +349,13 @@ export default function AppShell({ children, active }) {
   // Pre-auth: protected pages redirect to login; vault/bare pages render children.
   if (!authed) {
     if (active && active !== 'vault') {
-      window.location.href = BASE + 'login.html';
+      const currentTarget = window.location.pathname + window.location.search;
+      if (currentTarget && !currentTarget.includes('login.html')) {
+        sessionStorage.setItem('tf_post_login_redirect', currentTarget);
+        window.location.href = `${BASE}login.html?redirect=${encodeURIComponent(currentTarget)}`;
+      } else {
+        window.location.href = BASE + 'login.html';
+      }
       return null;
     }
     return (
