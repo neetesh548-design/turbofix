@@ -59,6 +59,7 @@ export default function Login() {
         name: demo.name,
         role: demo.role.toLowerCase().includes('owner') ? 'owner' : demo.role.toLowerCase().includes('lead') ? 'supervisor' : 'technician',
         company_code: demo.company,
+        inventory_mode: 'demo',
         email: demo.email,
       };
 
@@ -121,6 +122,7 @@ export default function Login() {
             name: identifier.split('@')[0].toUpperCase(),
             role: 'owner',
             company_code: 'PLANT-DEMO',
+            inventory_mode: 'demo',
             email: loginEmail,
           };
         } else {
@@ -404,4 +406,3 @@ export default function Login() {
     </div>
   );
 }
-

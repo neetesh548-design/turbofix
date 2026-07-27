@@ -54,6 +54,7 @@ import {
   DEMO_CONSUMABLES,
   DEMO_PURCHASE_ORDERS,
   DEMO_SUPPLIERS,
+  isDemoInventoryCompany,
   shouldUseDemoInventory,
 } from '../utils/demoInventory.js';
 import { supabase } from '../supabaseClient';
@@ -175,7 +176,9 @@ export default function Inventory() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  const isDemo = shouldUseDemoInventory(sources.parts, sources.consumables);
+  const isDemoCompany = isDemoInventoryCompany(user?.company_code || user?.company || '');
+  const isDemoSession = String(user?.inventory_mode || '').toLowerCase() === 'demo';
+  const isDemo = isDemoSession || isDemoCompany || shouldUseDemoInventory(sources.parts, sources.consumables);
 
   const resolved = useMemo(() => (isDemo
     ? {

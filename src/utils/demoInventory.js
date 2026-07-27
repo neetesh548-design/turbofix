@@ -821,3 +821,14 @@ export function shouldUseDemoInventory(parts, consumables) {
   const hasConsumables = Array.isArray(consumables) && consumables.length > 0;
   return !hasParts && !hasConsumables;
 }
+
+export function isDemoInventoryCompany(companyCode) {
+  const key = String(companyCode || '').toLowerCase().trim();
+  return (
+    !key
+    || key.includes('demo')
+    || key.includes('tfdemo')
+    || key.includes('acme3')
+    || key.startsWith('plant-demo')
+  );
+}
