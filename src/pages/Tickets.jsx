@@ -4,6 +4,7 @@ import { Archive, Download, Ticket as TicketIcon, X, CheckCheck, UserPlus } from
 
 import AppShell from '@/components/AppShell';
 import QuickReportDialog from '@/components/QuickReportDialog';
+import { ShiftHandoverModal } from '@/components/tickets/ShiftHandoverModal';
 import TicketKpiBar from '@/components/tickets/TicketKpiBar';
 import TicketToolbar from '@/components/tickets/TicketToolbar';
 import TicketRow from '@/components/tickets/TicketRow';
@@ -84,6 +85,7 @@ export default function Tickets() {
   const [machinesList, setMachinesList] = useState([]);
   const [techniciansList, setTechniciansList] = useState([]);
   const [quickReportOpen, setQuickReportOpen] = useState(false);
+  const [handoverOpen, setHandoverOpen] = useState(false);
 
   // Ticking clock so age and SLA bars stay live without a full refetch.
   const [now, setNow] = useState(() => new Date());
@@ -668,6 +670,14 @@ export default function Tickets() {
             <button
               type="button"
               className="tickets-icon-btn"
+              onClick={() => setHandoverOpen(true)}
+              title="Generate 1-click shift handover digest"
+            >
+              📋 Shift handover
+            </button>
+            <button
+              type="button"
+              className="tickets-icon-btn"
               style={{
                 background: 'var(--brand)',
                 borderColor: 'var(--brand)',
@@ -681,6 +691,13 @@ export default function Tickets() {
             </button>
           </div>
         </header>
+
+        <ShiftHandoverModal
+          open={handoverOpen}
+          onClose={() => setHandoverOpen(false)}
+          tickets={tickets}
+          machines={machinesList}
+        />
 
         {error && (
           <div

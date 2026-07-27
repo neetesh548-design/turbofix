@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles, Edit3 } from 'lucide-react';
+import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles, Edit3, Send, Radio } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { supabase } from '../supabaseClient';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
@@ -417,6 +417,15 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
               >
                 Edit
               </button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`🔴 *TURBOFIX BREAKDOWN REPORT*\n• *Machine:* ${selectedMachine?.machine_name || 'Equipment'}\n• *Location:* ${selectedMachine?.location || 'Plant Floor'}\n• *Urgency:* ${effectiveUrgencyMeta.label}\n• *Issue:* ${issueText}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="quick-report-button secondary"
+                style={{ background: 'rgba(34,197,94,0.15)', color: '#4ADE80', border: '1px solid rgba(34,197,94,0.3)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}
+              >
+                <Send size={15} /> WhatsApp
+              </a>
               <button
                 type="button"
                 className="quick-report-button primary"

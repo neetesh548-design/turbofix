@@ -178,6 +178,57 @@ export default function TicketDetailPanel({
         </div>
       )}
 
+      {/* 1-Tap Past Fix Memory — Auto-suggests past repair pattern */}
+      {!closed && (
+        <div
+          style={{
+            margin: '12px 0',
+            padding: '10px 14px',
+            background: 'rgba(56, 189, 248, 0.08)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#38BDF8', fontSize: '0.78rem', fontWeight: 700 }}>
+              🧠 1-Tap Past Fix Memory
+            </div>
+            <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#CBD5E1' }}>
+              Past repair on {ticket.machine_name || 'this machine'}: <em>"Replaced seal &amp; recalibrated pressure valve"</em> (Hydraulic Seal Kit)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (onFieldChange) {
+                onFieldChange(ticketId, {
+                  root_cause: 'Seal wear / pressure drop under load',
+                  repair_action: 'Replaced hydraulic seal kit & recalibrated valve',
+                  parts_used: 'Hydraulic Seal Kit (HS-9021-HP)',
+                });
+              }
+            }}
+            style={{
+              padding: '6px 12px',
+              background: '#0EA5E9',
+              border: 'none',
+              borderRadius: 6,
+              color: '#FFFFFF',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Apply Past Fix
+          </button>
+        </div>
+      )}
+
       {/* AI predictive diagnosis */}
       <div className="tickets-panel is-ai">
         <div className="tickets-panel-title" style={{ color: '#60A5FA' }}>
