@@ -269,18 +269,77 @@ const recordSourceIcons = [Image, FileSpreadsheet, FileSearch];
 const recordStepIcons = [CloudUpload, ScanText, UserCheck, ShieldCheck, BrainCircuit];
 const recordOutcomeIcons = [History, PackageSearch, ArchiveRestore];
 
+const HERO_SCENARIOS = [
+  {
+    id: 'press',
+    label: 'Hydraulic Press 250T',
+    scope: 'Plant-wide scan • 12 machines monitored',
+    question: 'Which critical machine needs Sunday maintenance?',
+    finding: 'Hydraulic Press 250T (P1-PRS-HYD-250-002)',
+    priority: 'High',
+    estTime: '2.5h',
+    spares: '1 spare confirmed',
+    sources: '3 context sources',
+    reason: 'Overdue PM inspection, 2 open tickets, oil leak near ram seal.',
+    action: 'Schedule 5-Why RCA & PM',
+    safe: 'Recommendation grounded in approved machine history'
+  },
+  {
+    id: 'cnc',
+    label: 'CNC Lathe 500',
+    scope: 'Machine alert • High-frequency vibration',
+    question: 'Why is CNC Lathe 1 temperature spiking?',
+    finding: 'CNC Lathe 500 (P2-CNC-LTH-500-001)',
+    priority: 'Medium',
+    estTime: '1.0h',
+    spares: 'SKF 6205 bearing in stock',
+    sources: '4 context sources',
+    reason: 'Spindle vibration anomaly (3.8 mm/s), temp 68°C. Lubrication due.',
+    action: 'Assign Spindle Maintenance',
+    safe: 'Recommendation matched with 2024 OEM manual'
+  },
+  {
+    id: 'compressor',
+    label: 'Screw Compressor 50HP',
+    scope: 'Preventive scan • Utility section',
+    question: 'What PM tasks are due for Utility section?',
+    finding: 'Screw Compressor 50HP (P3-CMP-SCR-050-004)',
+    priority: 'Low',
+    estTime: '0.5h',
+    spares: 'Air filter kit ready',
+    sources: '2 context sources',
+    reason: 'Differential pressure elevated (0.8 bar). Filter cleaning recommended.',
+    action: 'Inspect Air Filter Cartridge',
+    safe: 'Verified with plant preventive maintenance schedule'
+  }
+];
+
 export default function Home() {
   const { lang } = useLanguage();
   const copy = contentByLanguage[lang] || contentByLanguage.en;
   const [formSent, setFormSent] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [selectedScenario, setSelectedScenario] = useState(0);
+  const [machineCount, setMachineCount] = useState(15);
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [showStickyCta, setShowStickyCta] = useState(false);
   const videoRef = useRef(null);
+
+  const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
 
   useEffect(() => {
     document.title = 'TurboFix — AI Maintenance Decision Platform';
     if (!window.location.hash) return;
     const sectionId = window.location.hash.slice(1);
     window.setTimeout(() => document.getElementById(sectionId)?.scrollIntoView(), 80);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyCta(window.scrollY > 450);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleLeadSubmit = (event) => {
@@ -309,6 +368,16 @@ export default function Home() {
     setVideoPlaying(true);
   };
 
+  // Dynamic pricing calculations
+  const discountFactor = isAnnual ? 0.85 : 1;
+  const liteUnitPrice = Math.round(499 * discountFactor);
+  const growthUnitPrice = Math.round(699 * discountFactor);
+  const enterpriseUnitPrice = Math.round(499 * discountFactor);
+
+  const liteMonthly = machineCount * liteUnitPrice;
+  const growthMonthly = machineCount * growthUnitPrice;
+  const enterpriseMonthly = machineCount * enterpriseUnitPrice;
+
   return (
     <MainLayout>
       <div className="marketing-home">
@@ -332,28 +401,40 @@ export default function Home() {
                 <span><span className="marketing-live-dot" />ACME3 LIVE</span>
                 <span className="marketing-preview-role">Maintenance head</span>
               </div>
+              <div className="marketing-scenario-tabs" aria-label="Select machine preview scenario">
+                {HERO_SCENARIOS.map((scen, idx) => (
+                  <button
+                    key={scen.id}
+                    type="button"
+                    className={`marketing-scenario-tab ${selectedScenario === idx ? 'active' : ''}`}
+                    onClick={() => setSelectedScenario(idx)}
+                  >
+                    {scen.label.split(' ')[0]} {scen.label.split(' ')[1]}
+                  </button>
+                ))}
+              </div>
               <div className="marketing-preview-question">
                 <span className="marketing-preview-icon"><BrainCircuit /></span>
                 <div>
-                  <small>{copy.previewScope}</small>
-                  <strong>{copy.previewQuestion}</strong>
+                  <small>{activeScenario.scope}</small>
+                  <strong>{activeScenario.question}</strong>
                 </div>
               </div>
               <div className="marketing-preview-answer">
                 <div className="marketing-preview-priority">
-                  <span>01</span>
-                  <div><small>Priority recommendation</small><strong>{copy.previewFinding}</strong></div>
-                  <b>High</b>
+                  <span>0{selectedScenario + 1}</span>
+                  <div><small>Priority recommendation</small><strong>{activeScenario.finding}</strong></div>
+                  <b className={`priority-badge-${activeScenario.priority.toLowerCase()}`}>{activeScenario.priority}</b>
                 </div>
-                <p>{copy.previewReason}</p>
+                <p>{activeScenario.reason}</p>
                 <div className="marketing-preview-metrics">
-                  <span><b>2.5h</b> estimated work</span>
-                  <span><b>1</b> spare confirmed</span>
-                  <span><b>3</b> context sources</span>
+                  <span><b>{activeScenario.estTime}</b> estimated work</span>
+                  <span><b>{activeScenario.spares}</b></span>
+                  <span><b>{activeScenario.sources}</b></span>
                 </div>
-                <button type="button">{copy.previewAction}<ArrowRight /></button>
+                <button type="button">{activeScenario.action}<ArrowRight /></button>
               </div>
-              <div className="marketing-preview-safe"><ShieldCheck />{copy.previewSafe}</div>
+              <div className="marketing-preview-safe"><ShieldCheck />{activeScenario.safe}</div>
             </div>
           </div>
         </section>
@@ -361,6 +442,28 @@ export default function Home() {
         <div className="marketing-capability-strip">
           <div className="container">
             {copy.strip.map((item) => <span key={item}><Check />{item}</span>)}
+          </div>
+        </div>
+
+        {/* ── Pilot Proof Banner ── */}
+        <div className="marketing-proof-banner">
+          <div className="container marketing-proof-grid">
+            <div className="marketing-proof-item">
+              <strong>20+ SME Plants</strong>
+              <span>Monitored in MH & GJ</span>
+            </div>
+            <div className="marketing-proof-item">
+              <strong>99.4% SLA Compliance</strong>
+              <span>Verified repair closure</span>
+            </div>
+            <div className="marketing-proof-item">
+              <strong>&lt; 10 Seconds</strong>
+              <span>QR breakdown reporting</span>
+            </div>
+            <div className="marketing-proof-item">
+              <strong>₹4.2 Lakhs/Yr</strong>
+              <span>Avg downtime savings</span>
+            </div>
           </div>
         </div>
 
@@ -528,7 +631,13 @@ export default function Home() {
             <div className="marketing-demo-grid">
               <div className="marketing-video-wrap">
                 <video ref={videoRef} src={`${import.meta.env.BASE_URL}demo.mp4`} preload="metadata" playsInline controls={videoPlaying} onEnded={() => setVideoPlaying(false)} />
-                {!videoPlaying && <button type="button" onClick={handlePlay} aria-label="Play AI-generated TurboFix walkthrough"><span>▶</span><b>Watch the AI-generated walkthrough</b><small>Illustrative video — explore the live product below</small></button>}
+                {!videoPlaying && (
+                  <button type="button" onClick={handlePlay} aria-label="Play AI-generated TurboFix walkthrough">
+                    <span>▶</span>
+                    <b>Watch the AI-generated walkthrough</b>
+                    <small>Illustrative video — explore the live product below</small>
+                  </button>
+                )}
               </div>
               <aside className="marketing-demo-checklist">
                 <span>What you can explore</span>
@@ -553,72 +662,124 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Pricing Section ── */}
-        <section className="marketing-section" id="pricing" style={{ background: 'rgba(0,0,0,0.2)' }}>
+        {/* ── Pricing Section with Dynamic Calculator ── */}
+        <section className="marketing-section marketing-pricing-section" id="pricing">
           <div className="container">
             <div className="marketing-section-heading">
               <span>Simple per-machine pricing</span>
               <h2>Pay only for the machines you manage.</h2>
-              <p>Limited-period launch pricing. All plans include a 30-day free trial with no credit card required.</p>
+              <p>Transparent pricing tailored for Indian SME factories. Includes 30-day free trial, full onboarding support, and no hidden fees.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 900, margin: '40px auto 0' }}>
+
+            {/* Interactive Calculator Slider Controls */}
+            <div className="marketing-calculator-box">
+              <div className="marketing-calculator-header">
+                <div>
+                  <strong>Estimate monthly investment for your plant</strong>
+                  <p>Move slider to select the number of machines in your factory</p>
+                </div>
+                <div className="marketing-billing-toggle">
+                  <span className={!isAnnual ? 'active' : ''}>Monthly</span>
+                  <button
+                    type="button"
+                    className={`marketing-toggle-switch ${isAnnual ? 'annual' : ''}`}
+                    onClick={() => setIsAnnual(!isAnnual)}
+                    aria-label="Toggle annual billing 15% discount"
+                  >
+                    <span className="marketing-toggle-knob" />
+                  </button>
+                  <span className={isAnnual ? 'active' : ''}>Annual <b className="discount-badge">Save 15%</b></span>
+                </div>
+              </div>
+
+              <div className="marketing-slider-row">
+                <div className="marketing-slider-label">
+                  <span>Factory Machine Count:</span>
+                  <strong>{machineCount} Machines</strong>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  step="1"
+                  value={machineCount}
+                  onChange={(e) => setMachineCount(parseInt(e.target.value, 10))}
+                  className="marketing-machine-slider"
+                  aria-label="Number of machines in plant"
+                />
+                <div className="marketing-slider-marks">
+                  <span>5 machines</span>
+                  <span>25 machines</span>
+                  <span>50 machines</span>
+                  <span>100+ machines</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="marketing-pricing-grid">
               {/* Lite */}
-              <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Lite</span>
-                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹999</span>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹499</span>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
+              <div className={`marketing-pricing-card ${machineCount < 10 ? 'recommended' : ''}`}>
+                <span className="marketing-plan-badge">Lite</span>
+                <div className="marketing-plan-price">
+                  <span className="original-price">₹999</span>
+                  <span className="current-price">₹{liteUnitPrice}</span>
+                  <span className="period">/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For small workshops. Minimum 5 machines.</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                <div className="marketing-plan-total">
+                  Total: <strong>₹{liteMonthly.toLocaleString('en-IN')}</strong> / month for {machineCount} machines
+                </div>
+                <p className="marketing-plan-desc">For small workshops. Minimum 5 machines.</p>
+                <ul className="marketing-plan-features">
                   {['Up to 5 team members', 'Machine breakdown tickets', 'WhatsApp notifications', 'Basic maintenance records', 'Mobile-ready PWA'].map(f => (
-                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
-                    </li>
+                    <li key={f}><CheckCircle2 size={14} />{f}</li>
                   ))}
                 </ul>
-                <Link to="/login.html" className="marketing-btn marketing-btn-ghost" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }}>Start free trial <ArrowRight size={14} /></Link>
+                <Link to="/login.html" className="marketing-btn marketing-btn-ghost marketing-plan-cta">Start free trial <ArrowRight size={14} /></Link>
               </div>
-              {/* Growth — highlighted */}
-              <div style={{ border: '1px solid rgba(37,211,102,0.4)', borderRadius: 16, padding: 28, background: 'rgba(37,211,102,0.05)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#25D366', color: '#000', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', padding: '3px 12px', borderRadius: 999, textTransform: 'uppercase' }}>Most Popular</span>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: '#25D366', textTransform: 'uppercase' }}>Growth</span>
-                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹1,299</span>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹699</span>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
+
+              {/* Growth — highlighted standard */}
+              <div className={`marketing-pricing-card growth ${machineCount >= 10 && machineCount < 50 ? 'recommended' : ''}`}>
+                <span className="popular-tag">Most Popular</span>
+                <span className="marketing-plan-badge growth-badge">Growth</span>
+                <div className="marketing-plan-price">
+                  <span className="original-price">₹1,299</span>
+                  <span className="current-price">₹{growthUnitPrice}</span>
+                  <span className="period">/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For growing plants. Minimum 10 machines.</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                <div className="marketing-plan-total">
+                  Total: <strong>₹{growthMonthly.toLocaleString('en-IN')}</strong> / month for {machineCount} machines
+                </div>
+                <p className="marketing-plan-desc">For growing plants. Minimum 10 machines.</p>
+                <ul className="marketing-plan-features">
                   {['Up to 25 team members', 'Full ticket & SLA management', 'AI maintenance assistant', 'Shutdown planner', 'Kaizen improvement board', 'Inventory management', 'Records & document upload', 'MTTR / downtime reports', 'CSV data export'].map(f => (
-                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
-                    </li>
+                    <li key={f}><CheckCircle2 size={14} />{f}</li>
                   ))}
                 </ul>
-                <Link to="/login.html" className="marketing-btn marketing-btn-primary" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }}>Start free trial <ArrowRight size={14} /></Link>
+                <Link to="/login.html" className="marketing-btn marketing-btn-primary marketing-plan-cta">Start free trial <ArrowRight size={14} /></Link>
               </div>
+
               {/* Enterprise */}
-              <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Enterprise</span>
-                <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹699</span>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹499</span>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
+              <div className={`marketing-pricing-card ${machineCount >= 50 ? 'recommended' : ''}`}>
+                <span className="marketing-plan-badge">Enterprise</span>
+                <div className="marketing-plan-price">
+                  <span className="original-price">₹699</span>
+                  <span className="current-price">₹{enterpriseUnitPrice}</span>
+                  <span className="period">/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>Starting price for 100+ machines on an annual contract.</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
+                <div className="marketing-plan-total">
+                  Total: <strong>₹{enterpriseMonthly.toLocaleString('en-IN')}</strong> / month for {machineCount} machines
+                </div>
+                <p className="marketing-plan-desc">Starting price for 50+ machines on an annual contract.</p>
+                <ul className="marketing-plan-features">
                   {['Unlimited team members', 'Multi-plant hierarchy', 'Dedicated onboarding', 'Custom SLA configuration', 'Priority support SLA', 'Data residency options', 'Bulk CSV asset import', 'Annual contract pricing'].map(f => (
-                    <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <CheckCircle2 size={14} style={{ color: '#25D366', flexShrink: 0 }} />{f}
-                    </li>
+                    <li key={f}><CheckCircle2 size={14} />{f}</li>
                   ))}
                 </ul>
-                <a href={`https://wa.me/${SALES_WHATSAPP}?text=I'd like to discuss an Enterprise plan for my plant`} className="marketing-btn marketing-btn-ghost" style={{ width: '100%', textAlign: 'center', marginTop: 24, display: 'block' }} target="_blank" rel="noopener noreferrer">Talk to sales <ArrowRight size={14} /></a>
+                <a href={`https://wa.me/${SALES_WHATSAPP}?text=I'd like to discuss an Enterprise plan for ${machineCount} machines`} className="marketing-btn marketing-btn-ghost marketing-plan-cta" target="_blank" rel="noopener noreferrer">Talk to sales <ArrowRight size={14} /></a>
               </div>
             </div>
-            <p style={{ textAlign: 'center', marginTop: 28, fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+
+            <p className="marketing-pricing-note">
               Prices exclude GST. Save 15% with annual billing. Fair-use limits apply to WhatsApp and AI features.
               <br />
               <LockKeyhole size={12} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
@@ -662,7 +823,7 @@ export default function Home() {
                     <input id="lead-company" name="company" type="text" placeholder="Acme Forge Pvt Ltd" autoComplete="organization" />
                     
                     <label htmlFor="lead-machines"><span>{copy.machines}</span></label>
-                    <input id="lead-machines" name="machines" type="number" min="1" placeholder="25" />
+                    <input id="lead-machines" name="machines" type="number" min="1" placeholder="25" value={machineCount} onChange={(e) => setMachineCount(parseInt(e.target.value, 10) || 1)} />
                     
                     <label htmlFor="lead-challenge" className="marketing-form-wide"><span>{copy.challenge}</span></label>
                     <select id="lead-challenge" name="challenge" defaultValue="" className="marketing-form-wide"><option value="" disabled>{copy.challengePlaceholder}</option>{copy.challengeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select>
@@ -675,6 +836,22 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      {/* ── Mobile Floating Sticky Bar ── */}
+      {showStickyCta && (
+        <div className="marketing-mobile-sticky-bar">
+          <div className="sticky-bar-copy">
+            <strong>Protect Production Hours</strong>
+            <small>10-sec QR reporting & 5-Why RCA</small>
+          </div>
+          <div className="sticky-bar-actions">
+            <a href="#contact" className="marketing-btn marketing-btn-primary marketing-btn-sm">
+              Book Walkthrough <ArrowRight size={13} />
+            </a>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }
+

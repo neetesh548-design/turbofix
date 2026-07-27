@@ -10294,3 +10294,385 @@ a:focus-visible,
 .tf-calm-pulse {
   animation: calm-pulse 3s infinite ease-in-out;
 }
+
+/* ── Home Page Audit Enhancements & Layout Polish ── */
+
+/* Hero Scenario Switcher Tabs */
+.marketing-scenario-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.marketing-scenario-tab {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.marketing-scenario-tab:hover {
+  background: rgba(37, 211, 102, 0.1);
+  color: #f8fafc;
+  border-color: rgba(37, 211, 102, 0.3);
+}
+
+.marketing-scenario-tab.active {
+  background: rgba(37, 211, 102, 0.18);
+  border-color: #25D366;
+  color: #25D366;
+  font-weight: 700;
+}
+
+/* Priority Badges */
+.priority-badge-high {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+.priority-badge-medium {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fde68a !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+.priority-badge-low {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #93c5fd !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Pilot Proof Banner */
+.marketing-proof-banner {
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border-y: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.marketing-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  text-align: center;
+}
+
+.marketing-proof-item strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #25D366;
+  letter-spacing: -0.02em;
+}
+
+.marketing-proof-item span {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Interactive Pricing Calculator */
+.marketing-pricing-section {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.marketing-calculator-box {
+  max-width: 840px;
+  margin: 0 auto 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+
+.marketing-calculator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.marketing-calculator-header strong {
+  font-size: 1.05rem;
+  color: #f8fafc;
+  display: block;
+}
+
+.marketing-calculator-header p {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.marketing-billing-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.marketing-billing-toggle span.active {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.discount-badge {
+  background: #25D366;
+  color: #000;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+
+.marketing-toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  padding: 2px;
+}
+
+.marketing-toggle-switch.annual {
+  background: #25D366;
+}
+
+.marketing-toggle-knob {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.marketing-toggle-switch.annual .marketing-toggle-knob {
+  transform: translateX(20px);
+}
+
+.marketing-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.marketing-slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.marketing-slider-label strong {
+  color: #25D366;
+  font-size: 1.1rem;
+}
+
+.marketing-machine-slider {
+  width: 100%;
+  accent-color: #25D366;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.marketing-slider-marks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Pricing Grid & Cards */
+.marketing-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 24px;
+  max-width: 940px;
+  margin: 0 auto;
+}
+
+.marketing-pricing-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.marketing-pricing-card.recommended {
+  border-color: rgba(37, 211, 102, 0.4);
+  box-shadow: 0 0 24px rgba(37, 211, 102, 0.12);
+}
+
+.marketing-pricing-card.growth {
+  background: rgba(37, 211, 102, 0.04);
+  border-color: rgba(37, 211, 102, 0.35);
+}
+
+.popular-tag {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #25D366;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 3px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.marketing-plan-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.marketing-plan-badge.growth-badge {
+  color: #25D366;
+}
+
+.marketing-plan-price {
+  margin: 12px 0 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.marketing-plan-price .original-price {
+  color: #64748b;
+  font-size: 0.95rem;
+  text-decoration: line-through;
+}
+
+.marketing-plan-price .current-price {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.marketing-plan-price .period {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.marketing-plan-total {
+  font-size: 0.82rem;
+  color: #25D366;
+  background: rgba(37, 211, 102, 0.08);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.marketing-plan-desc {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+.marketing-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  flex: 1;
+}
+
+.marketing-plan-features li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.marketing-plan-features svg {
+  color: #25D366;
+  flex-shrink: 0;
+}
+
+.marketing-plan-cta {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
+.marketing-pricing-note {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+/* Mobile Sticky Bottom CTA Bar */
+.marketing-mobile-sticky-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .marketing-mobile-sticky-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 12px 18px;
+    z-index: 99;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .sticky-bar-copy strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #f8fafc;
+  }
+
+  .sticky-bar-copy small {
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+
+  .marketing-btn-sm {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+}
+
