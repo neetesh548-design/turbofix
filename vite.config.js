@@ -21,17 +21,63 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}']
       },
       manifest: {
-        name: 'TurboFix',
+        name: 'TurboFix — AI Maintenance Platform',
         short_name: 'TurboFix',
-        description: 'TurboFix Maintenance System',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        description: 'AI-assisted maintenance decision operating system for factory floors',
+        theme_color: '#0b1118',
+        background_color: '#0b1118',
         display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
         icons: [
           {
-            src: '/favicon.ico',
+            src: '/pwa-192.png',
             sizes: '192x192',
-            type: 'image/x-icon'
+            type: 'image/png'
+          },
+          {
+            src: '/pwa-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: '/maskable-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png'
+          },
+          {
+            src: '/favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'Report Breakdown',
+            short_name: 'Report',
+            description: 'Log an immediate machine breakdown',
+            url: '/report-breakdown.html',
+            icons: [{ src: '/pwa-192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Scan Machine QR',
+            short_name: 'Scan QR',
+            description: 'Scan machine QR tag to view history',
+            url: '/qr-gateway.html',
+            icons: [{ src: '/pwa-192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'My Shift Queue',
+            short_name: 'Tasks',
+            description: 'View technician shift task queue',
+            url: '/technician.html',
+            icons: [{ src: '/pwa-192.png', sizes: '192x192' }]
           }
         ]
       }

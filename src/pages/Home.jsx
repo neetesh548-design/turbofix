@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangle,
   ArchiveRestore,
   ArrowRight,
   BrainCircuit,
@@ -39,12 +38,12 @@ const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const contentByLanguage = {
   en: {
-    eyebrow: 'AI-Powered Maintenance Operating System for Manufacturing Plants',
-    heroTitle: 'Zero Unplanned Downtime. 100% Maintenance Control.',
-    heroBody: 'Built for Plant Owners & Maintenance Heads: Turn paper registers and floor signals into 4-step closed-loop accountability, 5-Why root cause analysis, and real-time plant ROI.',
-    bookDemo: 'Start 30-day free trial',
-    explore: 'Explore product demo',
-    trust: ['10-Sec QR Breakdown Scan', 'WhatsApp Notifications', '5-Why RCA & LOTO Safety', 'AWS Mumbai Data Ownership'],
+    eyebrow: 'The maintenance control system for modern manufacturing',
+    heroTitle: 'Control every breakdown. Protect every production hour.',
+    heroBody: 'TurboFix gives plant leaders one verified system for breakdown response, technician accountability, machine history, and maintenance decisions.',
+    bookDemo: 'Book a plant walkthrough',
+    explore: 'Explore the live product',
+    trust: ['10-second QR reporting', 'Verified repair closure', 'Exportable plant data', 'AWS Mumbai hosting'],
     previewQuestion: 'Which critical machine needs Sunday maintenance?',
     previewScope: 'Plant-wide scan • 12 machines monitored',
     previewFinding: 'Hydraulic Press 250T (P1-PRS-HYD-250-002)',
@@ -365,149 +364,43 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Before / After Transformation Section */}
-        <section className="marketing-section bg-slate-950/40 py-16" id="transformation">
-          <div className="container max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">THE TURBOFIX TRANSFORMATION</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">From Machine Stress to Maintenance Peace</h2>
-              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Replace daily floor chaos with calm, intelligent, closed-loop accountability.</p>
+        <section className="marketing-section marketing-outcomes" id="transformation">
+          <div className="container">
+            <div className="marketing-outcomes-heading">
+              <div>
+                <span>Built for plant leadership</span>
+                <h2>From breakdown signal to verified closure—without the daily chase.</h2>
+              </div>
+              <p>TurboFix replaces scattered calls, registers, and WhatsApp follow-ups with one accountable maintenance workflow.</p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Before Card */}
-              <div className="bg-red-950/20 border border-red-800/40 rounded-2xl p-6 md:p-8 space-y-4">
-                <div className="flex items-center gap-3 text-red-400 border-b border-red-800/30 pb-4">
-                  <AlertTriangle className="w-6 h-6 shrink-0" />
-                  <h3 className="text-xl font-bold">The Old Way — Daily Machine Stress</h3>
-                </div>
-                <ul className="space-y-3 text-slate-300 text-sm">
-                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Paper registers lost or damaged on shop floor</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Panic calls at 2 AM with no machine breakdown history</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Delayed supervisor approvals causing prolonged downtime</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Recurring machine failures fixed only by memory</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400 font-bold">✕</span> Zero proof of technician work quality or spare usage</li>
-                </ul>
-              </div>
-
-              {/* After Card */}
-              <div className="bg-teal-950/30 border border-teal-500/40 rounded-2xl p-6 md:p-8 space-y-4 relative overflow-hidden">
-                <div className="flex items-center gap-3 text-teal-300 border-b border-teal-800/40 pb-4">
-                  <ShieldCheck className="w-6 h-6 shrink-0 text-teal-400" />
-                  <h3 className="text-xl font-bold">The TurboFix Way — Maintenance Peace</h3>
-                </div>
-                <ul className="space-y-3 text-slate-200 text-sm">
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 10-second Operator QR scan with voice/photo input</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 30-Second Owner Dashboard with instant Plant Health & Revenue protection</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> Automated SLA routing & instant WhatsApp notification</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> Mandatory photo proof & technician step-by-step checklist</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> 4-step closed-loop accountability with 100% verified resolution</li>
-                </ul>
-              </div>
+            <div className="marketing-outcomes-grid">
+              <article>
+                <span>01</span>
+                <Gauge />
+                <h3>See operational risk</h3>
+                <p>Track open breakdowns, SLA risk, MTTR, downtime cost, and plant health from one owner-ready view.</p>
+                <strong>For plant owners</strong>
+              </article>
+              <article>
+                <span>02</span>
+                <ClipboardCheck />
+                <h3>Enforce accountable work</h3>
+                <p>Route every issue to an owner, require repair evidence, and close work only after verification.</p>
+                <strong>For maintenance heads</strong>
+              </article>
+              <article>
+                <span>03</span>
+                <BrainCircuit />
+                <h3>Build machine intelligence</h3>
+                <p>Turn approved records, repairs, spares, and root causes into trusted machine-specific knowledge.</p>
+                <strong>For long-term reliability</strong>
+              </article>
             </div>
-          </div>
-        </section>
-
-        {/* 4-Step Closed-Loop Workflow */}
-        <section className="marketing-section py-16" id="closed-loop">
-          <div className="container max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <span className="tf-badge tf-badge-progress mb-3 text-sm px-4 py-1">THE 4-STEP CLOSED LOOP</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Zero Breakdown Signals Drop Through the Cracks</h2>
-              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Every reported issue moves seamlessly through a 4-stage verified workflow.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
-                <div className="text-teal-400 text-3xl font-black mb-3">01</div>
-                <h4 className="text-lg font-bold text-slate-100 mb-2">Quick Report</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">Operator scans machine QR code, records a 5-sec voice note or takes a photo. Immediate context created.</p>
-              </div>
-
-              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
-                <div className="text-teal-400 text-3xl font-black mb-3">02</div>
-                <h4 className="text-lg font-bold text-slate-100 mb-2">Smart Routing</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">Supervisor triages ticket, sets SLA urgency, and auto-dispatches to the right skilled technician.</p>
-              </div>
-
-              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
-                <div className="text-teal-400 text-3xl font-black mb-3">03</div>
-                <h4 className="text-lg font-bold text-slate-100 mb-2">Action & Proof</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">Technician completes mobile checklist, attaches photo evidence of fix, and logs spare parts used.</p>
-              </div>
-
-              <div className="tf-card p-6 border border-slate-700/50 hover:border-teal-500/50 transition">
-                <div className="text-teal-400 text-3xl font-black mb-3">04</div>
-                <h4 className="text-lg font-bold text-slate-100 mb-2">Verification</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">Maintenance Head reviews proof and signs off. Case closed and converted to permanent machine memory.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Stakeholder Benefit Cards — Owner & Maintenance Head Spotlight */}
-        <section className="marketing-section py-16 bg-slate-900/30" id="stakeholders">
-          <div className="container max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <span className="tf-badge tf-badge-healthy mb-3 text-sm px-4 py-1">BUILT FOR PLANT LEADERSHIP</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-100">Designed for Plant Owners & Maintenance Heads</h2>
-              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Clear ROI for business leaders, total operational control for maintenance managers.</p>
-            </div>
-
-            {/* Top 2 Primary Roles: Plant Owner & Maintenance Head */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Plant Owner Card */}
-              <div className="tf-card p-6 border-2 border-teal-500/40 bg-teal-950/20 rounded-2xl relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-4 border-b border-teal-500/20 pb-3">
-                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400"><Factory className="w-7 h-7" /></div>
-                  <div>
-                    <h3 className="font-bold text-slate-100 text-xl">Plant Owner / Managing Director</h3>
-                    <span className="text-xs text-teal-400 font-semibold uppercase tracking-wider">Business & Revenue Protection</span>
-                  </div>
-                </div>
-                <ul className="space-y-2.5 text-xs text-slate-300">
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>30-Second Daily Health Scan:</strong> Real-time MTTR and downtime cost tracking in ₹ Lakhs.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Zero Revenue Loss from Surprises:</strong> Preventive maintenance alerts before machine failure.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>100% Data Ownership:</strong> Export your plant data to CSV/JSON anytime. No vendor lock-in.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>High Return on Investment:</strong> Pays for itself by preventing a single unplanned breakdown.</li>
-                </ul>
-              </div>
-
-              {/* Maintenance Head Card */}
-              <div className="tf-card p-6 border-2 border-teal-500/40 bg-teal-950/20 rounded-2xl relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-4 border-b border-teal-500/20 pb-3">
-                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400"><BrainCircuit className="w-7 h-7" /></div>
-                  <div>
-                    <h3 className="font-bold text-slate-100 text-xl">Maintenance Head / Manager</h3>
-                    <span className="text-xs text-teal-400 font-semibold uppercase tracking-wider">Operational Control & Quality</span>
-                  </div>
-                </div>
-                <ul className="space-y-2.5 text-xs text-slate-300">
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>4-Step Verified Closure:</strong> Operator report → SLA dispatch → Photo proof → Sign-off.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Structured 5-Why RCA & LOTO:</strong> Ishikawa fishbone root cause tracking and safety isolation.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>No More Repeat Failures:</strong> Convert past breakdowns into permanent machine knowledge.</li>
-                  <li className="flex items-start gap-2"><span className="text-teal-400 font-bold">✓</span> <strong>Audit-Ready Compliance:</strong> Automated activity audit logs for QMS / ISO 45001 audits.</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Supporting Floor Roles */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
-                <div className="text-teal-400 mb-2 flex justify-center"><UsersRound className="w-6 h-6" /></div>
-                <h4 className="font-bold text-slate-100 text-sm mb-1">Shift Supervisor</h4>
-                <p className="text-[11px] text-slate-400">Instant ticket routing, SLA SLA escalation, clear shift handover logs.</p>
-              </div>
-              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
-                <div className="text-teal-400 mb-2 flex justify-center"><Wrench className="w-6 h-6" /></div>
-                <h4 className="font-bold text-slate-100 text-sm mb-1">Technician</h4>
-                <p className="text-[11px] text-slate-400">Mobile checklists, spare parts guidance, 1-tap photo repair proof upload.</p>
-              </div>
-              <div className="tf-card p-4 border border-slate-700/40 text-center rounded-xl">
-                <div className="text-teal-400 mb-2 flex justify-center"><ScanLine className="w-6 h-6" /></div>
-                <h4 className="font-bold text-slate-100 text-sm mb-1">Shop Operator</h4>
-                <p className="text-[11px] text-slate-400">10-second QR scan reporting, local voice recording, ticket receipts.</p>
-              </div>
+            <div className="marketing-executive-proof">
+              <span><b>10 sec</b> QR breakdown reporting</span>
+              <span><b>4 steps</b> to verified closure</span>
+              <span><b>5-Why</b> structured root-cause analysis</span>
+              <span><b>100%</b> exportable plant data</span>
             </div>
           </div>
         </section>

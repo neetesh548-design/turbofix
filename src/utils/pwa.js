@@ -7,12 +7,6 @@ export async function registerServiceWorker() {
   }
 
   try {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.unregister()));
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((key) => caches.delete(key)));
-    }
     const updateSW = registerSW({
       onNeedRefresh() {
         console.log('New content available, click on reload button to update.');
