@@ -635,19 +635,20 @@ export default function Home() {
         <section className="marketing-section" id="pricing" style={{ background: 'rgba(0,0,0,0.2)' }}>
           <div className="container">
             <div className="marketing-section-heading">
-              <span>Simple, transparent pricing</span>
-              <h2>Start small. Scale as your plant grows.</h2>
-              <p>All plans include a 30-day free trial. No credit card required to start.</p>
+              <span>Simple per-machine pricing</span>
+              <h2>Pay only for the machines you manage.</h2>
+              <p>Limited-period launch pricing. All plans include a 30-day free trial with no credit card required.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 900, margin: '40px auto 0' }}>
-              {/* Starter */}
+              {/* Lite */}
               <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Starter</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Lite</span>
                 <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹999</span>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/month</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹999</span>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹499</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For small workshops, up to 20 machines</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For small workshops. Minimum 5 machines.</p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
                   {['Up to 5 team members', 'Machine breakdown tickets', 'WhatsApp notifications', 'Basic maintenance records', 'Mobile-ready PWA'].map(f => (
                     <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -662,10 +663,11 @@ export default function Home() {
                 <span style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#25D366', color: '#000', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', padding: '3px 12px', borderRadius: 999, textTransform: 'uppercase' }}>Most Popular</span>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: '#25D366', textTransform: 'uppercase' }}>Growth</span>
                 <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹2,499</span>
-                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/month</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹1,299</span>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹699</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For growing plants, up to 100 machines</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>For growing plants. Minimum 10 machines.</p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
                   {['Up to 25 team members', 'Full ticket & SLA management', 'AI maintenance assistant', 'Shutdown planner', 'Kaizen improvement board', 'Inventory management', 'Records & document upload', 'MTTR / downtime reports', 'CSV data export'].map(f => (
                     <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -679,9 +681,11 @@ export default function Home() {
               <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, background: 'rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Enterprise</span>
                 <div style={{ margin: '12px 0', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>Custom</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '1rem', textDecoration: 'line-through' }}>₹699</span>
+                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc' }}>₹499</span>
+                  <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>/machine/month</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>Multi-plant, 100+ machines, OEM & vendor access</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: 20 }}>Starting price for 100+ machines on an annual contract.</p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.875rem' }}>
                   {['Unlimited team members', 'Multi-plant hierarchy', 'Dedicated onboarding', 'Custom SLA configuration', 'Priority support SLA', 'Data residency options', 'Bulk CSV asset import', 'Annual contract pricing'].map(f => (
                     <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -693,6 +697,8 @@ export default function Home() {
               </div>
             </div>
             <p style={{ textAlign: 'center', marginTop: 28, fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+              Prices exclude GST. Save 15% with annual billing. Fair-use limits apply to WhatsApp and AI features.
+              <br />
               <LockKeyhole size={12} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
               All data stored in Supabase (AWS ap-south-1 — Mumbai). Your plant data is never shared with other companies.
               · <a href={`https://wa.me/${SALES_WHATSAPP}`} style={{ color: 'var(--muted-foreground)', textDecoration: 'underline' }}>Privacy questions? WhatsApp us</a>
