@@ -125,7 +125,7 @@ export function StatusGrid({ map, onCellClick }) {
       <table className="rd-status-grid">
         <thead>
           <tr>
-            <th scope="col">Criticality</th>
+            <th scope="col" className="rd-sg-crit">Criticality</th>
             {HEALTH_COLUMNS.map(([key, label]) => (
               <th scope="col" key={key} className={`rd-sg-${key}`}>{label}</th>
             ))}
@@ -150,7 +150,7 @@ export function StatusGrid({ map, onCellClick }) {
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row">Fleet total</th>
+            <th scope="row" className="rd-sg-crit">Fleet total</th>
             {HEALTH_COLUMNS.map(([key]) => (
               <td key={key} className={`rd-sg-total rd-sg-${key}`}>{totals?.[key] ?? 0}</td>
             ))}

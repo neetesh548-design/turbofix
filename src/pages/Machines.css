@@ -851,13 +851,16 @@
 }
 
 .machine-drawer-facts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: flex-start;
+  gap: 10px 16px;
+  flex: 1;
   min-width: 0;
 }
 
-.machine-drawer-facts > div { display: flex; flex-direction: column; }
+.machine-drawer-facts > div { display: flex; flex-direction: column; min-width: 0; }
+.machine-drawer-upload { grid-column: 1 / -1; }
 .machine-drawer-facts small { color: var(--slate-light); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .machine-drawer-facts strong { color: var(--ink); font-size: 0.9rem; font-family: monospace; }
 .machine-drawer-facts strong.crit-high { color: #facc15; text-transform: uppercase; }

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X, MapPin, Upload, Pencil, ChevronRight, TriangleAlert,
   CalendarClock, User, Wrench, CheckCircle2,
@@ -76,7 +77,7 @@ function MachineDetailDrawer({
   const photo = machine.image_url
     || (typeof window !== 'undefined' ? window.localStorage.getItem(`tf_machine_photo_${machine.machine_id}`) : null);
 
-  return (
+  return createPortal(
     <div className="machine-drawer-scrim" onClick={onClose} data-testid="machine-drawer-scrim">
       <aside
         className="machine-drawer"
@@ -268,7 +269,8 @@ function MachineDetailDrawer({
           </button>
         </footer>
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 }
 

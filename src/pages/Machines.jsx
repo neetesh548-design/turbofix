@@ -2823,7 +2823,7 @@ export default function Machines() {
               {wsTab === 'parts' && (
                 <div>
                   <div className="machine-workspace-section-intro"><span><PackageSearch /></span><div><h3>Spare parts</h3><p>Keep the parts this machine depends on close at hand.</p></div><strong>{parts.length} part{parts.length === 1 ? '' : 's'} tracked</strong></div>
-                  <form onSubmit={handleAddPart} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <form onSubmit={handleAddPart} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'end', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <div className="vault-field">
                       <label>Part name</label>
                       <input type="text" value={newPartName} onChange={(e) => setNewPartName(e.target.value)} placeholder="e.g. Servo motor" required />
@@ -2844,7 +2844,7 @@ export default function Machines() {
                       <label>Unit price (₹)</label>
                       <input type="number" min="0" step="1" value={newPartPrice} onChange={(e) => setNewPartPrice(e.target.value)} placeholder="e.g. 4500" />
                     </div>
-                    <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', marginTop: '22px', background: 'var(--brand)', color: '#000' }}>Add part</button>
+                    <button type="submit" className="vault-btn vault-btn-primary" style={{ height: '38px', background: 'var(--brand)', color: '#000' }}>Add part</button>
                   </form>
 
                   {/* Machine-wise maintenance cost (Tier 3) */}

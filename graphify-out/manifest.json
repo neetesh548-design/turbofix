@@ -2190,8 +2190,8 @@
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
-    "mtime": 1785020788.9824586,
-    "ast_hash": "4bc91457821dd9159562e3b4d60660e1",
+    "mtime": 1785181103.9369574,
+    "ast_hash": "d18b69c0c37f14cc79ee36073d8d45a0",
     "semantic_hash": ""
   },
   "src/components/machines/MachineFilterBar.jsx": {
@@ -2225,8 +2225,8 @@
     "semantic_hash": ""
   },
   "src/components/dashboard/DashboardChart.jsx": {
-    "mtime": 1785096293.4403894,
-    "ast_hash": "b213ed1953a870d3794a1b3edbaee4e8",
+    "mtime": 1785180276.877479,
+    "ast_hash": "c96a6f350b4455df044e98d6bba57b7a",
     "semantic_hash": ""
   },
   "src/components/dashboard/DashboardKpiCard.jsx": {

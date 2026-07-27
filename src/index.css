@@ -8641,6 +8641,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .consumables-planning-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
   gap: 10px;
   margin-top: 10px;
 }
@@ -8675,6 +8676,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .consumables-main-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
   gap: 10px;
 }
 .consumables-submit {
