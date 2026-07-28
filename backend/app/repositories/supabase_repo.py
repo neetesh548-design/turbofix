@@ -417,15 +417,20 @@ class SupabaseMachineRepository(MachineRepository):
 
 class SupabaseTicketRepository(TicketRepository):
 
-    def _row_to_dict(self, row: dict) -> dict:
+    def _row_to_dict(self, row: dict, machine_map: dict | None = None, company_code: str | None = None) -> dict:
         factory_id = row.get("factory_id") or ""
-        company_code = _company_code_for_factory_id(factory_id) if factory_id else ""
+        if not company_code:
+            company_code = _company_code_for_factory_id(factory_id) if factory_id else ""
+
         # Get machine name
         machine_name = ""
         machine_id = row.get("machine_id") or ""
         if machine_id:
-            machine = _client.select_one("machines", {"id": f"eq.{machine_id}", "select": "name"})
-            machine_name = machine.get("name", "") if machine else ""
+            if machine_map is not None:
+                machine_name = machine_map.get(machine_id, "")
+            else:
+                machine = _client.select_one("machines", {"id": f"eq.{machine_id}", "select": "name"})
+                machine_name = machine.get("name", "") if machine else ""
 
         ai_summary = row.get("ai_summary")
         summary_text = ""
