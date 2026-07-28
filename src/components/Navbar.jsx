@@ -113,15 +113,17 @@ export default function Navbar() {
       <header className={`nav public-nav ${isScrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`} id="nav">
         <div className="container nav-inner public-nav-inner flex items-center justify-between gap-4">
           <div className="public-nav-brand-cluster">
-            <button
-              type="button"
-              className="public-nav-waffle-btn"
-              onClick={() => setAppLauncherOpen(true)}
-              aria-label="Open Workspace Apps"
-              title="Workspace Apps"
-            >
-              <Grid />
-            </button>
+            {isAuth && (
+              <button
+                type="button"
+                className="public-nav-waffle-btn"
+                onClick={() => setAppLauncherOpen(true)}
+                aria-label="Open Workspace Apps"
+                title="Workspace Apps"
+              >
+                <Grid />
+              </button>
+            )}
 
             <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
               <div className="brand-logo-icon">
@@ -183,11 +185,13 @@ export default function Navbar() {
           </div>
         </div>
         {isOpen && <button type="button" className="public-nav-backdrop" aria-label="Close menu" onClick={() => setIsOpen(false)} />}
-        <MicrosoftAppLauncher
-          open={appLauncherOpen}
-          onClose={() => setAppLauncherOpen(false)}
-          role={user?.role}
-        />
+        {isAuth && (
+          <MicrosoftAppLauncher
+            open={appLauncherOpen}
+            onClose={() => setAppLauncherOpen(false)}
+            role={user?.role}
+          />
+        )}
       </header>
 
       {/* Secondary context bar */}
