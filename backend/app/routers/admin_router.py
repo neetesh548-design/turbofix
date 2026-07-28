@@ -1,6 +1,7 @@
 """Admin router — internal TurboFix platform operations console."""
 
 import secrets
+import httpx
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
