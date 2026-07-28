@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-28)
 
 ## Corpus Check
-- 515 files · ~603,189 words
+- 515 files · ~603,187 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3994 nodes · 8473 edges · 312 communities (227 shown, 85 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 674 edges (avg confidence: 0.58)
+- 3994 nodes · 8526 edges · 299 communities (217 shown, 82 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 673 edges (avg confidence: 0.58)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c6cdb90a`
+- Built from commit: `e8818e3b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -230,21 +230,16 @@
 - machineIdOf
 - .get_company_machines
 - RoleForm.jsx
-- Home.jsx
-- ViewModeContext.jsx
 - Prerequisites
-- AntDNavigationLayout.jsx
 - .insert
 - dynamicChecklist.js
 - resilient_get
 - shiftAssignments.js
-- test_fanout.py
 - sweep_expired_unnotified
 - react-router-dom
 - tailwindcss
 - workbox-precaching
 - sweep_expired_unnotified
-- SecurityHeadersMiddleware
 - design-guidelines.spec.ts
 - check_threshold_drift
 - offlineIndicator.test.jsx
@@ -269,15 +264,8 @@
 - MachinesRefactored.jsx
 - NotificationCenter.jsx
 - admin_onboard_company
-- admin_reset_user_password
-- wacrm_status
 - BaseModel
-- StorageManager
-- role-dashboards.spec.js
-- machineExport.js
-- NotificationCenter.jsx
 - Support & Help
-- MachineContext.jsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `react` - 130 edges
@@ -312,7 +300,7 @@
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 - **Smart Modules Configuration Options** — settings_screenshot_iot_predictive_power_signature, settings_screenshot_visual_spare_part_deduction, settings_screenshot_dynamic_supply_chain_sync, settings_screenshot_opportunistic_mesh_syncing, settings_screenshot_location_handshake_verification [EXTRACTED 1.00]
 
-## Communities (312 total, 85 thin omitted)
+## Communities (299 total, 82 thin omitted)
 
 ### Community 0 - "UserRepository"
 Cohesion: 0.08
@@ -323,8 +311,12 @@ Cohesion: 0.06
 Nodes (35): 10. Saving, Loading, and Errors (System Messages), 11. Accessible Design (Usable by Everyone), 12. Plain Language, 13. Light and Dark Themes, 14. Before You Send Code for Review (Checklist), 15. Where the Rules Live (Source Code), 1. Core Design Principles, 2. Look and Feel (+27 more)
 
 ### Community 2 - "whatsapp_webhook/index.ts"
-Cohesion: 0.03
-Nodes (106): Self-contained internal TurboFix platform administration console., create_admin_token(), create_reset_token(), decode_access_token(), decode_reset_token(), get_current_admin(), get_current_user(), hash_password() (+98 more)
+Cohesion: 0.05
+Nodes (60): Self-contained internal TurboFix platform administration console., create_admin_token(), Role, get_ai_feedback(), get_escalation_config(), get_shift_config(), CustomKpiRepository, Read/write access to owner-defined custom KPI configs and daily data entries. (+52 more)
+
+### Community 3 - "DocumentRepository"
+Cohesion: 0.14
+Nodes (4): Reads/writes machines in the Machines worksheet of a Google Sheet.      Maintain, Reads/writes tickets in the Tickets worksheet of a Google Sheet., SheetsMachineRepository, SheetsTicketRepository
 
 ### Community 4 - "CurrentUser"
 Cohesion: 0.07
@@ -335,20 +327,20 @@ Cohesion: 0.11
 Nodes (19): login(), test_owner_cannot_create_another_owner(), test_assistant_rejects_machine_from_another_company(), test_machine_assistant_uses_exact_question_and_machine_data(), test_plant_wide_ai_context_contains_every_company_machine(), test_plant_wide_assistant_has_live_data_fallback(), TestMachineEvents, test_cannot_download_another_companys_document() (+11 more)
 
 ### Community 6 - "fanout_service.py"
-Cohesion: 0.14
-Nodes (25): get_technician_work(), Return persistent technician work records using the active store backend., new_document_id(), Persistent closed-loop technician work records keyed by ticket., Return one technician work record, or None., Return all technician work records for a company., Create or replace the work record for one ticket., TechnicianWorkRepository (+17 more)
+Cohesion: 0.07
+Nodes (37): new_document_id(), Read/write access to the Users and Companies entities., Generate a new unique user ID scoped to a company., Look up a user by phone or email (case-insensitive)., Return the user dict for user_id, or None., Return all users in the system., Append a new user row. Keys must match USERS_HEADER., Overwrite password_hash for one user. Returns True if found. (+29 more)
 
 ### Community 7 - "LocalTicketRepository"
-Cohesion: 0.10
-Nodes (22): react, react, CachedData, LazyComponent, MemoizedCard, OptimizedImage(), OptimizedList(), useDebounce() (+14 more)
+Cohesion: 0.06
+Nodes (25): react, react, CachedData, LazyComponent, MemoizedCard, OptimizedImage(), OptimizedList(), useDebounce() (+17 more)
 
 ### Community 8 - "auth_headers"
 Cohesion: 0.04
 Nodes (47): 10. **Production Checklist**, 11. **Key Concepts for TurboFix**, 12. **Next Steps**, 1. **Initial Setup**, 2. **Running Migrations**, 3. **Create Demo Auth Users** (Required for Demo Login), 4. **Understanding RLS (Row Level Security)**, 5. **Database Schema Overview** (+39 more)
 
 ### Community 9 - "main.py"
-Cohesion: 0.03
-Nodes (102): get_tickets(), Return the configured TicketRepository implementation (cached singleton)., EventRepository, MachineRepository, ABC, Read/write access to the Tickets data entity., Generate a new unique ticket ID., Append a new ticket row. Keys must match TICKETS_HEADER. (+94 more)
+Cohesion: 0.04
+Nodes (88): EventRepository, MachineRepository, ABC, Read/write access to the Tickets data entity., Generate a new unique ticket ID., Append a new ticket row. Keys must match TICKETS_HEADER., Return the ticket dict for ticket_id, or None if not found., Set voice_note_media_id on the matching row. Returns True if found. (+80 more)
 
 ### Community 10 - "TicketRepository"
 Cohesion: 0.06
@@ -379,8 +371,8 @@ Cohesion: 0.13
 Nodes (13): analyze_image(), detect_language(), maintenance_assistant(), AI service — thin, provider-agnostic wrapper around the Gemini AI layer.  For th, Transcribe a downloaded voice note. Raises on error — callers must handle., Analyze a machine photo and return a text description of what's visible., Detect the language of a text and return an ISO 639-1 code (e.g. 'hi', 'en', 'mr, Translate text to the target language (ISO 639-1 code). (+5 more)
 
 ### Community 17 - "kpi_router.py"
-Cohesion: 0.07
-Nodes (27): Assistant, Dashboard, Home, Inventory, Kaizen, Login, Machines, MarketingContact (+19 more)
+Cohesion: 0.05
+Nodes (36): App(), Assistant, Dashboard, Home, Inventory, Kaizen, Login, Machines (+28 more)
 
 ### Community 18 - "config.py"
 Cohesion: 0.19
@@ -394,17 +386,13 @@ Nodes (33): @ant-design/icons, antd, class-variance-authority, clsx, html-to-rea
 Cohesion: 0.09
 Nodes (18): TechnicianWorkRepository, AdvancedFeaturesDrilldown(), AppShell(), getLiveDataAnswer(), ContactReveal(), EmptyState(), Assistant(), getLiveDataAnswer() (+10 more)
 
-### Community 21 - "SheetsTicketRepository"
-Cohesion: 0.16
-Nodes (3): new_machine_record_id(), LocalMachineRecordRepository, SheetsMachineRecordRepository
-
 ### Community 22 - "wacrm_client.py"
 Cohesion: 0.05
-Nodes (8): react, FormInput(), Notification(), TYPE_STYLES, SlaMeter(), Badge(), badgeVariants, ViewModeContext
+Nodes (9): react, FormInput(), PricingCalculator(), iconBg, Notification(), TYPE_STYLES, SlaMeter(), Button() (+1 more)
 
 ### Community 23 - "Top Navigation Bar"
-Cohesion: 0.16
-Nodes (8): ensure_headers(), Raised when the live spreadsheet cannot be read after retrying., Append newly introduced schema columns without disturbing existing data., SheetsUnavailableError, _normalize(), Google Sheets implementation of UserRepository., Reads/writes Users and Companies worksheets in a Google Sheet., SheetsUserRepository
+Cohesion: 0.12
+Nodes (15): Any, ensure_headers(), _get_all_values(), Raised when the live spreadsheet cannot be read after retrying., Read canonical records while tolerating old, extra, or blank columns.      Produ, Append newly introduced schema columns without disturbing existing data., read_records(), SheetsUnavailableError (+7 more)
 
 ### Community 24 - ".select"
 Cohesion: 0.08
@@ -428,7 +416,7 @@ Nodes (27): @axe-core/playwright, gh-pages, jsdom, oxlint, devDependencies, @axe
 
 ### Community 29 - "whatsapp.py"
 Cohesion: 0.05
-Nodes (45): new_event_id(), new_item_id(), new_kpi_entry_id(), new_kpi_id(), Abstract base classes (interfaces) for all TurboFix data repositories.  Every co, In-memory implementation of CustomKpiRepository for local dev/testing., Local Excel implementation of the AI machine-record repository., Local (openpyxl / Excel) implementation of PartsRepository. (+37 more)
+Nodes (34): new_event_id(), new_item_id(), new_kpi_entry_id(), new_kpi_id(), new_machine_record_id(), Abstract base classes (interfaces) for all TurboFix data repositories.  Every co, Local (openpyxl / Excel) implementation of DocumentRepository., In-memory implementation of CustomKpiRepository for local dev/testing. (+26 more)
 
 ### Community 30 - "test_webhook.py"
 Cohesion: 0.21
@@ -460,7 +448,7 @@ Nodes (24): _all_recipients(), _assignee(), _closure_params(), notify_closure(),
 
 ### Community 38 - "escalation_service.py"
 Cohesion: 0.04
-Nodes (80): get_ai_feedback(), get_custom_kpis(), get_documents(), get_escalation_config(), get_events(), get_machine_records(), get_machines(), get_parts() (+72 more)
+Nodes (94): CurrentUser, The authenticated caller's identity, parsed straight from the JWT - no extra, Enforces the same multi-tenant isolation used for tickets/machines         elsew, get_documents(), get_machine_records(), get_parts(), Return the configured DocumentRepository implementation (cached singleton)., Return the approved/draft AI machine-record repository. (+86 more)
 
 ### Community 39 - "intelligence_service.py"
 Cohesion: 0.15
@@ -479,8 +467,8 @@ Cohesion: 0.12
 Nodes (17): person(), ALLOWED_AI_ROLES, allowedOrigins, buildMachineMarkdown(), bullets(), compactExtraction(), compactProperties(), cors() (+9 more)
 
 ### Community 44 - "sw-strategies.js"
-Cohesion: 0.14
-Nodes (20): HistorySuggestion(), compressImage(), PhotoCapture(), EMPTY_DRAFT, fetchBreakdownSources(), fetchWithTimeout(), normaliseMachine(), normaliseReport() (+12 more)
+Cohesion: 0.05
+Nodes (52): decode_access_token(), get_current_admin(), get_current_user(), Phase 5 - Document Vault authentication.  A small, real (not stubbed) JWT auth l, get_custom_kpis(), get_events(), get_machines(), get_settings() (+44 more)
 
 ### Community 45 - "SessionStore"
 Cohesion: 0.36
@@ -527,16 +515,16 @@ Cohesion: 0.17
 Nodes (16): admin_token(), _machine(), Machine-onboarding quota + the internal TurboFix-team admin console.  Seeded sta, test_admin_app_has_safer_client_controls(), test_admin_app_requires_admin_token(), test_admin_can_list_users_and_reset_password(), test_admin_can_view_company_dashboard(), test_admin_can_view_read_only_company_workspace() (+8 more)
 
 ### Community 58 - "get_tickets"
-Cohesion: 0.05
-Nodes (69): CurrentUser, The authenticated caller's identity, parsed straight from the JWT - no extra, Enforces the same multi-tenant isolation used for tickets/machines         elsew, get_settings(), Return company-scoped settings using the active store backend., FileStorage, FileTooLargeError, Return file bytes for a storage_path previously returned by save(). (+61 more)
+Cohesion: 0.27
+Nodes (12): list_machines(), list_team(), reveal_team_contact(), can_reveal_contact(), company_hierarchy(), directory_entry(), _first_user_id(), _manager_chain() (+4 more)
 
 ### Community 59 - ".insert"
 Cohesion: 0.12
 Nodes (16): Closed-Loop Maintenance, DocumentRepository, DriveFileStorage, Machine Knowledge, MachineRecordRepository, QRGateway, Technician, TicketRepository (+8 more)
 
 ### Community 60 - "I18nManager"
-Cohesion: 0.16
-Nodes (31): _approved_record_markdown(), build_machine_data(), _document_text(), _internet_reference(), _list_items(), machine_data_path(), _missing_sections(), Path (+23 more)
+Cohesion: 0.09
+Nodes (48): FileStorage, FileTooLargeError, Return file bytes for a storage_path previously returned by save()., Delete the file at storage_path. Silently ignores missing files., Shared upload validation — called before any save attempt., Save file bytes and return an opaque storage_path string for later retrieval., UnsupportedFileTypeError, validate_upload() (+40 more)
 
 ### Community 61 - "ai_service.py"
 Cohesion: 0.20
@@ -603,8 +591,8 @@ Cohesion: 0.09
 Nodes (28): configure_logging(), Call once at application startup (from main.py lifespan)., _auto_reorder_loop(), _daily_digest_loop(), _escalation_loop(), health(), _lifespan(), _predictive_loop() (+20 more)
 
 ### Community 85 - "LocalDocumentRepository"
-Cohesion: 0.16
-Nodes (6): MachineDetailDrawer(), URGENCY_TONE, KAIZEN_CATEGORIES, LEAN_WASTES, PRE_SEEDED_KAIZENS, WORKSPACE_TABS
+Cohesion: 0.13
+Nodes (11): MachineDetailDrawer(), URGENCY_TONE, KAIZEN_CATEGORIES, LEAN_WASTES, PRE_SEEDED_KAIZENS, WORKSPACE_TABS, buildMachinesCSV(), COLUMNS (+3 more)
 
 ### Community 88 - "test_contact_privacy.py"
 Cohesion: 0.12
@@ -623,7 +611,7 @@ Cohesion: 0.31
 Nodes (7): allowedOrigins, cors(), mimeToExtension(), optionalTicketColumns, reply(), text(), uploadDataUrl()
 
 ### Community 94 - "LocalTechnicianWorkRepository"
-Cohesion: 0.18
+Cohesion: 0.19
 Nodes (9): DirectionProvider(), getFlagEmoji(), LanguageStats(), LanguageSwitcher(), LocalizedDate(), LocalizedNumber(), LocalizedText(), I18nManager (+1 more)
 
 ### Community 95 - "SheetsDocumentRepository"
@@ -638,6 +626,10 @@ Nodes (10): FISHBONE_CATEGORIES, INITIAL_WHYS, RCA(), readParam(), readStoredUse
 Cohesion: 0.21
 Nodes (8): KaizenPhotoGallery(), KaizenStatusBadge(), EMPTY_DRAFT, OperatorKaizen(), KAIZEN_CATEGORIES, LEAN_WASTES, minutesPerDayToAnnualRupees(), statusMeta()
 
+### Community 99 - "FakeAsyncClient"
+Cohesion: 0.10
+Nodes (32): create_reset_token(), decode_reset_token(), hash_password(), _password_fingerprint(), Returns the payload only if the token is a valid, unexpired reset token.     Cal, Return an error message if the password is too weak, else None., reset_token_matches(), validate_password_strength() (+24 more)
+
 ### Community 100 - ".oxlintrc.json"
 Cohesion: 0.25
 Nodes (7): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema, oxc, warn
@@ -647,7 +639,7 @@ Cohesion: 0.29
 Nodes (4): MediaRecorderMock, MOCK_MACHINE, MOCK_TICKET, MOCK_USER
 
 ### Community 105 - "company_hierarchy"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (25): CustomKpiRepository, ClosedLoopControlCard(), Dashboard(), fetchRoleSources(), fetchWithTimeout(), ROLE_HEADINGS, buildDemoTickets(), daysAgo() (+17 more)
 
 ### Community 106 - "ErrorBoundary"
@@ -663,8 +655,8 @@ Cohesion: 0.52
 Nodes (6): print_error(), print_header(), print_info(), print_stage(), print_success(), RUN_TEST.sh script
 
 ### Community 109 - "SheetsTechnicianWorkRepository"
-Cohesion: 0.22
-Nodes (6): Any, _get_all_values(), Read canonical records while tolerating old, extra, or blank columns.      Produ, read_records(), Reads/writes machines in the Machines worksheet of a Google Sheet.      Maintain, SheetsMachineRepository
+Cohesion: 0.12
+Nodes (19): get_downtime_summary(), get_ticket_downtime(), acknowledge_prediction(), calculate_ticket_downtime_cost(), _create_prediction(), get_factory_downtime_summary(), get_predictions(), _hours_open() (+11 more)
 
 ### Community 110 - "test_vault_signup.py"
 Cohesion: 0.33
@@ -719,8 +711,8 @@ Cohesion: 0.11
 Nodes (29): Pluggable outbound email (Phase 5 - password reset).  Mirrors the local/sheets a, Send (or, in console mode, log) a plain-text email. Failures are logged and, _send_console(), send_email(), _send_smtp(), get_logger(), Structured JSON logging for TurboFix, backed by structlog.  Every log event prod, Return a structlog logger bound to `name`.      The returned logger behaves exac (+21 more)
 
 ### Community 129 - "machine_record_service.py"
-Cohesion: 0.10
-Nodes (8): AntDChartCard(), AntDDetailList(), AntDEmptyState(), AntDKPICard(), AdvancedAnalyticsBoard(), fallback, money, TREND_WINDOWS
+Cohesion: 0.11
+Nodes (5): AntDChartCard(), AntDDetailList(), AntDEmptyState(), AntDKPICard(), AdvancedAnalyticsBoard()
 
 ### Community 130 - "Tab Visibility by Role"
 Cohesion: 0.10
@@ -788,15 +780,11 @@ Nodes (3): TurboFix Production CI/CD Workflow, Deploy Frontend to GitHub Pages, 
 
 ### Community 148 - "badge.jsx"
 Cohesion: 0.11
-Nodes (27): ask_maintenance_assistant(), AssistantQuestion, _event_line(), get_machine_events(), get_root_cause_analysis(), _live_data_answer(), _machine_context(), _plant_context() (+19 more)
+Nodes (28): admin_company_dashboard(), ask_maintenance_assistant(), AssistantQuestion, _event_line(), get_machine_events(), get_root_cause_analysis(), _live_data_answer(), _machine_context() (+20 more)
 
 ### Community 149 - "button.jsx"
 Cohesion: 0.67
 Nodes (3): TurboFix Logo (SVG), Favicon (favicon.svg), TurboFix Brand Identity
-
-### Community 152 - "test_sheets_user_repo.py"
-Cohesion: 0.47
-Nodes (3): FakeWorksheet, test_get_company_tolerates_extra_blank_sheet_columns(), test_read_records_fills_new_columns_missing_from_legacy_sheet()
 
 ### Community 154 - "SupabaseEscalationConfigRepository"
 Cohesion: 0.15
@@ -839,8 +827,8 @@ Cohesion: 0.40
 Nodes (5): Performance Optimization, Scenario, What Creator Does, What Reviewer Checks, Workflow Run
 
 ### Community 241 - "ai_service.py"
-Cohesion: 0.17
-Nodes (5): Footer(), LanguageGate(), SkipLink(), MainLayout(), QRGenerator()
+Cohesion: 0.19
+Nodes (3): Footer(), LanguageGate(), SkipLink()
 
 ### Community 242 - "📈 Execution Timeline"
 Cohesion: 0.50
@@ -863,8 +851,8 @@ Cohesion: 0.05
 Nodes (19): Validate a Supabase access token and resolve authorization from public.users., _resolve_supabase_user(), DriveFileStorage, LocalFileStorage, _object_key(), Path, Stores files on the local filesystem under DOCUMENT_STORE_DIR.      WARNING: Rai, Stores files in a Google Drive folder using the Drive API.      Files are organi (+11 more)
 
 ### Community 249 - ".select"
-Cohesion: 0.26
-Nodes (17): asNumber(), buildMonthlyTrend(), computeBacklog(), computeBacklogVelocity(), computeCostRatios(), computeDataQuality(), computeMaintenanceInsights(), computeOwnerImpact() (+9 more)
+Cohesion: 0.19
+Nodes (20): asNumber(), buildMonthlyTrend(), computeBacklog(), computeBacklogVelocity(), computeCostRatios(), computeDataQuality(), computeMaintenanceInsights(), computeOwnerImpact() (+12 more)
 
 ### Community 252 - "badge.jsx"
 Cohesion: 0.33
@@ -879,36 +867,20 @@ Cohesion: 0.08
 Nodes (24): Assistant (`/assistant.html`), Dashboard (`/dashboard.html`), Home / Landing (`/`), Inventory (`/inventory.html`), Kaizen (`/kaizen.html`), Legend, Login (`/login.html`), Machines — list view (`/machines.html`) (+16 more)
 
 ### Community 257 - "Support.jsx"
-Cohesion: 0.14
-Nodes (17): CapabilityStrip(), ContactCard(), DEFAULT_FAQS, FaqAccordion(), PageHero(), PricingCalculator(), ProofBanner(), contentByLanguage (+9 more)
+Cohesion: 0.17
+Nodes (26): CapabilityStrip(), ContactCard(), DEFAULT_FAQS, FaqAccordion(), PageHero(), ProofBanner(), contentByLanguage, faqs (+18 more)
 
 ### Community 258 - "auth.test.js"
-Cohesion: 0.50
-Nodes (5): Login(), DEMO_ALLOWED_ROLES, isTokenExpired(), readAuth(), safeRedirectPath()
+Cohesion: 0.05
+Nodes (44): Closed-Loop Maintenance Lifecycle, TicketRepository, AuditLog(), MOCK_LOGS, Navbar(), generateChecklist(), similarity(), step() (+36 more)
 
 ### Community 259 - "machineIdOf"
 Cohesion: 0.18
 Nodes (10): Architecture Baseline, Core Journeys, Functional Acceptance Bar, Layout Baseline, Out Of Scope For This Release, Phase 0 Release Baseline, Phase Exit Criteria, Release Spine (+2 more)
 
-### Community 261 - "RoleForm.jsx"
-Cohesion: 0.14
-Nodes (23): RoleForm(), BREAKDOWN_ROLES, CATEGORY_INDEX, hourlyDowntimeCost(), isReportClosed(), KEYWORD_PATTERNS, keywordPattern(), machineHistoryInsight() (+15 more)
-
-### Community 262 - "Home.jsx"
-Cohesion: 0.30
-Nodes (16): getVisibleSettingTabs(), initialTab(), readCurrentUser(), responseStepLabel(), SETTING_TABS, Settings(), cipherTransform(), computeChecksum() (+8 more)
-
-### Community 263 - "ViewModeContext.jsx"
-Cohesion: 0.12
-Nodes (19): get_downtime_summary(), get_ticket_downtime(), acknowledge_prediction(), calculate_ticket_downtime_cost(), _create_prediction(), get_factory_downtime_summary(), get_predictions(), _hours_open() (+11 more)
-
 ### Community 264 - "Prerequisites"
 Cohesion: 0.13
 Nodes (21): StockHealthIndicator(), stockReason(), EMPTY_FILTERS, fetchInventorySources(), fetchWithTimeout(), Inventory(), MODIFY_ROLES, ROLE_HEADINGS (+13 more)
-
-### Community 265 - "AntDNavigationLayout.jsx"
-Cohesion: 0.29
-Nodes (8): IssueCapture(), QUICK_PHRASES, PhotoAnnotatorModal(), QuickReportDialog(), classifyIssue(), ISSUE_CATEGORIES, URGENCY_ORDER, urgencyMeta()
 
 ### Community 267 - "dynamicChecklist.js"
 Cohesion: 0.12
@@ -921,10 +893,6 @@ Nodes (3): Map Supabase users row → standard USERS_HEADER dict., Map Supabase 
 ### Community 269 - "shiftAssignments.js"
 Cohesion: 0.36
 Nodes (9): machine, applyCurrentShiftAssignments(), isEffective(), isInsideShift(), localParts(), minutesOf(), resolveCurrentMachineAssignment(), rosterScore() (+1 more)
-
-### Community 271 - "test_fanout.py"
-Cohesion: 0.54
-Nodes (6): generateChecklist(), similarity(), step(), STOP_WORDS, text(), tokens()
 
 ### Community 272 - "sweep_expired_unnotified"
 Cohesion: 0.32
@@ -946,10 +914,6 @@ Nodes (4): approve_ticket_closure(), Maintenance Head approves closure — ticke
 Cohesion: 0.50
 Nodes (4): delegate_to_colleague(), Delegate ticket to a colleague; resets the escalation timer., Test technician delegating ticket to colleague., test_delegate_to_colleague()
 
-### Community 277 - "SecurityHeadersMiddleware"
-Cohesion: 0.19
-Nodes (8): Closed-Loop Maintenance Lifecycle, TicketRepository, AuditLog(), MOCK_LOGS, GATEWAY_I18N, QRGateway(), supabase, microphoneErrorMessage()
-
 ### Community 278 - "design-guidelines.spec.ts"
 Cohesion: 0.40
 Nodes (5): header, openOperationalPage(), OPERATIONAL_PAGES, payload, signIn()
@@ -959,8 +923,8 @@ Cohesion: 0.70
 Nodes (3): appNavItems, launcherCategories(), visibleAppNavItems()
 
 ### Community 281 - "machineIdOf"
-Cohesion: 0.14
-Nodes (26): MachineSelector(), scannerAvailable(), machine(), NOW, person(), assignedEngineer(), assignedSupervisor(), assignedTechnician() (+18 more)
+Cohesion: 0.06
+Nodes (77): HistorySuggestion(), IssueCapture(), QUICK_PHRASES, MachineSelector(), scannerAvailable(), PhotoAnnotatorModal(), compressImage(), PhotoCapture() (+69 more)
 
 ### Community 282 - "SupervisorKaizen.jsx"
 Cohesion: 0.43
@@ -1006,21 +970,9 @@ Nodes (3): AntDNavigationLayout(), getNavMenuItems(), getUserMenuItems()
 Cohesion: 0.50
 Nodes (3): SCREENSHOT_DIR, THEMES, VIEWPORTS
 
-### Community 302 - "admin_reset_user_password"
-Cohesion: 0.36
-Nodes (4): iconBg, MicrosoftAppLauncher(), Navbar(), useLanguage()
-
 ### Community 304 - "BaseModel"
-Cohesion: 0.36
-Nodes (4): App(), LanguageContext, LanguageProvider(), translations
-
-### Community 306 - "role-dashboards.spec.js"
-Cohesion: 0.29
-Nodes (5): jwt(), authScript(), header, payload, signInAs()
-
-### Community 307 - "machineExport.js"
-Cohesion: 0.47
-Nodes (5): buildMachinesCSV(), COLUMNS, downloadMachinesCSV(), escapeCell(), RFC-4180
+Cohesion: 0.43
+Nodes (3): LanguageContext, LanguageProvider(), translations
 
 ### Community 309 - "Support & Help"
 Cohesion: 0.50
@@ -1033,9 +985,9 @@ Nodes (4): Contact, Get Help, Report Issues, Support & Help
   public/icons.svg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **767 isolated node(s):** `Home`, `WhyTurboFix`, `Platform`, `RecordsPlatform`, `Workflow` (+762 more)
+- **767 isolated node(s):** `$schema`, `oxc`, `react/rules-of-hooks`, `warn`, `$schema` (+762 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **85 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **82 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -1044,12 +996,12 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `Support.jsx`, `auth.test.js`, `RoleForm.jsx`, `Home.jsx`, `LocalTicketRepository`, `Prerequisites`, `AntDNavigationLayout.jsx`, `.insert`, `MachineRepository`, `kpi_router.py`, `config.py`, `react`, `SecurityHeadersMiddleware`, `machineIdOf`, `TurboFix WhatsApp Brochure (Marketing Image)`, `SupervisorKaizen.jsx`, `ticketQueues.js`, `pwa.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `sw-strategies.js`, `SessionStore`, `admin_reset_user_password`, `wacrm_status`, `BaseModel`, `NotificationCenter.jsx`, `MachineContext.jsx`, `SupabaseFileStorage`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `LocalDocumentRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `SupabaseCustomKpiRepository`, `.oxlintrc.json`, `company_hierarchy`, `tabs.jsx`, `ai_service.py`, `roles.js`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `ErrorBoundary`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
-- **Why does `MachineRepository` connect `main.py` to `whatsapp_webhook/index.ts`, `DocumentRepository`, `escalation_service.py`, `fanout_service.py`, `TicketRepository`, `webhook_router.py`, `LocalUserRepository`, `SheetsTechnicianWorkRepository`, `resilient_get`, `sweep_expired_unnotified`, `badge.jsx`, `get_tickets`, `I18nManager`, `whatsapp.py`, `test_summarize.py`?**
+- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `LocalTicketRepository`, `Prerequisites`, `.insert`, `MachineRepository`, `kpi_router.py`, `config.py`, `react`, `machineIdOf`, `SupervisorKaizen.jsx`, `TurboFix WhatsApp Brochure (Marketing Image)`, `ticketQueues.js`, `admin_page.py`, `pwa.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `SessionStore`, `BaseModel`, `SupabaseFileStorage`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `LocalDocumentRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `SupabaseCustomKpiRepository`, `.oxlintrc.json`, `company_hierarchy`, `tabs.jsx`, `ai_service.py`, `roles.js`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `ErrorBoundary`?**
+  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **Why does `UserRepository` connect `fanout_service.py` to `SheetsMachineRecordRepository`, `whatsapp_webhook/index.ts`, `FakeAsyncClient`, `RoleForm.jsx`, `escalation_service.py`, `main.py`, `webhook_router.py`, `sw-strategies.js`, `LocalUserRepository`, `resilient_get`, `badge.jsx`, `Top Navigation Bar`, `get_tickets`, `whatsapp.py`?**
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `MachineRepository` connect `main.py` to `whatsapp_webhook/index.ts`, `DocumentRepository`, `RoleForm.jsx`, `escalation_service.py`, `fanout_service.py`, `TicketRepository`, `webhook_router.py`, `sw-strategies.js`, `LocalUserRepository`, `resilient_get`, `sweep_expired_unnotified`, `badge.jsx`, `get_tickets`, `I18nManager`, `whatsapp.py`, `test_summarize.py`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `TicketRepository` connect `main.py` to `whatsapp_webhook/index.ts`, `DocumentRepository`, `escalation_service.py`, `fanout_service.py`, `TicketRepository`, `webhook_router.py`, `LocalUserRepository`, `SheetsTechnicianWorkRepository`, `resilient_get`, `sweep_expired_unnotified`, `badge.jsx`, `get_tickets`, `whatsapp.py`, `test_summarize.py`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **Are the 47 inferred relationships involving `MachineRepository` (e.g. with `LocalEventRepository` and `LocalMachineRepository`) actually correct?**
   _`MachineRepository` has 47 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 45 inferred relationships involving `TicketRepository` (e.g. with `LocalEventRepository` and `LocalMachineRepository`) actually correct?**

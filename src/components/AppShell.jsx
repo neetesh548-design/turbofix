@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
 import {
-  Sparkles, Mic, Square, X, Camera, Plus, Grid, LogOut,
+  Sparkles, Mic, Square, X, Camera, Plus, Grid, LogOut, Search,
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
@@ -76,6 +76,8 @@ export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
   const [railOpen, setRailOpen] = useState(false);
   const [appLauncherOpen, setAppLauncherOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const refresh = useCallback(() => setAuth(readAuth()), []);
 
@@ -89,6 +91,37 @@ export default function AppShell({ children, active }) {
       window.removeEventListener('storage', refresh);
     };
   }, [refresh]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const target = event.target;
+      const isTyping = target instanceof HTMLElement && ['INPUT', 'TEXTAREA'].includes(target.tagName);
+      if (event.key === '/' && !isTyping && !searchOpen) {
+        event.preventDefault();
+        setSearchOpen(true);
+      } else if (event.key === 'Escape' && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) setSearchQuery('');
+  }, [searchOpen]);
+
+  const searchResults = useMemo(() => {
+    const items = visibleAppNavItems(user?.role) || [];
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items.slice(0, 6);
+    return items.filter((item) => item.label.toLowerCase().includes(q) || (item.desc || '').toLowerCase().includes(q));
+  }, [searchQuery, user?.role]);
+
+  const goToSearchResult = (href) => {
+    setSearchOpen(false);
+    window.location.href = href;
+  };
 
   // Sidebar State
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -368,20 +401,19 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar flex items-center justify-between gap-3 px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3">
+        <header className="app-topbar sticky top-0 z-40 flex items-center gap-3 px-4 py-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
-              className="ms-waffle-btn p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2 cursor-pointer border border-slate-200/80 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50"
+              className="ms-waffle-btn p-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               onClick={() => setAppLauncherOpen(true)}
               aria-label="Open Microsoft-style App Launcher"
               title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
             >
-              <Grid className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">Apps</span>
+              <Grid className="w-5 h-5" />
             </button>
 
-            <a href={BASE} className="app-topbar-brand flex items-center gap-2" aria-label="TurboFix home">
+            <a href={BASE} className="app-topbar-brand flex items-center gap-2 flex-shrink-0" aria-label="TurboFix home">
               <span className="app-logo">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
               </span>
@@ -390,14 +422,34 @@ export default function AppShell({ children, active }) {
 
             {/* Current Active Workspace Indicator Pill */}
             {active && (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 rounded-full text-xs font-medium border border-teal-500/20">
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 rounded-full text-xs font-medium border border-teal-500/20 flex-shrink-0">
                 <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                 <span className="capitalize">{active.replace('-', ' ')}</span>
               </div>
             )}
           </div>
 
-          <div className="app-company hidden lg:flex items-center gap-2">
+          {/* Search trigger — opens the command-style search overlay */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="hidden sm:flex items-center gap-2 flex-1 max-w-sm mx-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs hover:border-teal-400/60 dark:hover:border-teal-500/50 hover:text-slate-500 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            aria-label="Search the workspace"
+          >
+            <Search size={15} className="flex-shrink-0" />
+            <span className="truncate">Search machines, tickets, pages…</span>
+            <kbd className="ml-auto flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-400">/</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="sm:hidden p-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto"
+            aria-label="Search the workspace"
+          >
+            <Search size={18} />
+          </button>
+
+          <div className="app-company hidden lg:flex items-center gap-2 flex-shrink-0">
             <span className="app-company-name text-xs text-slate-500 dark:text-slate-400 font-medium">{company}</span>
             <span className="app-live text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
               <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -405,7 +457,7 @@ export default function AppShell({ children, active }) {
             </span>
           </div>
 
-          <div className="app-topbar-right flex items-center gap-2 sm:gap-3">
+          <div className="app-topbar-right flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <a
               href={REPORT_BREAKDOWN_URL}
               className="app-quick-report-btn"
@@ -445,6 +497,56 @@ export default function AppShell({ children, active }) {
             </button>
           </div>
         </header>
+
+        {searchOpen && (
+          <div
+            className="fixed inset-0 z-[999] bg-slate-900/60 dark:bg-slate-950/75 backdrop-blur-sm flex items-start justify-center pt-20 sm:pt-28 px-4"
+            onClick={() => setSearchOpen(false)}
+          >
+            <div className="w-full max-w-lg" onClick={(event) => event.stopPropagation()}>
+              <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl shadow-2xl px-4 py-3.5 border border-slate-200 dark:border-slate-700">
+                <Search size={18} className="text-slate-400 flex-shrink-0" />
+                <input
+                  autoFocus
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && searchResults[0]) goToSearchResult(searchResults[0].href);
+                  }}
+                  placeholder="Search machines, tickets, or a workspace page…"
+                  className="flex-1 bg-transparent outline-none text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                />
+                <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close search" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer flex-shrink-0">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {searchResults.length > 0 ? (
+                <div className="mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  {searchResults.map(({ id, label, desc, href, Icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => goToSearchResult(href)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0 cursor-pointer"
+                    >
+                      {Icon && <Icon size={16} className="text-teal-600 dark:text-teal-400 flex-shrink-0" />}
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
+                        {desc && <span className="block text-xs text-slate-400 truncate">{desc}</span>}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 px-4 py-6 text-center text-sm text-slate-400">
+                  No workspace pages match "{searchQuery}"
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <MicrosoftAppLauncher
           open={appLauncherOpen}
