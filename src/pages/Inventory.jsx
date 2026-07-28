@@ -16,13 +16,13 @@
  *   anything else / signed out                   → StoreManagerInventory
  *
  * Data: one Supabase fan-out over parts / consumables / purchase_orders
- * / suppliers, with a 3s budget and a demo shelf behind it so a fresh
- * workspace still shows a working board. Every number is derived in
+ * / suppliers, with a 3s budget. Empty workspaces show empty states instead
+ * of sample stock. Every number is derived in
  * utils/inventoryMetrics.js and memoised behind a 5-minute cache.
  *
  * @workflow
  *   1. Read tf_user → resolve the inventory role
- *   2. Fetch stock, POs and suppliers (3s timeout, demo fallback)
+ *   2. Fetch stock, POs and suppliers (3s timeout)
  *   3. Filter, then compute only the metrics that role's board needs
  *   4. Render that board; writes go back through Supabase optimistically
  */
@@ -49,14 +49,6 @@ import {
   readStoredUser,
   resolveInventoryRole,
 } from '../utils/inventoryMetrics.js';
-import {
-  DEMO_PARTS,
-  DEMO_CONSUMABLES,
-  DEMO_PURCHASE_ORDERS,
-  DEMO_SUPPLIERS,
-  isDemoInventoryCompany,
-  shouldUseDemoInventory,
-} from '../utils/demoInventory.js';
 import { supabase } from '../supabaseClient';
 // Dashboard.css carries the shared design system — the md-* tokens and the
 // rd-* KPI / panel / table primitives every role board is built from.
@@ -173,10 +165,6 @@ export default function Inventory() {
     return () => { mounted = false; };
   }, []);
 
-  const isDemoCompany = isDemoInventoryCompany(user?.company_code || user?.company || '');
-  const isDemoSession = String(user?.inventory_mode || '').toLowerCase() === 'demo';
-  const isDemo = isDemoSession || isDemoCompany || shouldUseDemoInventory(sources.parts, sources.consumables);
-
   // Fetch assigned machines if signed in user is a technician
   useEffect(() => {
     if (!isTechnician || !user) return undefined;
@@ -184,32 +172,12 @@ export default function Inventory() {
 
     async function loadAssignedMachines() {
       try {
-        let matched = [];
-        if (!isDemo) {
-          const { data } = await supabase
-            .from('machines')
-            .select('id, machine_id, machine_name, asset_code')
-            .eq('technician_user_id', user.user_id);
-          matched = data || [];
-        }
+        const { data } = await supabase
+          .from('machines')
+          .select('id, machine_id, machine_name, asset_code')
+          .eq('technician_user_id', user.user_id);
 
-        if (matched.length === 0) {
-          const demoTechName = user?.name || '';
-          matched = DEMO_MACHINES.filter((m) => {
-            const techObj = m.assignments?.technician;
-            const techId = m.technician_user_id || techObj?.user_id;
-            return (
-              String(techId || '') === String(user?.user_id || '') ||
-              (techObj?.name && demoTechName && techObj.name.includes(demoTechName)) ||
-              user?.role?.includes('technician')
-            );
-          });
-          if (matched.length === 0 && DEMO_MACHINES.length > 0) {
-            matched = DEMO_MACHINES.slice(0, 2);
-          }
-        }
-
-        if (mounted) setAssignedMachines(matched);
+        if (mounted) setAssignedMachines(data || []);
       } catch (err) {
         console.warn('Could not load technician assigned machines:', err);
       }
@@ -217,7 +185,7 @@ export default function Inventory() {
 
     loadAssignedMachines();
     return () => { mounted = false; };
-  }, [isTechnician, user, isDemo]);
+  }, [isTechnician, user]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -225,14 +193,7 @@ export default function Inventory() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  const resolved = useMemo(() => (isDemo
-    ? {
-      parts: DEMO_PARTS,
-      consumables: DEMO_CONSUMABLES,
-      purchaseOrders: sources.purchaseOrders.length ? sources.purchaseOrders : DEMO_PURCHASE_ORDERS,
-      suppliers: sources.suppliers.length ? sources.suppliers : DEMO_SUPPLIERS,
-    }
-    : sources), [isDemo, sources]);
+  const resolved = sources;
 
   const allItems = useMemo(
     () => buildInventoryItems(resolved),
@@ -282,7 +243,7 @@ export default function Inventory() {
   const metrics = useMemo(() => {
     const key = [
       role,
-      isDemo ? 'demo' : 'live',
+      'live',
       items.length,
       pos.length,
       filters.search, filters.status, filters.criticality, filters.supplier, filters.machine,
@@ -293,7 +254,7 @@ export default function Inventory() {
       pos,
       suppliers: resolved.suppliers,
     }));
-  }, [role, items, pos, resolved.suppliers, isDemo, filters]);
+  }, [role, items, pos, resolved.suppliers, filters]);
 
   /* ---------- filter helpers ---------- */
 
@@ -364,14 +325,13 @@ export default function Inventory() {
     setPoPreview(null);
     setToast(`${created.length} purchase order${created.length === 1 ? '' : 's'} raised · ${formatInr(poPreview.total)}`);
 
-    if (isDemo) return;
     try {
       // Strip the optimistic local id — Supabase assigns the real one.
       await supabase.from('purchase_orders').insert(created.map(({ id: _id, ...row }) => row));
     } catch (err) {
       setError(`Purchase order saved locally but not synced: ${err?.message || 'unknown error'}`);
     }
-  }, [poPreview, user, isDemo]);
+  }, [poPreview, user]);
 
   const decidePo = useCallback(async (po, status, comment) => {
     cacheRef.current.clear();
@@ -385,7 +345,6 @@ export default function Inventory() {
       ? `${po.poNumber} approved · ${formatInr(po.total)} committed`
       : `${po.poNumber} sent back to stores`);
 
-    if (isDemo) return;
     try {
       await supabase
         .from('purchase_orders')
@@ -398,7 +357,7 @@ export default function Inventory() {
     } catch (err) {
       setError(`Decision saved locally but not synced: ${err?.message || 'unknown error'}`);
     }
-  }, [isDemo]);
+  }, []);
 
   const approvePo = useCallback((po) => decidePo(po, PO_STATUS.APPROVED), [decidePo]);
   const requestChanges = useCallback(
@@ -427,13 +386,12 @@ export default function Inventory() {
     setEditing(null);
     setToast(`${editing.name} updated`);
 
-    if (isDemo) return;
     try {
       await supabase.from(table).update(patch).eq('id', editing.id);
     } catch (err) {
       setError(`Edit saved locally but not synced: ${err?.message || 'unknown error'}`);
     }
-  }, [editing, isDemo]);
+  }, [editing]);
 
   const addItem = useCallback(async (payload) => {
     const row = { id: `local-part-${Date.now()}`, ...payload };
@@ -441,14 +399,13 @@ export default function Inventory() {
     setSources((prev) => ({ ...prev, parts: [row, ...prev.parts] }));
     setToast(`${payload.name} added to the store`);
 
-    if (isDemo) return;
     try {
       const { id: _id, ...insert } = row;
       await supabase.from('parts').insert(insert);
     } catch (err) {
       setError(`Part saved locally but not synced: ${err?.message || 'unknown error'}`);
     }
-  }, [isDemo]);
+  }, []);
 
   const heading = ROLE_HEADINGS[role] || ROLE_HEADINGS[INVENTORY_ROLES.STORE];
   const HeadingIcon = heading.icon;
@@ -477,13 +434,6 @@ export default function Inventory() {
           <section className="rd-empty" role="alert" data-testid="inventory-access-denied">
             Inventory is not available for technician roles. Ask a store manager or purchase user to review stock.
           </section>
-        )}
-
-        {!loading && isDemo && (
-          <p className="rd-demo-banner" data-testid="inventory-demo-banner">
-            Showing a sample store — no parts or consumables came back from the workspace.
-            Every number below is illustrative until your stock data loads.
-          </p>
         )}
 
         {canViewInventory && (
