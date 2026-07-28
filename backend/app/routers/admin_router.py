@@ -135,6 +135,13 @@ def admin_list_companies(
                             fid_to_code_map[fid] = code
             except Exception:
                 pass
+            # Explicitly pin the TFDEMO annual seed UUIDs to TFDEMO
+            DEMO_COMPANY_UUID = "a1000000-0000-0000-0000-000000000099"
+            DEMO_FACTORY_UUID = "f1000000-0000-0000-0000-000000000099"
+            id_to_code[DEMO_COMPANY_UUID] = "TFDEMO"
+            fid_to_code_map[DEMO_COMPANY_UUID] = "TFDEMO"
+            fid_to_code_map[DEMO_FACTORY_UUID] = "TFDEMO"
+            name_to_code["TFDEMO"] = "TFDEMO"
         except Exception as exc:
             log.warning("admin_list_companies: companies id map failed", extra={"error": str(exc)})
 

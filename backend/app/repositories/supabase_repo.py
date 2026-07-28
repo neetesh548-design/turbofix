@@ -136,6 +136,8 @@ def _company_code_for_id(company_id: str) -> str:
 
 def _factory_id_for_code(code: str) -> str | None:
     """Given a company domain/code, return the corresponding factories UUID."""
+    if str(code or "").strip().upper() == "TFDEMO":
+        return "f1000000-0000-0000-0000-000000000099"
     company_id = _company_id_for_code(code)
     if not company_id:
         return None
@@ -157,6 +159,8 @@ def _factory_id_for_code(code: str) -> str | None:
 
 def _company_code_for_factory_id(factory_id: str) -> str:
     """Given a factory UUID, find the matching company domain code."""
+    if str(factory_id or "").strip() == "f1000000-0000-0000-0000-000000000099":
+        return "TFDEMO"
     # Find a machine with this factory_id to get company_id
     machine = _client.select_one("machines", {
         "factory_id": f"eq.{factory_id}",
