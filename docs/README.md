@@ -1,6 +1,7 @@
 # TurboFix Docs
 
 - [PRD](./TURBOFIX_PRD.md)
+- [Phase 0 Release Baseline](./PHASE_0_RELEASE_BASELINE.md)
 - [Technical Architecture](./TURBOFIX_TECHNICAL_ARCHITECTURE.md)
 - [Security & Access](./TURBOFIX_SECURITY_ACCESS.md)
 - [Frontend Spec](./TURBOFIX_FRONTEND_SPEC.md)

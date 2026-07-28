@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { canViewWorkspace, roleContribution } from '@/lib/roles';
 import {
   Sparkles, Mic, Square, X, Camera, Plus, Grid, LogOut,
-  LayoutDashboard, Ticket, Cog, Package, Wrench, Lightbulb,
-  MessageCircleQuestion, FileText, Power, LifeBuoy, Users, Settings,
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { ThemeProvider } from '@/hooks/useTheme';
@@ -15,8 +13,9 @@ import { enableKeyboardNavigation } from '@/utils/accessibility';
 import { Tooltip } from '@/components/Tooltip';
 import MicrosoftAppLauncher from '@/components/MicrosoftAppLauncher';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
-import { readAuth } from '@/utils/auth';
+import { readAuth, safeRedirectPath } from '@/utils/auth';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcutsModal';
+import { visibleAppNavItems } from '@/lib/navigation';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -72,22 +71,6 @@ function getLiveDataAnswer(machines = [], tickets = [], events = [], selectedMac
   const urgencyStr = top.urgency ? `${top.urgency} urgency` : 'unrated urgency';
   return `Hey friend, plant-wide view shows ${openTickets.length} open ticket(s) across ${safeMachines.length} machines. Prioritize ${machineName}: ${top.issue_text || top.description || 'maintenance issue'} (${urgencyStr}).`;
 }
-
-/* Frequency-Driven Navigation Matrix (Pillars 1-9 & Minimal Effort Plan) */
-const NAV_LIVE = [
-  { id: 'overview', label: 'Dashboard', href: BASE + 'dashboard.html', Icon: LayoutDashboard },
-  { id: 'tickets', label: 'Tickets', href: BASE + 'tickets.html', Icon: Ticket },
-  { id: 'machines', label: 'Machines', href: BASE + 'machines.html', Icon: Cog },
-  { id: 'inventory', label: 'Inventory', href: BASE + 'inventory.html', Icon: Package },
-  { id: 'technician', label: 'Technician', href: BASE + 'technician.html', Icon: Wrench },
-  { id: 'kaizen', label: 'Kaizen', href: BASE + 'kaizen.html', Icon: Lightbulb },
-  { id: 'assistant', label: 'Maintenance Help', href: BASE + 'assistant.html', Icon: MessageCircleQuestion },
-  { id: 'records', label: 'Work Records', href: BASE + 'records.html', Icon: FileText },
-  { id: 'shutdown', label: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', Icon: Power },
-  { id: 'support', label: 'Support & Decisions', href: BASE + 'support.html', Icon: LifeBuoy },
-  { id: 'team', label: 'Team', href: BASE + 'team.html', Icon: Users },
-  { id: 'settings', label: 'Settings', href: BASE + 'settings.html', Icon: Settings },
-];
 
 export default function AppShell({ children, active }) {
   const [{ authed, user }, setAuth] = useState(readAuth);
@@ -331,7 +314,7 @@ export default function AppShell({ children, active }) {
         const liveAnswer = getLiveDataAnswer(machines, tickets, events, selected);
         setAnswer(liveAnswer);
         setAnswerSource('live_data');
-      } catch (_fallbackError) {
+      } catch {
         setSidebarError(requestError.message);
       }
     } finally {
@@ -351,8 +334,9 @@ export default function AppShell({ children, active }) {
     if (active && active !== 'vault') {
       const currentTarget = window.location.pathname + window.location.search;
       if (currentTarget && !currentTarget.includes('login.html')) {
-        sessionStorage.setItem('tf_post_login_redirect', currentTarget);
-        window.location.href = `${BASE}login.html?redirect=${encodeURIComponent(currentTarget)}`;
+        const redirectTarget = safeRedirectPath(currentTarget, BASE);
+        sessionStorage.setItem('tf_post_login_redirect', redirectTarget);
+        window.location.href = `${BASE}login.html?redirect=${encodeURIComponent(redirectTarget)}`;
       } else {
         window.location.href = BASE + 'login.html';
       }
@@ -466,6 +450,7 @@ export default function AppShell({ children, active }) {
           open={appLauncherOpen}
           onClose={() => setAppLauncherOpen(false)}
           active={active}
+          role={user?.role}
           onOpenQuickReport={() => { window.location.href = REPORT_BREAKDOWN_URL; }}
         />
 
@@ -497,7 +482,7 @@ export default function AppShell({ children, active }) {
 
         {/* Mobile Bottom Navigation Bar (Top 4 High-Frequency Pages) - Role-Filtered */}
         <nav className="app-bottom-nav" aria-label="Mobile navigation">
-          {NAV_LIVE.filter((item) => canViewWorkspace(user?.role, item.id)).slice(0, 4).map((item) => {
+          {visibleAppNavItems(user?.role).slice(0, 4).map((item) => {
             const isActive = active === item.id;
             return (
               <a

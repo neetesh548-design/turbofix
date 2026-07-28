@@ -9,25 +9,27 @@
  * Integrates with Tickets page to enable rapid issue reporting
  */
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X, Mic, Square, Camera, Plus, AlertCircle, CheckCircle2, Sparkles, Edit3, Send, Radio } from 'lucide-react';
+import React, { useState, useRef, useMemo } from 'react';
+import { X, Mic, Square, Camera, AlertCircle, CheckCircle2, Sparkles, Edit3, Send } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { supabase } from '../supabaseClient';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { classifyIssue, urgencyMeta, URGENCY_ORDER } from '../utils/breakdownRouter';
 import { PhotoAnnotatorModal } from './breakdown/PhotoAnnotatorModal';
 
+const BASE = import.meta.env.BASE_URL || '/';
+
 export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) {
   const [step, setStep] = useState('machine'); // machine, issue, review, submitting
   const [selectedMachineId, setSelectedMachineId] = useState('');
   const [issueText, setIssueText] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [showAnnotator, setShowAnnotator] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [urgencyOverride, setUrgencyOverride] = useState('');
+  const [createdTicket, setCreatedTicket] = useState(null);
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -35,6 +37,9 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
   const classification = useMemo(() => classifyIssue(issueText), [issueText]);
   const effectiveUrgency = urgencyOverride || classification.urgency;
   const effectiveUrgencyMeta = urgencyMeta(effectiveUrgency);
+  const fullReportHref = selectedMachineId
+    ? `${BASE}report-breakdown.html?machine=${encodeURIComponent(selectedMachineId)}`
+    : `${BASE}report-breakdown.html`;
 
   const normalizedMachines = useMemo(() => {
     const seen = new Set();
@@ -130,7 +135,6 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
       return;
     }
 
-    setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = (event) => setPhotoPreview(event.target?.result || '');
     reader.readAsDataURL(file);
@@ -182,6 +186,7 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
         ticket = dbData;
       }
 
+      setCreatedTicket(ticket);
       onTicketCreated?.(ticket);
       setStep('submitting');
 
@@ -247,7 +252,10 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
               </select>
             </label>
             <div className="quick-report-info">
-              <p>💡 <strong>Tip:</strong> You can also scan the QR code on the machine (feature coming soon)</p>
+              <p>
+                Use the full report flow for QR machine handoff, voice, photo, routing receipt, and offline save.
+              </p>
+              <a href={fullReportHref}>Open full report flow</a>
             </div>
             <div className="quick-report-actions">
               <button
@@ -266,6 +274,9 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
                 Next
               </button>
             </div>
+            <a className="quick-report-button secondary quick-report-full-link" href={fullReportHref}>
+              Open QR/report page
+            </a>
           </div>
         )}
 
@@ -364,7 +375,6 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
                   <button
                     type="button"
                     onClick={() => {
-                      setPhotoFile(null);
                       setPhotoPreview('');
                     }}
                   >
@@ -463,8 +473,12 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
         {step === 'submitting' && (
           <div className="quick-report-content quick-report-success">
             <CheckCircle2 size={48} />
-            <h3>Ticket Created!</h3>
-            <p>Supervisor has been notified via WhatsApp</p>
+            <h3>Work order created</h3>
+            <p>
+              {createdTicket?.wo_number || createdTicket?.id
+                ? `Reference: ${createdTicket.wo_number || String(createdTicket.id).slice(0, 8)}`
+                : 'The report is in the maintenance queue.'}
+            </p>
             <p className="small">Closing in a moment...</p>
           </div>
         )}
@@ -614,6 +628,13 @@ export function QuickReportDialog({ open, onClose, machines, onTicketCreated }) 
 
         .quick-report-info p {
           margin: 0;
+        }
+
+        .quick-report-info a,
+        .quick-report-full-link {
+          margin-top: 10px;
+          color: var(--brand);
+          font-weight: 700;
         }
 
         .quick-report-suggestion {

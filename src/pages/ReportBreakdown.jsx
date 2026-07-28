@@ -75,6 +75,7 @@ import './Dashboard.css';
 import './ReportBreakdown.css';
 
 const BASE = import.meta.env.BASE_URL;
+const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
 
 /** Header copy per role. Says what this page does *for them*. */
 const ROLE_HEADINGS = {
@@ -379,23 +380,27 @@ export default function ReportBreakdown() {
     setReports((current) => [record, ...current]);
     setReceipt({ record, routing });
 
+    const ticketRecord = {
+      machine_id: record.machine_id,
+      issue_text: record.issue_text,
+      description: record.issue_text,
+      urgency: record.urgency,
+      status: 'open',
+      lifecycle_stage: 'reported',
+      wo_number: record.wo_number,
+      photo_url: record.photo_url,
+      reported_by: record.reported_by,
+      assigned_to: record.assigned_to,
+      created_at: record.created_at,
+    };
+
     try {
-      await supabase.from('tickets').insert({
-        machine_id: record.machine_id,
-        issue_text: record.issue_text,
-        description: record.issue_text,
-        urgency: record.urgency,
-        status: 'open',
-        lifecycle_stage: 'reported',
-        wo_number: record.wo_number,
-        photo_url: record.photo_url,
-        reported_by: record.reported_by,
-        assigned_to: record.assigned_to,
-        created_at: record.created_at,
-      });
+      const { error: insertError } = await supabase.from('tickets').insert(ticketRecord);
+      if (insertError) throw insertError;
     } catch {
-      // Kept on this device. The report is already on the queue shown
-      // to the reporter; the next successful sync reconciles it.
+      const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+      queue.push(ticketRecord);
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
     } finally {
       setSubmitting(false);
     }

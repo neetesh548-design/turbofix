@@ -14,17 +14,14 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import MicrosoftAppLauncher from './MicrosoftAppLauncher';
+import { readAuth } from '../utils/auth';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [appLauncherOpen, setAppLauncherOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
-  const [isAuth, setIsAuth] = useState(() => Boolean(localStorage.getItem('tf_token')));
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tf_user')) || null; }
-    catch { return null; }
-  });
+  const [{ authed: isAuth, user }, setAuth] = useState(readAuth);
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
 
@@ -38,9 +35,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleAuth = () => {
-      setIsAuth(Boolean(localStorage.getItem('tf_token')));
-      try { setUser(JSON.parse(localStorage.getItem('tf_user')) || null); }
-      catch { setUser(null); }
+      setAuth(readAuth());
     };
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 12);
@@ -191,6 +186,7 @@ export default function Navbar() {
         <MicrosoftAppLauncher
           open={appLauncherOpen}
           onClose={() => setAppLauncherOpen(false)}
+          role={user?.role}
         />
       </header>
 
@@ -213,4 +209,3 @@ export default function Navbar() {
     </>
   );
 }
-

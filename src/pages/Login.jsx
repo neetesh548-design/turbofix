@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { safeRedirectPath } from '../utils/auth';
 import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Wrench, Building2, AlertCircle } from 'lucide-react';
 
 export default function Login() {
@@ -40,21 +41,7 @@ export default function Login() {
     sessionStorage.removeItem('tf_post_login_redirect');
     localStorage.removeItem('tf_post_login_redirect');
 
-    if (rawTarget) {
-      let target = decodeURIComponent(rawTarget);
-      const base = import.meta.env.BASE_URL || '/';
-      if (base !== '/' && target.startsWith(base)) {
-        target = target.slice(base.length - 1);
-      }
-      if (target.startsWith('http://') || target.startsWith('https://')) {
-        window.location.href = target;
-      } else {
-        const cleanPath = target.startsWith('/') ? target : `/${target}`;
-        navigate(cleanPath, { replace: true });
-      }
-    } else {
-      navigate('/dashboard.html', { replace: true });
-    }
+    navigate(safeRedirectPath(rawTarget, import.meta.env.BASE_URL), { replace: true });
   };
 
   const handleDemoLogin = (demo) => {
@@ -236,7 +223,9 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                        className="absolute right-1.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-pressed={showPassword}
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
@@ -265,7 +254,7 @@ export default function Login() {
                 </form>
 
                 <div className="mt-6 text-center pt-4 border-t border-slate-800/80">
-                  <button onClick={() => { setView('register'); setError(null); }} className="text-emerald-400 text-sm font-medium hover:underline inline-flex items-center gap-1.5">
+                  <button type="button" onClick={() => { setView('register'); setError(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
                     New factory? Register your company
                   </button>
                 </div>
@@ -337,7 +326,7 @@ export default function Login() {
                 </form>
 
                 <div className="mt-6 text-center pt-4 border-t border-slate-800/80">
-                  <button onClick={() => { setView('login'); setError(null); }} className="text-slate-400 text-sm font-medium hover:text-white transition-colors">
+                  <button type="button" onClick={() => { setView('login'); setError(null); }} className="inline-flex min-h-11 items-center justify-center rounded-lg px-2 text-sm font-medium text-slate-400 transition-colors hover:text-white">
                     &larr; Back to Sign In
                   </button>
                 </div>

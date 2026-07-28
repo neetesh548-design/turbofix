@@ -1,38 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Grid,
-  LayoutGrid,
-  Ticket,
-  Wrench,
-  Plus,
-  ShieldCheck,
-  Box,
-  Calendar,
-  TrendingUp,
-  Sparkles,
-  FileText,
-  HelpCircle,
-  Users,
-  Settings,
   X,
   Search,
   ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
+import { launcherCategories } from '@/lib/navigation';
 
-const BASE = import.meta.env.BASE_URL || '/';
+const iconBg = {
+  overview: 'bg-teal-500/10 text-teal-600',
+  tickets: 'bg-amber-500/10 text-amber-600',
+  technician: 'bg-blue-500/10 text-blue-600',
+  report: 'bg-emerald-500/10 text-emerald-600',
+  machines: 'bg-emerald-500/10 text-emerald-600',
+  inventory: 'bg-purple-500/10 text-purple-600',
+  shutdown: 'bg-rose-500/10 text-rose-600',
+  kaizen: 'bg-indigo-500/10 text-indigo-600',
+  assistant: 'bg-cyan-500/10 text-cyan-600',
+  records: 'bg-sky-500/10 text-sky-600',
+  support: 'bg-orange-500/10 text-orange-600',
+  team: 'bg-violet-500/10 text-violet-600',
+  settings: 'bg-slate-500/10 text-slate-600',
+};
 
-export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuickReport }) {
+export default function MicrosoftAppLauncher({ open, onClose, active, role, onOpenQuickReport }) {
   const [search, setSearch] = useState('');
   const flyoutRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
+    const previousFocus = document.activeElement;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !flyoutRef.current) return;
+      const focusable = flyoutRef.current.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus?.();
+    };
   }, [open, onClose]);
 
   useEffect(() => {
@@ -48,46 +69,12 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
 
   if (!open) return null;
 
-  const appCategories = [
-    {
-      title: 'Daily Operations',
-      apps: [
-        { id: 'overview', title: 'Dashboard', href: BASE + 'dashboard.html', icon: LayoutGrid, bg: 'bg-teal-500/10 text-teal-600', desc: 'Factory health score & 30-sec status' },
-        { id: 'tickets', title: 'Maintenance Tickets', href: BASE + 'tickets.html', icon: Ticket, bg: 'bg-amber-500/10 text-amber-600', desc: 'Breakdown tracking & SLA work orders' },
-        { id: 'technician', title: 'Technician Hub', href: BASE + 'technician.html', icon: Wrench, bg: 'bg-blue-500/10 text-blue-600', desc: 'Mobile-first work execution & checklists' },
-        { id: 'quick-report', title: 'Report Breakdown', action: () => { onClose(); onOpenQuickReport?.(); }, icon: Plus, bg: 'bg-emerald-500/10 text-emerald-600', desc: 'Fast 10-sec issue logger' },
-      ],
-    },
-    {
-      title: 'Plant & Assets',
-      apps: [
-        { id: 'machines', title: 'Machines Register', href: BASE + 'machines.html', icon: ShieldCheck, bg: 'bg-emerald-500/10 text-emerald-600', desc: 'Machine health, QR codes & PM schedule' },
-        { id: 'inventory', title: 'Spare Parts Inventory', href: BASE + 'inventory.html', icon: Box, bg: 'bg-purple-500/10 text-purple-600', desc: 'Stock levels, reorders & critical spares' },
-        { id: 'shutdown', title: 'Shutdown Planner', href: BASE + 'shutdown-planner.html', icon: Calendar, bg: 'bg-rose-500/10 text-rose-600', desc: 'Planned overhauls & preventive maintenance' },
-        { id: 'kaizen', title: 'Kaizen Improvements', href: BASE + 'kaizen.html', icon: TrendingUp, bg: 'bg-indigo-500/10 text-indigo-600', desc: 'Root cause fixes & continuous uptime' },
-      ],
-    },
-    {
-      title: 'Intelligence & Support',
-      apps: [
-        { id: 'assistant', title: 'AI Plant Assistant', href: BASE + 'assistant.html', icon: Sparkles, bg: 'bg-cyan-500/10 text-cyan-600', desc: 'Voice & photo troubleshooting guidance' },
-        { id: 'records', title: 'AI Audit Records', href: BASE + 'records.html', icon: FileText, bg: 'bg-sky-500/10 text-sky-600', desc: 'Automated maintenance logs & history' },
-        { id: 'support', title: 'Support & Decisions', href: BASE + 'support.html', icon: HelpCircle, bg: 'bg-orange-500/10 text-orange-600', desc: 'Help guides & business ROI summaries' },
-      ],
-    },
-    {
-      title: 'Workspace & Team',
-      apps: [
-        { id: 'team', title: 'Team & Roster', href: BASE + 'team.html', icon: Users, bg: 'bg-violet-500/10 text-violet-600', desc: 'Technicians, supervisors & shift schedules' },
-        { id: 'settings', title: 'Workspace Settings', href: BASE + 'settings.html', icon: Settings, bg: 'bg-slate-500/10 text-slate-600', desc: 'Factory profile, permissions & alerts' },
-      ],
-    },
-  ];
+  const appCategories = launcherCategories(role);
 
   const filteredCategories = appCategories.map(cat => ({
     ...cat,
     apps: cat.apps.filter(app =>
-      app.title.toLowerCase().includes(search.toLowerCase()) ||
+      app.launcherTitle.toLowerCase().includes(search.toLowerCase()) ||
       app.desc.toLowerCase().includes(search.toLowerCase())
     )
   })).filter(cat => cat.apps.length > 0);
@@ -99,7 +86,7 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
         className="ms-launcher-flyout bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200"
         role="dialog"
         aria-modal="true"
-        aria-label="Microsoft-style App Launcher"
+        aria-label="TurboFix workspace apps"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
@@ -155,7 +142,7 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {category.apps.map((app) => {
-                    const IconComp = app.icon;
+                    const IconComp = app.launcherIcon || app.Icon;
                     const isActive = active === app.id;
                     const content = (
                       <div
@@ -165,13 +152,13 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
                             : 'bg-slate-50/50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                         }`}
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${app.bg} transition-transform group-hover:scale-105`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconBg[app.id] || iconBg.overview} transition-transform group-hover:scale-105`}>
                           <IconComp className="w-5 h-5" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                              {app.title}
+                              {app.launcherTitle}
                             </span>
                             {isActive && <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />}
                           </div>
@@ -183,13 +170,14 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
                       </div>
                     );
 
-                    if (app.action) {
+                    if (app.id === 'report') {
                       return (
                         <button
-                          key={app.id || app.title}
+                          key={app.id}
                           type="button"
-                          onClick={app.action}
+                          onClick={() => { onClose(); onOpenQuickReport?.(); }}
                           className="w-full cursor-pointer"
+                          aria-current={isActive ? 'page' : undefined}
                         >
                           {content}
                         </button>
@@ -198,10 +186,11 @@ export default function MicrosoftAppLauncher({ open, onClose, active, onOpenQuic
 
                     return (
                       <a
-                        key={app.id || app.title}
+                        key={app.id}
                         href={app.href}
                         onClick={onClose}
                         className="block text-decoration-none"
+                        aria-current={isActive ? 'page' : undefined}
                       >
                         {content}
                       </a>

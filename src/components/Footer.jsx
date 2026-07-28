@@ -111,20 +111,20 @@ export default function Footer() {
 
           <div className="marketing-footer-socials" style={{ marginTop: '16px' }}>
             <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '8px', fontWeight: 600 }}>{copy.socialTitle}</span>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <a href="https://www.linkedin.com/company/turbofix-ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on LinkedIn" title="LinkedIn" style={{ color: '#94a3b8', transition: 'color 0.2s' }}>
+            <div className="marketing-footer-social-list">
+              <a className="marketing-footer-social-link" href="https://www.linkedin.com/company/turbofix-ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on LinkedIn" title="LinkedIn">
                 <SocialIconLinkedIn />
               </a>
-              <a href="https://youtube.com/@turbofix-ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on YouTube" title="YouTube" style={{ color: '#94a3b8', transition: 'color 0.2s' }}>
+              <a className="marketing-footer-social-link" href="https://youtube.com/@turbofix-ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on YouTube" title="YouTube">
                 <SocialIconYouTube />
               </a>
-              <a href="https://x.com/turbofix_ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on X (Twitter)" title="X (Twitter)" style={{ color: '#94a3b8', transition: 'color 0.2s' }}>
+              <a className="marketing-footer-social-link" href="https://x.com/turbofix_ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on X (Twitter)" title="X (Twitter)">
                 <SocialIconX />
               </a>
-              <a href="https://www.instagram.com/turbofix_ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on Instagram" title="Instagram" style={{ color: '#94a3b8', transition: 'color 0.2s' }}>
+              <a className="marketing-footer-social-link" href="https://www.instagram.com/turbofix_ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on Instagram" title="Instagram">
                 <SocialIconInstagram />
               </a>
-              <a href="https://www.facebook.com/turbofix.ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on Facebook" title="Facebook" style={{ color: '#94a3b8', transition: 'color 0.2s' }}>
+              <a className="marketing-footer-social-link" href="https://www.facebook.com/turbofix.ai" target="_blank" rel="noopener noreferrer" aria-label="TurboFix on Facebook" title="Facebook">
                 <SocialIconFacebook />
               </a>
             </div>

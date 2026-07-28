@@ -5,23 +5,21 @@
  * JWT expiry is checked here for UX convenience (avoiding expired-token
  * confusion). The cryptographic signature is NOT verified client-side;
  * that must be enforced server-side via Supabase RLS and edge function auth.
- * Demo tokens are intentionally limited to read-only operator scope.
+ * Demo tokens are UX-only. Server-side auth/RLS must still enforce real access.
  */
 
-// Roles that a demo token is allowed to claim.
-// Anything escalated (owner, maintenance_head etc.) is blocked so a
-// curious user cannot simply type demo:owner in DevTools to gain admin access.
 const DEMO_ALLOWED_ROLES = new Set([
   'operator',
   'maintenance_technician',
+  'supervisor',
+  'maintenance_head',
+  'owner',
   'vendor',
 ]);
 
 export function isTokenExpired(token, now = Date.now()) {
   if (!token) return true;
   if (token.startsWith('demo:')) {
-    // Demo tokens for privileged roles are treated as expired
-    // so callers fall through to the normal unauthenticated path.
     const role = token.slice(5);
     return !DEMO_ALLOWED_ROLES.has(role);
   }
@@ -31,6 +29,28 @@ export function isTokenExpired(token, now = Date.now()) {
   } catch {
     return true;
   }
+}
+
+export function safeRedirectPath(rawTarget, base = '/') {
+  if (!rawTarget) return '/dashboard.html';
+  let target;
+  try {
+    target = decodeURIComponent(rawTarget);
+  } catch {
+    target = rawTarget;
+  }
+
+  if (/^[a-z][a-z\d+.-]*:/i.test(target) || target.startsWith('//')) {
+    return '/dashboard.html';
+  }
+
+  const normalizedBase = base && base !== '/' ? `/${base.replace(/^\/|\/$/g, '')}` : '';
+  if (normalizedBase && target.startsWith(`${normalizedBase}/`)) {
+    target = target.slice(normalizedBase.length);
+  }
+
+  const path = target.startsWith('/') ? target : `/${target}`;
+  return path.startsWith('/login') ? '/dashboard.html' : path;
 }
 
 export function readAuth(storage = localStorage) {

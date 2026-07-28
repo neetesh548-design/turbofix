@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WifiOff, RefreshCw } from 'lucide-react';
+import { getOfflineLocalQueueCount } from '@/utils/offlineQueue';
 
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -18,15 +19,8 @@ export function OfflineIndicator() {
     const handleOffline = () => setIsOnline(false);
 
     const updateQueueCount = async () => {
-      let localCount = 0;
-      try {
-        const queue = JSON.parse(localStorage.getItem('tf_offline_queue') || '[]');
-        localCount = Array.isArray(queue) ? queue.length : 0;
-      } catch {
-        localCount = 0;
-      }
+      const localCount = getOfflineLocalQueueCount();
 
-      let idbCount = 0;
       if ('indexedDB' in window) {
         try {
           const request = indexedDB.open('workbox-background-sync');
@@ -76,7 +70,7 @@ export function OfflineIndicator() {
       style={{
         display: 'flex',
         alignItems: 'center',
-        justify: 'center',
+        justifyContent: 'center',
         gap: 10,
         backgroundColor: '#b91c1c',
         color: '#ffffff',
