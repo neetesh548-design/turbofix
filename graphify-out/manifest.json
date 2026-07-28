@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "src/lib/roles.js": {
-    "mtime": 1785095162.488104,
-    "ast_hash": "371abc0e8bc15f77299345c93dec00fe",
+    "mtime": 1785236940.9609125,
+    "ast_hash": "729f42734d264ee31a3a9abe58f07b6d",
     "semantic_hash": ""
   },
   "src/lib/utils.js": {
@@ -795,8 +795,8 @@
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785189954.0056791,
-    "ast_hash": "347f7a3064448f222508e2a943c88878",
+    "mtime": 1785238295.5746298,
+    "ast_hash": "522e096f11290ed4e85099ea2c27913b",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1785234751.5959458,
-    "ast_hash": "1c2920be9b70b348377190a6a93d04b7",
+    "mtime": 1785236944.7790086,
+    "ast_hash": "f16b5a77b3e3ee2a4703e18539473878",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -2040,8 +2040,8 @@
     "semantic_hash": ""
   },
   "src/__tests__/roles.test.js": {
-    "mtime": 1785095162.7058659,
-    "ast_hash": "6943974efea3f88ee5388296a9fa36dd",
+    "mtime": 1785236949.363153,
+    "ast_hash": "41c69142241551e7b75711b2d3aa7194",
     "semantic_hash": ""
   },
   "src/__tests__/utils.test.js": {

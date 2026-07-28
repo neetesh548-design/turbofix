@@ -141,23 +141,23 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <Navbar />
-      <div className="w-full flex-1 flex flex-col justify-center items-center p-4 py-8">
-        <div className="w-[92vw] sm:w-[460px] max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
-          <div className="p-8">
+      <div className="w-full flex-1 flex flex-col justify-center items-center px-3 py-5 sm:p-6">
+        <div className="w-full max-w-[420px] sm:max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
+          <div className="p-5 sm:p-8">
             {view === 'login' ? (
               <>
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
-                    <ShieldCheck size={24} />
+                <div className="text-center mb-5 sm:mb-6">
+                  <div className="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
+                    <ShieldCheck size={22} />
                   </div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Staff Sign-In</h1>
+                  <h1 className="text-[1.7rem] sm:text-2xl font-bold text-white tracking-tight mb-1">Staff Sign-In</h1>
                   <p className="text-slate-400 text-sm">Access your TurboFix enterprise portal.</p>
                 </div>
 
                 {/* Quick 1-Tap Demo Logins */}
-                <div className="mb-6">
+                <div className="mb-5 sm:mb-6">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 text-center">Quick Demo Access (1-Tap)</p>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-1 min-[390px]:grid-cols-3 gap-2">
                     {demoAccounts.map((demo) => {
                       const Icon = demo.icon;
                       return (
@@ -166,7 +166,7 @@ export default function Login() {
                           type="button"
                           onClick={() => handleDemoLogin(demo)}
                           disabled={loading}
-                          className={`flex flex-col items-center justify-center gap-1 px-1 py-2.5 min-h-[64px] rounded-xl border text-[11px] font-medium transition-all ${demo.color} disabled:opacity-50`}
+                          className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all min-[390px]:min-h-[64px] min-[390px]:flex-col min-[390px]:gap-1 min-[390px]:px-1 min-[390px]:text-[11px] ${demo.color} disabled:opacity-50`}
                           title={`Log in as ${demo.name} (${demo.role})`}
                         >
                           <Icon size={18} />
@@ -177,7 +177,7 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="relative flex items-center justify-center mb-6">
+                <div className="relative flex items-center justify-center mb-5 sm:mb-6">
                   <div className="border-t border-slate-800 w-full"></div>
                   <span className="bg-[#131922] px-3 text-xs text-slate-500 uppercase tracking-wider absolute">or credentials</span>
                 </div>
@@ -189,7 +189,7 @@ export default function Login() {
                   </div>
                 )}
 
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-3.5 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">Phone or Email</label>
                     <div className="relative">
@@ -200,7 +200,7 @@ export default function Login() {
                         placeholder="e.g. owner@turbofix.co.in or 9876543210"
                         value={identifier}
                         onChange={(e) => { setIdentifier(e.target.value); setError(null); }}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
+                        className="w-full min-h-11 pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
                       />
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export default function Login() {
                         placeholder="Enter password"
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                        className="w-full pl-10 pr-10 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
+                        className="w-full min-h-11 pl-10 pr-10 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
                       />
                       <button
                         type="button"
@@ -235,7 +235,7 @@ export default function Login() {
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 disabled:opacity-70 text-sm mt-2 active:scale-[0.99]"
+                    className="w-full min-h-11 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 disabled:opacity-70 text-sm mt-2 active:scale-[0.99]"
                   >
                     {loading ? (
                       <span className="inline-flex items-center gap-2">
@@ -253,7 +253,7 @@ export default function Login() {
                   </button>
                 </form>
 
-                <div className="mt-6 text-center pt-4 border-t border-slate-800/80">
+                <div className="mt-5 sm:mt-6 text-center pt-4 border-t border-slate-800/80">
                   <button type="button" onClick={() => { setView('register'); setError(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
                     New factory? Register your company
                   </button>
@@ -261,9 +261,9 @@ export default function Login() {
               </>
             ) : (
               <>
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
-                    <Building2 size={24} />
+                <div className="text-center mb-5 sm:mb-6">
+                  <div className="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
+                    <Building2 size={22} />
                   </div>
                   <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Register Company</h1>
                   <p className="text-slate-400 text-sm">Create an enterprise owner account for your factory.</p>
@@ -284,7 +284,7 @@ export default function Login() {
                 )}
 
                 <form onSubmit={handleRegister} className="space-y-3.5">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-300 mb-1">Company Code</label>
                       <input type="text" required placeholder="e.g. ACME" value={companyCode} onChange={(e) => setCompanyCode(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm uppercase text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
@@ -300,7 +300,7 @@ export default function Login() {
                     <input type="text" required placeholder="e.g. Rajesh Sharma" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-300 mb-1">Email</label>
                       <input type="email" required placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
