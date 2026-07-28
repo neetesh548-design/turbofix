@@ -139,7 +139,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="tf-login-page min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <Navbar />
       <div className="w-full flex-1 flex flex-col justify-center items-center px-3 py-5 sm:p-6">
         <div className="w-full max-w-[420px] sm:max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
@@ -150,7 +150,7 @@ export default function Login() {
                   <div className="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
                     <ShieldCheck size={22} />
                   </div>
-                  <h1 className="text-[1.7rem] sm:text-2xl font-bold text-white tracking-tight mb-1">Staff Sign-In</h1>
+                  <h1 className="tf-login-title text-[1.7rem] sm:text-2xl font-bold text-white tracking-tight normal-case mb-1">Staff Sign-In</h1>
                   <p className="text-slate-400 text-sm">Access your TurboFix enterprise portal.</p>
                 </div>
 
@@ -166,7 +166,7 @@ export default function Login() {
                           type="button"
                           onClick={() => handleDemoLogin(demo)}
                           disabled={loading}
-                          className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all min-[390px]:min-h-[64px] min-[390px]:flex-col min-[390px]:gap-1 min-[390px]:px-1 min-[390px]:text-[11px] ${demo.color} disabled:opacity-50`}
+                          className={`tf-demo-login-button flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all min-[390px]:min-h-[58px] min-[390px]:flex-col min-[390px]:gap-1 min-[390px]:px-1 min-[390px]:text-[11px] ${demo.color} disabled:opacity-50`}
                           title={`Log in as ${demo.name} (${demo.role})`}
                         >
                           <Icon size={18} />
@@ -265,7 +265,7 @@ export default function Login() {
                   <div className="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
                     <Building2 size={22} />
                   </div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Register Company</h1>
+                  <h1 className="tf-login-title text-2xl font-bold text-white tracking-tight normal-case mb-1">Register Company</h1>
                   <p className="text-slate-400 text-sm">Create an enterprise owner account for your factory.</p>
                 </div>
 

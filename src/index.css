@@ -338,6 +338,25 @@ h3 { font-size: 1.5rem; margin-bottom: 0.3rem; }
 h4 { font-size: 1.2rem; margin-bottom: 0.2rem; }
 p { margin: 0; line-height: 1.7; }
 
+.tf-login-page .tf-login-title {
+  background: none;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  text-transform: none;
+}
+
+@media (max-width: 640px) {
+  .tf-login-page .tf-login-title {
+    font-size: 1.7rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .tf-login-page .tf-demo-login-button {
+    min-height: 56px;
+  }
+}
+
 /* Global Form Defaults */
 /* Excludes [class*="ant-"] so this legacy rule doesn't bleed into Ant Design's
    own internal inputs (e.g. .ant-select-input) — antd styles those itself,
