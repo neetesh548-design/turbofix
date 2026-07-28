@@ -8127,6 +8127,8 @@ details.faq-item p {
 .public-nav-language select {
   min-height: 48px;
   border: 0;
+  border-radius: 0;
+  outline: 0;
   padding: 0;
   color: #ffffff;
   background: transparent;
@@ -8135,12 +8137,18 @@ details.faq-item p {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  box-shadow: none;
+}
+.public-nav-language select:focus,
+.public-nav-language select:focus-visible {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
 }
 .public-nav-language select option {
   background: #0f172a;
   color: #ffffff;
 }
-.public-nav-language select:focus { border: 0; outline: 0; }
 .lang-chevron {
   position: absolute;
   right: 5px;
