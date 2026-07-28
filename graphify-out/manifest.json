@@ -225,8 +225,8 @@
     "semantic_hash": "04e5d6edc7b373226e03ee800e5d7cc1"
   },
   "backend/app/routers/admin_router.py": {
-    "mtime": 1785234392.22782,
-    "ast_hash": "89e714b3526355b6fa1bbf97a4aedad3",
+    "mtime": 1785246054.6133754,
+    "ast_hash": "a4626025f8dbae8caea28783bc2bb9a8",
     "semantic_hash": ""
   },
   "backend/app/routers/auth_router.py": {
@@ -500,8 +500,8 @@
     "semantic_hash": "f470464669fe4c1c432570071f4f02c3"
   },
   "backend/tests/test_vault_quota_admin.py": {
-    "mtime": 1785234646.910731,
-    "ast_hash": "d871276906cb9c5b4bdb369d6ea95454",
+    "mtime": 1785246235.0614371,
+    "ast_hash": "3b002fffe0477e897cf07076a1d4175b",
     "semantic_hash": ""
   },
   "backend/tests/test_vault_settings.py": {

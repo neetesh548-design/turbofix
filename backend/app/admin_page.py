@@ -566,7 +566,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
           <div><label for="onboardPhone">Owner phone</label><input type="tel" id="onboardPhone" placeholder="Example: +919820012345" required></div>
           <div><label for="onboardEmail">Owner email</label><input type="email" id="onboardEmail" placeholder="owner@company.example" required></div>
           <div><label for="onboardQuota">Initial machine plan</label><input type="number" id="onboardQuota" value="5" min="1" required></div>
-          <div class="full"><label for="onboardPassword">Temporary owner password</label><input type="password" id="onboardPassword" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" required></div>
+          <div class="full"><label for="onboardPassword">Temporary owner password</label><input type="password" id="onboardPassword" minlength="8" autocomplete="new-password" placeholder="Min 8 chars, 1 uppercase, 1 digit" required></div>
         </div>
         <div class="err" id="onboardErr" role="alert"></div>
         <div class="form-footer"><button type="button" class="btn btn-outline" id="cancelOnboard">Cancel</button><button type="submit" class="btn btn-primary" id="onboardSubmitBtn">Create and approve workspace</button></div>
@@ -841,6 +841,10 @@ function renderDetail(company) {
     if (!Number.isInteger(quota) || quota < 0) { setStatus("Enter a machine plan of zero or more."); return; }
     patchCompany(company.company_code, {machine_quota: quota});
   });
+  const drawerQuotaEl = $("drawerQuota");
+  if (drawerQuotaEl) {
+    drawerQuotaEl.addEventListener("keydown", (e) => { if (e.key === "Enter") $("saveQuota").click(); });
+  }
   $("approvalAction").addEventListener("click", () => {
     const action = company.approved ? "pause this customer workspace" : "approve and activate this customer workspace";
     if (window.confirm(`Are you sure you want to ${action}?`)) patchCompany(company.company_code, {approved: !company.approved});
@@ -989,16 +993,18 @@ function renderWorkspacePreview() {
   const consumables = data.consumables || [];
   const team = data.team || [];
   const workByTicket = data.technician_work || {};
+  const isReview = (r) => String(r.status || "").trim().toLowerCase() === "needs_review";
+  const isApproved = (r) => String(r.status || "").trim().toLowerCase() === "approved";
   const tabContent = {
-    overview: `<div class="workspace-summary">${previewCard(plural(machines.length, "machine"), "Registered in this workspace")}${previewCard(plural(openTickets.length, "open ticket"), "Current maintenance workload")}${previewCard(plural(records.filter((record) => record.status === "needs_review").length, "record awaiting review"), "Pending maintenance-head approval")}</div><section class="modal-section"><h3>What the client sees first</h3><p>Live plant condition and the most urgent maintenance work.</p><div class="stack-list">${openTickets.length ? openTickets.slice(0, 5).map((ticket) => stackItem(ticketPriority(ticket), ticket.description || "No issue description recorded")).join("") : previewEmpty("No open maintenance tickets.")}</div></section>`,
+    overview: `<div class="workspace-summary">${previewCard(plural(machines.length, "machine"), "Registered in this workspace")}${previewCard(plural(openTickets.length, "open ticket"), "Current maintenance workload")}${previewCard(plural(records.filter(isReview).length, "record awaiting review"), "Pending maintenance-head approval")}</div><section class="modal-section"><h3>What the client sees first</h3><p>Live plant condition and the most urgent maintenance work.</p><div class="stack-list">${openTickets.length ? openTickets.slice(0, 5).map((ticket) => stackItem(ticketPriority(ticket), ticket.description || "No issue description recorded")).join("") : previewEmpty("No open maintenance tickets.")}</div></section>`,
     machines: `<div class="workspace-summary">${previewCard(plural(machines.length, "machine"), "Available in the machine directory")}${previewCard(plural(documents.length, "document"), "Manuals, diagrams, and supporting files")}${previewCard(plural(spares.length, "spare part"), "Available in the machine workspace")}</div>${machines.length ? previewTable(["Machine", "Location", "Assigned technician", "Open work"], machines.map((machine) => { const technician = machine.assignments?.technician; return previewRow([`<strong>${esc(machine.machine_name || machine.machine_id)}</strong>`, esc(machine.location || "Not recorded"), technician ? `${esc(technician.name)}<br>${esc(technician.phone_masked)}` : "Not assigned", esc(openTickets.filter((ticket) => ticket.machine_id === machine.machine_id).length)]); })) : previewEmpty("This client has not registered a machine yet.")}`,
     tickets: `${openTickets.length ? previewTable(["Machine", "Priority", "Issue", "Reported"], openTickets.map((ticket) => previewRow([`<strong>${esc(ticket.machine_name || ticket.machine_id)}</strong>`, esc(ticket.urgency || "Unrated"), esc(ticket.description || "No issue description"), esc(activityText(ticket.reported_at))]))) : previewEmpty("No open tickets are visible to this customer.")}`,
-    assistant: `<div class="workspace-note">The client’s AI Assistant uses the same approved machine records, manuals, diagrams, ticket history, and live plant data shown in this preview. Admin preview is read-only: it does not submit questions or generate customer-facing recommendations.</div><div class="workspace-summary">${previewCard(plural(records.filter((record) => record.status === "approved").length, "approved AI record"), "Available for AI context")}${previewCard(plural(documents.length, "source document"), "Available for reference")}${previewCard(plural(openTickets.length, "open issue"), "Included in live plant context")}</div>`,
+    assistant: `<div class="workspace-note">The client’s AI Assistant uses the same approved machine records, manuals, diagrams, ticket history, and live plant data shown in this preview. Admin preview is read-only: it does not submit questions or generate customer-facing recommendations.</div><div class="workspace-summary">${previewCard(plural(records.filter(isApproved).length, "approved AI record"), "Available for AI context")}${previewCard(plural(documents.length, "source document"), "Available for reference")}${previewCard(plural(openTickets.length, "open issue"), "Included in live plant context")}</div>`,
     shutdown: `<div class="workspace-note">The customer uses this area to choose a shutdown date and review maintenance candidates. This preview shows the live candidates only; it cannot create work orders or change a shutdown plan.</div>${openTickets.length ? previewTable(["Candidate machine", "Reason", "Priority", "Current work status"], openTickets.map((ticket) => previewRow([`<strong>${esc(ticket.machine_name || ticket.machine_id)}</strong>`, esc(ticket.description || "Open maintenance issue"), esc(ticket.urgency || "Unrated"), esc((workByTicket[ticket.ticket_id] || {}).status || "Not started")]))) : previewEmpty("No active maintenance candidates are available.")}`,
     technician: `${openTickets.length ? previewTable(["Ticket", "Machine", "Work status", "Notes"], openTickets.map((ticket) => { const work = workByTicket[ticket.ticket_id] || {}; return previewRow([`<strong>${esc(ticket.ticket_id)}</strong>`, esc(ticket.machine_name || ticket.machine_id), esc(work.status || "Assigned"), esc(work.notes || "No technician notes yet")]); })) : previewEmpty("No technician work is currently open.")}`,
     team: `${team.length ? previewTable(["Name", "Role", "Reports to", "Masked contact", "Joined"], team.map((user) => previewRow([`<strong>${esc(user.name || "Unnamed user")}</strong>`, esc(displayRole(user.role)), esc(user.manager_name || (user.role === "owner" ? "Top level" : "Not assigned")), `${esc(user.phone_masked || "Mobile number not available")}<br>${esc(user.email_masked || "Email not available")}`, esc(activityText(user.created_at))]))) : previewEmpty("This client has no team members yet.")}`,
     settings: `<div class="workspace-summary">${previewCard(data.company.approved ? "Workspace active" : "Workspace paused", "Current client sign-in status")}${previewCard(`${machines.length} of ${data.company.machine_quota || 0}`, "Machine plan usage")}${previewCard(data.settings.updated_at ? activityText(data.settings.updated_at) : "Not configured", "Last settings update")}</div><div class="workspace-note">This tab is intentionally view-only for platform staff. Client preferences, escalation configuration, and roles can be inspected here without editing their workspace settings.</div>`,
-    records: `<div class="workspace-summary">${previewCard(plural(documents.length, "uploaded file"), "Source manuals, diagrams, and lists")}${previewCard(plural(records.filter((record) => record.status === "approved").length, "approved record"), "Ready for AI use")}${previewCard(plural(consumables.length, "consumable"), "Tracked in machine data")}</div>${records.length ? previewTable(["Record", "Type", "Status", "Machine", "Updated"], records.map((record) => previewRow([`<strong>${esc(record.title || record.record_id)}</strong>`, esc(record.record_type || "Other"), esc(record.status || "Needs review"), esc(record.machine_id || "Plant-wide"), esc(activityText(record.updated_at || record.created_at))]))) : previewEmpty("No machine records have been added yet.")}`
+    records: `<div class="workspace-summary">${previewCard(plural(documents.length, "uploaded file"), "Source manuals, diagrams, and lists")}${previewCard(plural(records.filter(isApproved).length, "approved record"), "Ready for AI use")}${previewCard(plural(consumables.length, "consumable"), "Tracked in machine data")}</div>${records.length ? previewTable(["Record", "Type", "Status", "Machine", "Updated"], records.map((record) => previewRow([`<strong>${esc(record.title || record.record_id)}</strong>`, esc(record.record_type || "Other"), esc(record.status || "Needs review"), esc(record.machine_id || "Plant-wide"), esc(activityText(record.updated_at || record.created_at))]))) : previewEmpty("No machine records have been added yet.")}`
   };
   $("workspaceTabs").innerHTML = workspaceSections.map(([key, label]) => `<button type="button" class="workspace-tab ${key === activeWorkspaceTab ? "active" : ""}" data-workspace-tab="${key}" aria-selected="${key === activeWorkspaceTab ? "true" : "false"}">${esc(label)}</button>`).join("");
   $("workspaceContent").innerHTML = tabContent[activeWorkspaceTab] || previewEmpty("This section is not available.");
@@ -1065,6 +1071,14 @@ $("loginBtn").addEventListener("click", login);
 $("pw").addEventListener("keydown", (event) => { if (event.key === "Enter") login(); });
 $("logout").addEventListener("click", showLogin);
 $("drawerBackdrop").addEventListener("click", closeDrawer);
+["onboardModal", "dashboardModal", "workspaceModal", "teamModal", "passwordModal"].forEach((id) => {
+  const modalEl = $(id);
+  if (modalEl) {
+    modalEl.addEventListener("click", (e) => {
+      if (e.target === modalEl) closeModal(id);
+    });
+  }
+});
 $("openOnboard").addEventListener("click", openOnboard);
 $("quickOnboard").addEventListener("click", openOnboard);
 $("closeOnboard").addEventListener("click", closeOnboard);
@@ -1211,11 +1225,36 @@ async function loadWacrmContacts() {
     const response = await api("/admin/wacrm/contacts?limit=50");
     const result = await response.json();
     const contacts = result.data || [];
-    if (!contacts.length) { el.innerHTML = `<div class="empty">No contacts found in WaCRM.</div>`; return; }
-    el.innerHTML = `<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;"><input class="search" id="wacrmContactSearch" type="search" placeholder="Search contacts…" style="max-width:260px;"><button type="button" class="btn btn-primary" id="wacrmAddContact">+ Add Contact</button></div><div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Tags</th></tr></thead><tbody>${contacts.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("")}</tbody></table></div>`;
-    $("wacrmAddContact").addEventListener("click", showAddContactForm);
+    window._wacrmContacts = contacts;
+    renderWacrmContactsList(contacts);
   } catch (err) {
     el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function renderWacrmContactsList(contacts) {
+  const el = $("wacrmContent");
+  const headerHtml = `<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;"><input class="search" id="wacrmContactSearch" type="search" placeholder="Search contacts…" style="max-width:260px;"><button type="button" class="btn btn-primary" id="wacrmAddContact">+ Add Contact</button></div>`;
+  if (!contacts.length) {
+    el.innerHTML = `${headerHtml}<div class="empty">No contacts found in WaCRM.</div>`;
+    $("wacrmAddContact").addEventListener("click", showAddContactForm);
+    return;
+  }
+  const tableHtml = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Tags</th></tr></thead><tbody id="wacrmContactRows">${contacts.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("")}</tbody></table></div>`;
+  el.innerHTML = headerHtml + tableHtml;
+  $("wacrmAddContact").addEventListener("click", showAddContactForm);
+  const searchInput = $("wacrmContactSearch");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      const filtered = (window._wacrmContacts || []).filter(c => 
+        !q || [c.name, c.phone, c.company, ...(c.tags || [])].join(" ").toLowerCase().includes(q)
+      );
+      const rowsEl = $("wacrmContactRows");
+      if (rowsEl) {
+        rowsEl.innerHTML = filtered.length ? filtered.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("") : `<tr><td colspan="4"><div class="empty">No matching contacts.</div></td></tr>`;
+      }
+    });
   }
 }
 

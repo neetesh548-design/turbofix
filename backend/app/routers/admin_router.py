@@ -107,15 +107,49 @@ def admin_list_companies(
             if code:
                 machines_by_company[code] = machines_by_company.get(code, 0) + 1
 
+        seen_codes = set()
         for c in users.list_companies():
             code = c.get("company_code")
+            if not code or code in seen_codes:
+                continue
+            seen_codes.add(code)
             quota = _company_quota(c)
             machines_used = machines_by_company.get(code, 0)
             capacity_percent = round((machines_used / quota) * 100) if quota else 0
+            
+            company_tickets = []
+            company_documents = []
+            company_records = []
+            if code:
+                try:
+                    company_tickets = tickets.get_company_tickets(code)
+                except Exception:
+                    pass
+                try:
+                    company_documents = documents.list(code)
+                except Exception:
+                    pass
+                try:
+                    company_records = records.list(code)
+                except Exception:
+                    pass
+
+            open_tickets = [ticket for ticket in company_tickets if not _is_closed(ticket)]
+            critical_tickets = [ticket for ticket in open_tickets if _is_critical(ticket)]
+            pending_records = [
+                record for record in company_records
+                if str(record.get("status") or "").strip().lower() == "needs_review"
+            ]
+            approved_records = [
+                record for record in company_records
+                if str(record.get("status") or "").strip().lower() == "approved"
+            ]
             needs_attention = (
                 not _company_approved(c)
                 or machines_used > quota
                 or (quota > 0 and capacity_percent >= 80)
+                or bool(critical_tickets)
+                or bool(pending_records)
             )
             out.append({
                 "company_code": code,
@@ -127,13 +161,17 @@ def admin_list_companies(
                 "machines_used": machines_used,
                 "capacity_percent": capacity_percent,
                 "user_count": users_by_company.get(code, 0),
-                "open_tickets": 0,
-                "critical_tickets": 0,
-                "document_count": 0,
-                "pending_records": 0,
-                "approved_records": 0,
+                "open_tickets": len(open_tickets),
+                "critical_tickets": len(critical_tickets),
+                "document_count": len(company_documents),
+                "pending_records": len(pending_records),
+                "approved_records": len(approved_records),
                 "needs_attention": needs_attention,
-                "last_activity": "",
+                "last_activity": _latest(
+                    *(ticket.get("reported_at", "") for ticket in company_tickets),
+                    *(document.get("uploaded_at", "") for document in company_documents),
+                    *(record.get("updated_at", "") or record.get("created_at", "") for record in company_records),
+                ),
             })
         return sorted(
             out,
@@ -146,8 +184,12 @@ def admin_list_companies(
 
     out = []
     all_users = users.list_users()
+    seen_codes = set()
     for c in users.list_companies():
         code = c.get("company_code")
+        if not code or code in seen_codes:
+            continue
+        seen_codes.add(code)
         company_machines = machines.get_company_machines(code) if code else []
         company_tickets = tickets.get_company_tickets(code) if code else []
         company_documents = documents.list(code) if code else []

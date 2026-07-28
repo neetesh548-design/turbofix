@@ -270,3 +270,40 @@ def test_admin_app_has_safer_client_controls(vault_client):
     assert 'aria-current="page"' in html
     assert 'aria-selected="true"' in html
     assert '<button class="nav-item' not in html
+
+
+def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypatch):
+    class FakeTickets:
+        def get_company_tickets(self, code):
+            if code == "ACME3":
+                return [{"status": "Open", "urgency": "critical", "reported_at": "2026-07-28T10:00:00Z"}]
+            return []
+
+    class FakeDocs:
+        def list(self, code):
+            return [{"uploaded_at": "2026-07-28T09:00:00Z"}] if code == "ACME3" else []
+
+    class FakeRecords:
+        def list(self, code):
+            return [{"status": "needs_review", "updated_at": "2026-07-28T11:00:00Z"}] if code == "ACME3" else []
+
+    from app.dependencies import get_documents, get_machine_records, get_tickets
+
+    monkeypatch.setattr(config, "TICKET_STORE", "supabase")
+    vault_client.app.dependency_overrides[get_tickets] = lambda: FakeTickets()
+    vault_client.app.dependency_overrides[get_documents] = lambda: FakeDocs()
+    vault_client.app.dependency_overrides[get_machine_records] = lambda: FakeRecords()
+    try:
+        response = vault_client.get("/admin/companies", headers=auth_headers(admin_token(vault_client)))
+        assert response.status_code == 200, response.text
+        companies = response.json()
+        acme = next(c for c in companies if c["company_code"] == "ACME3")
+        assert acme["open_tickets"] == 1
+        assert acme["critical_tickets"] == 1
+        assert acme["document_count"] == 1
+        assert acme["pending_records"] == 1
+        assert acme["needs_attention"] is True
+        assert acme["last_activity"] == "2026-07-28T11:00:00Z"
+    finally:
+        vault_client.app.dependency_overrides.clear()
+

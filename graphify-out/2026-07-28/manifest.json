@@ -225,8 +225,8 @@
     "semantic_hash": "04e5d6edc7b373226e03ee800e5d7cc1"
   },
   "backend/app/routers/admin_router.py": {
-    "mtime": 1785234392.22782,
-    "ast_hash": "89e714b3526355b6fa1bbf97a4aedad3",
+    "mtime": 1785245596.9448838,
+    "ast_hash": "2292c9185ee7a634d9e8fba985f8fabf",
     "semantic_hash": ""
   },
   "backend/app/routers/auth_router.py": {
@@ -500,8 +500,8 @@
     "semantic_hash": "f470464669fe4c1c432570071f4f02c3"
   },
   "backend/tests/test_vault_quota_admin.py": {
-    "mtime": 1785234646.910731,
-    "ast_hash": "d871276906cb9c5b4bdb369d6ea95454",
+    "mtime": 1785245597.1724355,
+    "ast_hash": "db3a8185336c14130b9062fa147d9d7b",
     "semantic_hash": ""
   },
   "backend/tests/test_vault_settings.py": {
@@ -605,8 +605,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785231866.530818,
-    "ast_hash": "f68e950086cd72c4d7eb6bbde9dd7a68",
+    "mtime": 1785243629.1461976,
+    "ast_hash": "3296afee88247e140888d39a196c67ba",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
