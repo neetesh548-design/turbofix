@@ -1,7 +1,7 @@
 # Graph Report - TurboFix  (2026-07-28)
 
 ## Corpus Check
-- 515 files · ~603,189 words
+- 515 files · ~603,187 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8e5618e5`
+- Built from commit: `c6cdb90a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -269,9 +269,9 @@
 - MachinesRefactored.jsx
 - NotificationCenter.jsx
 - admin_onboard_company
-- admin_reset_user_password
 - wacrm_status
 - BaseModel
+- Support & Help
 
 ## God Nodes (most connected - your core abstractions)
 1. `react` - 130 edges
@@ -566,7 +566,7 @@ Nodes (12): Key Reminders, Output Format, Phase 1: Receive & Parse Requirement, 
 
 ### Community 71 - "FakeAsyncClient"
 Cohesion: 0.17
-Nodes (12): Contact, Example 1: Simple Feature Request, Example 2: Feature with Dependencies, Example 3: Bug Fix, Get Help, Next Steps, Overview, Report Issues (+4 more)
+Nodes (12): Example 1: Simple Feature Request, Example 2: Feature with Dependencies, Example 3: Bug Fix, Next Steps, Overview, Prerequisites, Repository Setup, Required Accounts & Access (+4 more)
 
 ### Community 72 - "test_vault_password_reset.py"
 Cohesion: 0.23
@@ -885,8 +885,8 @@ Cohesion: 0.18
 Nodes (10): Architecture Baseline, Core Journeys, Functional Acceptance Bar, Layout Baseline, Out Of Scope For This Release, Phase 0 Release Baseline, Phase Exit Criteria, Release Spine (+2 more)
 
 ### Community 261 - "RoleForm.jsx"
-Cohesion: 0.09
-Nodes (42): RoleForm(), machine(), NOW, person(), assignedEngineer(), assignedSupervisor(), BREAKDOWN_ROLES, buildBreakdownRecord() (+34 more)
+Cohesion: 0.14
+Nodes (23): RoleForm(), BREAKDOWN_ROLES, CATEGORY_INDEX, hourlyDowntimeCost(), isReportClosed(), KEYWORD_PATTERNS, keywordPattern(), machineHistoryInsight() (+15 more)
 
 ### Community 262 - "Home.jsx"
 Cohesion: 0.30
@@ -953,8 +953,8 @@ Cohesion: 0.70
 Nodes (3): appNavItems, launcherCategories(), visibleAppNavItems()
 
 ### Community 281 - "machineIdOf"
-Cohesion: 0.61
-Nodes (7): MachineSelector(), scannerAvailable(), assignedTechnician(), machineFromQr(), machineIdOf(), machineNameOf(), searchMachines()
+Cohesion: 0.14
+Nodes (26): MachineSelector(), scannerAvailable(), machine(), NOW, person(), assignedEngineer(), assignedSupervisor(), assignedTechnician() (+18 more)
 
 ### Community 282 - "SupervisorKaizen.jsx"
 Cohesion: 0.43
@@ -992,10 +992,6 @@ Nodes (4): Request, _rate_limit_handler(), _sheets_unavailable_handler(), RateLi
 Cohesion: 0.38
 Nodes (5): idOf(), readSignedInUser(), Tickets(), QUEUE_FILTERS, SORT_OPTIONS
 
-### Community 294 - "admin_page.py"
-Cohesion: 0.50
-Nodes (4): Prerequisites, Repository Setup, Required Accounts & Access, Required Tools
-
 ### Community 295 - "pwa.js"
 Cohesion: 0.83
 Nodes (3): AntDNavigationLayout(), getNavMenuItems(), getUserMenuItems()
@@ -1003,6 +999,10 @@ Nodes (3): AntDNavigationLayout(), getNavMenuItems(), getUserMenuItems()
 ### Community 300 - "NotificationCenter.jsx"
 Cohesion: 0.50
 Nodes (3): SCREENSHOT_DIR, THEMES, VIEWPORTS
+
+### Community 309 - "Support & Help"
+Cohesion: 0.50
+Nodes (4): Contact, Get Help, Report Issues, Support & Help
 
 ## Ambiguous Edges - Review These
 - `Evidence-Based Closure (Feature)` → `Spare-Part Requests (Feature)`  [AMBIGUOUS]
@@ -1022,7 +1022,7 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `RoleForm.jsx`, `Home.jsx`, `LocalTicketRepository`, `Prerequisites`, `AntDNavigationLayout.jsx`, `.insert`, `MachineRepository`, `kpi_router.py`, `config.py`, `react`, `SecurityHeadersMiddleware`, `machineIdOf`, `TurboFix WhatsApp Brochure (Marketing Image)`, `SupervisorKaizen.jsx`, `ticketQueues.js`, `pwa.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `sw-strategies.js`, `SessionStore`, `admin_reset_user_password`, `wacrm_status`, `SupabaseFileStorage`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `LocalDocumentRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `SupabaseCustomKpiRepository`, `.oxlintrc.json`, `company_hierarchy`, `tabs.jsx`, `ai_service.py`, `roles.js`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `ErrorBoundary`?**
+- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `RoleForm.jsx`, `Home.jsx`, `LocalTicketRepository`, `Prerequisites`, `AntDNavigationLayout.jsx`, `.insert`, `MachineRepository`, `kpi_router.py`, `config.py`, `react`, `SecurityHeadersMiddleware`, `machineIdOf`, `TurboFix WhatsApp Brochure (Marketing Image)`, `SupervisorKaizen.jsx`, `ticketQueues.js`, `admin_page.py`, `pwa.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `sw-strategies.js`, `SessionStore`, `wacrm_status`, `SupabaseFileStorage`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `LocalDocumentRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `SupabaseCustomKpiRepository`, `.oxlintrc.json`, `company_hierarchy`, `tabs.jsx`, `ai_service.py`, `roles.js`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `ErrorBoundary`?**
   _High betweenness centrality (0.040) - this node is a cross-community bridge._
 - **Why does `MachineRepository` connect `main.py` to `whatsapp_webhook/index.ts`, `DocumentRepository`, `escalation_service.py`, `fanout_service.py`, `TicketRepository`, `webhook_router.py`, `LocalUserRepository`, `SheetsTechnicianWorkRepository`, `resilient_get`, `sweep_expired_unnotified`, `badge.jsx`, `get_tickets`, `I18nManager`, `whatsapp.py`, `test_summarize.py`?**
   _High betweenness centrality (0.028) - this node is a cross-community bridge._
