@@ -167,8 +167,8 @@ def test_admin_page_served_as_html(vault_client):
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
     assert "Platform sign in" in resp.text
-    assert "Priority attention" not in resp.text
     assert "tfAdminToken" in resp.text
+    assert 'id="adminApp"' in resp.text
     assert "Content-Security-Policy" in resp.headers
 
 

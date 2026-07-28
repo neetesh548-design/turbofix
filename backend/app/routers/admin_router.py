@@ -1082,8 +1082,8 @@ def get_ai_usage_dashboard(_: bool = Depends(get_current_admin)):
 
 @router.get("", response_class=HTMLResponse)
 def admin_console():
-    """Serve only the admin login shell; the console loads after auth."""
-    return HTMLResponse(ADMIN_LOGIN_HTML)
+    """Serve the full admin shell; the client reveals the console after auth."""
+    return HTMLResponse(ADMIN_HTML)
 
 
 @router.get("/app", response_class=HTMLResponse)
