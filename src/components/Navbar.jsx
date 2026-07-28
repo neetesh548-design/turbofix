@@ -26,10 +26,11 @@ export default function Navbar() {
   const { lang, setLang, t } = useLanguage();
 
   const navItems = [
-    { id: 'platform', label: t('menu.platform'), description: t('menu.platformDesc'), icon: Layers3 },
-    { id: 'records', label: t('menu.records'), description: t('menu.recordsDesc'), icon: ArchiveRestore },
-    { id: 'how', label: t('menu.how'), description: t('menu.howDesc'), icon: Route },
-    { id: 'demo', label: t('menu.demo'), description: t('menu.demoDesc'), icon: PlayCircle },
+    { path: '/platform.html', label: t('menu.platform'), description: t('menu.platformDesc'), icon: Layers3 },
+    { path: '/records-platform.html', label: t('menu.records'), description: t('menu.recordsDesc'), icon: ArchiveRestore },
+    { path: '/workflow.html', label: t('menu.how'), description: t('menu.howDesc'), icon: Route },
+    { path: '/demo.html', label: t('menu.demo'), description: t('menu.demoDesc'), icon: PlayCircle },
+    { path: '/pricing.html', label: 'Pricing', description: 'Plans & cost', icon: Grid },
   ];
   const showMarketingCta = !isAuth;
 
@@ -39,17 +40,7 @@ export default function Navbar() {
     };
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 12);
-      if (location.pathname !== '/') {
-        setActiveHash('');
-        return;
-      }
-
-      let current = '';
-      for (const sectionId of ['platform', 'records', 'how', 'demo', 'contact']) {
-        const section = document.getElementById(sectionId);
-        if (section && window.scrollY >= section.offsetTop - 170) current = `#${sectionId}`;
-      }
-      setActiveHash(current);
+      setActiveHash(location.pathname);
     };
 
     window.addEventListener('authChanged', handleAuth);
@@ -78,14 +69,14 @@ export default function Navbar() {
     event.preventDefault();
     setIsOpen(false);
     if (location.pathname !== '/') {
-      window.location.href = `${import.meta.env.BASE_URL}#contact`;
+      window.location.href = `${import.meta.env.BASE_URL}contact.html`;
       return;
     }
-    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    window.location.href = `${import.meta.env.BASE_URL}contact.html`;
   };
 
-  const sectionLink = ({ id, label, description, icon: Icon }) => {
-    const className = `public-nav-link ${activeHash === `#${id}` ? 'active' : ''}`;
+  const sectionLink = ({ path, label, description, icon: Icon }) => {
+    const className = `public-nav-link ${activeHash === path ? 'active' : ''}`;
     const children = (
       <>
         <span className="public-nav-link-icon"><Icon /></span>
@@ -93,9 +84,7 @@ export default function Navbar() {
       </>
     );
 
-    return location.pathname === '/'
-      ? <a key={id} href={`#${id}`} className={className} onClick={() => setIsOpen(false)}>{children}</a>
-      : <Link key={id} to={`/#${id}`} className={className} onClick={() => setIsOpen(false)}>{children}</Link>;
+    return <Link key={path} to={path} className={className} onClick={() => setIsOpen(false)}>{children}</Link>;
   };
 
   const accountLink = (
@@ -156,7 +145,7 @@ export default function Navbar() {
             </div>
             <div className="public-nav-mobile-actions">
               {showMarketingCta && (
-                <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>
+                <a href="/contact.html" className="public-nav-demo" onClick={scrollToContact}>
                   <span>{t('menu.start')}</span>
                   <ArrowRight />
                 </a>
@@ -167,7 +156,7 @@ export default function Navbar() {
           <div className="public-nav-actions">
             <div className="public-nav-desktop-account">{accountLink}</div>
             {showMarketingCta && (
-              <a href="#contact" className={`public-nav-demo ${activeHash === '#contact' ? 'active' : ''}`} onClick={scrollToContact}>
+              <a href="/contact.html" className={`public-nav-demo ${activeHash === '/contact.html' ? 'active' : ''}`} onClick={scrollToContact}>
                 <span>{t('menu.start')}</span>
                 <ArrowRight />
               </a>

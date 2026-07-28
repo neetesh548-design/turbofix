@@ -32,7 +32,16 @@ function SearchMetadata() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const isPublicMarketingPage = pathname === '/';
+    const isPublicMarketingPage = [
+      '/',
+      '/why-turbofix.html',
+      '/platform.html',
+      '/records-platform.html',
+      '/workflow.html',
+      '/demo.html',
+      '/pricing.html',
+      '/contact.html',
+    ].includes(pathname);
     document.querySelector('meta[name="robots"]')?.setAttribute(
       'content',
       isPublicMarketingPage
@@ -67,7 +76,13 @@ function App() {
               <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
                 <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/why-turbofix.html" element={<Navigate to="/#platform" replace />} />
+                <Route path="/why-turbofix.html" element={<Home />} />
+                <Route path="/platform.html" element={<Home />} />
+                <Route path="/records-platform.html" element={<Home />} />
+                <Route path="/workflow.html" element={<Home />} />
+                <Route path="/demo.html" element={<Home />} />
+                <Route path="/pricing.html" element={<Home />} />
+                <Route path="/contact.html" element={<Home />} />
                 <Route path="/qr-generator.html" element={<QRGenerator />} />
                 <Route path="/login.html" element={<Login />} />
                 <Route path="/login" element={<Navigate to="/login.html" replace />} />

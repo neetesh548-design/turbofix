@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   ArchiveRestore,
   ArrowRight,
@@ -35,6 +35,17 @@ import { useLanguage } from '../LanguageContext';
 import MainLayout from '../layouts/MainLayout';
 
 const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
+
+const PUBLIC_PAGE_SECTIONS = {
+  '/': ['transformation'],
+  '/why-turbofix.html': ['transformation', 'platform', 'workflow', 'fit', 'faq'],
+  '/platform.html': ['platform', 'knowledge', 'fit'],
+  '/records-platform.html': ['records', 'knowledge'],
+  '/workflow.html': ['workflow'],
+  '/demo.html': ['demo'],
+  '/pricing.html': ['pricing', 'faq'],
+  '/contact.html': ['contact', 'faq'],
+};
 
 const contentByLanguage = {
   en: {
@@ -315,6 +326,7 @@ const HERO_SCENARIOS = [
 ];
 
 export default function Home() {
+  const { pathname } = useLocation();
   const { lang } = useLanguage();
   const copy = contentByLanguage[lang] || contentByLanguage.en;
   const [formSent, setFormSent] = useState(false);
@@ -327,17 +339,23 @@ export default function Home() {
   const videoRef = useRef(null);
 
   const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
+  const sections = PUBLIC_PAGE_SECTIONS[pathname] || PUBLIC_PAGE_SECTIONS['/'];
+  const showSection = (sectionId) => sections.includes(sectionId);
 
   useEffect(() => {
     document.title = 'TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs';
     if (!window.location.hash) return;
     const sectionId = window.location.hash.slice(1);
     window.setTimeout(() => document.getElementById(sectionId)?.scrollIntoView(), 80);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
     const contactSection = document.getElementById('contact');
+    if (!contactSection) {
+      setShowStickyCta(false);
+      return undefined;
+    }
 
     const updateStickyState = () => {
       if (!mediaQuery.matches) {
@@ -358,7 +376,7 @@ export default function Home() {
       window.removeEventListener('scroll', updateStickyState);
       window.removeEventListener('resize', updateStickyState);
     };
-  }, []);
+  }, [pathname]);
 
   const handleLeadSubmit = (event) => {
     event.preventDefault();
@@ -406,7 +424,7 @@ export default function Home() {
               <h1>{copy.heroTitle}</h1>
               <p>{copy.heroBody}</p>
               <div className="marketing-actions">
-                <a className="marketing-btn marketing-btn-primary" href="#contact">{copy.bookDemo}<ArrowRight /></a>
+                <Link className="marketing-btn marketing-btn-primary" to="/contact.html">{copy.bookDemo}<ArrowRight /></Link>
                 <Link className="marketing-btn marketing-btn-secondary" to="/login.html">{copy.explore}</Link>
               </div>
               <div className="marketing-trust-row">
@@ -485,7 +503,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section className="marketing-section marketing-outcomes" id="transformation">
+        {showSection('transformation') && <section className="marketing-section marketing-outcomes" id="transformation">
           <div className="container">
             <div className="marketing-outcomes-heading">
               <div>
@@ -524,9 +542,9 @@ export default function Home() {
               <span><b>100%</b> exportable plant data</span>
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section" id="platform">
+        {showSection('platform') && <section className="marketing-section" id="platform">
           <div className="container">
             <div className="marketing-section-heading">
               <span>{copy.platformEyebrow}</span>
@@ -544,9 +562,9 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-records-section" id="records">
+        {showSection('records') && <section className="marketing-section marketing-records-section" id="records">
           <div className="container">
             <div className="marketing-records-grid">
               <div className="marketing-records-copy">
@@ -592,9 +610,9 @@ export default function Home() {
               <Link className="marketing-record-cta" to="/login.html">{copy.recordsCta}<ArrowRight /></Link>
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-workflow" id="how">
+        {showSection('workflow') && <section className="marketing-section marketing-workflow" id="how">
           <div className="container marketing-workflow-grid">
             <div className="marketing-workflow-intro">
               <span>{copy.workflowEyebrow}</span>
@@ -615,9 +633,9 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-knowledge-section">
+        {showSection('knowledge') && <section className="marketing-section marketing-knowledge-section">
           <div className="container marketing-knowledge-grid">
             <div className="marketing-knowledge-visual">
               <div className="marketing-file-card marketing-file-card-back">
@@ -637,9 +655,9 @@ export default function Home() {
               <Link to="/login.html" className="marketing-text-link">See machine workspace <ArrowRight /></Link>
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-demo-section" id="demo">
+        {showSection('demo') && <section className="marketing-section marketing-demo-section" id="demo">
           <div className="container">
             <div className="marketing-section-heading">
               <span>{copy.demoEyebrow}</span>
@@ -665,9 +683,9 @@ export default function Home() {
               </aside>
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-fit-section">
+        {showSection('fit') && <section className="marketing-section marketing-fit-section">
           <div className="container">
             <div className="marketing-section-heading">
               <span>{copy.fitEyebrow}</span>
@@ -678,10 +696,10 @@ export default function Home() {
               {roleCards.map(({ icon: Icon, title, body }) => <article key={title}><Icon /><h3>{title}</h3><p>{body}</p></article>)}
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* ── Pricing Section with Dynamic Calculator ── */}
-        <section className="marketing-section marketing-pricing-section" id="pricing">
+        {showSection('pricing') && <section className="marketing-section marketing-pricing-section" id="pricing">
           <div className="container">
             <div className="marketing-section-heading">
               <span>Simple per-machine pricing</span>
@@ -805,9 +823,9 @@ export default function Home() {
               · <a href={`https://wa.me/${SALES_WHATSAPP}`} style={{ color: 'var(--muted-foreground)', textDecoration: 'underline' }}>Privacy questions? WhatsApp us</a>
             </p>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-faq" id="faq">
+        {showSection('faq') && <section className="marketing-section marketing-faq" id="faq">
           <div className="container marketing-faq-grid">
             <div><span>Clear before you commit</span><h2>{copy.faqTitle}</h2><p>TurboFix is designed to support maintenance judgment, preserve accountability, and make plant knowledge easier to use.</p></div>
             <div className="marketing-faq-list">
@@ -829,9 +847,9 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="marketing-section marketing-contact" id="contact">
+        {showSection('contact') && <section className="marketing-section marketing-contact" id="contact">
           <div className="container marketing-contact-grid">
             <div className="marketing-contact-copy">
               <span>{copy.contactEyebrow}</span>
@@ -867,7 +885,7 @@ export default function Home() {
               )}
             </div>
           </div>
-        </section>
+        </section>}
       </div>
 
       {/* ── Mobile Floating Sticky Bar ── */}
