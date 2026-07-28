@@ -173,6 +173,32 @@ def _company_code_for_factory_id(factory_id: str) -> str:
     return ""
 
 
+def _build_factory_to_code_map() -> dict:
+    """Build a mapping of factory_id -> company_code in bulk with minimal queries."""
+    f_map = {}
+    try:
+        companies = _client.select("companies")
+        id_to_code = {c["id"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("id")}
+        name_to_code = {c["name"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("name")}
+
+        machines = _client.select("machines", {"select": "factory_id,company_id"})
+        for m in machines:
+            fid = m.get("factory_id")
+            cid = m.get("company_id")
+            if fid and cid and cid in id_to_code:
+                f_map[fid] = id_to_code[cid]
+
+        factories = _client.select("factories")
+        for f in factories:
+            fid = f.get("id")
+            fname = f.get("name")
+            if fid and fid not in f_map and fname and fname in name_to_code:
+                f_map[fid] = name_to_code[fname]
+    except Exception as exc:
+        log.error("supabase._build_factory_to_code_map failed", extra={"error": str(exc)})
+    return f_map
+
+
 # ---------------------------------------------------------------------------
 # UserRepository  →  companies + users tables
 # ---------------------------------------------------------------------------

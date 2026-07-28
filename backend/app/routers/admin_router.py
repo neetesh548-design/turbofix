@@ -115,11 +115,13 @@ def admin_list_companies(
                 machines_by_company[code] = machines_by_company.get(code, 0) + 1
 
         try:
-            from app.repositories.supabase_repo import _client, _company_code_for_factory_id
+            from app.repositories.supabase_repo import _client, _build_factory_to_code_map
+            f_map = _build_factory_to_code_map()
+
             raw_tickets = _client.select("tickets")
             for t in raw_tickets:
                 f_id = t.get("factory_id") or ""
-                code = _company_code_for_factory_id(f_id) if f_id else ""
+                code = f_map.get(f_id, "")
                 if not code:
                     continue
                 status = str(t.get("status") or "").strip().lower()
@@ -131,30 +133,22 @@ def admin_list_companies(
                     tickets_by_company[code] = tickets_by_company.get(code, 0) + 1
                     if urgency in {"critical", "high", "urgent"}:
                         critical_by_company[code] = critical_by_company.get(code, 0) + 1
-        except Exception:
-            pass
 
-        try:
-            from app.repositories.supabase_repo import _client, _company_code_for_factory_id
             raw_docs = _client.select("documents")
             for d in raw_docs:
                 f_id = d.get("factory_id") or ""
-                code = _company_code_for_factory_id(f_id) if f_id else ""
+                code = f_map.get(f_id, "")
                 if not code:
                     continue
                 up_at = str(d.get("uploaded_at") or "")
                 if up_at:
                     last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), up_at)
                 documents_by_company[code] = documents_by_company.get(code, 0) + 1
-        except Exception:
-            pass
 
-        try:
-            from app.repositories.supabase_repo import _client, _company_code_for_factory_id
             raw_recs = _client.select("machine_records")
             for r in raw_recs:
                 f_id = r.get("factory_id") or ""
-                code = _company_code_for_factory_id(f_id) if f_id else ""
+                code = f_map.get(f_id, "")
                 if not code:
                     continue
                 st = str(r.get("status") or "").strip().lower()
