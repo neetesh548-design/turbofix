@@ -45,6 +45,7 @@ describe('src/lib/roles', () => {
     it('should return true for workspaces permitted for technician', () => {
       expect(canViewWorkspace('maintenance_technician', 'machines')).toBe(true);
       expect(canViewWorkspace('maintenance_technician', 'technician')).toBe(true);
+      expect(canViewWorkspace('maintenance_technician', 'tickets')).toBe(true);
       expect(canViewWorkspace('maintenance_technician', 'records')).toBe(true);
     });
 

@@ -54,7 +54,7 @@ const ROLE_NAV = {
   // 'overview' is the technician's own dashboard (their queue and machines),
   // not the business board — the Dashboard page renders per role. Without it
   // AppShell would gate technicians out of the view built for them.
-  maintenance_technician: ['overview', 'machines', 'records', 'assistant', 'technician', 'support', 'kaizen', 'report'],
+  maintenance_technician: ['overview', 'machines', 'records', 'tickets', 'assistant', 'technician', 'support', 'kaizen', 'report'],
   maintenance_engineer: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
   supervisor: ['overview', 'machines', 'inventory', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
   maintenance_head: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen', 'report'],

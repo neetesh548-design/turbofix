@@ -186,8 +186,9 @@ export default function Tickets() {
         technician_name: machineTechNameMap[t.machine_id] || 'Unassigned',
       }));
 
-      // Demo data keeps the board legible before a factory has logged anything.
-      setTickets(data.length > 0 ? data : DEMO_TICKETS);
+      // Demo data keeps management's board legible before a factory has logged
+      // anything. Scoped roles must see only their own queue, even when empty.
+      setTickets(data.length > 0 || shouldScope ? data : DEMO_TICKETS);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
