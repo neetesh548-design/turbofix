@@ -70,6 +70,8 @@ import {
   shouldUseDemoReports,
 } from '../utils/demoBreakdown.js';
 import { readStoredUser } from '../utils/dashboardMetrics.js';
+import { isShiftScopedRole, visibleMachinesForUser } from '../utils/machineVisibility.js';
+import { applyCurrentShiftAssignments } from '../utils/shiftAssignments.js';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
 import './ReportBreakdown.css';
@@ -135,15 +137,29 @@ function normaliseReport(row) {
 }
 
 async function fetchBreakdownSources() {
-  const [machinesRes, ticketsRes] = await Promise.all([
+  const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
     fetchWithTimeout(supabase.from('machines').select('*')),
     fetchWithTimeout(
       supabase.from('tickets').select('*').order('created_at', { ascending: false }).limit(200),
     ),
+    fetchWithTimeout(supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } })),
+    fetchWithTimeout(supabase.from('shift_rosters').select('*')),
+    fetchWithTimeout(supabase.from('machine_shift_assignments').select('*')),
   ]);
+  const members = directoryRes.data?.members || [];
+  const teamById = Object.fromEntries(members.map((member) => [member.user_id, member]));
+  const shifted = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
 
   return {
-    machines: (machinesRes.data || []).map(normaliseMachine).filter(Boolean),
+    machines: shifted.map((machine) => ({
+      ...normaliseMachine(machine),
+      assignments: {
+        ...(machine.assignments || {}),
+        technician: teamById[machine.technician_user_id] || machine.assignments?.technician || null,
+        supervisor: teamById[machine.supervisor_id] || machine.assignments?.supervisor || null,
+        engineer: teamById[machine.engineer_user_id] || machine.assignments?.engineer || null,
+      },
+    })).filter(Boolean),
     reports: (ticketsRes.data || []).map(normaliseReport).filter(Boolean),
   };
 }
@@ -251,8 +267,11 @@ export default function ReportBreakdown() {
    * file against a machine that is not theirs.
    */
   const selectableMachines = useMemo(() => {
-    if (role !== BREAKDOWN_ROLES.VENDOR) return machines;
-    return vendorMachines(machines, effectiveUser?.vendor_id || (isDemo ? DEMO_VENDOR_CONTACT.vendor_id : null));
+    if (role === BREAKDOWN_ROLES.VENDOR) {
+      return vendorMachines(machines, effectiveUser?.vendor_id || (isDemo ? DEMO_VENDOR_CONTACT.vendor_id : null));
+    }
+    if (isShiftScopedRole(effectiveUser?.role)) return visibleMachinesForUser(machines, effectiveUser);
+    return machines;
   }, [effectiveUser, isDemo, machines, role]);
 
   const technicians = useMemo(() => {

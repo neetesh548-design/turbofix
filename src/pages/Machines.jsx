@@ -20,6 +20,7 @@ import { DEMO_MACHINES } from '../utils/demoMachines';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { downloadMachinesCSV } from '../utils/machineExport';
 import { visibleMachinesForUser } from '../utils/machineVisibility';
+import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
 import './Machines.css';
 
 const WORKSPACE_TABS = [
@@ -287,10 +288,12 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const [machinesRes, ticketsRes, directoryRes] = await Promise.all([
+      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
         supabase.from('machines').select('*'),
         supabase.from('tickets').select('id,machine_id,status,issue_text,created_at,urgency'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
+        supabase.from('shift_rosters').select('*'),
+        supabase.from('machine_shift_assignments').select('*'),
       ]);
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
@@ -354,7 +357,8 @@ export default function Machines() {
         has_phone: member.has_phone,
         can_reveal_contact: member.can_reveal_contact !== false,
       }]));
-      const mData = (machinesRes.data || []).map(m => {
+      const shiftedMachines = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+      const mData = shiftedMachines.map(m => {
         const resolvedAssignments = machineAssignments[m.id] || {};
         const technicianUserId = m.technician_user_id || resolvedAssignments.technician_user_id || null;
         const supervisorId = m.supervisor_id || resolvedAssignments.supervisor_id || null;

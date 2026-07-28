@@ -14,6 +14,8 @@ import { supabase } from '@/supabaseClient';
 import { partitionTickets, downloadArchivedCSV, isEligibleForArchive } from '@/utils/ticketArchive';
 import { downloadTicketsCSV } from '@/utils/ticketExport';
 import { DEMO_TICKETS } from '@/utils/demoTickets';
+import { applyCurrentShiftAssignments } from '@/utils/shiftAssignments';
+import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '@/utils/machineVisibility';
 import {
   computeSla,
   summarizeTickets,
@@ -103,10 +105,12 @@ export default function Tickets() {
       return;
     }
     try {
-      const [ticketsRes, machinesRes, directoryRes] = await Promise.all([
+      const [ticketsRes, machinesRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
         supabase.from('tickets').select('*'),
         supabase.from('machines').select('id,name,technician_user_id,supervisor_id'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
+        supabase.from('shift_rosters').select('*'),
+        supabase.from('machine_shift_assignments').select('*'),
       ]);
 
       if (ticketsRes.error) throw new Error(ticketsRes.error.message);
@@ -130,7 +134,12 @@ export default function Tickets() {
       const machineMap = {};
       const machineTechMap = {};
       const machineTechNameMap = {};
-      const mList = (machinesRes.data || []).map((machine) => {
+      const currentMachines = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+      const shouldScope = isShiftScopedRole(signedInUser?.role);
+      const visibleMachines = visibleMachinesForUser(currentMachines, signedInUser);
+      const visibleMachineIds = visibleMachineIdSet(currentMachines, signedInUser);
+      const visibleTickets = shouldScope ? filterRowsToVisibleMachines(ticketsRes.data || [], visibleMachineIds) : (ticketsRes.data || []);
+      const mList = visibleMachines.map((machine) => {
         machineMap[machine.id] = machine.name;
         const techId = machine.technician_user_id;
         machineTechMap[machine.id] = techId || null;
@@ -148,7 +157,7 @@ export default function Tickets() {
         return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : '';
       };
 
-      const data = (ticketsRes.data || []).map((t) => ({
+      const data = visibleTickets.map((t) => ({
         ticket_id: t.id,
         machine_id: t.machine_id,
         machine_name: machineMap[t.machine_id] || 'Unknown',
@@ -184,10 +193,10 @@ export default function Tickets() {
     } finally {
       setLoading(false);
     }
-  }, [signedInUser?.inventory_mode]);
+  }, [signedInUser]);
 
-  // `fetchTickets` is referentially stable (useCallback with no deps), so this
-  // subscribes once on mount rather than re-subscribing on every render.
+  // Re-subscribe when the signed-in user context changes so scoped roles see
+  // the current shift's machine/ticket set.
   useEffect(() => {
     document.title = 'Tickets | TurboFix';
     fetchTickets();

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app import config
-from app.admin_page import ADMIN_HTML
+from app.admin_page import ADMIN_HTML, ADMIN_LOGIN_HTML
 from app.auth import create_admin_token, get_current_admin, Role, hash_password, validate_password_strength
 from app.dependencies import (
     get_ai_feedback,
@@ -466,7 +466,12 @@ class GeminiConfigUpdate(BaseModel):
 
 @router.get("/config/gemini")
 def get_gemini_config(_: bool = Depends(get_current_admin)):
-    return {"gemini_api_key": config.GEMINI_API_KEY}
+    key = config.GEMINI_API_KEY or ""
+    return {
+        "configured": bool(key),
+        "gemini_api_key": "",
+        "masked": f"{key[:6]}…{key[-4:]}" if len(key) > 10 else "",
+    }
 
 
 @router.post("/config/gemini")
@@ -1077,5 +1082,11 @@ def get_ai_usage_dashboard(_: bool = Depends(get_current_admin)):
 
 @router.get("", response_class=HTMLResponse)
 def admin_console():
-    """Serve the self-contained admin HTML page."""
+    """Serve only the admin login shell; the console loads after auth."""
+    return HTMLResponse(ADMIN_LOGIN_HTML)
+
+
+@router.get("/app", response_class=HTMLResponse)
+def admin_app(_: bool = Depends(get_current_admin)):
+    """Serve the platform admin console after bearer-token auth."""
     return HTMLResponse(ADMIN_HTML)

@@ -167,4 +167,40 @@ def test_admin_page_served_as_html(vault_client):
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
     assert "Platform sign in" in resp.text
+    assert "Priority attention" not in resp.text
+    assert "tfAdminToken" in resp.text
+    assert "Content-Security-Policy" in resp.headers
+
+
+def test_admin_app_requires_admin_token(vault_client):
+    assert vault_client.get("/admin/app").status_code == 401
+
+    at = admin_token(vault_client)
+    resp = vault_client.get("/admin/app", headers=auth_headers(at))
+    assert resp.status_code == 200
     assert "Priority attention" in resp.text
+
+
+def test_admin_gemini_config_masks_secret(vault_client, monkeypatch):
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "AIzaSySecretValue1234")
+    at = admin_token(vault_client)
+
+    resp = vault_client.get("/admin/config/gemini", headers=auth_headers(at))
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["configured"] is True
+    assert body["gemini_api_key"] == ""
+    assert "SecretValue" not in resp.text
+
+
+def test_admin_app_has_safer_client_controls(vault_client):
+    at = admin_token(vault_client)
+    html = vault_client.get("/admin/app", headers=auth_headers(at)).text
+
+    assert 'confirmAdminAction(`Reset password' in html
+    assert "Launch broadcast to ${recipients.length} recipients" in html
+    assert "initWacrmSection.done" in html
+    assert 'aria-current="page"' in html
+    assert 'aria-selected="true"' in html
+    assert '<button class="nav-item' not in html

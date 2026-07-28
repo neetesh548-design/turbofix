@@ -23,6 +23,17 @@ describe('machine visibility', () => {
     expect(visibleMachinesForUser(machines, { role: 'owner', user_id: 'owner-1' })).toHaveLength(3);
   });
 
+  it('scopes supervisors and engineers to their active assignment fields', () => {
+    const rows = [
+      { id: 'm1', supervisor_id: 'sup-1', engineer_user_id: 'eng-2' },
+      { id: 'm2', supervisor_id: 'sup-2', engineer_user_id: 'eng-1' },
+      { id: 'm3', assignments: { supervisor: { user_id: 'sup-1' }, engineer: { user_id: 'eng-1' } } },
+    ];
+
+    expect(visibleMachinesForUser(rows, { role: 'supervisor', user_id: 'sup-1' }).map((machine) => machine.id)).toEqual(['m1', 'm3']);
+    expect(visibleMachinesForUser(rows, { role: 'maintenance_engineer', user_id: 'eng-1' }).map((machine) => machine.id)).toEqual(['m2', 'm3']);
+  });
+
   it('filters related rows to visible machine ids', () => {
     const ids = visibleMachineIdSet(machines, tech);
     expect(filterRowsToVisibleMachines([

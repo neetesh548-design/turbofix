@@ -1,5 +1,101 @@
 """Self-contained internal TurboFix platform administration console."""
 
+ADMIN_LOGIN_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboFix — Platform Control</title>
+<style>
+  :root { color-scheme: dark; --ink:#f5f7fb; --muted:#aab6c8; --canvas:#0d121a; --surface:#151d28; --line:#2c394b; --accent:#ff7a1a; --blue:#80b7ff; --shadow:0 18px 50px rgba(0,0,0,.24); }
+  * { box-sizing: border-box; }
+  body { min-width:320px; min-height:100vh; margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:radial-gradient(circle at 7% 0,#1d2a3c 0,transparent 32rem),var(--canvas); display:grid; place-items:center; padding:20px; }
+  button,input { font:inherit; }
+  button:focus-visible,input:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+  .login-layout { width:min(100%,920px); display:grid; grid-template-columns:1.08fr .92fr; overflow:hidden; border:1px solid var(--line); border-radius:22px; background:var(--surface); box-shadow:var(--shadow); }
+  .login-intro,.login-card { padding:48px; }
+  .login-intro { background:linear-gradient(145deg,#1d2a39,#121923 70%); }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.03em; }
+  .brand-mark { width:32px; height:32px; display:grid; place-items:center; border-radius:9px; color:#211405; background:var(--accent); font-size:19px; }
+  .eyebrow { margin:26px 0 10px; color:var(--accent); font-weight:800; font-size:12px; letter-spacing:.13em; text-transform:uppercase; }
+  h1,h2,p { margin:0; }
+  h1 { max-width:480px; font-size:clamp(31px,4vw,46px); line-height:1.08; }
+  .lead,.login-card p { margin-top:16px; color:var(--muted); line-height:1.6; }
+  .value-list { display:grid; gap:12px; margin:32px 0 0; padding:0; list-style:none; color:var(--muted); }
+  .value-list li { display:flex; gap:10px; align-items:center; }
+  .value-list b { color:#33d17a; }
+  label { display:block; margin-bottom:7px; color:var(--muted); font-size:13px; font-weight:700; }
+  input { width:100%; border:1px solid var(--line); border-radius:10px; padding:12px 13px; background:#101722; color:var(--ink); }
+  .field { margin-top:24px; }
+  .btn { width:100%; min-height:44px; border:0; border-radius:10px; padding:10px 14px; color:#231507; background:var(--accent); font-weight:800; cursor:pointer; }
+  .err { min-height:20px; margin-top:12px; color:#ff9b9b; font-size:13px; }
+  @media (max-width:760px) { body { padding:16px; } .login-layout { display:block; } .login-intro { display:none; } .login-card { padding:32px 24px; } }
+</style>
+</head>
+<body>
+<main class="login-layout">
+  <section class="login-intro" aria-label="TurboFix platform administration">
+    <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX</div>
+    <p class="eyebrow">Platform operations</p>
+    <h1>Keep every customer workspace moving forward.</h1>
+    <p class="lead">Approve new companies, monitor capacity and operational risk, and support the teams building reliable factories.</p>
+    <ul class="value-list">
+      <li><b>●</b> Review onboarding requests quickly</li>
+      <li><b>●</b> Spot quota and ticket pressure early</li>
+      <li><b>●</b> See AI knowledge readiness across customers</li>
+    </ul>
+  </section>
+  <section class="login-card">
+    <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX</div>
+    <h2>Platform sign in</h2>
+    <p>For TurboFix operations staff only. Your session is kept separate from customer accounts.</p>
+    <div class="field">
+      <label for="pw">Admin password</label>
+      <input type="password" id="pw" placeholder="Enter your platform password" autocomplete="current-password" autofocus>
+    </div>
+    <div class="field"><button class="btn" id="loginBtn" type="button">Open control room</button></div>
+    <div class="err" id="loginErr" role="alert"></div>
+  </section>
+</main>
+<script>
+const tokenKey = "tfAdminToken";
+const $ = (id) => document.getElementById(id);
+async function openApp(token) {
+  const response = await fetch("/admin/app", { headers: {"Authorization": "Bearer " + token} });
+  if (!response.ok) throw new Error("Your session has ended. Please sign in again.");
+  document.open();
+  document.write(await response.text());
+  document.close();
+}
+async function login() {
+  $("loginErr").textContent = "";
+  const button = $("loginBtn");
+  button.disabled = true;
+  button.textContent = "Opening control room…";
+  try {
+    const response = await fetch("/admin/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:$("pw").value}) });
+    if (!response.ok) throw new Error("That password was not accepted. Please try again.");
+    const token = (await response.json()).access_token;
+    sessionStorage.setItem(tokenKey, token);
+    await openApp(token);
+  } catch (error) {
+    sessionStorage.removeItem(tokenKey);
+    $("loginErr").textContent = error.message || "We could not reach the platform service. Please try again.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Open control room";
+  }
+}
+$("loginBtn").addEventListener("click", login);
+$("pw").addEventListener("keydown", (event) => { if (event.key === "Enter") login(); });
+const existingToken = sessionStorage.getItem(tokenKey);
+if (existingToken) openApp(existingToken).catch(() => sessionStorage.removeItem(tokenKey));
+</script>
+</body>
+</html>
+"""
+
+
 ADMIN_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,8 +244,8 @@ ADMIN_HTML = r"""<!DOCTYPE html>
   .quiet-link:hover { background: #21334b; }
   .drawer-backdrop { position: fixed; z-index: 19; inset: 0; background: rgba(2, 5, 9, .55); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
   .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
-  .drawer { position: fixed; z-index: 20; inset: 0 0 0 auto; width: min(480px, 100vw); overflow-y: auto; padding: 22px; border-left: 1px solid var(--line); background: #111924; box-shadow: -20px 0 50px rgba(0, 0, 0, .28); transform: translateX(100%); transition: transform .2s ease; }
-  .drawer.open { transform: translateX(0); }
+  .drawer { position: fixed; z-index: 20; inset: 0 0 0 auto; width: min(480px, 100vw); overflow-y: auto; padding: 22px; border-left: 1px solid var(--line); background: #111924; box-shadow: -20px 0 50px rgba(0, 0, 0, .28); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s ease; }
+  .drawer.open { transform: translateX(0); visibility: visible; }
   .drawer-top { display: flex; justify-content: space-between; gap: 16px; }
   .drawer-top h2 { margin-top: 9px; font-size: 27px; letter-spacing: -.03em; }
   .drawer-top p { margin-top: 7px; color: var(--muted); font-size: 13px; }
@@ -271,7 +367,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
           <label for="pw">Admin password</label>
           <input type="password" id="pw" placeholder="Enter your platform password" autocomplete="current-password">
         </div>
-        <div class="field"><button class="btn btn-primary btn-full" id="loginBtn">Open control room</button></div>
+        <div class="field"><button type="button" class="btn btn-primary btn-full" id="loginBtn">Open control room</button></div>
         <div class="err" id="loginErr" role="alert"></div>
       </section>
     </div>
@@ -282,10 +378,10 @@ ADMIN_HTML = r"""<!DOCTYPE html>
       <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX</div>
       <p class="sidebar-title">Platform control</p>
       <nav aria-label="Platform navigation">
-        <button class="nav-item active" data-nav="overview"><span class="nav-icon">◫</span> Overview</button>
-        <button class="nav-item" data-nav="companies"><span class="nav-icon">▣</span> Companies</button>
-        <button class="nav-item" data-nav="onboard"><span class="nav-icon">＋</span> Onboard company</button>
-        <button class="nav-item" data-nav="wacrm"><span class="nav-icon">✉</span> WhatsApp CRM</button>
+        <button type="button" class="nav-item active" data-nav="overview" aria-current="page"><span class="nav-icon">◫</span> Overview</button>
+        <button type="button" class="nav-item" data-nav="companies"><span class="nav-icon">▣</span> Companies</button>
+        <button type="button" class="nav-item" data-nav="onboard"><span class="nav-icon">＋</span> Onboard company</button>
+        <button type="button" class="nav-item" data-nav="wacrm"><span class="nav-icon">✉</span> WhatsApp CRM</button>
       </nav>
       <div class="sidebar-health">
         <strong><span class="live">●</span> Platform status</strong>
@@ -296,7 +392,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
     <div class="app-main">
       <header class="topbar">
         <div class="topbar-left"><span class="topbar-title">TurboFix platform</span><span class="internal-tag">Internal access</span></div>
-        <div class="admin-id"><span>Platform administrator</span><span class="avatar">T</span><button class="btn btn-quiet" id="logout">Sign out</button></div>
+        <div class="admin-id"><span>Platform administrator</span><span class="avatar">T</span><button type="button" class="btn btn-quiet" id="logout">Sign out</button></div>
       </header>
 
       <main class="page">
@@ -306,7 +402,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
             <h1>Good morning, platform team.</h1>
             <p>Start with the work that needs your attention. Approvals, capacity risk, and customer knowledge readiness are all in one place.</p>
           </div>
-          <button class="btn btn-primary" id="openOnboard">＋ Onboard company</button>
+          <button type="button" class="btn btn-primary" id="openOnboard">＋ Onboard company</button>
         </section>
 
         <section class="metrics" aria-label="Portfolio metrics">
@@ -318,15 +414,15 @@ ADMIN_HTML = r"""<!DOCTYPE html>
 
         <section class="panel-grid">
           <article class="panel">
-            <div class="panel-head"><div><h2>Priority attention</h2><p>These accounts have an approval, capacity, ticket, or AI-record review signal.</p></div><button class="btn btn-outline" id="showAttention">View all</button></div>
+            <div class="panel-head"><div><h2>Priority attention</h2><p>These accounts have an approval, capacity, ticket, or AI-record review signal.</p></div><button type="button" class="btn btn-outline" id="showAttention">View all</button></div>
             <div class="attention-list" id="attentionList"><div class="empty">Loading priority accounts…</div></div>
           </article>
           <article class="panel">
             <div class="panel-head"><div><h2>Quick actions</h2><p>Common platform tasks, kept close at hand.</p></div></div>
             <div class="quick-actions">
-              <button class="quick-action" id="quickOnboard"><span><strong>Onboard a company</strong><span>Create the owner account and plan</span></span><b>→</b></button>
-              <button class="quick-action" id="quickApprovals"><span><strong>Review approvals</strong><span>See workspaces waiting to go live</span></span><b>→</b></button>
-              <button class="quick-action" id="quickCapacity"><span><strong>Review capacity</strong><span>Find accounts near their machine limit</span></span><b>→</b></button>
+              <button type="button" class="quick-action" id="quickOnboard"><span><strong>Onboard a company</strong><span>Create the owner account and plan</span></span><b>→</b></button>
+              <button type="button" class="quick-action" id="quickApprovals"><span><strong>Review approvals</strong><span>See workspaces waiting to go live</span></span><b>→</b></button>
+              <button type="button" class="quick-action" id="quickCapacity"><span><strong>Review capacity</strong><span>Find accounts near their machine limit</span></span><b>→</b></button>
             </div>
           </article>
         </section>
@@ -383,7 +479,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
               <h2>AI Firewall & Usage Monitoring</h2>
               <p>Real-time monitoring of all AI Assistant queries, token metrics, rate limits, and block reasons.</p>
             </div>
-            <button class="btn btn-outline" id="refreshAiUsageBtn">Refresh metrics</button>
+            <button type="button" class="btn btn-outline" id="refreshAiUsageBtn">Refresh metrics</button>
           </div>
           <div class="metrics" style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
             <div class="metric" style="padding: 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--line);">
@@ -428,7 +524,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
               <h2>WhatsApp CRM (WaCRM)</h2>
               <p>Manage WhatsApp contacts, conversations, broadcasts, and messaging from a shared inbox powered by WaCRM.</p>
             </div>
-            <button class="btn btn-outline" id="wacrmRefresh">Refresh</button>
+            <button type="button" class="btn btn-outline" id="wacrmRefresh">Refresh</button>
           </div>
 
           <!-- Connection status -->
@@ -438,11 +534,11 @@ ADMIN_HTML = r"""<!DOCTYPE html>
 
           <!-- Tabs -->
           <div style="display:flex; gap:7px; overflow-x:auto; margin-top:20px; padding:2px; border-bottom:1px solid var(--line);">
-            <button class="workspace-tab active" data-wacrm-tab="contacts">Contacts</button>
-            <button class="workspace-tab" data-wacrm-tab="conversations">Conversations</button>
-            <button class="workspace-tab" data-wacrm-tab="send">Send Message</button>
-            <button class="workspace-tab" data-wacrm-tab="broadcast">Broadcast</button>
-            <button class="workspace-tab" data-wacrm-tab="webhooks">Webhooks</button>
+            <button type="button" class="workspace-tab active" data-wacrm-tab="contacts" aria-selected="true">Contacts</button>
+            <button type="button" class="workspace-tab" data-wacrm-tab="conversations" aria-selected="false">Conversations</button>
+            <button type="button" class="workspace-tab" data-wacrm-tab="send" aria-selected="false">Send Message</button>
+            <button type="button" class="workspace-tab" data-wacrm-tab="broadcast" aria-selected="false">Broadcast</button>
+            <button type="button" class="workspace-tab" data-wacrm-tab="webhooks" aria-selected="false">Webhooks</button>
           </div>
 
           <!-- Tab content -->
@@ -461,7 +557,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
 
   <div class="modal-backdrop" id="onboardModal" aria-hidden="true">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
-      <div class="modal-head"><div><h2 id="onboardTitle">Onboard a company</h2><p>Create the customer workspace, owner account, and initial machine plan. The company is approved immediately after a successful onboarding.</p></div><button class="icon-button" id="closeOnboard" aria-label="Close onboarding form">×</button></div>
+      <div class="modal-head"><div><h2 id="onboardTitle">Onboard a company</h2><p>Create the customer workspace, owner account, and initial machine plan. The company is approved immediately after a successful onboarding.</p></div><button type="button" class="icon-button" id="closeOnboard" aria-label="Close onboarding form">×</button></div>
       <form id="onboardForm">
         <div class="form-grid">
           <div><label for="onboardCode">Company code</label><input type="text" id="onboardCode" placeholder="Example: ACME3" maxlength="20" required></div>
@@ -480,14 +576,14 @@ ADMIN_HTML = r"""<!DOCTYPE html>
 
   <div class="modal-backdrop" id="dashboardModal" aria-hidden="true">
     <section class="modal wide" role="dialog" aria-modal="true" aria-labelledby="companyDashboardTitle">
-      <div class="modal-head"><div><h2 id="companyDashboardTitle">Company dashboard</h2><p id="companyDashboardSubtitle">Loading live operational data…</p></div><button class="icon-button" id="closeDashboard" aria-label="Close company dashboard">×</button></div>
+      <div class="modal-head"><div><h2 id="companyDashboardTitle">Company dashboard</h2><p id="companyDashboardSubtitle">Loading live operational data…</p></div><button type="button" class="icon-button" id="closeDashboard" aria-label="Close company dashboard">×</button></div>
       <div id="companyDashboardContent"></div>
     </section>
   </div>
 
   <div class="modal-backdrop" id="workspaceModal" aria-hidden="true">
     <section class="modal wide" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle">
-      <div class="modal-head"><div><h2 id="workspaceTitle">Customer workspace preview</h2><p id="workspaceSubtitle">Loading client-visible workspace information…</p></div><button class="icon-button" id="closeWorkspace" aria-label="Close customer workspace preview">×</button></div>
+      <div class="modal-head"><div><h2 id="workspaceTitle">Customer workspace preview</h2><p id="workspaceSubtitle">Loading client-visible workspace information…</p></div><button type="button" class="icon-button" id="closeWorkspace" aria-label="Close customer workspace preview">×</button></div>
       <div class="workspace-readonly">◉ Read-only platform preview. You are viewing the client experience without signing in as, or acting on behalf of, a customer user.</div>
       <nav class="workspace-tabs" id="workspaceTabs" aria-label="Client workspace sections"></nav>
       <div class="workspace-content" id="workspaceContent"><div class="empty">Loading workspace preview…</div></div>
@@ -496,14 +592,14 @@ ADMIN_HTML = r"""<!DOCTYPE html>
 
   <div class="modal-backdrop" id="teamModal" aria-hidden="true">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="teamTitle">
-      <div class="modal-head"><div><h2 id="teamTitle">Team access</h2><p id="teamSubtitle">Loading company users…</p></div><button class="icon-button" id="closeTeam" aria-label="Close team access">×</button></div>
+      <div class="modal-head"><div><h2 id="teamTitle">Team access</h2><p id="teamSubtitle">Loading company users…</p></div><button type="button" class="icon-button" id="closeTeam" aria-label="Close team access">×</button></div>
       <div class="team-list" id="teamList"></div>
     </section>
   </div>
 
   <div class="modal-backdrop" id="passwordModal" aria-hidden="true">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
-      <div class="modal-head"><div><h2 id="passwordTitle">Set temporary password</h2><p id="passwordSubtitle">The user must receive this password through your approved support channel.</p></div><button class="icon-button" id="closePassword" aria-label="Close password reset">×</button></div>
+      <div class="modal-head"><div><h2 id="passwordTitle">Set temporary password</h2><p id="passwordSubtitle">The user must receive this password through your approved support channel.</p></div><button type="button" class="icon-button" id="closePassword" aria-label="Close password reset">×</button></div>
       <form id="passwordForm">
         <div class="field"><label for="newUserPassword">New temporary password</label><input type="password" id="newUserPassword" autocomplete="new-password" placeholder="At least 8 characters, one uppercase letter and one number" required></div>
         <div class="field"><label for="confirmUserPassword">Confirm temporary password</label><input type="password" id="confirmUserPassword" autocomplete="new-password" placeholder="Enter the password again" required></div>
@@ -527,6 +623,7 @@ let activeWorkspaceTab = "overview";
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
 const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+const confirmAdminAction = (message) => window.confirm(message);
 
 async function api(path, options = {}) {
   options.headers = Object.assign({"Content-Type": "application/json"}, options.headers || {}, token ? {"Authorization": "Bearer " + token} : {});
@@ -559,7 +656,8 @@ async function loadAiConfig() {
     const response = await api("/admin/config/gemini");
     if (response.ok) {
       const data = await response.json();
-      $("platformGeminiKey").value = data.gemini_api_key || "";
+      $("platformGeminiKey").value = "";
+      $("platformGeminiKey").placeholder = data.configured ? `Configured (${data.masked}). Enter a new key to replace it.` : "Enter Gemini API key (starts with AIzaSy or AQ...)";
     }
   } catch (error) {
     console.warn("Failed to load Gemini config:", error);
@@ -684,7 +782,7 @@ function renderOverview() {
   const priority = attention.slice(0, 5);
   $("attentionList").innerHTML = priority.length ? priority.map((company) => {
     const reasons = companyAttention(company);
-    return `<button class="attention-row" data-company="${esc(company.company_code)}"><span class="attention-mark"></span><span><strong>${esc(company.company_name)}</strong><span>${esc(reasons.join(" · ") || "Review account health")}</span></span><span class="attention-arrow">›</span></button>`;
+    return `<button type="button" class="attention-row" data-company="${esc(company.company_code)}"><span class="attention-mark"></span><span><strong>${esc(company.company_name)}</strong><span>${esc(reasons.join(" · ") || "Review account health")}</span></span><span class="attention-arrow">›</span></button>`;
   }).join("") : `<div class="empty">No account needs immediate action. Your portfolio is in good shape.</div>`;
   bindCompanyButtons($("attentionList"));
 }
@@ -716,7 +814,7 @@ function renderCompanies() {
     const initial = esc((company.company_name || company.company_code || "?").trim().charAt(0).toUpperCase());
     const ticketText = company.open_tickets ? `${plural(company.open_tickets, "open ticket")}${company.critical_tickets ? ` · ${company.critical_tickets} urgent` : ""}` : "No open tickets";
     const knowledge = company.pending_records ? `${plural(company.pending_records, "awaiting review")}` : `${plural(company.approved_records, "approved record")}`;
-    return `<tr><td><span class="company-name"><span class="company-initial">${initial}</span><span>${esc(company.company_name)}<span class="cell-muted">${esc(company.company_code)} · ${esc(company.admin_contact_phone || "No phone")}</span></span></span></td><td>${companyStatus(company)}</td><td>${capacityBar(company)}</td><td>${esc(ticketText)}<span class="cell-muted">${plural(company.user_count, "user")} · ${plural(company.document_count, "document")}</span></td><td>${esc(knowledge)}<span class="cell-muted">${company.approved_records ? "Knowledge available to AI" : "No approved AI data yet"}</span></td><td>${activityText(company.last_activity)}</td><td><button class="quiet-link" data-company="${esc(company.company_code)}">Manage</button></td></tr>`;
+    return `<tr><td><span class="company-name"><span class="company-initial">${initial}</span><span>${esc(company.company_name)}<span class="cell-muted">${esc(company.company_code)} · ${esc(company.admin_contact_phone || "No phone")}</span></span></span></td><td>${companyStatus(company)}</td><td>${capacityBar(company)}</td><td>${esc(ticketText)}<span class="cell-muted">${plural(company.user_count, "user")} · ${plural(company.document_count, "document")}</span></td><td>${esc(knowledge)}<span class="cell-muted">${company.approved_records ? "Knowledge available to AI" : "No approved AI data yet"}</span></td><td>${activityText(company.last_activity)}</td><td><button type="button" class="quiet-link" data-company="${esc(company.company_code)}">Manage</button></td></tr>`;
   }).join("") : `<tr><td colspan="7"><div class="empty">No companies match this view. Try clearing the search or choosing another filter.</div></td></tr>`;
   bindCompanyButtons($("companyRows"));
 }
@@ -730,12 +828,12 @@ function bindCompanyButtons(container) {
 function renderDetail(company) {
   const attention = companyAttention(company);
   const approvalButton = company.approved
-    ? `<button class="btn btn-danger btn-full" id="approvalAction">Pause company access</button>`
-    : `<button class="btn btn-positive btn-full" id="approvalAction">Approve and activate workspace</button>`;
-  $("companyDrawerContent").innerHTML = `<div class="drawer-top"><div><span class="internal-tag">${company.approved ? "Active workspace" : "Approval required"}</span><h2>${esc(company.company_name)}</h2><p>${esc(company.company_code)} · Onboarded ${activityText(company.onboarded_date)}</p></div><button class="icon-button" id="closeDrawer" aria-label="Close company details">×</button></div><div class="detail-status">${companyStatus(company)}${attention.map((item) => `<span class="badge warn">${esc(item)}</span>`).join("")}</div><div class="detail-metrics"><div class="detail-metric"><strong>${company.machines_used}/${company.machine_quota}</strong><span>Machines in plan</span></div><div class="detail-metric"><strong>${company.open_tickets}</strong><span>Open tickets</span></div><div class="detail-metric"><strong>${company.pending_records}</strong><span>AI records awaiting review</span></div></div><section class="detail-section"><h3>Owner and access</h3><p>${esc(company.admin_contact_phone || "No owner phone saved")} · ${plural(company.user_count, "user")} in this workspace</p></section><section class="detail-section"><h3>Machine plan</h3><p>${company.machines_used > company.machine_quota ? "This account is over its approved machine plan." : `This account is using ${company.capacity_percent || 0}% of its machine plan.`}</p><div class="quota-editor"><input type="number" id="drawerQuota" value="${company.machine_quota}" min="0" aria-label="Machine quota"><button class="btn btn-primary" id="saveQuota">Save plan</button></div></section><section class="detail-section"><h3>Knowledge readiness</h3><p>${plural(company.document_count, "document")} stored · ${plural(company.approved_records, "AI-approved record")} · ${plural(company.pending_records, "record awaiting maintenance-head review")}</p></section><section class="detail-section"><h3>Workspace access</h3><p>${company.approved ? "Pausing access prevents customer users from signing in until you reactivate the company." : "Approve this company after you have verified the onboarding details and plan."}</p><div class="detail-actions">${approvalButton}</div></section>`;
+    ? `<button type="button" class="btn btn-danger btn-full" id="approvalAction">Pause company access</button>`
+    : `<button type="button" class="btn btn-positive btn-full" id="approvalAction">Approve and activate workspace</button>`;
+  $("companyDrawerContent").innerHTML = `<div class="drawer-top"><div><span class="internal-tag">${company.approved ? "Active workspace" : "Approval required"}</span><h2>${esc(company.company_name)}</h2><p>${esc(company.company_code)} · Onboarded ${activityText(company.onboarded_date)}</p></div><button type="button" class="icon-button" id="closeDrawer" aria-label="Close company details">×</button></div><div class="detail-status">${companyStatus(company)}${attention.map((item) => `<span class="badge warn">${esc(item)}</span>`).join("")}</div><div class="detail-metrics"><div class="detail-metric"><strong>${company.machines_used}/${company.machine_quota}</strong><span>Machines in plan</span></div><div class="detail-metric"><strong>${company.open_tickets}</strong><span>Open tickets</span></div><div class="detail-metric"><strong>${company.pending_records}</strong><span>AI records awaiting review</span></div></div><section class="detail-section"><h3>Owner and access</h3><p>${esc(company.admin_contact_phone || "No owner phone saved")} · ${plural(company.user_count, "user")} in this workspace</p></section><section class="detail-section"><h3>Machine plan</h3><p>${company.machines_used > company.machine_quota ? "This account is over its approved machine plan." : `This account is using ${company.capacity_percent || 0}% of its machine plan.`}</p><div class="quota-editor"><input type="number" id="drawerQuota" value="${company.machine_quota}" min="0" aria-label="Machine quota"><button type="button" class="btn btn-primary" id="saveQuota">Save plan</button></div></section><section class="detail-section"><h3>Knowledge readiness</h3><p>${plural(company.document_count, "document")} stored · ${plural(company.approved_records, "AI-approved record")} · ${plural(company.pending_records, "record awaiting maintenance-head review")}</p></section><section class="detail-section"><h3>Workspace access</h3><p>${company.approved ? "Pausing access prevents customer users from signing in until you reactivate the company." : "Approve this company after you have verified the onboarding details and plan."}</p><div class="detail-actions">${approvalButton}</div></section>`;
   const tools = document.createElement("section");
   tools.className = "detail-section";
-  tools.innerHTML = `<h3>Platform admin tools</h3><p>Review the customer experience safely, or support a verified team member without entering their account.</p><div class="tool-grid"><button class="btn btn-primary btn-full" id="openWorkspacePreview">Open read-only client workspace</button><button class="btn btn-outline btn-full" id="openCompanyDashboard">View company dashboard</button><button class="btn btn-outline btn-full" id="openCompanyUsers">Manage team and reset passwords</button></div>`;
+  tools.innerHTML = `<h3>Platform admin tools</h3><p>Review the customer experience safely, or support a verified team member without entering their account.</p><div class="tool-grid"><button type="button" class="btn btn-primary btn-full" id="openWorkspacePreview">Open read-only client workspace</button><button type="button" class="btn btn-outline btn-full" id="openCompanyDashboard">View company dashboard</button><button type="button" class="btn btn-outline btn-full" id="openCompanyUsers">Manage team and reset passwords</button></div>`;
   $("companyDrawerContent").appendChild(tools);
   $("closeDrawer").addEventListener("click", closeDrawer);
   $("saveQuota").addEventListener("click", () => {
@@ -902,7 +1000,7 @@ function renderWorkspacePreview() {
     settings: `<div class="workspace-summary">${previewCard(data.company.approved ? "Workspace active" : "Workspace paused", "Current client sign-in status")}${previewCard(`${machines.length} of ${data.company.machine_quota || 0}`, "Machine plan usage")}${previewCard(data.settings.updated_at ? activityText(data.settings.updated_at) : "Not configured", "Last settings update")}</div><div class="workspace-note">This tab is intentionally view-only for platform staff. Client preferences, escalation configuration, and roles can be inspected here without editing their workspace settings.</div>`,
     records: `<div class="workspace-summary">${previewCard(plural(documents.length, "uploaded file"), "Source manuals, diagrams, and lists")}${previewCard(plural(records.filter((record) => record.status === "approved").length, "approved record"), "Ready for AI use")}${previewCard(plural(consumables.length, "consumable"), "Tracked in machine data")}</div>${records.length ? previewTable(["Record", "Type", "Status", "Machine", "Updated"], records.map((record) => previewRow([`<strong>${esc(record.title || record.record_id)}</strong>`, esc(record.record_type || "Other"), esc(record.status || "Needs review"), esc(record.machine_id || "Plant-wide"), esc(activityText(record.updated_at || record.created_at))]))) : previewEmpty("No machine records have been added yet.")}`
   };
-  $("workspaceTabs").innerHTML = workspaceSections.map(([key, label]) => `<button class="workspace-tab ${key === activeWorkspaceTab ? "active" : ""}" data-workspace-tab="${key}">${esc(label)}</button>`).join("");
+  $("workspaceTabs").innerHTML = workspaceSections.map(([key, label]) => `<button type="button" class="workspace-tab ${key === activeWorkspaceTab ? "active" : ""}" data-workspace-tab="${key}" aria-selected="${key === activeWorkspaceTab ? "true" : "false"}">${esc(label)}</button>`).join("");
   $("workspaceContent").innerHTML = tabContent[activeWorkspaceTab] || previewEmpty("This section is not available.");
   $("workspaceTabs").querySelectorAll("[data-workspace-tab]").forEach((button) => button.addEventListener("click", () => {
     activeWorkspaceTab = button.dataset.workspaceTab;
@@ -939,7 +1037,7 @@ async function openCompanyUsers(company) {
     const payload = await response.json();
     teamUsers = payload.users || [];
     $("teamSubtitle").textContent = "Reset a password only after confirming the user’s identity. Passwords are never displayed here.";
-    $("teamList").innerHTML = teamUsers.length ? teamUsers.map((user) => `<article class="team-row"><div class="team-person"><strong>${esc(user.name || "Unnamed user")}</strong><span>${esc(user.email || user.phone || "No contact saved")}</span><span class="role-label">${esc(displayRole(user.role))}</span></div><button class="btn btn-outline" data-reset-user="${esc(user.user_id)}">Reset password</button></article>`).join("") : `<div class="empty">This company has no user accounts yet.</div>`;
+    $("teamList").innerHTML = teamUsers.length ? teamUsers.map((user) => `<article class="team-row"><div class="team-person"><strong>${esc(user.name || "Unnamed user")}</strong><span>${esc(user.email || user.phone || "No contact saved")}</span><span class="role-label">${esc(displayRole(user.role))}</span></div><button type="button" class="btn btn-outline" data-reset-user="${esc(user.user_id)}">Reset password</button></article>`).join("") : `<div class="empty">This company has no user accounts yet.</div>`;
     $("teamList").querySelectorAll("[data-reset-user]").forEach((button) => button.addEventListener("click", () => openPasswordReset(button.dataset.resetUser)));
   } catch (error) {
     $("teamList").innerHTML = `<div class="empty">${esc(error.message || "We could not load this company team.")}</div>`;
@@ -982,8 +1080,12 @@ $("quickCapacity").addEventListener("click", () => { $("companyFilter").value = 
 $("companySearch").addEventListener("input", renderCompanies);
 $("companyFilter").addEventListener("change", renderCompanies);
 document.querySelectorAll("[data-nav]").forEach((button) => button.addEventListener("click", () => {
-  document.querySelectorAll("[data-nav]").forEach((item) => item.classList.remove("active"));
+  document.querySelectorAll("[data-nav]").forEach((item) => {
+    item.classList.remove("active");
+    item.removeAttribute("aria-current");
+  });
   button.classList.add("active");
+  button.setAttribute("aria-current", "page");
   const wacrmEl = $("wacrmSection");
   if (button.dataset.nav === "wacrm") {
     wacrmEl.style.display = "block";
@@ -1029,6 +1131,7 @@ $("passwordForm").addEventListener("submit", async (event) => {
   const button = $("savePassword");
   error.textContent = "";
   if (password !== confirmation) { error.textContent = "The password confirmation does not match."; return; }
+  if (!confirmAdminAction(`Reset password for ${selectedUser.name || "this user"}? The old password will stop working immediately.`)) return;
   button.disabled = true;
   button.textContent = "Resetting password…";
   try {
@@ -1054,9 +1157,11 @@ $("aiConfigForm").addEventListener("submit", async (event) => {
   button.disabled = true;
   button.textContent = "Saving AI configuration…";
   try {
+    const key = $("platformGeminiKey").value.trim();
+    if (!confirmAdminAction(key ? "Replace the platform Gemini API key for all workspaces?" : "Clear the platform Gemini API key for all workspaces?")) return;
     const response = await api("/admin/config/gemini", {
       method: "POST",
-      body: JSON.stringify({ gemini_api_key: $("platformGeminiKey").value.trim() })
+      body: JSON.stringify({ gemini_api_key: key })
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
@@ -1107,7 +1212,7 @@ async function loadWacrmContacts() {
     const result = await response.json();
     const contacts = result.data || [];
     if (!contacts.length) { el.innerHTML = `<div class="empty">No contacts found in WaCRM.</div>`; return; }
-    el.innerHTML = `<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;"><input class="search" id="wacrmContactSearch" type="search" placeholder="Search contacts…" style="max-width:260px;"><button class="btn btn-primary" id="wacrmAddContact">+ Add Contact</button></div><div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Tags</th></tr></thead><tbody>${contacts.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("")}</tbody></table></div>`;
+    el.innerHTML = `<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;"><input class="search" id="wacrmContactSearch" type="search" placeholder="Search contacts…" style="max-width:260px;"><button type="button" class="btn btn-primary" id="wacrmAddContact">+ Add Contact</button></div><div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Tags</th></tr></thead><tbody>${contacts.map(c => `<tr><td><strong>${esc(c.name || "—")}</strong></td><td>${esc(c.phone || "—")}</td><td>${esc(c.company || "—")}</td><td>${(c.tags || []).map(t => `<span class="badge good">${esc(t)}</span>`).join(" ") || "—"}</td></tr>`).join("")}</tbody></table></div>`;
     $("wacrmAddContact").addEventListener("click", showAddContactForm);
   } catch (err) {
     el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
@@ -1156,7 +1261,7 @@ async function loadConvoMessages(convoId) {
     const response = await api(`/admin/wacrm/conversations/${encodeURIComponent(convoId)}/messages?limit=30`);
     const result = await response.json();
     const msgs = result.data || [];
-    el.innerHTML = `<div style="margin-bottom:12px;"><button class="btn btn-outline" id="wacrmBackConvos">← Back to conversations</button></div><div class="stack-list" style="max-height:400px; overflow-y:auto;">${msgs.length ? msgs.map(m => `<div class="stack-row" style="border-left:3px solid ${m.direction === "outgoing" || m.from_me ? "var(--green)" : "var(--blue)"};"><strong>${m.direction === "outgoing" || m.from_me ? "You" : esc(m.contact_name || m.from || "Customer")}</strong><span>${esc(m.text || m.body || m.content || "[media]")} · ${activityText(m.created_at || m.timestamp || "")}</span></div>`).join("") : `<div class="empty">No messages in this conversation.</div>`}</div>`;
+    el.innerHTML = `<div style="margin-bottom:12px;"><button type="button" class="btn btn-outline" id="wacrmBackConvos">← Back to conversations</button></div><div class="stack-list" style="max-height:400px; overflow-y:auto;">${msgs.length ? msgs.map(m => `<div class="stack-row" style="border-left:3px solid ${m.direction === "outgoing" || m.from_me ? "var(--green)" : "var(--blue)"};"><strong>${m.direction === "outgoing" || m.from_me ? "You" : esc(m.contact_name || m.from || "Customer")}</strong><span>${esc(m.text || m.body || m.content || "[media]")} · ${activityText(m.created_at || m.timestamp || "")}</span></div>`).join("") : `<div class="empty">No messages in this conversation.</div>`}</div>`;
     $("wacrmBackConvos").addEventListener("click", loadWacrmConversations);
   } catch (err) {
     el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
@@ -1171,6 +1276,7 @@ function showSendMessageForm() {
     const status = $("wacrmSendStatus");
     status.textContent = "Sending…";
     try {
+      if (!confirmAdminAction(`Send this WhatsApp message to ${$("wacrmSendTo").value.trim()}?`)) { status.textContent = ""; return; }
       const response = await api("/admin/wacrm/messages/send", { method: "POST", body: JSON.stringify({ to: $("wacrmSendTo").value.trim(), text: $("wacrmSendText").value.trim() }) });
       if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Message failed to send"); }
       status.textContent = "Message sent successfully!";
@@ -1193,6 +1299,7 @@ function showBroadcastForm() {
         const parts = line.split(",").map(p => p.trim());
         return { to: parts[0], params: parts.slice(1) };
       });
+      if (!confirmAdminAction(`Launch broadcast to ${recipients.length} recipients?`)) { status.textContent = ""; return; }
       const response = await api("/admin/wacrm/broadcasts", { method: "POST", body: JSON.stringify({ name: $("wacrmBcName").value.trim(), template_name: $("wacrmBcTemplate").value.trim(), template_language: $("wacrmBcLang").value.trim(), recipients }) });
       if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Broadcast failed"); }
       const result = await response.json();
@@ -1209,7 +1316,7 @@ async function loadWacrmWebhooks() {
   try {
     const response = await api("/admin/wacrm/webhooks");
     const hooks = await response.json();
-    el.innerHTML = `<div style="margin-bottom:12px;"><button class="btn btn-primary" id="wacrmAddWebhook">+ Register Webhook</button></div>${Array.isArray(hooks) && hooks.length ? `<div class="stack-list">${hooks.map(h => `<div class="stack-row"><strong>${esc(h.url || "—")}</strong><span>Events: ${esc((h.events || []).join(", ") || "all")} · ID: ${esc(h.id || "—")}</span></div>`).join("")}</div>` : `<div class="empty">No webhooks registered. Register one to receive inbound messages from WaCRM.</div>`}`;
+    el.innerHTML = `<div style="margin-bottom:12px;"><button type="button" class="btn btn-primary" id="wacrmAddWebhook">+ Register Webhook</button></div>${Array.isArray(hooks) && hooks.length ? `<div class="stack-list">${hooks.map(h => `<div class="stack-row"><strong>${esc(h.url || "—")}</strong><span>Events: ${esc((h.events || []).join(", ") || "all")} · ID: ${esc(h.id || "—")}</span></div>`).join("")}</div>` : `<div class="empty">No webhooks registered. Register one to receive inbound messages from WaCRM.</div>`}`;
     $("wacrmAddWebhook").addEventListener("click", showRegisterWebhookForm);
   } catch (err) {
     el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
@@ -1227,6 +1334,7 @@ function showRegisterWebhookForm() {
     status.textContent = "Registering…";
     try {
       const events = $("wacrmHookEvents").value.split(",").map(e => e.trim()).filter(Boolean);
+      if (!confirmAdminAction(`Register webhook ${$("wacrmHookUrl").value.trim()} for ${events.length || 1} event group(s)?`)) { status.textContent = ""; return; }
       const response = await api("/admin/wacrm/webhooks", { method: "POST", body: JSON.stringify({ url: $("wacrmHookUrl").value.trim(), events }) });
       if (!response.ok) { const d = await response.json().catch(() => ({})); throw new Error(d.detail || "Registration failed"); }
       const result = await response.json();
@@ -1248,16 +1356,36 @@ function renderWacrmTab() {
 }
 
 function initWacrmSection() {
+  if (initWacrmSection.done) {
+    loadWacrmStatus();
+    renderWacrmTab();
+    return;
+  }
+  initWacrmSection.done = true;
   loadWacrmStatus();
   renderWacrmTab();
   document.querySelectorAll("[data-wacrm-tab]").forEach(btn => btn.addEventListener("click", () => {
-    document.querySelectorAll("[data-wacrm-tab]").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("[data-wacrm-tab]").forEach((b) => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
     btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
     wacrmTab = btn.dataset.wacrmTab;
     renderWacrmTab();
   }));
   $("wacrmRefresh").addEventListener("click", () => { loadWacrmStatus(); renderWacrmTab(); });
 }
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  closeDrawer();
+  closeOnboard();
+  closeModal("dashboardModal");
+  closeModal("workspaceModal");
+  closeModal("teamModal");
+  closePasswordReset();
+});
 
 if (token) showApp(); else showLogin();
 </script>

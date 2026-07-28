@@ -1,7 +1,12 @@
 const TECHNICIAN_ROLES = new Set(['maintenance_technician', 'technician']);
+const SHIFT_SCOPED_ROLES = new Set(['maintenance_technician', 'technician', 'supervisor', 'maintenance_engineer']);
 
 export function isTechnicianRole(role) {
   return TECHNICIAN_ROLES.has(String(role || '').toLowerCase());
+}
+
+export function isShiftScopedRole(role) {
+  return SHIFT_SCOPED_ROLES.has(String(role || '').toLowerCase());
 }
 
 export function machineId(machine) {
@@ -32,9 +37,24 @@ export function isMachineAssignedToTechnician(machine, user) {
   ].some((value) => userIds.has(String(value || '')));
 }
 
+export function isMachineVisibleToShiftUser(machine, user) {
+  if (!user?.user_id) return false;
+  if (isTechnicianRole(user.role)) return isMachineAssignedToTechnician(machine, user);
+  const userId = String(user.user_id);
+  if (String(user.role || '').toLowerCase() === 'supervisor') {
+    return [machine?.supervisor_id, machine?.assignments?.supervisor?.user_id]
+      .some((value) => String(value || '') === userId);
+  }
+  if (String(user.role || '').toLowerCase() === 'maintenance_engineer') {
+    return [machine?.engineer_user_id, machine?.assignments?.engineer?.user_id]
+      .some((value) => String(value || '') === userId);
+  }
+  return true;
+}
+
 export function visibleMachinesForUser(machines = [], user) {
-  if (!isTechnicianRole(user?.role)) return machines || [];
-  return (machines || []).filter((machine) => isMachineAssignedToTechnician(machine, user));
+  if (!isShiftScopedRole(user?.role)) return machines || [];
+  return (machines || []).filter((machine) => isMachineVisibleToShiftUser(machine, user));
 }
 
 export function visibleMachineIdSet(machines = [], user) {

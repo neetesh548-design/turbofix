@@ -3,7 +3,8 @@ import { Camera, Mic, Square, X } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
-import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet, visibleMachinesForUser } from '@/utils/machineVisibility';
+import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '@/utils/machineVisibility';
+import { applyCurrentShiftAssignments } from '@/utils/shiftAssignments';
 
 const plantSuggestions = [
   'Which machines require attention today?',
@@ -97,11 +98,14 @@ export default function Assistant() {
       supabase.from('tickets').select('*'),
       supabase.from('events').select('*'),
       supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
-    ]).then(([mRes, tRes, eRes, directoryRes]) => {
+      supabase.from('shift_rosters').select('*'),
+      supabase.from('machine_shift_assignments').select('*'),
+    ]).then(([mRes, tRes, eRes, directoryRes, shiftRosterRes, shiftAssignmentRes]) => {
       const members = directoryRes.data?.members || [];
       const memberNames = Object.fromEntries(members.map((member) => [member.user_id, member.name]));
       const assignments = directoryRes.data?.machine_assignments || {};
-      const mapped = (mRes.data || []).map(m => ({
+      const shiftedMachines = applyCurrentShiftAssignments(mRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+      const mapped = shiftedMachines.map(m => ({
         machine_id: m.id,
         machine_name: m.name,
         location: m.location,
@@ -111,7 +115,7 @@ export default function Assistant() {
       }));
       const visibleMachines = visibleMachinesForUser(mapped, signedInUser);
       const visibleIds = visibleMachineIdSet(mapped, signedInUser);
-      const shouldScope = isTechnicianRole(signedInUser?.role);
+      const shouldScope = isShiftScopedRole(signedInUser?.role);
       setMachines(visibleMachines);
       setTickets(shouldScope ? filterRowsToVisibleMachines(tRes.data || [], visibleIds) : (tRes.data || []));
       setEvents(shouldScope ? filterRowsToVisibleMachines(eRes.data || [], visibleIds) : (eRes.data || []));

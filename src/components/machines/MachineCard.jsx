@@ -29,6 +29,7 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
     || (typeof window !== 'undefined' ? window.localStorage.getItem(`tf_machine_photo_${machine.machine_id}`) : null);
 
   const technician = machine.assignments?.technician?.name;
+  const activeShiftName = machine.assignment_source === 'shift_roster' ? machine.active_shift?.name : '';
 
   return (
     <article
@@ -55,6 +56,11 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
         {critical && (
           <span className="machine-card-flag" title="A critical ticket is open on this machine">
             <TriangleAlert size={13} aria-hidden="true" /> Critical
+          </span>
+        )}
+        {activeShiftName && (
+          <span className="machine-card-shift" title="Current shift assignment">
+            {activeShiftName}
           </span>
         )}
       </header>

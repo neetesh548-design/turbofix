@@ -193,6 +193,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        )
         if request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
         return response
@@ -218,4 +223,3 @@ def health():
     return {"status": "ok", "store": config.TICKET_STORE}
 
 # Deploy admin trigger comment
-

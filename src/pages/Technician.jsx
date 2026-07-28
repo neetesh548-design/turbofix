@@ -6,6 +6,7 @@ import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
 import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet } from '@/utils/machineVisibility';
+import { applyCurrentShiftAssignments } from '@/utils/shiftAssignments';
 
 const defaultWork = {
   status: 'assigned',
@@ -46,21 +47,24 @@ export default function Technician() {
     document.title = 'Technician Hub | TurboFix';
     (async () => {
       try {
-        const [ticketsRes, machinesRes, documentsRes, partsRes, interventionsRes] = await Promise.all([
+        const [ticketsRes, machinesRes, documentsRes, partsRes, interventionsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
           supabase.from('tickets').select('*'),
           supabase.from('machines').select('*'),
           supabase.from('documents').select('id,machine_id,title,category'),
           supabase.from('parts').select('*'),
           supabase.from('maintenance_interventions').select('ticket_id,intervention_type,status,decision'),
+          supabase.from('shift_rosters').select('*'),
+          supabase.from('machine_shift_assignments').select('*'),
         ]);
         const allTickets = ticketsRes.data || [];
+        const currentMachines = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
         const isTechnician = isTechnicianRole(user?.role);
-        const visibleMachineIds = visibleMachineIdSet(machinesRes.data || [], user);
+        const visibleMachineIds = visibleMachineIdSet(currentMachines, user);
         const scopedTickets = isTechnician ? filterRowsToVisibleMachines(allTickets, visibleMachineIds) : allTickets;
         const scopedDocuments = isTechnician ? filterRowsToVisibleMachines(documentsRes.data || [], visibleMachineIds) : (documentsRes.data || []);
         const scopedParts = isTechnician ? filterRowsToVisibleMachines(partsRes.data || [], visibleMachineIds) : (partsRes.data || []);
         const machineMap = {};
-        (machinesRes.data || []).forEach(m => { machineMap[m.id] = m; });
+        currentMachines.forEach(m => { machineMap[m.id] = m; });
         // Proven-fixes knowledge base (roadmap P2): closed repairs that recorded
         // a repair action or root cause, reusable at the point of repair.
         setHistory(scopedTickets.filter(t => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase()) && (t.repair_action || t.root_cause)));

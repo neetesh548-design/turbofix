@@ -52,7 +52,8 @@ import {
   shouldUseDemoReliability,
 } from '../utils/demoDashboard.js';
 import { supabase } from '@/supabaseClient';
-import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
+import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
+import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
 import './Dashboard.css';
 
 const ROLE_HEADINGS = {
@@ -87,15 +88,17 @@ function fetchWithTimeout(promise, ms = 3000) {
  * fetchDashboardData(), which returns the pre-derived legacy shape.
  */
 async function fetchRoleSources() {
-  const [machinesRes, ticketsRes, teamRes, pmLogsRes] = await Promise.all([
+  const [machinesRes, ticketsRes, teamRes, pmLogsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
     fetchWithTimeout(supabase.from('machines').select('*')),
     fetchWithTimeout(supabase.from('tickets').select('*')),
     fetchWithTimeout(supabase.from('users').select('user_id,name,email,role')),
     fetchWithTimeout(supabase.from('pm_logs').select('on_time')),
+    fetchWithTimeout(supabase.from('shift_rosters').select('*')),
+    fetchWithTimeout(supabase.from('machine_shift_assignments').select('*')),
   ]);
 
   return {
-    machines: machinesRes.data || [],
+    machines: applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []),
     tickets: ticketsRes.data || [],
     team: teamRes.data || [],
     pmLogs: pmLogsRes.data || [],
@@ -168,7 +171,7 @@ export default function Dashboard() {
   const isDemo = demoSession || noFleetData || usingDemoTeam || usingDemoReliability;
 
   const metrics = useMemo(() => {
-    const shouldScope = isTechnicianRole(user?.role);
+    const shouldScope = isShiftScopedRole(user?.role);
     const liveMachineIds = visibleMachineIdSet(sources.machines, user);
     const demoUser = noFleetData && role === DASHBOARD_ROLES.TECHNICIAN
       ? { ...(user || {}), user_id: DEMO_TEAM[0].user_id }

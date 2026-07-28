@@ -279,10 +279,20 @@
   "277": "SecurityHeadersMiddleware",
   "278": "design-guidelines.spec.ts",
   "279": "check_threshold_drift",
+  "280": "offlineIndicator.test.jsx",
   "281": "Tickets",
-  "282": "check_threshold_drift",
-  "284": "create_live_sheet.py",
+  "282": "http_client.py",
+  "283": "_rate_limit_handler",
+  "284": "approve_ticket_closure",
   "285": "test_vault_auth.py",
   "286": "_rate_limit_handler",
-  "290": "test_contact_privacy.py"
+  "287": "TestReports",
+  "290": "test_contact_privacy.py",
+  "291": "run_shift_handover_check",
+  "295": "pwa.js",
+  "296": "@supabase/supabase-js",
+  "297": "workbox-background-sync",
+  "298": "workbox-window",
+  "299": "MachinesRefactored.jsx",
+  "300": "NotificationCenter.jsx"
 }
