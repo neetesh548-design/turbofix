@@ -208,12 +208,12 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Mount all routers — the order matters for OpenAPI grouping.
 app.include_router(webhook_router)
 app.include_router(auth_router)
+app.include_router(report_router)
 app.include_router(vault_router)
 app.include_router(machine_records_router)
 app.include_router(dashboard_router)
 app.include_router(kpi_router)
 app.include_router(admin_router)
-app.include_router(report_router)
 app.include_router(technician_router)
 
 

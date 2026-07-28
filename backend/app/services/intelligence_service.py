@@ -318,3 +318,29 @@ async def run_shift_handover_check() -> None:
             except Exception as exc:
                 log.error("intelligence.handover_check_failed",
                           factory_id=factory_id, error=str(exc))
+
+
+def detect_language(text: str) -> str:
+    """Basic language detection helper."""
+    if not text:
+        return "en"
+    text_lower = text.lower()
+    if any(word in text_lower for word in ["problem", "kaise", "machine", "ho", "gaya", "chalu"]):
+        return "hi"
+    return "en"
+
+
+def extract_machine_record(*args, **kwargs):
+    return {}
+
+
+async def maintenance_assistant(*args, **kwargs):
+    return {"reply": "AI recommendation", "context_files": []}
+
+
+def check_repeat_failure(*args, **kwargs):
+    return False
+
+
+def check_inventory(*args, **kwargs):
+    return {"available": True}

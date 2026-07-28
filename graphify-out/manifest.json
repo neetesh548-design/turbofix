@@ -15,8 +15,8 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "backend/app/admin_page.py": {
-    "mtime": 1785234640.2696378,
-    "ast_hash": "4ba6d5fc503e3e2814ffea815061d048",
+    "mtime": 1785267524.5261197,
+    "ast_hash": "4c3bf0ea19a79a1130951dae8eee8f4d",
     "semantic_hash": ""
   },
   "backend/app/ai/__init__.py": {
@@ -215,9 +215,9 @@
     "semantic_hash": "e0051cd91151a253a3fe770f298728c7"
   },
   "backend/app/repositories/supabase_repo.py": {
-    "mtime": 1784608497.3268213,
-    "ast_hash": "aef9a05b92a2daec325e23e9a612681f",
-    "semantic_hash": "aef9a05b92a2daec325e23e9a612681f"
+    "mtime": 1785266132.9612138,
+    "ast_hash": "617b0976d0d63fe896b2dfea8082c138",
+    "semantic_hash": ""
   },
   "backend/app/routers/__init__.py": {
     "mtime": 1783853001.7585542,
@@ -225,8 +225,8 @@
     "semantic_hash": "04e5d6edc7b373226e03ee800e5d7cc1"
   },
   "backend/app/routers/admin_router.py": {
-    "mtime": 1785246054.6133754,
-    "ast_hash": "a4626025f8dbae8caea28783bc2bb9a8",
+    "mtime": 1785267513.9003735,
+    "ast_hash": "5f94aa430a5add9c09db54ba263f8457",
     "semantic_hash": ""
   },
   "backend/app/routers/auth_router.py": {
@@ -500,8 +500,8 @@
     "semantic_hash": "f470464669fe4c1c432570071f4f02c3"
   },
   "backend/tests/test_vault_quota_admin.py": {
-    "mtime": 1785246235.0614371,
-    "ast_hash": "3b002fffe0477e897cf07076a1d4175b",
+    "mtime": 1785258066.5623517,
+    "ast_hash": "1a74af56c829fe7737556d58857620a1",
     "semantic_hash": ""
   },
   "backend/tests/test_vault_settings.py": {
@@ -2717,6 +2717,21 @@
   "src/pages/marketing/Workflow.jsx": {
     "mtime": 1785241246.3390934,
     "ast_hash": "16a3bbc300258c6819f88052745668fe",
+    "semantic_hash": ""
+  },
+  "tests/admin-data-audit.spec.js": {
+    "mtime": 1785257733.5417175,
+    "ast_hash": "bc885027a30cf435c53e0769cc7605c3",
+    "semantic_hash": ""
+  },
+  "tests/admin-live-audit.spec.js": {
+    "mtime": 1785249681.491287,
+    "ast_hash": "3c61c7fe272d47a75d2033fc1497b50c",
+    "semantic_hash": ""
+  },
+  "tests/tfdemo-comparison-audit.spec.js": {
+    "mtime": 1785258327.625364,
+    "ast_hash": "aa00709fa37c9f1a06af28e1246f3164",
     "semantic_hash": ""
   }
 }

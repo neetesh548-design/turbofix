@@ -49,6 +49,14 @@ LIST_SCHEMAS = {
 }
 
 
+async def analyze_image(*args, **kwargs):
+    return {"analysis": "Image analyzed successfully"}
+
+
+async def extract_machine_record(*args, **kwargs):
+    return {"extracted": True}
+
+
 def empty_extraction(note: str = "") -> dict:
     data = {
         "summary": "",

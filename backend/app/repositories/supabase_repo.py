@@ -390,10 +390,11 @@ class SupabaseMachineRepository(MachineRepository):
 
     def create(self, row: dict) -> None:
         company_id = _company_id_for_code(row.get("company_code", ""))
+        factory_id = _factory_id_for_code(row.get("company_code", "")) or company_id
         _client.insert("machines", {
             "id": row.get("machine_id", str(uuid.uuid4())),
             "company_id": company_id,
-            "factory_id": company_id,
+            "factory_id": factory_id,
             "name": row.get("machine_name", ""),
             "location": row.get("location", ""),
             "assigned_technician_phone": row.get("assigned_technician_phone", ""),
@@ -1080,10 +1081,10 @@ class SupabasePartsRepository(PartsRepository):
         if machine_id:
             rows = _client.select(table, {"machine_id": f"eq.{machine_id}"})
         else:
-            company_id = _company_id_for_code(company_code)
-            if not company_id:
+            factory_id = _factory_id_for_code(company_code) or _company_id_for_code(company_code)
+            if not factory_id:
                 return []
-            rows = _client.select(table, {"factory_id": f"eq.{company_id}"})
+            rows = _client.select(table, {"factory_id": f"eq.{factory_id}"})
         result = []
         for r in rows:
             if kind == "consumables":
@@ -1145,7 +1146,7 @@ class SupabasePartsRepository(PartsRepository):
     def add_item(self, kind: str, row: dict) -> None:
         table = self._table(kind)
         company_code = row.get("company_code", "")
-        factory_id = _company_id_for_code(company_code) if company_code else None
+        factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
         if kind == "consumables":
             _client.insert(table, {
                 "id": row.get("consumable_id", str(uuid.uuid4())),

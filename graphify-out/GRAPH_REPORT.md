@@ -1,7 +1,7 @@
-# Graph Report - TurboFix  (2026-07-28)
+# Graph Report - TurboFix  (2026-07-29)
 
 ## Corpus Check
-- 515 files · ~603,923 words
+- 518 files · ~607,293 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `74679bd7`
+- Built from commit: `96b7a83c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1019,7 +1019,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `LocalTicketRepository`, `Prerequisites`, `QRGateway.jsx`, `.insert`, `MachineRepository`, `machineIdOf`, `kpi_router.py`, `RoleForm.jsx`, `config.py`, `MachinesRefactored.jsx`, `react`, `TurboFix WhatsApp Brochure (Marketing Image)`, `SupervisorKaizen.jsx`, `Assistant.jsx`, `Support.jsx`, `ticketQueues.js`, `AntDNavigationLayout.jsx`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `sw-strategies.js`, `badge.jsx`, `button.jsx`, `SupabaseFileStorage`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `LocalDocumentRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `SupabaseCustomKpiRepository`, `test_admin_onboarding.py`, `FakeAsyncClient`, `.oxlintrc.json`, `company_hierarchy`, `tabs.jsx`, `ai_service.py`, `roles.js`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `ErrorBoundary`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Why does `MachineRepository` connect `fanout_service.py` to `whatsapp_webhook/index.ts`, `DocumentRepository`, `RoleForm.jsx`, `escalation_service.py`, `main.py`, `TicketRepository`, `webhook_router.py`, `LocalUserRepository`, `resilient_get`, `SupabasePartsRepository`, `SheetsTicketRepository`, `whatsapp.py`, `test_summarize.py`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Why does `UserRepository` connect `fanout_service.py` to `whatsapp_webhook/index.ts`, `RoleForm.jsx`, `escalation_service.py`, `webhook_router.py`, `LocalUserRepository`, `resilient_get`, `SheetsTicketRepository`, `Top Navigation Bar`, `get_tickets`, `whatsapp.py`?**

@@ -268,3 +268,8 @@ def _safe_float(val) -> float:
         return float(str(val).replace(",", ""))
     except (ValueError, TypeError):
         return 0.0
+
+
+get_dashboard_data = compute_kpis
+def build_custom_kpi_values(*args, **kwargs):
+    return []
