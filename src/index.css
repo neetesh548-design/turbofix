@@ -8107,15 +8107,15 @@ details.faq-item p {
 .public-nav-language {
   position: relative;
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 10px;
-  padding: 0 20px 0 9px;
+  border-radius: 12px;
+  padding: 0 28px 0 14px;
   color: #ffffff;
   background: rgba(22, 33, 46, .8);
-  font-size: .78rem;
-  font-weight: 700;
+  font-size: .95rem;
+  font-weight: 800;
   cursor: pointer;
   transition: border-color .18s ease, background .18s ease;
 }
@@ -8125,13 +8125,13 @@ details.faq-item p {
   background: rgba(30, 44, 60, .9);
 }
 .public-nav-language select {
-  min-height: 44px;
+  min-height: 48px;
   border: 0;
   padding: 0;
   color: #ffffff;
   background: transparent;
-  font-size: .78rem;
-  font-weight: 700;
+  font-size: .95rem;
+  font-weight: 800;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -8144,8 +8144,8 @@ details.faq-item p {
 .lang-chevron {
   position: absolute;
   right: 5px;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   color: #94a3b8;
   pointer-events: none;
 }
@@ -8551,9 +8551,9 @@ details.faq-item p {
   .public-nav .brand-logo { width: 38px; height: 38px; }
   .public-nav .brand-name { font-size: 1.08rem; }
   .public-nav-waffle-btn { width: 44px; height: 44px; }
-  .public-nav-language { min-height: 44px; padding-left: 8px; }
+  .public-nav-language { min-height: 48px; padding-left: 12px; }
   .public-nav-language > svg { display: none; }
-  .public-nav-language select { max-width: 58px; min-height: 44px; }
+  .public-nav-language select { min-height: 48px; }
   .public-nav-menu { left: 8px; right: 8px; padding: 14px; }
 }
 

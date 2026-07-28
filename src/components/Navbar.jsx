@@ -146,9 +146,9 @@ export default function Navbar() {
                 <label className="public-nav-language">
                   <span className="sr-only">{t('menu.language')}</span>
                   <select aria-label={t('menu.language')} value={lang} onChange={(event) => setLang(event.target.value)}>
-                    <option value="en">EN</option>
-                    <option value="hi">HI</option>
-                    <option value="mr">MR</option>
+                    <option value="en">English</option>
+                    <option value="hi">हिंदी</option>
+                    <option value="mr">मराठी</option>
                   </select>
                   <ChevronDown className="lang-chevron" aria-hidden="true" />
                 </label>
