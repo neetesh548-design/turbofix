@@ -317,7 +317,11 @@ class SupabaseMachineRepository(MachineRepository):
         self._ttl = cache_ttl
 
     def _row_to_dict(self, row: dict) -> dict:
-        company_code = _company_code_for_id(row.get("company_id") or row.get("factory_id") or "")
+        company_code = (
+            row.get("company_code")
+            or _company_code_for_id(row.get("company_id") or "")
+            or _company_code_for_factory_id(row.get("factory_id") or "")
+        )
         return {
             "machine_id": row.get("id", ""),
             "company_code": company_code,
@@ -377,11 +381,8 @@ class SupabaseMachineRepository(MachineRepository):
         return f"M{max_num + 1:03d}"
 
     def get_company_machines(self, company_code: str) -> List[dict]:
-        company_id = _company_id_for_code(company_code)
-        if not company_id:
-            return []
-        rows = _client.select("machines", {"company_id": f"eq.{company_id}"})
-        return [self._row_to_dict(r) for r in rows]
+        all_machines = list(self.load().values())
+        return [m for m in all_machines if m.get("company_code") == company_code]
 
 
 # ---------------------------------------------------------------------------
