@@ -109,8 +109,12 @@ def admin_list_companies(
             if code and code not in companies_by_code:
                 companies_by_code[code] = c
 
+        # fid_to_code resolves a factory_id UUID → company_code.
+        # Populated from companies.id, then extended by factories + machines tables below.
+        fid_to_code_map: dict[str, str] = dict(id_to_code)  # start with company UUIDs
+
         def fid_to_code(fid: str) -> str:
-            return id_to_code.get(fid, "") or name_to_code.get(fid, "")
+            return fid_to_code_map.get(fid, "") or name_to_code.get(fid, "")
 
         all_users = users.list_users()
         users_by_company: dict[str, int] = {}
@@ -135,6 +139,37 @@ def admin_list_companies(
         last_activity_by_company: dict[str, str] = {}
         try:
             from app.repositories.supabase_repo import _client
+
+            # ── Extend fid_to_code_map with factories + machines tables ───────
+            # tickets.factory_id → factories.id → factories.name → company_code
+            try:
+                raw_factories = _client.select("factories", {"select": "id,name"})
+                for f in raw_factories:
+                    fid = f.get("id") or ""
+                    fname = f.get("name") or ""
+                    if fid and fid not in fid_to_code_map:
+                        code = name_to_code.get(fname, "")
+                        if code:
+                            fid_to_code_map[fid] = code
+            except Exception:
+                pass
+
+            # machines.factory_id → machines.company_id → company_code
+            try:
+                raw_mach = _client.select("machines", {"select": "factory_id,company_id"})
+                for m in raw_mach:
+                    fid = m.get("factory_id") or ""
+                    cid = m.get("company_id") or ""
+                    if fid and fid not in fid_to_code_map:
+                        code = id_to_code.get(cid, "")
+                        if code:
+                            fid_to_code_map[fid] = code
+                    # also count machines per company from this bulk result
+                    code2 = id_to_code.get(cid, "") or fid_to_code_map.get(fid, "")
+                    if code2 and code2 not in machines_by_company:
+                        pass  # already counted via injected repo; avoid double-count
+            except Exception:
+                pass
 
             raw_tickets = _client.select("tickets", {"select": "factory_id,status,urgency,created_at"})
             for t in raw_tickets:
