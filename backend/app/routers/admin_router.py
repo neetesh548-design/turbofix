@@ -93,134 +93,104 @@ def admin_list_companies(
     records: MachineRecordRepository = Depends(get_machine_records),
 ):
     if config.TICKET_STORE == "supabase":
-        out = []
-        all_users = users.list_users()
-        all_machines = list(machines.load().values()) if hasattr(machines, "load") else []
-        users_by_company = {}
-        machines_by_company = {}
-        tickets_by_company = {}
-        critical_by_company = {}
-        documents_by_company = {}
-        pending_records_by_company = {}
-        approved_records_by_company = {}
-        last_activity_by_company = {}
+        # ── companies / users / machines via injected repos ──────────────────
+        raw_companies = users.list_companies()
+        id_to_code: dict[str, str] = {}
+        name_to_code: dict[str, str] = {}
+        companies_by_code: dict[str, dict] = {}
+        for c in raw_companies:
+            code = c.get("company_code") or c.get("domain") or ""
+            cid = c.get("id") or ""
+            cname = c.get("company_name") or c.get("name") or ""
+            if code and cid:
+                id_to_code[cid] = code
+            if code and cname:
+                name_to_code[cname] = code
+            if code and code not in companies_by_code:
+                companies_by_code[code] = c
 
-        for user in all_users:
-            code = user.get("company_code")
+        def fid_to_code(fid: str) -> str:
+            return id_to_code.get(fid, "") or name_to_code.get(fid, "")
+
+        all_users = users.list_users()
+        users_by_company: dict[str, int] = {}
+        for u in all_users:
+            code = u.get("company_code") or ""
             if code:
                 users_by_company[code] = users_by_company.get(code, 0) + 1
-        for machine in all_machines:
-            code = machine.get("company_code")
+
+        all_machines = list(machines.load().values()) if hasattr(machines, "load") else []
+        machines_by_company: dict[str, int] = {}
+        for m in all_machines:
+            code = m.get("company_code") or fid_to_code(m.get("company_id") or m.get("factory_id") or "")
             if code:
                 machines_by_company[code] = machines_by_company.get(code, 0) + 1
 
+        # ── tickets / docs / records via direct Supabase bulk select ─────────
+        tickets_by_company: dict[str, int] = {}
+        critical_by_company: dict[str, int] = {}
+        documents_by_company: dict[str, int] = {}
+        pending_records_by_company: dict[str, int] = {}
+        approved_records_by_company: dict[str, int] = {}
+        last_activity_by_company: dict[str, str] = {}
         try:
-            from app.repositories.supabase_repo import _client, _build_factory_to_code_map
-            f_map = _build_factory_to_code_map()
+            from app.repositories.supabase_repo import _client
 
-            raw_tickets = _client.select("tickets")
+            raw_tickets = _client.select("tickets", {"select": "factory_id,status,urgency,created_at"})
             for t in raw_tickets:
-                f_id = t.get("factory_id") or ""
-                code = f_map.get(f_id, "")
+                code = fid_to_code(t.get("factory_id") or "")
                 if not code:
                     continue
                 status = str(t.get("status") or "").strip().lower()
                 urgency = str(t.get("urgency") or "").strip().lower()
-                rep_at = str(t.get("created_at") or t.get("reported_at") or "")
-                if rep_at:
-                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), rep_at)
-                if status != "closed":
+                ts = str(t.get("created_at") or "")
+                if ts:
+                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), ts)
+                if status not in {"closed", "resolved"}:
                     tickets_by_company[code] = tickets_by_company.get(code, 0) + 1
                     if urgency in {"critical", "high", "urgent"}:
                         critical_by_company[code] = critical_by_company.get(code, 0) + 1
 
-            raw_docs = _client.select("documents")
+            raw_docs = _client.select("documents", {"select": "factory_id,uploaded_at"})
             for d in raw_docs:
-                f_id = d.get("factory_id") or ""
-                code = f_map.get(f_id, "")
+                code = fid_to_code(d.get("factory_id") or "")
                 if not code:
                     continue
-                up_at = str(d.get("uploaded_at") or "")
-                if up_at:
-                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), up_at)
+                ts = str(d.get("uploaded_at") or "")
+                if ts:
+                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), ts)
                 documents_by_company[code] = documents_by_company.get(code, 0) + 1
 
-            raw_recs = _client.select("machine_records")
+            raw_recs = _client.select("machine_records", {"select": "factory_id,status,updated_at,created_at"})
             for r in raw_recs:
-                f_id = r.get("factory_id") or ""
-                code = f_map.get(f_id, "")
+                code = fid_to_code(r.get("factory_id") or "")
                 if not code:
                     continue
                 st = str(r.get("status") or "").strip().lower()
-                up_at = str(r.get("updated_at") or r.get("created_at") or "")
-                if up_at:
-                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), up_at)
+                ts = str(r.get("updated_at") or r.get("created_at") or "")
+                if ts:
+                    last_activity_by_company[code] = max(last_activity_by_company.get(code, ""), ts)
                 if st == "needs_review":
                     pending_records_by_company[code] = pending_records_by_company.get(code, 0) + 1
                 elif st == "approved":
                     approved_records_by_company[code] = approved_records_by_company.get(code, 0) + 1
-        except Exception:
-            pass
+        except Exception as exc:
+            log.warning("admin_list_companies: supabase bulk select failed, metrics may be partial",
+                        extra={"error": str(exc)})
 
-        seen_codes = set()
-        for c in users.list_companies():
-            code = c.get("company_code")
-            if not code or code in seen_codes:
-                continue
-            seen_codes.add(code)
+        # ── Assemble output ───────────────────────────────────────────────────
+        out = []
+        for code, c in companies_by_code.items():
             quota = _company_quota(c)
             machines_used = machines_by_company.get(code, 0)
             capacity_percent = round((machines_used / quota) * 100) if quota else 0
-
-            if code not in tickets_by_company:
-                try:
-                    c_tickets = tickets.get_company_tickets(code)
-                    open_t = [t for t in c_tickets if not _is_closed(t)]
-                    crit_t = [t for t in open_t if _is_critical(t)]
-                    open_cnt = len(open_t)
-                    crit_cnt = len(crit_t)
-                except Exception:
-                    c_tickets = []
-                    open_cnt = 0
-                    crit_cnt = 0
-            else:
-                c_tickets = []
-                open_cnt = tickets_by_company.get(code, 0)
-                crit_cnt = critical_by_company.get(code, 0)
-
-            if code not in documents_by_company:
-                try:
-                    c_docs = documents.list(code)
-                    doc_cnt = len(c_docs)
-                except Exception:
-                    c_docs = []
-                    doc_cnt = 0
-            else:
-                c_docs = []
-                doc_cnt = documents_by_company.get(code, 0)
-
-            if code not in pending_records_by_company:
-                try:
-                    c_recs = records.list(code)
-                    pend_rec = sum(1 for r in c_recs if str(r.get("status") or "").strip().lower() == "needs_review")
-                    appr_rec = sum(1 for r in c_recs if str(r.get("status") or "").strip().lower() == "approved")
-                except Exception:
-                    c_recs = []
-                    pend_rec = 0
-                    appr_rec = 0
-            else:
-                c_recs = []
-                pend_rec = pending_records_by_company.get(code, 0)
-                appr_rec = approved_records_by_company.get(code, 0)
-
-            last_act = last_activity_by_company.get(code) or _latest(
-                *(t.get("reported_at", "") for t in c_tickets),
-                *(d.get("uploaded_at", "") for d in c_docs),
-                *(r.get("updated_at", "") or r.get("created_at", "") for r in c_recs),
-            )
-
+            open_cnt = tickets_by_company.get(code, 0)
+            crit_cnt = critical_by_company.get(code, 0)
+            pend_rec = pending_records_by_company.get(code, 0)
+            appr_rec = approved_records_by_company.get(code, 0)
+            approved = _company_approved(c)
             needs_attention = (
-                not _company_approved(c)
+                not approved
                 or machines_used > quota
                 or (quota > 0 and capacity_percent >= 80)
                 or bool(crit_cnt)
@@ -228,21 +198,21 @@ def admin_list_companies(
             )
             out.append({
                 "company_code": code,
-                "company_name": c.get("company_name"),
-                "admin_contact_phone": c.get("admin_contact_phone"),
-                "onboarded_date": str(c.get("onboarded_date") or ""),
+                "company_name": c.get("company_name") or c.get("name") or code,
+                "admin_contact_phone": c.get("admin_contact_phone") or "",
+                "onboarded_date": str(c.get("onboarded_date") or c.get("created_at") or ""),
                 "machine_quota": quota,
-                "approved": _company_approved(c),
+                "approved": approved,
                 "machines_used": machines_used,
                 "capacity_percent": capacity_percent,
                 "user_count": users_by_company.get(code, 0),
                 "open_tickets": open_cnt,
                 "critical_tickets": crit_cnt,
-                "document_count": doc_cnt,
+                "document_count": documents_by_company.get(code, 0),
                 "pending_records": pend_rec,
                 "approved_records": appr_rec,
                 "needs_attention": needs_attention,
-                "last_activity": last_act,
+                "last_activity": last_activity_by_company.get(code, ""),
             })
         return sorted(
             out,

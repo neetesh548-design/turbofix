@@ -273,26 +273,52 @@ def test_admin_app_has_safer_client_controls(vault_client):
 
 
 def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypatch):
-    class FakeTickets:
-        def get_company_tickets(self, code):
-            if code == "ACME3":
-                return [{"status": "Open", "urgency": "critical", "reported_at": "2026-07-28T10:00:00Z"}]
-            return []
+    """Verify the Supabase fast-path aggregates tickets/docs/records correctly."""
+    import app.repositories.supabase_repo as sb_repo
 
-    class FakeDocs:
-        def list(self, code):
-            return [{"uploaded_at": "2026-07-28T09:00:00Z"}] if code == "ACME3" else []
+    # company UUID that maps to ACME3 via id_to_code
+    ACME3_ID = "acme3-uuid"
 
-    class FakeRecords:
-        def list(self, code):
-            return [{"status": "needs_review", "updated_at": "2026-07-28T11:00:00Z"}] if code == "ACME3" else []
+    fake_db = {
+        "tickets": [
+            {"factory_id": ACME3_ID, "status": "Open", "urgency": "critical", "created_at": "2026-07-28T10:00:00Z"},
+        ],
+        "documents": [
+            {"factory_id": ACME3_ID, "uploaded_at": "2026-07-28T09:00:00Z"},
+        ],
+        "machine_records": [
+            {"factory_id": ACME3_ID, "status": "needs_review", "updated_at": "2026-07-28T11:00:00Z", "created_at": ""},
+        ],
+    }
 
-    from app.dependencies import get_documents, get_machine_records, get_tickets
+    original_select = sb_repo._client.select.__func__ if hasattr(sb_repo._client.select, "__func__") else None
+
+    def fake_select(self, table, params=None):
+        return fake_db.get(table, [])
 
     monkeypatch.setattr(config, "TICKET_STORE", "supabase")
-    vault_client.app.dependency_overrides[get_tickets] = lambda: FakeTickets()
-    vault_client.app.dependency_overrides[get_documents] = lambda: FakeDocs()
-    vault_client.app.dependency_overrides[get_machine_records] = lambda: FakeRecords()
+    monkeypatch.setattr(sb_repo._client.__class__, "select", fake_select)
+
+    # Patch list_companies on the real UserRepository to include ACME3 with the UUID
+    from app.dependencies import get_users
+    original_repo = sb_repo.SupabaseUserRepository
+
+    class PatchedUserRepo(original_repo):
+        def list_companies(self):
+            return [{
+                "company_code": "ACME3",
+                "company_name": "Acme Forge",
+                "admin_contact_phone": "+91000",
+                "onboarded_date": "2026-01-15",
+                "machine_quota": 5,
+                "approved": "yes",
+                "id": ACME3_ID,
+            }]
+
+        def list_users(self):
+            return [{"company_code": "ACME3"}]
+
+    vault_client.app.dependency_overrides[get_users] = lambda: PatchedUserRepo()
     try:
         response = vault_client.get("/admin/companies", headers=auth_headers(admin_token(vault_client)))
         assert response.status_code == 200, response.text
@@ -306,4 +332,5 @@ def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypa
         assert acme["last_activity"] == "2026-07-28T11:00:00Z"
     finally:
         vault_client.app.dependency_overrides.clear()
+
 
