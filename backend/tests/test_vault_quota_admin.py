@@ -276,10 +276,16 @@ def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypa
     """Verify the Supabase fast-path aggregates tickets/docs/records correctly."""
     import app.repositories.supabase_repo as sb_repo
 
-    # company UUID that maps to ACME3 via id_to_code
+    # company UUID that maps to ACME3 in id_to_code
     ACME3_ID = "acme3-uuid"
 
     fake_db = {
+        # The new code does _client.select("companies", {"select":"id,domain,name"}) first
+        "companies": [
+            {"id": ACME3_ID, "domain": "ACME3", "name": "Acme Forge"},
+        ],
+        "factories": [],
+        "machines": [],
         "tickets": [
             {"factory_id": ACME3_ID, "status": "Open", "urgency": "critical", "created_at": "2026-07-28T10:00:00Z"},
         ],
@@ -291,19 +297,15 @@ def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypa
         ],
     }
 
-    original_select = sb_repo._client.select.__func__ if hasattr(sb_repo._client.select, "__func__") else None
-
     def fake_select(self, table, params=None):
         return fake_db.get(table, [])
 
     monkeypatch.setattr(config, "TICKET_STORE", "supabase")
     monkeypatch.setattr(sb_repo._client.__class__, "select", fake_select)
 
-    # Patch list_companies on the real UserRepository to include ACME3 with the UUID
-    from app.dependencies import get_users
-    original_repo = sb_repo.SupabaseUserRepository
+    from app.dependencies import get_machines, get_users
 
-    class PatchedUserRepo(original_repo):
+    class FakeUserRepo:
         def list_companies(self):
             return [{
                 "company_code": "ACME3",
@@ -312,13 +314,17 @@ def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypa
                 "onboarded_date": "2026-01-15",
                 "machine_quota": 5,
                 "approved": "yes",
-                "id": ACME3_ID,
             }]
 
         def list_users(self):
             return [{"company_code": "ACME3"}]
 
-    vault_client.app.dependency_overrides[get_users] = lambda: PatchedUserRepo()
+    class FakeMachineRepo:
+        def load(self):
+            return {}
+
+    vault_client.app.dependency_overrides[get_users] = lambda: FakeUserRepo()
+    vault_client.app.dependency_overrides[get_machines] = lambda: FakeMachineRepo()
     try:
         response = vault_client.get("/admin/companies", headers=auth_headers(admin_token(vault_client)))
         assert response.status_code == 200, response.text
@@ -332,5 +338,3 @@ def test_admin_companies_supabase_mode_calculates_metrics(vault_client, monkeypa
         assert acme["last_activity"] == "2026-07-28T11:00:00Z"
     finally:
         vault_client.app.dependency_overrides.clear()
-
-

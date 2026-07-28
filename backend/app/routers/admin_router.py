@@ -93,28 +93,36 @@ def admin_list_companies(
     records: MachineRecordRepository = Depends(get_machine_records),
 ):
     if config.TICKET_STORE == "supabase":
-        # ── companies / users / machines via injected repos ──────────────────
-        raw_companies = users.list_companies()
+        # ── Build company id→code map via direct Supabase SELECT ─────────────
+        # list_companies() strips the raw `id` field, so we need the raw rows too.
         id_to_code: dict[str, str] = {}
         name_to_code: dict[str, str] = {}
-        companies_by_code: dict[str, dict] = {}
-        for c in raw_companies:
-            code = c.get("company_code") or c.get("domain") or ""
-            cid = c.get("id") or ""
-            cname = c.get("company_name") or c.get("name") or ""
-            if code and cid:
-                id_to_code[cid] = code
-            if code and cname:
-                name_to_code[cname] = code
-            if code and code not in companies_by_code:
-                companies_by_code[code] = c
-
-        # fid_to_code resolves a factory_id UUID → company_code.
-        # Populated from companies.id, then extended by factories + machines tables below.
-        fid_to_code_map: dict[str, str] = dict(id_to_code)  # start with company UUIDs
+        fid_to_code_map: dict[str, str] = {}
+        try:
+            from app.repositories.supabase_repo import _client
+            raw_companies = _client.select("companies", {"select": "id,domain,name"})
+            for c in raw_companies:
+                code = c.get("domain") or ""
+                cid = c.get("id") or ""
+                cname = c.get("name") or ""
+                if code and cid:
+                    id_to_code[cid] = code
+                    fid_to_code_map[cid] = code
+                if code and cname:
+                    name_to_code[cname] = code
+        except Exception as exc:
+            log.warning("admin_list_companies: companies id map failed", extra={"error": str(exc)})
 
         def fid_to_code(fid: str) -> str:
             return fid_to_code_map.get(fid, "") or name_to_code.get(fid, "")
+
+        # ── companies / users / machines via injected repos ──────────────────
+        raw_companies_dicts = users.list_companies()
+        companies_by_code: dict[str, dict] = {}
+        for c in raw_companies_dicts:
+            code = c.get("company_code") or ""
+            if code and code not in companies_by_code:
+                companies_by_code[code] = c
 
         all_users = users.list_users()
         users_by_company: dict[str, int] = {}
@@ -138,7 +146,7 @@ def admin_list_companies(
         approved_records_by_company: dict[str, int] = {}
         last_activity_by_company: dict[str, str] = {}
         try:
-            from app.repositories.supabase_repo import _client
+            from app.repositories.supabase_repo import _client  # noqa: F811
 
             # ── Extend fid_to_code_map with factories + machines tables ───────
             # tickets.factory_id → factories.id → factories.name → company_code
@@ -164,10 +172,6 @@ def admin_list_companies(
                         code = id_to_code.get(cid, "")
                         if code:
                             fid_to_code_map[fid] = code
-                    # also count machines per company from this bulk result
-                    code2 = id_to_code.get(cid, "") or fid_to_code_map.get(fid, "")
-                    if code2 and code2 not in machines_by_company:
-                        pass  # already counted via injected repo; avoid double-count
             except Exception:
                 pass
 
