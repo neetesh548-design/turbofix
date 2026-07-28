@@ -52,6 +52,7 @@ import {
   shouldUseDemoReliability,
 } from '../utils/demoDashboard.js';
 import { supabase } from '@/supabaseClient';
+import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
 import './Dashboard.css';
 
 const ROLE_HEADINGS = {
@@ -167,6 +168,15 @@ export default function Dashboard() {
   const isDemo = demoSession || noFleetData || usingDemoTeam || usingDemoReliability;
 
   const metrics = useMemo(() => {
+    const shouldScope = isTechnicianRole(user?.role);
+    const liveMachineIds = visibleMachineIdSet(sources.machines, user);
+    const liveSources = shouldScope
+      ? {
+        ...sources,
+        machines: visibleMachinesForUser(sources.machines, user),
+        tickets: filterRowsToVisibleMachines(sources.tickets, liveMachineIds),
+      }
+      : sources;
     const input = isDemo
       ? {
         machines: demoSession || !sources.machines.length ? DEMO_MACHINES : sources.machines,
@@ -179,7 +189,7 @@ export default function Dashboard() {
           ? { ...(user || {}), user_id: DEMO_TEAM[0].user_id }
           : user,
       }
-      : { ...sources, user };
+      : { ...liveSources, user };
 
     // Cache key changes whenever the inputs that move a number move.
     const key = [

@@ -19,6 +19,7 @@ import { filterMachines, summarizeFleet, sortByHealth } from '../utils/machineHe
 import { DEMO_MACHINES } from '../utils/demoMachines';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { downloadMachinesCSV } from '../utils/machineExport';
+import { visibleMachinesForUser } from '../utils/machineVisibility';
 import './Machines.css';
 
 const WORKSPACE_TABS = [
@@ -403,12 +404,7 @@ export default function Machines() {
         wa_link: null,
       });
       });
-      // Technicians only see the machines assigned to them; owners, supervisors,
-      // engineers and maintenance heads see the full plant directory.
-      const isTechnician = ['maintenance_technician', 'technician'].includes(signedInUser?.role);
-      const visibleMachines = isTechnician
-        ? mData.filter((m) => String(m.technician_user_id || '') === String(signedInUser?.user_id || ''))
-        : mData;
+      const visibleMachines = visibleMachinesForUser(mData, signedInUser);
       const queryParams = new URLSearchParams(window.location.search);
 
       // A brand-new workspace has no machines. Rather than showing a blank

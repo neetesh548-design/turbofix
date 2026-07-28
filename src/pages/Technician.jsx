@@ -5,6 +5,7 @@ import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
+import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet } from '@/utils/machineVisibility';
 
 const defaultWork = {
   status: 'assigned',
@@ -53,16 +54,20 @@ export default function Technician() {
           supabase.from('maintenance_interventions').select('ticket_id,intervention_type,status,decision'),
         ]);
         const allTickets = ticketsRes.data || [];
+        const isTechnician = isTechnicianRole(user?.role);
+        const visibleMachineIds = visibleMachineIdSet(machinesRes.data || [], user);
+        const scopedTickets = isTechnician ? filterRowsToVisibleMachines(allTickets, visibleMachineIds) : allTickets;
+        const scopedDocuments = isTechnician ? filterRowsToVisibleMachines(documentsRes.data || [], visibleMachineIds) : (documentsRes.data || []);
+        const scopedParts = isTechnician ? filterRowsToVisibleMachines(partsRes.data || [], visibleMachineIds) : (partsRes.data || []);
         const machineMap = {};
         (machinesRes.data || []).forEach(m => { machineMap[m.id] = m; });
         // Proven-fixes knowledge base (roadmap P2): closed repairs that recorded
         // a repair action or root cause, reusable at the point of repair.
-        setHistory(allTickets.filter(t => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase()) && (t.repair_action || t.root_cause)));
+        setHistory(scopedTickets.filter(t => ['closed', 'resolved'].includes(String(t.status || '').toLowerCase()) && (t.repair_action || t.root_cause)));
         // Technicians only see open tickets for machines assigned to them
         // (machines.technician_user_id === their users.id). Supervisors, engineers,
         // maintenance heads and owners see the full open queue.
-        const isTechnician = ['maintenance_technician', 'technician'].includes(user?.role);
-        const items = allTickets
+        const items = scopedTickets
           .filter(t => String(t.status || '').toLowerCase() === 'open')
           .filter(t => {
             if (!isTechnician) return true;
@@ -88,9 +93,9 @@ export default function Technician() {
           const generated = existing.generated_checklist?.length ? existing.generated_checklist : generateChecklist({
             ticket: t,
             machine: machineMap[t.machine_id] || {},
-            history: allTickets,
-            documents: documentsRes.data || [],
-            parts: partsRes.data || [],
+            history: scopedTickets,
+            documents: scopedDocuments,
+            parts: scopedParts,
           });
           storedWork[t.ticket_id] = { ...defaultWork, ...existing, ...(returned ? { status: 'in_progress' } : {}), generated_checklist: generated };
           window.localStorage.setItem(`tf_work_${t.ticket_id}`, JSON.stringify(storedWork[t.ticket_id]));

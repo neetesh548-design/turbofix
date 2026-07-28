@@ -3,6 +3,7 @@ import { Camera, Mic, Square, X } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { supabase } from '@/supabaseClient';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
+import { filterRowsToVisibleMachines, isTechnicianRole, visibleMachineIdSet, visibleMachinesForUser } from '@/utils/machineVisibility';
 
 const plantSuggestions = [
   'Which machines require attention today?',
@@ -92,7 +93,7 @@ export default function Assistant() {
   useEffect(() => {
     document.title = 'Maintenance Help | TurboFix';
     Promise.all([
-      supabase.from('machines').select('id,name,location,status,image_url'),
+      supabase.from('machines').select('id,name,location,status,image_url,technician_user_id'),
       supabase.from('tickets').select('*'),
       supabase.from('events').select('*'),
       supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
@@ -100,24 +101,20 @@ export default function Assistant() {
       const members = directoryRes.data?.members || [];
       const memberNames = Object.fromEntries(members.map((member) => [member.user_id, member.name]));
       const assignments = directoryRes.data?.machine_assignments || {};
-      // Non-owner roles can only ask about machines linked to their profile.
-      const roleAssignmentKey = {
-        maintenance_technician: 'technician_user_id',
-        technician: 'technician_user_id',
-        supervisor: 'supervisor_id',
-        maintenance_engineer: 'engineer_user_id',
-        maintenance_head: 'maintenance_head_user_id',
-      }[signedInUser?.role];
       const mapped = (mRes.data || []).map(m => ({
-        machine_id: m.id, machine_name: m.name, location: m.location, image_url: m.image_url,
+        machine_id: m.id,
+        machine_name: m.name,
+        location: m.location,
+        image_url: m.image_url,
+        technician_user_id: assignments[m.id]?.technician_user_id || m.technician_user_id || null,
         primary_technician_name: memberNames[assignments[m.id]?.technician_user_id] || '',
       }));
-      const visibleMachines = roleAssignmentKey
-        ? mapped.filter(m => String(assignments[m.machine_id]?.[roleAssignmentKey] || '') === String(signedInUser?.user_id || ''))
-        : mapped;
+      const visibleMachines = visibleMachinesForUser(mapped, signedInUser);
+      const visibleIds = visibleMachineIdSet(mapped, signedInUser);
+      const shouldScope = isTechnicianRole(signedInUser?.role);
       setMachines(visibleMachines);
-      setTickets(tRes.data || []);
-      setEvents(eRes.data || []);
+      setTickets(shouldScope ? filterRowsToVisibleMachines(tRes.data || [], visibleIds) : (tRes.data || []));
+      setEvents(shouldScope ? filterRowsToVisibleMachines(eRes.data || [], visibleIds) : (eRes.data || []));
     }).catch(() => {
       setMachines([]);
       setTickets([]);
