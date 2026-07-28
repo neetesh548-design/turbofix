@@ -1,6 +1,6 @@
 import React from 'react';
 import { Factory, LockKeyhole, MessageCircle, ShieldCheck } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 
 const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
@@ -37,8 +37,6 @@ const SocialIconFacebook = () => (
 
 export default function Footer() {
   const { lang } = useLanguage();
-  const location = useLocation();
-  const navigate = useNavigate();
   const year = new Date().getFullYear();
   const copy = {
     en: {
@@ -67,15 +65,6 @@ export default function Footer() {
     },
   }[lang] || {};
 
-  const scrollTo = (sectionId) => (event) => {
-    event.preventDefault();
-    if (location.pathname !== '/') {
-      navigate(`/#${sectionId}`);
-      return;
-    }
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <footer className="footer marketing-footer" aria-label="Site footer">
       <div className="container marketing-footer-main">
@@ -95,17 +84,17 @@ export default function Footer() {
 
         <div className="footer-links">
           <h4>{copy.product}</h4>
-          <a href="#platform" onClick={scrollTo('platform')}>{copy.platform}</a>
-          <a href="#records" onClick={scrollTo('records')}>{copy.records}</a>
-          <a href="#how" onClick={scrollTo('how')}>{copy.workflow}</a>
-          <a href="#demo" onClick={scrollTo('demo')}>{copy.demo}</a>
-          <a href="#pricing" onClick={scrollTo('pricing')}>Pricing & ROI</a>
-          <a href="#faq" onClick={scrollTo('faq')}>{copy.faq}</a>
+          <Link to="/platform.html">{copy.platform}</Link>
+          <Link to="/records-platform.html">{copy.records}</Link>
+          <Link to="/workflow.html">{copy.workflow}</Link>
+          <Link to="/demo.html">{copy.demo}</Link>
+          <Link to="/pricing.html">Pricing & ROI</Link>
+          <Link to="/why-turbofix.html">{copy.faq}</Link>
         </div>
 
         <div className="footer-links marketing-footer-contact">
           <h4>{copy.contact}</h4>
-          <a href="#contact" onClick={scrollTo('contact')}>{copy.book}</a>
+          <Link to="/contact.html">{copy.book}</Link>
           <Link to="/login.html">{copy.signIn}</Link>
           <a className="marketing-footer-whatsapp" href={`https://wa.me/${SALES_WHATSAPP}`} target="_blank" rel="noopener noreferrer" aria-label="Contact TurboFix Sales on WhatsApp"><MessageCircle aria-hidden="true" />{copy.chat}</a>
 

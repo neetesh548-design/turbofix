@@ -545,8 +545,8 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785232221.1363006,
-    "ast_hash": "08cf616dfc85cfa2468528c335049716",
+    "mtime": 1785239294.961071,
+    "ast_hash": "b6cab0db7711a8b99ce82a0c10a578ff",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785231445.641714,
-    "ast_hash": "1efce6f98930fbf284617f6605bc4e45",
+    "mtime": 1785239284.0160162,
+    "ast_hash": "5810f0a80237bc1a54fe8196f0e7914b",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": "88ffb2a9cdb73d8c4f284fbe22ed3815"
   },
   "src/components/Navbar.jsx": {
-    "mtime": 1785233096.9171505,
-    "ast_hash": "ab7e0df7f0d3925ae24891e9988236ee",
+    "mtime": 1785239309.771235,
+    "ast_hash": "97700a3fc7023baaf76e402a210d3cc3",
     "semantic_hash": ""
   },
   "src/components/NotificationCenter.jsx": {
@@ -790,18 +790,18 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785193144.339001,
-    "ast_hash": "1f494f4e4880d4d16ea525c2431b25fd",
+    "mtime": 1785239313.7499754,
+    "ast_hash": "493e4e16aa7a6249787d85f4ec64bc12",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785189954.0056791,
-    "ast_hash": "347f7a3064448f222508e2a943c88878",
+    "mtime": 1785238295.5746298,
+    "ast_hash": "522e096f11290ed4e85099ea2c27913b",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785231972.7161016,
-    "ast_hash": "c519d2894c13ad7ad7f9e04c88cf3e74",
+    "mtime": 1785239835.4013488,
+    "ast_hash": "2bdcd82d356d84b077e4cad8f0f1a503",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {

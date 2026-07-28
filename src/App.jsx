@@ -8,6 +8,13 @@ import { MachineProvider } from './MachineContext';
 import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 
 const Home = lazy(() => import('./pages/Home'));
+const WhyTurboFix = lazy(() => import('./pages/marketing/WhyTurboFix'));
+const Platform = lazy(() => import('./pages/marketing/Platform'));
+const RecordsPlatform = lazy(() => import('./pages/marketing/RecordsPlatform'));
+const Workflow = lazy(() => import('./pages/marketing/Workflow'));
+const MarketingDemo = lazy(() => import('./pages/marketing/Demo'));
+const Pricing = lazy(() => import('./pages/marketing/Pricing'));
+const MarketingContact = lazy(() => import('./pages/marketing/Contact'));
 const QRGenerator = lazy(() => import('./pages/QRGenerator'));
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -76,13 +83,13 @@ function App() {
               <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
                 <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/why-turbofix.html" element={<Home />} />
-                <Route path="/platform.html" element={<Home />} />
-                <Route path="/records-platform.html" element={<Home />} />
-                <Route path="/workflow.html" element={<Home />} />
-                <Route path="/demo.html" element={<Home />} />
-                <Route path="/pricing.html" element={<Home />} />
-                <Route path="/contact.html" element={<Home />} />
+                <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
+                <Route path="/platform.html" element={<Platform />} />
+                <Route path="/records-platform.html" element={<RecordsPlatform />} />
+                <Route path="/workflow.html" element={<Workflow />} />
+                <Route path="/demo.html" element={<MarketingDemo />} />
+                <Route path="/pricing.html" element={<Pricing />} />
+                <Route path="/contact.html" element={<MarketingContact />} />
                 <Route path="/qr-generator.html" element={<QRGenerator />} />
                 <Route path="/login.html" element={<Login />} />
                 <Route path="/login" element={<Navigate to="/login.html" replace />} />

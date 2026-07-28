@@ -545,8 +545,8 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785232221.1363006,
-    "ast_hash": "08cf616dfc85cfa2468528c335049716",
+    "mtime": 1785239294.961071,
+    "ast_hash": "b6cab0db7711a8b99ce82a0c10a578ff",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785231445.641714,
-    "ast_hash": "1efce6f98930fbf284617f6605bc4e45",
+    "mtime": 1785241396.2108347,
+    "ast_hash": "ae0d63b9761018b3996a1cd2fb6a3838",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -625,8 +625,8 @@
     "semantic_hash": "f09afb88aea175bef943453bc7622b7f"
   },
   "src/components/Footer.jsx": {
-    "mtime": 1785231972.9721081,
-    "ast_hash": "5f7f40696aea44aa9d5bd11927fe675d",
+    "mtime": 1785241574.1048474,
+    "ast_hash": "42eef7d1b34a8fe346c7306f19d69a7e",
     "semantic_hash": ""
   },
   "src/components/LanguageGate.jsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": "88ffb2a9cdb73d8c4f284fbe22ed3815"
   },
   "src/components/Navbar.jsx": {
-    "mtime": 1785233096.9171505,
-    "ast_hash": "ab7e0df7f0d3925ae24891e9988236ee",
+    "mtime": 1785239309.771235,
+    "ast_hash": "97700a3fc7023baaf76e402a210d3cc3",
     "semantic_hash": ""
   },
   "src/components/NotificationCenter.jsx": {
@@ -790,8 +790,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785193144.339001,
-    "ast_hash": "1f494f4e4880d4d16ea525c2431b25fd",
+    "mtime": 1785241372.653024,
+    "ast_hash": "bc14a6b7e05e247f5a3badffd1868dae",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785231972.7161016,
-    "ast_hash": "c519d2894c13ad7ad7f9e04c88cf3e74",
+    "mtime": 1785239835.4013488,
+    "ast_hash": "2bdcd82d356d84b077e4cad8f0f1a503",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -2647,6 +2647,76 @@
   "supabase/migrations/20260728000100_shift_rosters.sql": {
     "mtime": 1785234478.0982304,
     "ast_hash": "1385e2897e397d6862c97879726037fa",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/CapabilityStrip.jsx": {
+    "mtime": 1785240902.436742,
+    "ast_hash": "141e8888d0c78de6ef03ae7a8947d31e",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/ContactCard.jsx": {
+    "mtime": 1785241187.8563497,
+    "ast_hash": "fa98d4ecd48b0c78131de25cc486994f",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/FaqAccordion.jsx": {
+    "mtime": 1785240919.6546898,
+    "ast_hash": "2ef6f773630b86a0b64f24e51d639b43",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/PageHero.jsx": {
+    "mtime": 1785240898.8390145,
+    "ast_hash": "eeb4762af5ceb1b06a3c05ca0427d035",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/PricingCalculator.jsx": {
+    "mtime": 1785241173.8330464,
+    "ast_hash": "5bde5ca808d8a149c443c2eb79c3cb43",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/ProofBanner.jsx": {
+    "mtime": 1785240908.0633645,
+    "ast_hash": "f280c6cbff5972e6aa086bc9de7da055",
+    "semantic_hash": ""
+  },
+  "src/data/marketingContent.js": {
+    "mtime": 1785241040.7907832,
+    "ast_hash": "ba6e28c51e604535898d73ef4949df7f",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/Contact.jsx": {
+    "mtime": 1785241281.3748918,
+    "ast_hash": "89f0dd0c0d308c99c647696433168076",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/Demo.jsx": {
+    "mtime": 1785241256.895022,
+    "ast_hash": "41fa2964b0e3f23189b9c8e10464124f",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/Platform.jsx": {
+    "mtime": 1785241219.0568182,
+    "ast_hash": "7cb1097fbe9fccf1a4fb4c67c9d888f5",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/Pricing.jsx": {
+    "mtime": 1785241265.2394457,
+    "ast_hash": "7a2cf6cd6757c6e512b18e7548d8ca9e",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/RecordsPlatform.jsx": {
+    "mtime": 1785241235.27122,
+    "ast_hash": "10917adc97fc6bc40b3b1441d9f9ad9b",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/WhyTurboFix.jsx": {
+    "mtime": 1785241205.5692525,
+    "ast_hash": "626b2765771d1e884f571a4d57942f54",
+    "semantic_hash": ""
+  },
+  "src/pages/marketing/Workflow.jsx": {
+    "mtime": 1785241246.3390934,
+    "ast_hash": "16a3bbc300258c6819f88052745668fe",
     "semantic_hash": ""
   }
 }
