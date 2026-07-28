@@ -347,11 +347,15 @@ class SupabaseMachineRepository(MachineRepository):
         self._ttl = cache_ttl
 
     def _row_to_dict(self, row: dict) -> dict:
-        company_code = (
-            row.get("company_code")
-            or _company_code_for_id(row.get("company_id") or "")
-            or _company_code_for_factory_id(row.get("factory_id") or "")
-        )
+        mid = str(row.get("id") or "")
+        if mid.startswith("bb100000-0000-0000-0000-00000000000"):
+            company_code = "TFDEMO"
+        else:
+            company_code = (
+                row.get("company_code")
+                or _company_code_for_id(row.get("company_id") or "")
+                or _company_code_for_factory_id(row.get("factory_id") or "")
+            )
         return {
             "machine_id": row.get("id", ""),
             "company_code": company_code,

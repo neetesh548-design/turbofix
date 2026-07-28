@@ -180,9 +180,13 @@ def admin_list_companies(
         try:
             from app.repositories.supabase_repo import _client  # noqa: F811
 
-            raw_tickets = _client.select("tickets", {"select": "factory_id,status,urgency,created_at"})
+            raw_tickets = _client.select("tickets", {"select": "factory_id,machine_id,status,urgency,created_at"})
             for t in raw_tickets:
-                code = fid_to_code(t.get("factory_id") or "")
+                mid = str(t.get("machine_id") or "")
+                if mid.startswith("bb100000-0000-0000-0000-00000000000"):
+                    code = "TFDEMO"
+                else:
+                    code = fid_to_code(t.get("factory_id") or "")
                 if not code:
                     continue
                 status = str(t.get("status") or "").strip().lower()
