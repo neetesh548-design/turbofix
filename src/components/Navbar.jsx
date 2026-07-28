@@ -131,7 +131,7 @@ export default function Navbar() {
               </div>
               <span className="public-nav-brand-copy">
                 <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-                <small className="public-nav-brand-sub">WORKFLOW LAYER · ANALYTICS UNDERNEATH</small>
+                <small className="public-nav-brand-sub">WORKFLOW LAYER</small>
               </span>
             </Link>
           </div>
@@ -190,19 +190,12 @@ export default function Navbar() {
         />
       </header>
 
-      {/* Secondary Sub-Navigation Bar with Quick Sign In */}
+      {/* Secondary context bar */}
       <div className="public-nav-subbar">
-        <div className="container public-nav-subbar-inner flex items-center justify-between gap-3">
+        <div className="container public-nav-subbar-inner">
           <div className="subbar-left flex items-center gap-2">
             <span className="subbar-badge">⚡ WORKSPACE PORTAL</span>
-            <span className="subbar-label">Already registered? Sign in to manage plant maintenance & tickets</span>
-          </div>
-          <div className="subbar-actions flex items-center gap-2">
-            <Link to={isAuth ? '/dashboard.html' : '/login.html'} className="subbar-signin-btn">
-              <LogIn className="subbar-btn-icon" />
-              <span>{isAuth ? t('menu.dashboard') : 'Staff Sign In'}</span>
-              <ArrowRight className="subbar-btn-arrow" />
-            </Link>
+            <span className="subbar-label">Manage plant maintenance, tickets, and team handovers from the workspace.</span>
           </div>
         </div>
       </div>
