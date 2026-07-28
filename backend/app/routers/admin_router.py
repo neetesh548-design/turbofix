@@ -164,6 +164,10 @@ def admin_list_companies(
                 users_by_company[code] = users_by_company.get(code, 0) + 1
 
         all_machines = list(machines.load().values()) if hasattr(machines, "load") else []
+        seed_m_ids = {str(m.get("machine_id") or "") for m in all_machines if str(m.get("machine_id") or "").startswith("bb100000-")}
+        if seed_m_ids:
+            all_machines = [m for m in all_machines if not str(m.get("machine_id") or "").startswith("d3234567-")]
+
         machines_by_company: dict[str, int] = {}
         for m in all_machines:
             code = m.get("company_code") or fid_to_code(m.get("company_id") or m.get("factory_id") or "")
@@ -407,6 +411,8 @@ def admin_company_workspace_preview(
         raise HTTPException(status_code=404, detail="company not found")
 
     raw_company_machines = machines.get_company_machines(company_code)
+    if any(str(m.get("machine_id") or "").startswith("bb100000-") for m in raw_company_machines):
+        raw_company_machines = [m for m in raw_company_machines if not str(m.get("machine_id") or "").startswith("d3234567-")]
     company_tickets = tickets.get_company_tickets(company_code)
     company_documents = documents.list(company_code)
     company_records = records.list(company_code)
