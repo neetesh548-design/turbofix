@@ -631,7 +631,13 @@ ADMIN_HTML = r"""<!DOCTYPE html>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
       <div class="modal-head"><div><h2 id="passwordTitle">Set temporary password</h2><p id="passwordSubtitle">The user must receive this password through your approved support channel.</p></div><button type="button" class="icon-button" id="closePassword" aria-label="Close password reset">×</button></div>
       <form id="passwordForm">
-        <div class="field"><label for="newUserPassword">New temporary password</label><input type="password" id="newUserPassword" autocomplete="new-password" placeholder="At least 8 characters, one uppercase letter and one number" required></div>
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label for="newUserPassword" style="margin:0;">New temporary password</label>
+            <button type="button" class="btn btn-outline" id="generatePasswordBtn" style="min-height:28px; padding:3px 10px; font-size:12px;">🎲 Auto-Generate Password</button>
+          </div>
+          <input type="password" id="newUserPassword" autocomplete="new-password" placeholder="At least 8 characters, one uppercase letter and one number" required>
+        </div>
         <div class="field"><label for="confirmUserPassword">Confirm temporary password</label><input type="password" id="confirmUserPassword" autocomplete="new-password" placeholder="Enter the password again" required></div>
         <div class="err" id="passwordErr" role="alert"></div>
         <div class="form-footer"><button type="button" class="btn btn-outline" id="cancelPassword">Cancel</button><button type="submit" class="btn btn-primary" id="savePassword">Reset password</button></div>
@@ -1170,7 +1176,19 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     if (refreshBtn) refreshBtn.click();
   }
-});
+const genPassBtn = $("generatePasswordBtn");
+if (genPassBtn) {
+  genPassBtn.addEventListener("click", () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#@!";
+    let pass = "TF#";
+    for (let i = 0; i < 7; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    const p1 = $("newUserPassword");
+    const p2 = $("confirmUserPassword");
+    if (p1) { p1.value = pass; p1.type = "text"; }
+    if (p2) { p2.value = pass; p2.type = "text"; }
+    showToast(`Generated temporary password: ${pass}`, "success");
+  });
+}
 
 $("loginBtn").addEventListener("click", login);
 $("pw").addEventListener("keydown", (event) => { if (event.key === "Enter") login(); });
