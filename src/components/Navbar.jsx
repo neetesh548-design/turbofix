@@ -158,7 +158,6 @@ export default function Navbar() {
               </div>
             </div>
             <div className="public-nav-mobile-actions">
-              {accountLink}
               {showMarketingCta && (
                 <a href="#contact" className="public-nav-demo" onClick={scrollToContact}>
                   <span>{t('menu.start')}</span>

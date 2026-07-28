@@ -2783,6 +2783,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Vault and legacy authenticated screens share the same larger interaction language. */
 .app-shell .vault-wrap { max-width: 1180px; padding: 42px 34px 100px; }
 .app-shell .vault-card { border-radius: 14px; padding: 24px; }
+/* Label-above-input was previously accidental: at narrower multi-column grid
+   widths the inline <label> + input didn't fit on one line and wrapped,
+   which only *looked* like a stacked layout. On a single wide mobile column
+   there's room for both on one line, so they sat side by side instead.
+   Forcing the stack explicitly makes it correct at every width. */
+.vault-field { display: flex; flex-direction: column; min-width: 0; }
+.vault-field label { display: block; }
+.vault-field input, .vault-field select, .vault-field textarea { display: block; width: 100%; box-sizing: border-box; }
 .app-shell .vault-field label { color: #c7d1dd; font-size: .9rem; margin-bottom: 8px; }
 .app-shell .vault-field input, .app-shell .vault-field select, .app-shell .vault-field textarea { min-height: 48px; font-size: 1rem; }
 .app-shell .vault-btn { min-height: 44px; font-size: .95rem; text-transform: none; letter-spacing: .01em; }

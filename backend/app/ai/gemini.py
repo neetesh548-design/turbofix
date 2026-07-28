@@ -6,7 +6,7 @@ from typing import List
 import httpx
 
 from app import config
-from app.ai.summarize import _SYSTEM_PROMPT, IssueBrief, _normalize_urgency
+from app.ai.summarize import _SYSTEM_PROMPT, IssueBrief, _normalize_confidence, _normalize_urgency
 
 _GENERATE_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
@@ -117,6 +117,11 @@ async def summarize_issue(description: str) -> IssueBrief:
         likely_cause=str(parsed.get("likely_cause", "")).strip(),
         urgency=_normalize_urgency(parsed.get("urgency", "")),
         suggested_action=str(parsed.get("suggested_action", "")).strip(),
+        confidence=_normalize_confidence(parsed.get("confidence")),
+        evidence=str(parsed.get("evidence", "")).strip(),
+        recommended_checks=str(parsed.get("recommended_checks", "")).strip(),
+        likely_parts=str(parsed.get("likely_parts", "")).strip(),
+        safety_note=str(parsed.get("safety_note", "")).strip(),
         owner_summary=str(parsed.get("owner_summary", "")).strip(),
         supervisor_summary=str(parsed.get("supervisor_summary", "")).strip(),
         technician_summary=str(parsed.get("technician_summary", "")).strip(),

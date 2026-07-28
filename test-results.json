@@ -4,7 +4,6 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/report-breakdown.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -18,18 +17,14 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 4
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -43,9 +38,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -59,9 +52,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -75,9 +66,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
+        "metadata": {},
         "id": "mobile-chrome",
         "name": "mobile-chrome",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -91,9 +80,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
+        "metadata": {},
         "id": "mobile-safari",
         "name": "mobile-safari",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -140,308 +127,23 @@
     "version": "1.61.1",
     "workers": 4,
     "webServer": {
-      "command": "npm run dev -- --host 127.0.0.1",
-      "url": "http://localhost:5173",
+      "command": "npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
+      "url": "http://localhost:4173",
       "reuseExistingServer": true,
       "timeout": 120000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "report-breakdown.spec.js",
-      "file": "report-breakdown.spec.js",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Report breakdown scenarios",
-          "file": "report-breakdown.spec.js",
-          "line": 82,
-          "column": 6,
-          "specs": [
-            {
-              "title": "loads the simple three-step breakdown flow",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 6677,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:34.174Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-40cdd422d11fbc8afbe2",
-              "file": "report-breakdown.spec.js",
-              "line": 89,
-              "column": 3
-            },
-            {
-              "title": "keeps the breakdown flow usable on a mobile viewport",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 6792,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:34.181Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-c38199c61b4691838bfc",
-              "file": "report-breakdown.spec.js",
-              "line": 101,
-              "column": 3
-            },
-            {
-              "title": "falls back to text when microphone input is unavailable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 6325,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:34.180Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-8f568ecb9fe82852ec1b",
-              "file": "report-breakdown.spec.js",
-              "line": 115,
-              "column": 3
-            },
-            {
-              "title": "explains when an embedded browser rejects an allowed microphone",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 7021,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:34.172Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-403033aafa6bfc21567e",
-              "file": "report-breakdown.spec.js",
-              "line": 130,
-              "column": 3
-            },
-            {
-              "title": "records, stops, and adds the voice transcript to the issue",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 17799,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:40.878Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-92ea3bf3c95de0e7d3c4",
-              "file": "report-breakdown.spec.js",
-              "line": 159,
-              "column": 3
-            },
-            {
-              "title": "exposes a named page and labelled breakdown steps",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 16340,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:41.203Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-8edaabb8266b3870ff94",
-              "file": "report-breakdown.spec.js",
-              "line": 214,
-              "column": 3
-            },
-            {
-              "title": "submits a breakdown after choosing the machine and entering the issue",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 17654,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:41.310Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-16d6daf5eaf3e50e4cfd",
-              "file": "report-breakdown.spec.js",
-              "line": 224,
-              "column": 3
-            },
-            {
-              "title": "report another returns to a clean entry state",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 17486,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-26T19:23:41.518Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86d7f0654f4daffde8e2-8a80d8d8019a635b133d",
-              "file": "report-breakdown.spec.js",
-              "line": 238,
-              "column": 3
-            }
-          ]
-        }
-      ]
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2026-07-26T19:23:33.191Z",
-    "duration": 25968.227,
-    "expected": 8,
+    "startTime": "2026-07-28T08:59:03.060Z",
+    "duration": 18688.230000000003,
+    "expected": 0,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

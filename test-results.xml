@@ -1,20 +1,2 @@
-<testsuites id="" name="" tests="8" failures="0" skipped="0" errors="0" time="25.968227">
-<testsuite name="report-breakdown.spec.js" timestamp="2026-07-26T19:23:33.595Z" hostname="chromium" tests="8" failures="0" skipped="0" time="96.094" errors="0">
-<testcase name="Report breakdown scenarios › loads the simple three-step breakdown flow" classname="report-breakdown.spec.js" time="6.677">
-</testcase>
-<testcase name="Report breakdown scenarios › keeps the breakdown flow usable on a mobile viewport" classname="report-breakdown.spec.js" time="6.792">
-</testcase>
-<testcase name="Report breakdown scenarios › falls back to text when microphone input is unavailable" classname="report-breakdown.spec.js" time="6.325">
-</testcase>
-<testcase name="Report breakdown scenarios › explains when an embedded browser rejects an allowed microphone" classname="report-breakdown.spec.js" time="7.021">
-</testcase>
-<testcase name="Report breakdown scenarios › records, stops, and adds the voice transcript to the issue" classname="report-breakdown.spec.js" time="17.799">
-</testcase>
-<testcase name="Report breakdown scenarios › exposes a named page and labelled breakdown steps" classname="report-breakdown.spec.js" time="16.34">
-</testcase>
-<testcase name="Report breakdown scenarios › submits a breakdown after choosing the machine and entering the issue" classname="report-breakdown.spec.js" time="17.654">
-</testcase>
-<testcase name="Report breakdown scenarios › report another returns to a clean entry state" classname="report-breakdown.spec.js" time="17.486">
-</testcase>
-</testsuite>
+<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="18.688230000000004">
 </testsuites>

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import json as json_module
 
 import pytest
 
@@ -40,6 +41,11 @@ def json_content_for(user_message: str) -> str:
         "likely_cause": "worn spindle bearing",
         "urgency": "high",
         "suggested_action": "inspect and replace the bearing",
+        "confidence": 82,
+        "evidence": "Reported loud spindle noise",
+        "recommended_checks": "Isolate power; inspect bearing play",
+        "likely_parts": "Spindle bearing from approved BOM",
+        "safety_note": "Lock out power before inspection",
     })
 
 
@@ -52,8 +58,12 @@ def test_summarize_issue_parses_and_normalizes_urgency(monkeypatch):
     assert brief.likely_cause == "worn spindle bearing"
     assert brief.urgency == "High"
     assert brief.suggested_action == "inspect and replace the bearing"
+    assert brief.confidence == 82
+    assert brief.evidence == "Reported loud spindle noise"
     assert brief.as_ai_summary() == (
-        "Likely cause: worn spindle bearing | Suggested action: inspect and replace the bearing"
+        "Likely cause: worn spindle bearing | Confidence: 82% | Suggested action: inspect and replace the bearing "
+        "| Evidence: Reported loud spindle noise | Checks: Isolate power; inspect bearing play "
+        "| Likely parts: Spindle bearing from approved BOM | Safety: Lock out power before inspection"
     )
 
 
@@ -71,3 +81,21 @@ def test_summarize_issue_defaults_unexpected_urgency_to_medium(monkeypatch):
 
     brief = asyncio.run(summarize.summarize_issue("something weird"))
     assert brief.urgency == "Medium"
+
+
+def test_summarize_issue_bounds_invalid_confidence(monkeypatch):
+    class InvalidConfidenceClient(FakeAsyncClient):
+        async def post(self, url, headers=None, json=None):
+            content = json_module.dumps({
+                "likely_cause": "unclear",
+                "urgency": "low",
+                "suggested_action": "inspect",
+                "confidence": 999,
+            })
+            return FakeResponse(json_data={"choices": [{"message": {"content": content}}]})
+
+    monkeypatch.setattr(config, "OPENAI_API_KEY", "fake-key")
+    monkeypatch.setattr(summarize.httpx, "AsyncClient", InvalidConfidenceClient)
+
+    brief = asyncio.run(summarize.summarize_issue("something unclear"))
+    assert brief.confidence == 100
