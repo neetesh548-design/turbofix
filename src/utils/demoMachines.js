@@ -37,7 +37,9 @@ const isoStamp = (offsetDays) => new Date(Date.now() + offsetDays * DAY).toISOSt
 const emptyAssignments = { technician: null, supervisor: null, engineer: null, maintenance_head: null };
 
 const demoPerson = (name, role) => ({
-  user_id: `demo-${role}`,
+  user_id: role === 'maintenance_technician'
+    ? `demo-tech-${String(name).split(' ')[0].toLowerCase()}`
+    : `demo-${role}`,
   name,
   role,
   email_masked: null,

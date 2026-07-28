@@ -8,15 +8,28 @@ export function machineId(machine) {
   return machine?.machine_id ?? machine?.id ?? null;
 }
 
+function technicianCandidateIds(user) {
+  const ids = new Set([String(user?.user_id || '')].filter(Boolean));
+  if (user?.inventory_mode === 'demo' && isTechnicianRole(user?.role)) {
+    // The generic demo login stores `demo-maintenance_technician`; the demo
+    // data itself uses concrete people. Map it to one technician so demo mode
+    // still teaches "my machines", not "every machine".
+    ids.add('demo-tech-1');
+    ids.add('demo-tech-anil');
+  }
+  return ids;
+}
+
 export function isMachineAssignedToTechnician(machine, user) {
   if (!user?.user_id) return false;
-  const userId = String(user.user_id);
+  const userIds = technicianCandidateIds(user);
   return [
     machine?.technician_user_id,
     machine?.assigned_technician_id,
     machine?.primary_technician_id,
+    machine?.assigned_to,
     machine?.assignments?.technician?.user_id,
-  ].some((value) => String(value || '') === userId);
+  ].some((value) => userIds.has(String(value || '')));
 }
 
 export function visibleMachinesForUser(machines = [], user) {

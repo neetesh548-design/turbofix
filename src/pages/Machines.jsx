@@ -413,7 +413,7 @@ export default function Machines() {
       // genuine empty state, which is what the empty-state tests exercise.
       const demoAllowed = queryParams.get('demo') !== '0';
       const useDemo = signedInUser?.inventory_mode === 'demo' || (visibleMachines.length === 0 && demoAllowed);
-      const displayedMachines = useDemo ? DEMO_MACHINES : visibleMachines;
+      const displayedMachines = useDemo ? visibleMachinesForUser(DEMO_MACHINES, signedInUser) : visibleMachines;
       setShowingDemo(useDemo);
       setMachines(displayedMachines);
       if (directoryUnavailable && !useDemo) setError('Team assignments are temporarily unavailable. Machine details are still available.');

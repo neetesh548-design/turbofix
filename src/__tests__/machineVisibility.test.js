@@ -31,4 +31,14 @@ describe('machine visibility', () => {
       { id: 't3', machine_id: 'm3' },
     ], ids).map((row) => row.id)).toEqual(['t1', 't3']);
   });
+
+  it('scopes generic demo technicians to one demo technician subset', () => {
+    const visible = visibleMachinesForUser([
+      { id: 'demo-1', assigned_to: 'demo-tech-1' },
+      { id: 'demo-2', assigned_to: 'demo-tech-2' },
+      { id: 'demo-3', assignments: { technician: { user_id: 'demo-tech-anil' } } },
+    ], { role: 'maintenance_technician', user_id: 'demo-maintenance_technician', inventory_mode: 'demo' });
+
+    expect(visible.map((machine) => machine.id)).toEqual(['demo-1', 'demo-3']);
+  });
 });

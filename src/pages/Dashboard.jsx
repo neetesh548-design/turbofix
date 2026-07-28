@@ -170,6 +170,12 @@ export default function Dashboard() {
   const metrics = useMemo(() => {
     const shouldScope = isTechnicianRole(user?.role);
     const liveMachineIds = visibleMachineIdSet(sources.machines, user);
+    const demoUser = noFleetData && role === DASHBOARD_ROLES.TECHNICIAN
+      ? { ...(user || {}), user_id: DEMO_TEAM[0].user_id }
+      : user;
+    const demoMachines = demoSession || !sources.machines.length ? DEMO_MACHINES : sources.machines;
+    const demoMachineIds = visibleMachineIdSet(demoMachines, demoUser);
+    const demoTickets = buildDemoTickets();
     const liveSources = shouldScope
       ? {
         ...sources,
@@ -179,15 +185,11 @@ export default function Dashboard() {
       : sources;
     const input = isDemo
       ? {
-        machines: demoSession || !sources.machines.length ? DEMO_MACHINES : sources.machines,
-        tickets: buildDemoTickets(),
+        machines: shouldScope ? visibleMachinesForUser(demoMachines, demoUser) : demoMachines,
+        tickets: shouldScope ? filterRowsToVisibleMachines(demoTickets, demoMachineIds) : demoTickets,
         team: demoSession || !sources.team.length ? DEMO_TEAM : sources.team,
         pmLogs: demoSession || !sources.pmLogs.length ? DEMO_PM_LOGS : sources.pmLogs,
-        // The demo fleet assigns work to demo-tech-1, so a signed-in
-        // technician still sees a populated queue instead of an empty one.
-        user: noFleetData && role === DASHBOARD_ROLES.TECHNICIAN
-          ? { ...(user || {}), user_id: DEMO_TEAM[0].user_id }
-          : user,
+        user: demoUser,
       }
       : { ...liveSources, user };
 
