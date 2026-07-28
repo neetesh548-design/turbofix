@@ -92,6 +92,58 @@ def admin_list_companies(
     documents: DocumentRepository = Depends(get_documents),
     records: MachineRecordRepository = Depends(get_machine_records),
 ):
+    if config.TICKET_STORE == "supabase":
+        out = []
+        all_users = users.list_users()
+        all_machines = list(machines.load().values()) if hasattr(machines, "load") else []
+        users_by_company = {}
+        machines_by_company = {}
+        for user in all_users:
+            code = user.get("company_code")
+            if code:
+                users_by_company[code] = users_by_company.get(code, 0) + 1
+        for machine in all_machines:
+            code = machine.get("company_code")
+            if code:
+                machines_by_company[code] = machines_by_company.get(code, 0) + 1
+
+        for c in users.list_companies():
+            code = c.get("company_code")
+            quota = _company_quota(c)
+            machines_used = machines_by_company.get(code, 0)
+            capacity_percent = round((machines_used / quota) * 100) if quota else 0
+            needs_attention = (
+                not _company_approved(c)
+                or machines_used > quota
+                or (quota > 0 and capacity_percent >= 80)
+            )
+            out.append({
+                "company_code": code,
+                "company_name": c.get("company_name"),
+                "admin_contact_phone": c.get("admin_contact_phone"),
+                "onboarded_date": str(c.get("onboarded_date") or ""),
+                "machine_quota": quota,
+                "approved": _company_approved(c),
+                "machines_used": machines_used,
+                "capacity_percent": capacity_percent,
+                "user_count": users_by_company.get(code, 0),
+                "open_tickets": 0,
+                "critical_tickets": 0,
+                "document_count": 0,
+                "pending_records": 0,
+                "approved_records": 0,
+                "needs_attention": needs_attention,
+                "last_activity": "",
+            })
+        return sorted(
+            out,
+            key=lambda company: (
+                company["approved"],
+                not company["needs_attention"],
+                company["company_name"] or "",
+            ),
+        )
+
     out = []
     all_users = users.list_users()
     for c in users.list_companies():

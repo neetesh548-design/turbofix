@@ -107,6 +107,72 @@ def test_admin_lists_companies_with_usage(vault_client):
     assert acme["pending_records"] >= 0
 
 
+def test_admin_companies_supabase_fast_path_skips_heavy_repos(vault_client, monkeypatch):
+    class FastUsers:
+        def list_users(self):
+            return [{"company_code": "ACME3"}, {"company_code": "ACME3"}, {"company_code": "BETA1"}]
+
+        def list_companies(self):
+            return [
+                {
+                    "company_code": "ACME3",
+                    "company_name": "Acme Forge",
+                    "admin_contact_phone": "+919800000001",
+                    "onboarded_date": "2026-07-01",
+                    "machine_quota": 5,
+                    "approved": "yes",
+                },
+                {
+                    "company_code": "BETA1",
+                    "company_name": "Beta Works",
+                    "admin_contact_phone": "+919800000002",
+                    "onboarded_date": "2026-07-02",
+                    "machine_quota": 2,
+                    "approved": "no",
+                },
+            ]
+
+    class FastMachines:
+        def load(self):
+            return {
+                "M1": {"company_code": "ACME3"},
+                "M2": {"company_code": "ACME3"},
+                "M3": {"company_code": "BETA1"},
+            }
+
+    class MustNotBeCalled:
+        def list(self, *args, **kwargs):
+            raise AssertionError("heavy repository should not be used in supabase fast path")
+
+        def get_company_tickets(self, *args, **kwargs):
+            raise AssertionError("heavy repository should not be used in supabase fast path")
+
+    from app.dependencies import get_documents, get_machine_records, get_machines, get_tickets, get_users
+
+    monkeypatch.setattr(config, "TICKET_STORE", "supabase")
+    vault_client.app.dependency_overrides[get_users] = lambda: FastUsers()
+    vault_client.app.dependency_overrides[get_machines] = lambda: FastMachines()
+    vault_client.app.dependency_overrides[get_tickets] = lambda: MustNotBeCalled()
+    vault_client.app.dependency_overrides[get_documents] = lambda: MustNotBeCalled()
+    vault_client.app.dependency_overrides[get_machine_records] = lambda: MustNotBeCalled()
+    try:
+        response = vault_client.get("/admin/companies", headers=auth_headers(admin_token(vault_client)))
+
+        assert response.status_code == 200, response.text
+        companies = response.json()
+        acme = next(c for c in companies if c["company_code"] == "ACME3")
+        beta = next(c for c in companies if c["company_code"] == "BETA1")
+        assert acme["machines_used"] == 2
+        assert acme["user_count"] == 2
+        assert acme["capacity_percent"] == 40
+        assert acme["needs_attention"] is False
+        assert beta["machines_used"] == 1
+        assert beta["user_count"] == 1
+        assert beta["needs_attention"] is True
+    finally:
+        vault_client.app.dependency_overrides.clear()
+
+
 def test_admin_can_view_company_dashboard(vault_client):
     at = admin_token(vault_client)
     response = vault_client.get("/admin/companies/ACME3/dashboard", headers=auth_headers(at))
