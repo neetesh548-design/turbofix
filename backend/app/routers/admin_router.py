@@ -93,8 +93,7 @@ def admin_list_companies(
     records: MachineRecordRepository = Depends(get_machine_records),
 ):
     if config.TICKET_STORE == "supabase":
-        # ── Build company id→code map via direct Supabase SELECT ─────────────
-        # list_companies() strips the raw `id` field, so we need the raw rows too.
+        # ── Build complete factory_id → company_code map ──────────────────────
         id_to_code: dict[str, str] = {}
         name_to_code: dict[str, str] = {}
         fid_to_code_map: dict[str, str] = {}
@@ -110,6 +109,32 @@ def admin_list_companies(
                     fid_to_code_map[cid] = code
                 if code and cname:
                     name_to_code[cname] = code
+
+            # tickets.factory_id → factories.id → factories.name → company_code
+            try:
+                raw_factories = _client.select("factories", {"select": "id,name"})
+                for f in raw_factories:
+                    fid = f.get("id") or ""
+                    fname = f.get("name") or ""
+                    if fid and fid not in fid_to_code_map:
+                        code = name_to_code.get(fname, "")
+                        if code:
+                            fid_to_code_map[fid] = code
+            except Exception:
+                pass
+
+            # machines.factory_id → machines.company_id → company_code
+            try:
+                raw_mach = _client.select("machines", {"select": "factory_id,company_id"})
+                for m in raw_mach:
+                    fid = m.get("factory_id") or ""
+                    cid = m.get("company_id") or ""
+                    if fid and fid not in fid_to_code_map:
+                        code = id_to_code.get(cid, "")
+                        if code:
+                            fid_to_code_map[fid] = code
+            except Exception:
+                pass
         except Exception as exc:
             log.warning("admin_list_companies: companies id map failed", extra={"error": str(exc)})
 
@@ -147,33 +172,6 @@ def admin_list_companies(
         last_activity_by_company: dict[str, str] = {}
         try:
             from app.repositories.supabase_repo import _client  # noqa: F811
-
-            # ── Extend fid_to_code_map with factories + machines tables ───────
-            # tickets.factory_id → factories.id → factories.name → company_code
-            try:
-                raw_factories = _client.select("factories", {"select": "id,name"})
-                for f in raw_factories:
-                    fid = f.get("id") or ""
-                    fname = f.get("name") or ""
-                    if fid and fid not in fid_to_code_map:
-                        code = name_to_code.get(fname, "")
-                        if code:
-                            fid_to_code_map[fid] = code
-            except Exception:
-                pass
-
-            # machines.factory_id → machines.company_id → company_code
-            try:
-                raw_mach = _client.select("machines", {"select": "factory_id,company_id"})
-                for m in raw_mach:
-                    fid = m.get("factory_id") or ""
-                    cid = m.get("company_id") or ""
-                    if fid and fid not in fid_to_code_map:
-                        code = id_to_code.get(cid, "")
-                        if code:
-                            fid_to_code_map[fid] = code
-            except Exception:
-                pass
 
             raw_tickets = _client.select("tickets", {"select": "factory_id,status,urgency,created_at"})
             for t in raw_tickets:
