@@ -113,29 +113,23 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
 
     // 5. Mock WhatsApp OTP endpoints
-    await page.route('**/auth/otp/send', async (route) => {
+    await page.route('**/functions/v1/otp_gateway', async (route) => {
+      const body = route.request().postDataJSON() || {};
+      if (body.action === 'verify') {
+        await route.fulfill({
+          status: body.otp === '123456' ? 200 : 400,
+          contentType: 'application/json',
+          body: JSON.stringify(body.otp === '123456'
+            ? { verified: true, phone: body.phone }
+            : { detail: 'Incorrect OTP code. Please check your WhatsApp and try again.' })
+        });
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ status: 'sent', message: 'OTP sent', otp_debug: '123456' })
+        body: JSON.stringify({ status: 'sent', message: 'OTP sent' })
       });
-    });
-
-    await page.route('**/auth/otp/verify', async (route) => {
-      const body = route.request().postDataJSON() || {};
-      if (body.otp === '123456') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ verified: true, phone: body.phone })
-        });
-      } else {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({ detail: 'Incorrect OTP code. Please check your WhatsApp and try again.' })
-        });
-      }
     });
   });
 

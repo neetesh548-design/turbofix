@@ -57,7 +57,6 @@ import { decryptUrlParams } from '../utils/urlEncryption';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'https://turbofix-backend-ehxb.onrender.com').replace(/\/+$/, '');
 const ORB_ANIMATIONS = `
 @keyframes voice-ripple-1 {
   0% { transform: scale(1); opacity: 0.5; }
@@ -78,6 +77,21 @@ const ORB_ANIMATIONS = `
   50% { transform: scale(1.06); filter: drop-shadow(0 0 45px rgba(239, 68, 68, 0.95)); }
 }
 `;
+
+const invokeOtp = async (body, fallbackMessage) => {
+  const { data, error } = await supabase.functions.invoke('otp_gateway', { body });
+  if (!error && data && !data.error) return data;
+
+  let detail = data?.detail || data?.error;
+  const response = error?.context;
+  if (!detail && response?.clone) {
+    try {
+      const payload = await response.clone().json();
+      detail = payload?.detail || payload?.error;
+    } catch {}
+  }
+  throw new Error(detail || error?.message || fallbackMessage);
+};
 
 const GATEWAY_I18N = {
   'hi-IN': {
@@ -1280,13 +1294,10 @@ export default function QRGateway() {
     setOtpError('');
     setOtpSending(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/otp/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneInput.trim() }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || 'Failed to send OTP');
+      const data = await invokeOtp(
+        { action: 'send', phone: phoneInput.trim() },
+        'Failed to send OTP',
+      );
 
       setOtpStep('verify');
       setResendTimer(30);
@@ -1309,13 +1320,10 @@ export default function QRGateway() {
     setOtpError('');
     setOtpVerifying(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/otp/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneInput.trim(), otp: otpInput.trim() }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
+      await invokeOtp(
+        { action: 'verify', phone: phoneInput.trim(), otp: otpInput.trim() },
+        'OTP verification failed',
+      );
 
       sessionStorage.setItem('tf_otp_verified', 'true');
       localStorage.setItem('tf_reporter_phone', phoneInput.trim());
