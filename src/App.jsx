@@ -111,9 +111,19 @@ function App() {
   const basename = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL;
   
   useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const isRecoveryLink = hashParams.get('type') === 'recovery' || hashParams.has('access_token');
+    const appBasePath = `${basename || ''}/`;
+    const currentPath = window.location.pathname;
+
+    if (isRecoveryLink && (currentPath === '/' || currentPath === appBasePath)) {
+      window.location.replace(`${basename}/reset-password.html${window.location.hash}`);
+      return;
+    }
+
     registerServiceWorker();
     setupTouchGestures();
-  }, []);
+  }, [basename]);
 
   return (
     <I18nProvider>
