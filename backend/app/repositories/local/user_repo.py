@@ -174,3 +174,18 @@ class LocalUserRepository(UserRepository):
             }
             ws.append([row_data.get(col, "") for col in COMPANIES_HEADER])
             wb.save(self._path)
+
+    def delete_company(self, company_code: str) -> bool:
+        with self._lock:
+            wb = openpyxl.load_workbook(self._path)
+            if "Companies" not in wb.sheetnames:
+                return False
+            ws = wb["Companies"]
+            target = _normalize(company_code)
+            for r in range(2, ws.max_row + 1):
+                if _normalize(ws.cell(row=r, column=1).value) == target:
+                    ws.delete_rows(r)
+                    wb.save(self._path)
+                    return True
+        return False
+
