@@ -67,6 +67,19 @@ export const HEALTH_LABELS = {
   [HEALTH.DOWN]: 'Down',
 };
 
+const DATABASE_STATUS_BUCKETS = {
+  operational: HEALTH.RUNNING, active: HEALTH.RUNNING, running: HEALTH.RUNNING,
+  under_maintenance: 'maintenance', maintenance: 'maintenance', servicing: 'maintenance',
+  preventive_maintenance: 'maintenance', planned_maintenance: 'maintenance',
+  breakdown: HEALTH.DOWN, down: HEALTH.DOWN, shutdown: HEALTH.DOWN,
+  waiting_spare: HEALTH.DOWN, waiting_vendor: HEALTH.DOWN, decommissioned: HEALTH.DOWN,
+  issue: HEALTH.ISSUES, issues: HEALTH.ISSUES, warning: HEALTH.ISSUES,
+};
+
+export function databaseStatusBucket(machine) {
+  return DATABASE_STATUS_BUCKETS[String(machine?.status || '').trim().toLowerCase()] || null;
+}
+
 /* -----------------------------------------------------------
    Date helpers — all comparisons happen at local midnight so a
    PM due "today" reads as 0 days regardless of the clock time.
@@ -266,9 +279,10 @@ export function computeMachineHealth(machine, now = new Date()) {
 /** Fleet totals for the filter bar counters. */
 export function summarizeFleet(machines, now = new Date()) {
   const list = Array.isArray(machines) ? machines : [];
-  const summary = { all: list.length, running: 0, issues: 0, down: 0 };
+  const summary = { all: list.length, running: 0, issues: 0, down: 0, maintenance: 0 };
   list.forEach((machine) => {
-    summary[computeMachineHealth(machine, now).status] += 1;
+    const bucket = databaseStatusBucket(machine) || computeMachineHealth(machine, now).status;
+    if (summary[bucket] !== undefined) summary[bucket] += 1;
   });
   return summary;
 }
@@ -291,7 +305,7 @@ export function filterMachines(machines, { search = '', status = 'all' } = {}, n
       if (!haystack.some((field) => String(field || '').toLowerCase().includes(needle))) return false;
     }
     if (status === 'all') return true;
-    return computeMachineHealth(machine, now).status === status;
+    return (databaseStatusBucket(machine) || computeMachineHealth(machine, now).status) === status;
   });
 }
 
@@ -302,7 +316,9 @@ export function sortByHealth(machines, now = new Date()) {
   return [...(Array.isArray(machines) ? machines : [])].sort((a, b) => {
     const left = computeMachineHealth(a, now);
     const right = computeMachineHealth(b, now);
-    const byHealth = HEALTH_WEIGHT[left.status] - HEALTH_WEIGHT[right.status];
+    const leftStatus = databaseStatusBucket(a) || left.status;
+    const rightStatus = databaseStatusBucket(b) || right.status;
+    const byHealth = HEALTH_WEIGHT[leftStatus] - HEALTH_WEIGHT[rightStatus];
     if (byHealth !== 0) return byHealth;
     if (right.openCount !== left.openCount) return right.openCount - left.openCount;
     return String(a.machine_name || '').localeCompare(String(b.machine_name || ''));

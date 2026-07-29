@@ -13,7 +13,7 @@ import { HEALTH } from '@/utils/machineHealth';
  * - search (string) / onSearchChange (fn(value))
  * - status (string) / onStatusChange (fn(statusKey))
  * - view ('grid' | 'list') / onViewChange (fn(view))
- * - summary (object): { all, running, issues, down } counts
+ * - summary (object): { all, running, issues, down, maintenance } counts
  */
 function MachineFilterBar({ search, onSearchChange, status, onStatusChange, view, onViewChange, summary }) {
   const filters = [
@@ -21,6 +21,7 @@ function MachineFilterBar({ search, onSearchChange, status, onStatusChange, view
     { key: HEALTH.RUNNING, label: 'Running', count: summary.running },
     { key: HEALTH.ISSUES, label: 'Issues', count: summary.issues },
     { key: HEALTH.DOWN, label: 'Down', count: summary.down },
+    { key: 'maintenance', label: 'Maintenance', count: summary.maintenance },
   ];
 
   return (

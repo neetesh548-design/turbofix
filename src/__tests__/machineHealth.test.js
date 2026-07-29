@@ -241,7 +241,7 @@ describe('demo fleet', () => {
   });
 
   it('summarises the expanded demo fleet', () => {
-    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 8, issues: 3, down: 1 });
+    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 8, issues: 3, down: 1, maintenance: 0 });
   });
 });
 
