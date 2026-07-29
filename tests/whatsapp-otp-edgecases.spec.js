@@ -10,10 +10,12 @@ const MOCK_MACHINE = {
 test.describe('WhatsApp OTP & Edge Cases Verification', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test so Phone Gate is shown
+    // Clear localStorage & sessionStorage before each test so Phone Gate is shown
     await page.addInitScript(() => {
       window.localStorage.clear();
+      window.sessionStorage.clear();
     });
+
 
     // Mock Supabase machine lookup
     await page.route('**/rest/v1/machines?*', async (route) => {
