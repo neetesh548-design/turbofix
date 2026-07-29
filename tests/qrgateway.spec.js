@@ -133,10 +133,14 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
 
   test('Scenario 1: Reporter Mobile Identification (Phone Gate)', async ({ page }) => {
-    // Clear localStorage to trigger phone gate
+    // Clear localStorage & sessionStorage to trigger phone gate
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
-    await page.evaluate(() => window.localStorage.clear());
+    await page.evaluate(() => {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+    });
     await page.reload();
+
 
     // Verify phone gate is visible (in either Hindi or English)
     const phoneHeader = page.locator('h2', { hasText: /Mobile Identification|मोबाइल नंबर सत्यापन|WhatsApp OTP/ });
