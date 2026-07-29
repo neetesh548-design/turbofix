@@ -61,8 +61,9 @@ test.describe('WhatsApp OTP & Edge Cases Verification', () => {
     await page.getByRole('button', { name: /Send WhatsApp OTP|व्हाट्सएप ओटीपी भेजें|व्हॉट्सअॅप ओटीपी पाठवा/i }).click();
 
     // Verify error message displayed in any language
-    await expect(page.locator('text=/10-digit|10 अंकों|१० अंकी/i')).toBeVisible();
+    await expect(page.locator('div', { hasText: /10-digit|10 अंकों|१० अंकी/i })).toBeVisible();
   });
+
 
   test('Edge Case 2: Incorrect 6-digit OTP code verification failure', async ({ page }) => {
     await page.goto('/qr-gateway.html?id=TF-M-001');
