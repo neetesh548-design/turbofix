@@ -340,19 +340,21 @@ class SupabaseUserRepository(UserRepository):
         if "machine_quota" in fields:
             try:
                 q_val = int(fields["machine_quota"])
-                self._COMPANY_QUOTA_OVERRIDES[company_code] = q_val
                 patch["machine_quota"] = q_val
             except (ValueError, TypeError):
                 pass
         if "admin_contact_phone" in fields:
             phone_val = str(fields["admin_contact_phone"] or "").strip()
-            self._COMPANY_PHONE_OVERRIDES[company_code] = phone_val
             patch["admin_contact_phone"] = phone_val
 
         if not patch:
             return True
         try:
             _client.update("companies", {"domain": f"eq.{company_code}"}, patch)
+            if "machine_quota" in fields:
+                self._COMPANY_QUOTA_OVERRIDES[company_code] = int(fields["machine_quota"])
+            if "admin_contact_phone" in fields:
+                self._COMPANY_PHONE_OVERRIDES[company_code] = str(fields["admin_contact_phone"] or "").strip()
             return True
         except Exception as exc:
             log.warning("supabase.update_company primary patch failed, retrying core fields", extra={"error": str(exc)})
@@ -365,8 +367,8 @@ class SupabaseUserRepository(UserRepository):
                 except Exception as inner_exc:
                     log.error("supabase.update_company core patch failed", extra={"error": str(inner_exc)})
                     return False
-            # If only machine_quota / phone were being updated and DB patch failed, the in-memory override still succeeded
-            return True
+            # Never report success for an update that was not persisted.
+            return False
 
     def add_company(self, company_code: str, company_name: str, admin_contact_phone: str,
                     machine_quota: int, approved: bool) -> None:
