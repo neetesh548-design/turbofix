@@ -141,13 +141,13 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
 
   const ensureBypassedPhoneGate = async (page) => {
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       window.localStorage.setItem('tf_reporter_phone', '9876543210');
       window.sessionStorage.setItem('tf_otp_verified', 'true');
     });
-    await page.reload();
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
   };
+
 
 
   test('Scenario 1: Reporter Mobile Identification (Phone Gate)', async ({ page }) => {
