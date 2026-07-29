@@ -67,7 +67,7 @@ test.describe('Machines health board', () => {
           // Two open tickets push M002 to "down".
           { id: 't1', machine_id: 'M002', status: 'open', issue_text: 'Spindle vibration', urgency: 'high', created_at: stamp(-1) },
           { id: 't2', machine_id: 'M002', status: 'open', issue_text: 'Oil seepage', urgency: 'medium', created_at: stamp(-4) },
-          // A single critical ticket puts M003 at "needs a look".
+          // A critical ticket must not override the database's healthy status.
           { id: 't3', machine_id: 'M003', status: 'open', issue_text: 'Discharge temperature alarm', urgency: 'critical', created_at: stamp(-2) },
           { id: 't4', machine_id: 'M001', status: 'closed', issue_text: 'Coolant nozzle realigned', urgency: 'low', created_at: stamp(-12) },
         ]);
@@ -96,7 +96,7 @@ test.describe('Machines health board', () => {
 
     // Worst-first: nobody should have to scroll to find the machine that is down.
     await expect(cards.nth(0)).toHaveAttribute('data-health', 'down');
-    await expect(cards.nth(1)).toHaveAttribute('data-health', 'issues');
+    await expect(cards.nth(1)).toHaveAttribute('data-health', 'running');
     await expect(cards.nth(2)).toHaveAttribute('data-health', 'running');
 
     // A PM merely due soon does not make a healthy machine look sick.
@@ -106,8 +106,8 @@ test.describe('Machines health board', () => {
     // The chip counts summarise the whole fleet, not the filtered view.
     await expect(page.getByTestId('machine-filter-all')).toContainText('3');
     await expect(page.getByTestId('machine-filter-down')).toContainText('1');
-    await expect(page.getByTestId('machine-filter-issues')).toContainText('1');
-    await expect(page.getByTestId('machine-filter-running')).toContainText('1');
+    await expect(page.getByTestId('machine-filter-issues')).toContainText('0');
+    await expect(page.getByTestId('machine-filter-running')).toContainText('2');
   });
 
   test('filters by health and searches by name or location', async ({ page }) => {
