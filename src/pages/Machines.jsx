@@ -294,7 +294,7 @@ export default function Machines() {
     try {
       const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes, compRes] = await Promise.all([
         supabase.from('machines').select('*'),
-        supabase.from('tickets').select('id,machine_id,status,issue_text,created_at,urgency'),
+        supabase.from('tickets').select('id,machine_id,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
@@ -320,18 +320,23 @@ export default function Machines() {
           open_list: [], recent_closed: [],
         };
         const status = String(t.status || '').toLowerCase();
+        const lifecycleStage = String(t.lifecycle_stage || '').toLowerCase();
+        const ticketClosed = ['closed', 'resolved', 'cancelled'].includes(status) || lifecycleStage === 'closed' || Boolean(t.resolved_at);
         const createdAt = t.created_at ? new Date(t.created_at).getTime() : 0;
         record.total += 1;
-        if (status === 'open') {
+        if (!ticketClosed) {
           record.open += 1;
           record.open_list.push({
             id: t.id,
             issue_text: t.issue_text || 'Maintenance issue',
             urgency: t.urgency || 'medium',
+            type: t.type || '',
+            lifecycle_stage: t.lifecycle_stage || '',
+            downtime_minutes: t.downtime_minutes || 0,
             created_at: t.created_at || '',
           });
         }
-        if (['closed', 'resolved'].includes(status)) {
+        if (ticketClosed) {
           record.resolved += 1;
           record.recent_closed.push({
             id: t.id,
