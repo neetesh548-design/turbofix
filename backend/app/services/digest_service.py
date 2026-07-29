@@ -172,7 +172,7 @@ def format_weekly_digest_message(data: Dict[str, Any]) -> str:
   )
 
 
-def dispatch_daily_digest(company_code: str = "TFDEMO") -> int:
+async def dispatch_daily_digest(company_code: str = "TFDEMO") -> int:
   """Send daily digest to company executives. Returns count of messages sent."""
   payload = generate_daily_digest_payload(company_code)
   msg = format_daily_digest_message(payload)
@@ -181,14 +181,14 @@ def dispatch_daily_digest(company_code: str = "TFDEMO") -> int:
   sent_count = 0
   for p in phones:
     try:
-      send_message(p, msg)
+      await send_message(p, msg)
       sent_count += 1
     except Exception as exc:
       log.warning("digest.send_daily_failed", phone=p, error=str(exc))
   return sent_count
 
 
-def dispatch_weekly_digest(company_code: str = "TFDEMO") -> int:
+async def dispatch_weekly_digest(company_code: str = "TFDEMO") -> int:
   """Send weekly executive digest to company executives."""
   payload = generate_weekly_digest_payload(company_code)
   msg = format_weekly_digest_message(payload)
@@ -197,8 +197,9 @@ def dispatch_weekly_digest(company_code: str = "TFDEMO") -> int:
   sent_count = 0
   for p in phones:
     try:
-      send_message(p, msg)
+      await send_message(p, msg)
       sent_count += 1
     except Exception as exc:
       log.warning("digest.send_weekly_failed", phone=p, error=str(exc))
   return sent_count
+
