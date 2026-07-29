@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785348127.1477444,
-    "ast_hash": "bda1e4397cfc8c3c5cb6bdb4b216931a",
+    "mtime": 1785350614.286587,
+    "ast_hash": "0f870fbe50f0caf563200b802bb3d4ad",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -2180,8 +2180,8 @@
     "semantic_hash": ""
   },
   "src/components/machines/MachineCard.jsx": {
-    "mtime": 1785330168.5043364,
-    "ast_hash": "7507478f5129ab9af5413948bccf0cfa",
+    "mtime": 1785350612.8658867,
+    "ast_hash": "02768bc910261bd8b6226924d60e60c9",
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
@@ -2190,8 +2190,8 @@
     "semantic_hash": ""
   },
   "src/components/machines/MachineFilterBar.jsx": {
-    "mtime": 1785326140.6533637,
-    "ast_hash": "d52d085291e660abbee3cafeb5a9d65d",
+    "mtime": 1785350612.1679044,
+    "ast_hash": "80f23da59d3ace92e3104f4865416480",
     "semantic_hash": ""
   },
   "src/components/machines/MachineHealthIndicator.jsx": {

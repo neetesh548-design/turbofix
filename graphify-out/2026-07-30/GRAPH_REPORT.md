@@ -1,16 +1,16 @@
-# Graph Report - TurboFix  (2026-07-29)
+# Graph Report - TurboFix  (2026-07-30)
 
 ## Corpus Check
-- 540 files · ~645,595 words
+- 540 files · ~645,625 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4242 nodes · 8053 edges · 372 communities (242 shown, 130 thin omitted)
+- 4242 nodes · 8054 edges · 372 communities (242 shown, 130 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 371 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `35abe9e8`
+- Built from commit: `d7b872e5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -881,7 +881,7 @@ Cohesion: 0.67
 Nodes (3): TurboFix Logo (SVG), Favicon (favicon.svg), TurboFix Brand Identity
 
 ### Community 152 - "test_sheets_user_repo.py"
-Cohesion: 0.29
+Cohesion: 0.18
 Nodes (6): MachineRepository, KAIZEN_CATEGORIES, LEAN_WASTES, Machines(), PRE_SEEDED_KAIZENS, WORKSPACE_TABS
 
 ### Community 166 - "NotificationCenter.jsx"
@@ -1163,7 +1163,7 @@ Nodes (4): initialize_ticket_escalation(), Set the first escalation timer on a n
   public/icons.svg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **786 isolated node(s):** `whatsapp-client`, `SendMessageResponse`, `SendMessageRequest`, `DownloadMediaRequest`, `DownloadMediaResponse` (+781 more)
+- **786 isolated node(s):** `WORKSPACE_TABS`, `KAIZEN_CATEGORIES`, `LEAN_WASTES`, `PRE_SEEDED_KAIZENS`, `whatsapp-client` (+781 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **130 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1175,7 +1175,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `Support.jsx`, `FakeAuthClient`, `LocalTicketRepository`, `QRGateway.jsx`, `MachineRepository`, `kpi_router.py`, `test_sheets_user_repo.py`, `SheetsTicketRepository`, `test_sheets_user_repo.py`, `TurboFix WhatsApp Brochure (Marketing Image)`, `machineExport.js`, `MainLayout.jsx`, `test_contact_privacy.py`, `ticketQueues.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `gemini.py`, `SheetsCustomKpiRepository`, `OperatorKaizen.jsx`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `SupabasePartsRepository`, `machine_data_service.py`, `check_and_flag_on_creation`, `LocalMachineRecordRepository`, `LocalTechnicianWorkRepository`, `SupabaseMachineRecordRepository`, `test_admin_onboarding.py`, `FakeAsyncClient`, `.oxlintrc.json`, `Kaizen.jsx`, `LanguageContext.jsx`, `PhotoCapture.jsx`, `dashboardLayout.js`, `SheetsTechnicianWorkRepository`, `tabs.jsx`, `roles.js`, `Tickets.jsx`, `Dashboard.jsx`, `MachinesRefactored.jsx`, `dashboardLayout.js`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+  _High betweenness centrality (0.047) - this node is a cross-community bridge._
 - **Why does `DocumentRepository` connect `conftest.py` to `whatsapp_webhook/index.ts`, `fanout_service.py`, `.get`, `OfflineQueue`, `initialize_ticket_escalation`, `I18nManager`, `whatsapp.py`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `AppShell.jsx` to `React (JavaScript Framework)`, `@supabase/supabase-js`, `workbox-background-sync`, `LocalTicketRepository`, `sw.js`, `workbox-window`, `alert.jsx`?**

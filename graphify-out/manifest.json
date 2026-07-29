@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785241396.2108347,
-    "ast_hash": "ae0d63b9761018b3996a1cd2fb6a3838",
+    "mtime": 1785351387.983631,
+    "ast_hash": "62450fde965c81954abe8451b67f126d",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -1585,8 +1585,8 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1785192849.874752,
-    "ast_hash": "df09778ff1f8f563752fd008659ef311",
+    "mtime": 1785351382.8549044,
+    "ast_hash": "616011c36859290c1a6d16cc28858916",
     "semantic_hash": ""
   },
   "public/llms.txt": {

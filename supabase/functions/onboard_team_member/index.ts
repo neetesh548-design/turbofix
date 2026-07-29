@@ -18,6 +18,16 @@ const maskEmail = (value: string) => {
   return `${local.slice(0, 1)}***@${domain}`
 }
 
+const INVITE_ROLES: Record<string, string[]> = {
+  owner: ['director', 'maintenance_head', 'maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
+  director: ['maintenance_head', 'maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
+  maintenance_head: ['maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
+}
+
+const logInvitation = async (admin: any, payload: Record<string, unknown>) => {
+  await admin.from('user_invitation_audit').insert(payload).catch(() => {})
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return reply({ error: 'Method not allowed' }, 405)
@@ -77,8 +87,10 @@ serve(async (req) => {
 
   const body = await req.json()
   const readOnlyActions = ['list', 'reveal_contact']
-  if (owner.role !== 'owner' && !readOnlyActions.includes(String(body.action ?? ''))) {
-    return reply({ error: 'Only the company owner can manage team and machine assignments.' }, 403)
+  const callerRole = String(owner.role ?? '').toLowerCase()
+  if (!['owner', 'director', 'maintenance_head'].includes(callerRole)
+    && !readOnlyActions.includes(String(body.action ?? ''))) {
+    return reply({ error: 'Your role does not have permission to manage team members.' }, 403)
   }
 
   if (user.app_metadata?.directory_user_id !== owner.id) {
@@ -177,6 +189,9 @@ serve(async (req) => {
     if (!name) return reply({ error: 'Team member name is required.' }, 400)
     const { data: target } = await admin.from('users').select('id,company_id,role').eq('id', targetId).eq('company_id', owner.company_id).maybeSingle()
     if (!target) return reply({ error: 'Team member was not found in your company.' }, 404)
+    if (targetId !== owner.id && !INVITE_ROLES[callerRole]?.includes(role)) {
+      return reply({ error: 'You cannot assign that role from your position.' }, 403)
+    }
     if (target.role === 'owner' && role !== 'owner') return reply({ error: 'The company owner role cannot be changed here.' }, 400)
     if (target.role !== 'owner' && role === 'owner') return reply({ error: 'Another owner cannot be created here.' }, 400)
     if (managerUserId) {
@@ -296,13 +311,12 @@ serve(async (req) => {
   const name = String(body.name ?? '').trim()
   const phone = String(body.phone ?? '').trim()
   const email = String(body.email ?? '').trim().toLowerCase()
-  const password = String(body.password ?? '')
   const role = String(body.role ?? 'maintenance_technician')
   const portalAccess = body.portal_access !== false
   if (!name) return reply({ error: 'Full name is required.' }, 400)
   if (role === 'owner') return reply({ error: 'Another owner cannot be created here.' }, 400)
-  if (portalAccess && !email && !phone) return reply({ error: 'Email or mobile number is required for portal access.' }, 400)
-  if (portalAccess && password.length < 8) return reply({ error: 'Password must be at least 8 characters.' }, 400)
+  if (!INVITE_ROLES[callerRole]?.includes(role)) return reply({ error: 'You cannot invite someone at this role level.' }, 403)
+  if (portalAccess && !email) return reply({ error: 'An email address is required so the person can create their own password.' }, 400)
 
   // RLS (get_auth_factory_id) reads public.profiles, so every portal user needs a
   // profiles row in the owner's factory. Resolve that factory from the owner's own
@@ -317,12 +331,23 @@ serve(async (req) => {
   let memberId = crypto.randomUUID()
   let authCreated = false
   if (portalAccess) {
-    const loginEmail = email || `${phone.replace(/\D/g, '')}@phone.turbofix.co.in`
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email: loginEmail, password, email_confirm: true,
-      user_metadata: { name, role, company_id: owner.company_id },
+    const appOrigin = Deno.env.get('APP_URL') || req.headers.get('origin') || 'https://turbofix.co.in'
+    const redirectTo = `${appOrigin.replace(/\/$/, '')}/reset-password.html`
+    const { data: created, error: createError } = await admin.auth.admin.inviteUserByEmail(email, {
+      data: { name, role, company_id: owner.company_id },
+      redirectTo,
     })
-    if (createError || !created.user) return reply({ error: createError?.message || 'Portal account could not be created.' }, 400)
+    if (createError || !created.user) {
+      await logInvitation(admin, {
+        company_id: owner.company_id,
+        target_email: email,
+        target_role: role,
+        action: 'failed',
+        actor_user_id: owner.id,
+        details: { error: createError?.message || 'invite_failed' },
+      })
+      return reply({ error: createError?.message || 'Portal account could not be created.' }, 400)
+    }
     memberId = created.user.id
     authCreated = true
   }
@@ -358,5 +383,17 @@ serve(async (req) => {
     }
   }
 
-  return reply({ status: 'created', user_id: memberId, name, role }, 201)
+  if (portalAccess) {
+    await logInvitation(admin, {
+      company_id: owner.company_id,
+      target_user_id: memberId,
+      target_email: email,
+      target_role: role,
+      action: 'sent',
+      actor_user_id: owner.id,
+      details: { manager_user_id: body.manager_user_id || null },
+    })
+  }
+
+  return reply({ status: 'created', user_id: memberId, name, role, invited: portalAccess }, 201)
 })

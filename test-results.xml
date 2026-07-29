@@ -1,10 +1,2 @@
-<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="24.542555999999998">
-<testsuite name="role-dashboards.spec.js" timestamp="2026-07-29T18:09:52.916Z" hostname="chromium" tests="3" failures="0" skipped="0" time="7.471" errors="0">
-<testcase name="Role-aware dashboard routing › quality inspector gets a dedicated verification board" classname="role-dashboards.spec.js" time="2.687">
-</testcase>
-<testcase name="Role-aware dashboard routing › maintenance_head gets a dedicated action board" classname="role-dashboards.spec.js" time="2.468">
-</testcase>
-<testcase name="Role-aware dashboard routing › safety_officer gets a dedicated action board" classname="role-dashboards.spec.js" time="2.316">
-</testcase>
-</testsuite>
+<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="6.808858">
 </testsuites>

@@ -11,15 +11,51 @@ export default function ResetPassword() {
   const [requestMsg, setRequestMsg] = useState('');
   const [resetMsg, setResetMsg] = useState('');
   const [isResetStep, setIsResetStep] = useState(false);
+  const [checkingRecovery, setCheckingRecovery] = useState(true);
 
   useEffect(() => {
     document.title = 'Reset Password | TurboFix';
     window.scrollTo(0, 0);
 
+    let active = true;
     const params = new URLSearchParams(window.location.search);
-    if (params.get('token') || window.location.hash.includes('access_token')) {
-      setIsResetStep(true);
-    }
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const hasRecoveryPayload = params.has('code')
+      || params.has('token')
+      || hashParams.has('access_token')
+      || hashParams.get('type') === 'recovery';
+
+    const finishRecoveryCheck = (hasSession) => {
+      if (!active) return;
+      setIsResetStep(Boolean(hasSession || hasRecoveryPayload));
+      setCheckingRecovery(false);
+    };
+
+    const initialiseRecovery = async () => {
+      try {
+        // Supabase may use PKCE and return ?code=..., while older projects
+        // return the access token in the URL hash. Support both flows.
+        if (params.get('code')) {
+          const { error } = await supabase.auth.exchangeCodeForSession(params.get('code'));
+          if (error) setResetMsg('This reset link is invalid or has expired. Request a new one.');
+        }
+        const { data } = await supabase.auth.getSession();
+        finishRecoveryCheck(Boolean(data?.session));
+      } catch (error) {
+        finishRecoveryCheck(false);
+        if (hasRecoveryPayload) setResetMsg('This reset link is invalid or has expired. Request a new one.');
+      }
+    };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') finishRecoveryCheck(Boolean(session));
+    });
+    initialiseRecovery();
+
+    return () => {
+      active = false;
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const handleRequestLink = async () => {
@@ -30,7 +66,7 @@ export default function ResetPassword() {
     }
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}reset-password.html`
+        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
       });
       if (error) {
         setRequestMsg(error.message);
@@ -87,7 +123,9 @@ export default function ResetPassword() {
               </p>
             </div>
 
-            {!isResetStep ? (
+            {checkingRecovery ? (
+              <div className="p-4 text-center text-slate-400 text-sm" role="status">Checking your reset link…</div>
+            ) : !isResetStep ? (
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Account email</label>
@@ -158,7 +196,7 @@ export default function ResetPassword() {
                 </button>
 
                 {resetMsg && (
-                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm">
+                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm" role="alert">
                     {resetMsg}
                   </div>
                 )}

@@ -4,11 +4,8 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/role-dashboards.spec.js",
-      "--project=chromium",
-      "--workers=1",
-      "--grep",
-      "dedicated"
+      "tests/settings-role-boundary.spec.js",
+      "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
     "rootDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -21,18 +18,14 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 1
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -46,9 +39,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -62,9 +53,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -78,9 +67,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "mobile-chrome",
         "name": "mobile-chrome",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -94,9 +81,7 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "mobile-safari",
         "name": "mobile-safari",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -141,7 +126,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.61.1",
-    "workers": 1,
+    "workers": 4,
     "webServer": {
       "command": "npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
       "url": "http://localhost:4173",
@@ -149,132 +134,17 @@
       "timeout": 120000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "role-dashboards.spec.js",
-      "file": "role-dashboards.spec.js",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Role-aware dashboard routing",
-          "file": "role-dashboards.spec.js",
-          "line": 34,
-          "column": 6,
-          "specs": [
-            {
-              "title": "quality inspector gets a dedicated verification board",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2687,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-29T18:09:53.322Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "8ab82a6bdfc5bf75b9f2-9ed4db1ebd6d878d7f39",
-              "file": "role-dashboards.spec.js",
-              "line": 82,
-              "column": 3
-            },
-            {
-              "title": "maintenance_head gets a dedicated action board",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2468,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-29T18:09:56.717Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "8ab82a6bdfc5bf75b9f2-29ce586b8488406140a7",
-              "file": "role-dashboards.spec.js",
-              "line": 95,
-              "column": 5
-            },
-            {
-              "title": "safety_officer gets a dedicated action board",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2316,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-29T18:09:59.222Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "8ab82a6bdfc5bf75b9f2-fb86d9d23b23e7231a39",
-              "file": "role-dashboards.spec.js",
-              "line": 95,
-              "column": 5
-            }
-          ]
-        }
-      ]
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2026-07-29T18:09:37.180Z",
-    "duration": 24542.555999999997,
-    "expected": 3,
+    "startTime": "2026-07-29T19:46:39.585Z",
+    "duration": 6808.858,
+    "expected": 0,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

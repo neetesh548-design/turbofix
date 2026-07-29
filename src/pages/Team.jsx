@@ -25,7 +25,6 @@ export default function Team() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('maintenance_technician');
   const [managerUserId, setManagerUserId] = useState('');
   const [department, setDepartment] = useState('Maintenance');
@@ -126,14 +125,15 @@ export default function Team() {
       }
       if (data?.error) throw new Error(data.error);
 
-      setSuccess(`Account for "${name}" successfully onboarded as ${getLabel(role)}.`);
+      setSuccess(portalAccess
+        ? `Invitation sent to ${email}. They must create their own password before signing in.`
+        : `Staff record for "${name}" created without portal access.`);
       setShowAddForm(false);
       
       // Reset form
       setName('');
       setPhone('');
       setEmail('');
-      setPassword('');
       setRole('maintenance_technician');
       setManagerUserId('');
       setDepartment('Maintenance');
@@ -176,6 +176,7 @@ export default function Team() {
   };
 
   const isOwner = currentUser && currentUser.role === 'owner';
+  const canManageTeam = ['owner', 'director', 'maintenance_head'].includes(currentUser?.role);
   const techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
   const portalCount = team.filter((member) => member.portal_access).length;
   const responseCount = team.filter((member) => member.can_receive_alerts).length;
@@ -189,6 +190,15 @@ export default function Team() {
     ...defaultRoles,
     ...customRoles.map((r) => ({ value: r.role_name, label: r.role_label }))
   ];
+  const inviteableRoles = useMemo(() => {
+    const roleMap = {
+      owner: ['maintenance_head', 'maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
+      director: ['maintenance_head', 'maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
+      maintenance_head: ['maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
+    };
+    const allowed = roleMap[currentUser?.role] || [];
+    return allAvailableRoles.filter((item) => allowed.includes(item.value));
+  }, [allAvailableRoles, currentUser]);
 
   const eligibleManagers = useMemo(() => {
     const managerRoles = role === 'maintenance_head'
@@ -228,13 +238,13 @@ export default function Team() {
                   <th>Name</th>
                   <th>Role</th>
                   <th>Assigned to</th>
-                  {isOwner && <th>Action</th>}
+                  {canManageTeam && <th>Action</th>}
                 </tr>
               </thead>
               <tbody>
                 {team.length === 0 ? (
                   <tr>
-                    <td colSpan={isOwner ? 4 : 3} style={{ padding: '0' }}>
+                    <td colSpan={canManageTeam ? 4 : 3} style={{ padding: '0' }}>
                       <EmptyState
                         icon={Users}
                         title="No Team Members Found"
@@ -260,7 +270,7 @@ export default function Team() {
                       </span>
                     </td>
                     <td>{u.manager_name || (u.role === 'owner' ? 'Top level' : '—')}</td>
-                    {isOwner && <td><button type="button" className="team-edit-button" onClick={() => startMemberEdit(u)}>Reassign</button></td>}
+                    {canManageTeam && <td><button type="button" className="team-edit-button" onClick={() => startMemberEdit(u)}>Reassign</button></td>}
                   </tr>
                 ))}
               </tbody>
@@ -271,7 +281,7 @@ export default function Team() {
         {/* ADVANCED FEATURES DRILL-DOWN */}
         <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
           <div>
-            {!editingMember && !showAddForm && isOwner && (
+            {!editingMember && !showAddForm && canManageTeam && (
               <button className="vault-btn vault-btn-primary" onClick={() => setShowAddForm(true)} style={{ marginBottom: '20px', background: 'var(--brand)', color: '#000' }}>
                 + Onboard New Staff Member
               </button>
@@ -299,7 +309,7 @@ export default function Team() {
           {showAddForm && (
             <div className="vault-card" style={{ marginBottom: '20px' }}>
               <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Onboard Staff Account</h3>
-              <form onSubmit={handleAddSubmit}>
+              <form onSubmit={handleAddSubmit} data-testid="team-invite-form">
                 <div className="team-onboard-grid">
                   <p className="team-onboard-legend">Identity &amp; role</p>
                   <div className="vault-field">
@@ -309,7 +319,7 @@ export default function Team() {
                   <div className="vault-field">
                     <label htmlFor="supRole">Role</label>
                     <select id="supRole" value={role} onChange={(e) => setRole(e.target.value)}>
-                      {allAvailableRoles.map((r) => (
+                      {inviteableRoles.map((r) => (
                         <option key={r.value} value={r.value}>{r.label}</option>
                       ))}
                     </select>
@@ -345,19 +355,18 @@ export default function Team() {
                     <small>Shown as "not available" when left blank.</small>
                   </div>
                   <div className="vault-field wide">
-                    <label htmlFor="supEmail">Email address <span>Optional</span></label>
-                    <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" />
-                    <small>Shown as "not available" when left blank.</small>
+                    <label htmlFor="supEmail">Email address {portalAccess ? <span>Required for invitation</span> : <span>Optional</span>}</label>
+                    <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" required={portalAccess} />
+                    <small>{portalAccess ? 'Used only to send the secure password-setup link.' : 'Shown as "not available" when left blank.'}</small>
                   </div>
 
                   <div className="team-onboard-access">
                     <label className="team-portal-toggle">
                       <input type="checkbox" checked={portalAccess} onChange={(e) => setPortalAccess(e.target.checked)} />
-                      <span><strong>Enable TurboFix portal access</strong><small>Lets this member sign in. Requires a mobile number or email plus a password.</small></span>
+                        <span><strong>Send TurboFix invitation</strong><small>They will receive an email and create their own password. You will never see it.</small></span>
                     </label>
                     <div className="vault-field">
-                      <label htmlFor="supPassword">Sign-in password {portalAccess ? <span>Required</span> : <span>Not needed for offline staff</span>}</label>
-                      <input type="password" id="supPassword" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" minLength="8" required={portalAccess} disabled={!portalAccess} />
+                    {portalAccess && <small className="team-invite-note">An invitation link will be sent to the email above.</small>}
                     </div>
                   </div>
                 </div>
