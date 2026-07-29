@@ -141,8 +141,33 @@ export default function Login() {
   return (
     <div className="tf-login-page min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <Navbar />
-      <div className="w-full flex-1 flex flex-col justify-center items-center px-3 py-5 sm:p-6">
-        <div className="w-full max-w-[420px] sm:max-w-[460px] bg-[#131922]/90 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden backdrop-blur-xl transition-all">
+      <div className="tf-login-shell w-full flex-1 flex items-center justify-center px-3 py-6 sm:p-8">
+        <div className="tf-login-layout w-full max-w-6xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 lg:gap-14 items-center">
+          <section className="tf-login-intro hidden lg:block" aria-label="TurboFix platform overview">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,.8)]" /> Secure staff workspace
+            </div>
+            <h1 className="mt-6 max-w-xl text-5xl font-semibold leading-[1.05] tracking-tight text-white">Keep every machine moving.</h1>
+            <p className="mt-5 max-w-lg text-lg leading-8 text-slate-400">One calm control room for breakdown response, preventive maintenance, plant knowledge, and team execution.</p>
+            <div className="mt-10 grid max-w-lg grid-cols-3 gap-3">
+              {[
+                ['01', 'See risk early'],
+                ['02', 'Assign the right work'],
+                ['03', 'Close the loop'],
+              ].map(([number, label]) => (
+                <div key={number} className="rounded-2xl border border-slate-800 bg-slate-900/45 p-4">
+                  <span className="text-xs font-semibold tracking-widest text-emerald-400">{number}</span>
+                  <p className="mt-2 text-sm font-medium leading-5 text-slate-200">{label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 flex items-center gap-2 text-sm text-slate-500"><ShieldCheck size={16} className="text-emerald-400" /> Role-based access · Audit-ready workflows</p>
+          </section>
+
+          <div className="w-full max-w-[460px] justify-self-center lg:justify-self-end bg-[#131922]/95 rounded-3xl shadow-2xl shadow-black/30 border border-slate-700/70 overflow-hidden backdrop-blur-xl transition-all">
+          <div className="border-b border-slate-800/80 bg-slate-950/25 px-5 py-3.5 sm:px-8">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500"><span>TurboFix platform</span><span className="flex items-center gap-1.5 text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Protected access</span></div>
+          </div>
           <div className="p-5 sm:p-8">
             {view === 'login' ? (
               <>
@@ -332,6 +357,7 @@ export default function Login() {
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       </div>
