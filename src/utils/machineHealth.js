@@ -94,7 +94,9 @@ export function openTicketsForMachine(machine, tickets = null) {
   if (Array.isArray(tickets)) {
     const machineIds = new Set([machine?.id, machine?.machine_id].filter(Boolean));
     return tickets.filter((ticket) => {
-      if (ticket?.status && ['resolved', 'closed', 'cancelled'].includes(String(ticket.status).toLowerCase())) return false;
+      const status = String(ticket?.status || '').toLowerCase();
+      const lifecycleStage = String(ticket?.lifecycle_stage || ticket?.stage || '').toLowerCase();
+      if (['resolved', 'closed', 'cancelled'].includes(status) || lifecycleStage === 'closed') return false;
       if (ticket?.resolved_at) return false;
       return machineIds.size === 0 || machineIds.has(ticket?.machine_id);
     });

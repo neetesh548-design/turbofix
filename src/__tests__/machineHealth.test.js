@@ -63,6 +63,12 @@ describe('machineDisplayStatus', () => {
     const row = machine({ track_record: { open: 0, open_list: [], recent_closed: [{ issue_text: 'Machine stopped' }] } });
     expect(machineDisplayStatus(row).status).toBe(HEALTH.RUNNING);
   });
+
+  it('ignores tickets closed by lifecycle stage even when status is stale', () => {
+    const row = machine({ id: 'M001', track_record: { open: 0, open_list: [] } });
+    const tickets = [{ machine_id: 'M001', status: 'open', lifecycle_stage: 'closed' }];
+    expect(machineDisplayStatus(row, tickets).status).toBe(HEALTH.RUNNING);
+  });
 });
 
 /** A machine carrying `count` open tickets, the first optionally critical. */
