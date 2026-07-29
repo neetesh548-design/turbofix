@@ -400,14 +400,15 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await page.locator('button', { hasText: /हाँ, दर्ज करें|Yes, Submit/ }).click();
 
     // Verify receipt visual is shown
-    await expect(page.locator('h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).toBeVisible();
+    await expect(page.locator('h2, h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).toBeVisible();
     await expect(page.locator('strong:has-text("WO-020582")')).toBeVisible();
     await expect(page.locator('span:has-text("CNC Milling Machine #4")').first()).toBeVisible();
     await expect(page.locator('span:has-text("Neetesh Soni")')).toBeVisible();
 
     // Verify clicking "Report Another Issue" resets form state
     await page.locator('button', { hasText: /दूसरी समस्या रिपोर्ट करें|Report Another Issue/ }).click();
-    await expect(page.locator('h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).not.toBeVisible();
+    await expect(page.locator('h2, h3', { hasText: /Ticket Registered Successfully!|टिकट सफलतापूर्वक दर्ज हुआ!/ })).not.toBeVisible();
+
     await expect(page.locator('span', { hasText: /बोलने के लिए|Tap to speak/ })).toBeVisible();
   });
 
