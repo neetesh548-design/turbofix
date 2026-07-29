@@ -57,6 +57,7 @@ import { decryptUrlParams } from '../utils/urlEncryption';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'https://turbofix-backend-ehxb.onrender.com').replace(/\/+$/, '');
 const ORB_ANIMATIONS = `
 @keyframes voice-ripple-1 {
   0% { transform: scale(1); opacity: 0.5; }
@@ -1279,13 +1280,12 @@ export default function QRGateway() {
     setOtpError('');
     setOtpSending(true);
     try {
-      const apiHost = import.meta.env.VITE_BACKEND_URL || '';
-      const res = await fetch(`${apiHost}/auth/otp/send`, {
+      const res = await fetch(`${BACKEND_URL}/auth/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneInput.trim() }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || 'Failed to send OTP');
 
       setOtpStep('verify');
@@ -1309,13 +1309,12 @@ export default function QRGateway() {
     setOtpError('');
     setOtpVerifying(true);
     try {
-      const apiHost = import.meta.env.VITE_BACKEND_URL || '';
-      const res = await fetch(`${apiHost}/auth/otp/verify`, {
+      const res = await fetch(`${BACKEND_URL}/auth/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneInput.trim(), otp: otpInput.trim() }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
 
       sessionStorage.setItem('tf_otp_verified', 'true');

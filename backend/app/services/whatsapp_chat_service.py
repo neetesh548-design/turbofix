@@ -18,7 +18,7 @@ log = get_logger("turbofix.whatsapp_chat")
 
 
 ACCESS_DENIED_MESSAGE = (
-  "🔒 *Access Restricted*\n\n"
+  "403 ACCESS DENIED\n\n"
   "Your WhatsApp number is not registered under an active TurboFix company profile.\n\n"
   "💡 *How to gain access:*\n"
   "Ask your company Owner or Administrator to add your mobile number under *Team Settings* in the TurboFix portal."

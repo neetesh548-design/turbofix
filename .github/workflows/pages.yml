@@ -37,6 +37,8 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+        env:
+          VITE_BACKEND_URL: https://turbofix-backend-ehxb.onrender.com
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

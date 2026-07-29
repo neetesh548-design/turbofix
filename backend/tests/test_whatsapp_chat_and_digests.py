@@ -17,7 +17,7 @@ def test_unregistered_whatsapp_number_access_denied():
   async def run():
     with patch("app.services.whatsapp_chat_service.resolve_registered_user", return_value=None):
       reply = await whatsapp_chat_service.handle_registered_whatsapp_message("+910000000000", "Hello status")
-      assert "Access Restricted" in reply
+      assert "403 ACCESS DENIED" in reply
       assert "Team Settings" in reply
 
   anyio.run(run)

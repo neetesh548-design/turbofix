@@ -310,8 +310,11 @@ def reset_password(request: Request, body: ResetPasswordRequest, users: UserRepo
 # ---------------------------------------------------------------------------
 
 import random
+import secrets
 
 _OTP_STORE = {}
+_OTP_RESEND_SECONDS = 30
+_OTP_MAX_ATTEMPTS = 5
 
 
 class SendOTPRequest(BaseModel):
@@ -329,8 +332,18 @@ async def send_otp(request: Request, body: SendOTPRequest):
     """Generate 6-digit OTP code and send via active WhatsApp channel."""
     phone_raw = body.phone.strip()
     phone_clean = "".join(c for c in phone_raw if c.isdigit())
-    if len(phone_clean) < 10:
+    if len(phone_clean) != 10:
         raise HTTPException(status_code=400, detail="Please enter a valid 10-digit mobile number.")
+
+    now_ts = datetime.now(timezone.utc).timestamp()
+    existing = _OTP_STORE.get(phone_clean)
+    if existing and now_ts < existing.get("resend_at", 0):
+        retry_after = max(1, int(existing["resend_at"] - now_ts))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Please wait {retry_after} seconds before requesting another OTP.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
     if not phone_clean.startswith("91") and len(phone_clean) == 10:
         phone_formatted = f"+91{phone_clean}"
@@ -340,10 +353,11 @@ async def send_otp(request: Request, body: SendOTPRequest):
         phone_formatted = phone_clean
 
     otp_code = f"{random.randint(100000, 999999)}"
-    now_ts = datetime.now(timezone.utc).timestamp()
     _OTP_STORE[phone_clean] = {
         "otp": otp_code,
         "expires_at": now_ts + 300,
+        "resend_at": now_ts + _OTP_RESEND_SECONDS,
+        "attempts": 0,
     }
 
     message = (
@@ -387,10 +401,13 @@ def verify_otp(request: Request, body: VerifyOTPRequest):
         _OTP_STORE.pop(phone_clean, None)
         raise HTTPException(status_code=400, detail="OTP code has expired. Please request a new code.")
 
-    if record["otp"] != otp_input:
+    if not secrets.compare_digest(record["otp"], otp_input):
+        record["attempts"] += 1
+        if record["attempts"] >= _OTP_MAX_ATTEMPTS:
+            _OTP_STORE.pop(phone_clean, None)
+            raise HTTPException(status_code=400, detail="Too many incorrect OTP attempts. Please request a new code.")
         raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp and try again.")
 
     _OTP_STORE.pop(phone_clean, None)
     log.info("auth.otp_verified", phone=phone_clean)
     return {"verified": True, "phone": phone_clean}
-
