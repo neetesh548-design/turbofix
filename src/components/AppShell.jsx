@@ -519,7 +519,9 @@ export default function AppShell({ children, active }) {
             >
               <LogOut size={17} />
             </button>
+          </div>
         </header>
+
 
         {quotaInfo && quotaInfo.used >= quotaInfo.quota && (
           <div className="bg-amber-500/15 text-amber-900 dark:text-amber-200 border-b border-amber-500/30 px-4 py-2.5 text-xs font-medium flex items-center justify-between gap-3 shadow-inner z-30">
