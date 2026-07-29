@@ -10,6 +10,7 @@ import {
   nextPmInfo,
   lastMaintenanceInfo,
   computeMachineHealth,
+  machineDisplayStatus,
   summarizeFleet,
   filterMachines,
   sortByHealth,
@@ -30,6 +31,28 @@ const machine = (overrides = {}) => ({
   status: 'healthy',
   track_record: { total: 0, open: 0, resolved: 0, recent: 0, open_list: [], recent_closed: [] },
   ...overrides,
+});
+
+describe('machineDisplayStatus', () => {
+  it('moves a running machine with a generic open ticket to Issues', () => {
+    const row = machine({ track_record: { open: 1, open_list: [{ issue_text: 'Oil leak near bearing' }] } });
+    expect(machineDisplayStatus(row).status).toBe(HEALTH.ISSUES);
+  });
+
+  it('moves a running machine with an explicit downtime ticket to Down', () => {
+    const row = machine({ track_record: { open: 1, open_list: [{ issue_text: 'Machine stopped and will not run' }] } });
+    expect(machineDisplayStatus(row).status).toBe(HEALTH.DOWN);
+  });
+
+  it('keeps explicit maintenance authoritative over open tickets', () => {
+    const row = machine({ status: 'under_maintenance', track_record: { open: 1, open_list: [{ issue_text: 'Inspection required' }] } });
+    expect(machineDisplayStatus(row).status).toBe('maintenance');
+  });
+
+  it('ignores closed tickets and keeps the machine running', () => {
+    const row = machine({ track_record: { open: 0, open_list: [], recent_closed: [{ issue_text: 'Machine stopped' }] } });
+    expect(machineDisplayStatus(row).status).toBe(HEALTH.RUNNING);
+  });
 });
 
 /** A machine carrying `count` open tickets, the first optionally critical. */
@@ -241,7 +264,7 @@ describe('demo fleet', () => {
   });
 
   it('summarises the expanded demo fleet', () => {
-    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 11, issues: 0, down: 1, maintenance: 0 });
+    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 8, issues: 3, down: 1, maintenance: 0 });
   });
 });
 
@@ -266,8 +289,8 @@ describe('filterMachines', () => {
 
   it('filters by health status', () => {
     expect(filterMachines(fleet, { status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual([]);
-    expect(filterMachines(fleet, { status: HEALTH.ISSUES }, NOW).map((m) => m.machine_id)).toEqual([]);
-    expect(filterMachines(fleet, { status: HEALTH.RUNNING }, NOW).map((m) => m.machine_id)).toEqual(['M001', 'M002', 'M003']);
+    expect(filterMachines(fleet, { status: HEALTH.ISSUES }, NOW).map((m) => m.machine_id)).toEqual(['M002', 'M003']);
+    expect(filterMachines(fleet, { status: HEALTH.RUNNING }, NOW).map((m) => m.machine_id)).toEqual(['M001']);
   });
 
   it('combines search and status', () => {

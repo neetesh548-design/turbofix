@@ -80,6 +80,66 @@ export function databaseStatusBucket(machine) {
   return DATABASE_STATUS_BUCKETS[String(machine?.status || '').trim().toLowerCase()] || null;
 }
 
+const DOWNTIME_LANGUAGE = /\b(stopped|stop|not running|down|breakdown|shut ?down|shutdown|won['’]?t run|can['’]?t run|cannot run|no production|production stopped|emergency stop|trip(ped)?|failed)\b/i;
+
+export function openTicketsForMachine(machine, tickets = null) {
+  if (Array.isArray(tickets)) {
+    const machineIds = new Set([machine?.id, machine?.machine_id].filter(Boolean));
+    return tickets.filter((ticket) => {
+      if (ticket?.status && ['resolved', 'closed', 'cancelled'].includes(String(ticket.status).toLowerCase())) return false;
+      if (ticket?.resolved_at) return false;
+      return machineIds.size === 0 || machineIds.has(ticket?.machine_id);
+    });
+  }
+  return Array.isArray(machine?.track_record?.open_list) ? machine.track_record.open_list : [];
+}
+
+export function ticketIndicatesDowntime(ticket) {
+  if (!ticket) return false;
+  if (Number(ticket.downtime_minutes) > 0) return true;
+  if (String(ticket.type || '').toLowerCase() === 'breakdown') return true;
+  const summary = typeof ticket.ai_summary === 'object'
+    ? Object.values(ticket.ai_summary).join(' ')
+    : ticket.ai_summary;
+  return DOWNTIME_LANGUAGE.test([
+    ticket.issue_text,
+    ticket.description,
+    ticket.reason,
+    summary,
+  ].filter(Boolean).join(' '));
+}
+
+/**
+ * Resolve the status shown to operators.
+ *
+ * The stored machine status is the source of truth for explicit Down and
+ * Maintenance states. An unresolved ticket is an operational overlay: a
+ * running machine becomes Issues, or Down when the ticket contains an
+ * explicit downtime signal. This prevents an open breakdown from appearing
+ * as Running while avoiding the unsafe assumption that every ticket means
+ * production has stopped.
+ */
+export function machineDisplayStatus(machine, tickets = null, now = new Date()) {
+  const base = machineStatusVerdict(machine, now);
+  const bucket = databaseStatusBucket(machine);
+  const openTickets = openTicketsForMachine(machine, tickets);
+
+  if (bucket === 'down' || bucket === 'maintenance') return base;
+  if (openTickets.length === 0 && openTicketCount(machine) === 0) return base;
+  if (bucket === HEALTH.RUNNING || !bucket) {
+    const downtime = openTickets.some(ticketIndicatesDowntime);
+    const status = downtime ? HEALTH.DOWN : HEALTH.ISSUES;
+    return {
+      ...base,
+      status,
+      label: HEALTH_LABELS[status],
+      color: HEALTH_COLORS[status],
+      reasons: [downtime ? 'Open ticket indicates machine downtime' : 'Open ticket requires attention', ...base.reasons],
+    };
+  }
+  return base;
+}
+
 export function machineStatusVerdict(machine, now = new Date()) {
   const health = computeMachineHealth(machine, now);
   const bucket = databaseStatusBucket(machine);
@@ -290,7 +350,7 @@ export function summarizeFleet(machines, now = new Date()) {
   const list = Array.isArray(machines) ? machines : [];
   const summary = { all: list.length, running: 0, issues: 0, down: 0, maintenance: 0 };
   list.forEach((machine) => {
-    const bucket = databaseStatusBucket(machine) || computeMachineHealth(machine, now).status;
+    const bucket = machineDisplayStatus(machine, null, now).status;
     if (summary[bucket] !== undefined) summary[bucket] += 1;
   });
   return summary;
@@ -314,7 +374,7 @@ export function filterMachines(machines, { search = '', status = 'all' } = {}, n
       if (!haystack.some((field) => String(field || '').toLowerCase().includes(needle))) return false;
     }
     if (status === 'all') return true;
-    return (databaseStatusBucket(machine) || computeMachineHealth(machine, now).status) === status;
+    return machineDisplayStatus(machine, null, now).status === status;
   });
 }
 
@@ -325,8 +385,8 @@ export function sortByHealth(machines, now = new Date()) {
   return [...(Array.isArray(machines) ? machines : [])].sort((a, b) => {
     const left = computeMachineHealth(a, now);
     const right = computeMachineHealth(b, now);
-    const leftStatus = databaseStatusBucket(a) || left.status;
-    const rightStatus = databaseStatusBucket(b) || right.status;
+    const leftStatus = machineDisplayStatus(a, null, now).status;
+    const rightStatus = machineDisplayStatus(b, null, now).status;
     const byHealth = HEALTH_WEIGHT[leftStatus] - HEALTH_WEIGHT[rightStatus];
     if (byHealth !== 0) return byHealth;
     if (right.openCount !== left.openCount) return right.openCount - left.openCount;

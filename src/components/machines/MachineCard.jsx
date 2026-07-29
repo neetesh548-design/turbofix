@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, TriangleAlert, Wrench, CalendarClock, User, ChevronRight } from 'lucide-react';
 import MachineHealthIndicator from './MachineHealthIndicator';
-import { machineStatusVerdict } from '@/utils/machineHealth';
+import { machineDisplayStatus } from '@/utils/machineHealth';
 
 /**
  * MachineCard — one machine, readable in about five seconds.
@@ -22,7 +22,7 @@ import { machineStatusVerdict } from '@/utils/machineHealth';
  * - selected (bool), onToggleSelect (fn(machineId)): batch-selection checkbox
  */
 function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMaintenance, selected, onToggleSelect }) {
-  const health = machineStatusVerdict(machine);
+  const health = machineDisplayStatus(machine);
   const { pm, service, openCount, critical } = health;
 
   const photo = machine.image_url

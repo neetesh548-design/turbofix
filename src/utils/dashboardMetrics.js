@@ -29,7 +29,7 @@ import {
   ticketClosedAt,
   ticketAgeHours,
 } from './ticketSla.js';
-import { computeMachineHealth, databaseStatusBucket, machineStatusVerdict, nextPmInfo, HEALTH } from './machineHealth.js';
+import { computeMachineHealth, databaseStatusBucket, machineDisplayStatus, machineStatusVerdict, nextPmInfo, HEALTH } from './machineHealth.js';
 
 export const MS_PER_HOUR = 3_600_000;
 export const MS_PER_DAY = 24 * MS_PER_HOUR;
@@ -384,7 +384,11 @@ export function downtimeCost(machines, tickets, now = new Date()) {
  * its failure would hurt. The cross-tab is the point: 3 machines down is
  * a different morning if all 3 are criticality-critical.
  */
-export function fleetHealthMap(machines, now = new Date()) {
+export function fleetHealthMap(machines, tickets = [], now = new Date()) {
+  if (tickets instanceof Date) {
+    now = tickets;
+    tickets = [];
+  }
   const reference = toDate(now);
   const byStatus = { running: 0, issues: 0, down: 0, maintenance: 0 };
   const byCriticality = { critical: 0, high: 0, medium: 0, low: 0 };
@@ -396,10 +400,8 @@ export function fleetHealthMap(machines, now = new Date()) {
   };
 
   asArray(machines).forEach((machine) => {
-    const health = machineStatusVerdict(machine, reference);
-    // Database status is authoritative. Derived health is only used for
-    // legacy rows that do not have a recognized machine status.
-    const bucket = databaseStatusBucket(machine) || health.status;
+    const health = machineDisplayStatus(machine, tickets, reference);
+    const bucket = health.status;
     const criticality = machineCriticality(machine);
 
     byStatus[bucket] += 1;
@@ -1124,7 +1126,7 @@ export function buildRoleMetrics(role, { machines, tickets, team, pmLogs, user, 
     maintenanceCost: monthlyMaintenanceCost(safeMachines, safeTickets, reference),
     sla: slaCompliance(safeTickets, { now: reference }),
     downtime: downtimeCost(safeMachines, safeTickets, reference),
-    fleetHealth: fleetHealthMap(safeMachines, reference),
+    fleetHealth: fleetHealthMap(safeMachines, safeTickets, reference),
     problemMachines: topProblemMachines(safeMachines, safeTickets, { now: reference }),
     month: monthSummary(safeTickets, pmLogs, reference),
   };
