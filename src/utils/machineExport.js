@@ -4,7 +4,7 @@
  * Mirrors `ticketExport.js`'s shape so both boards export consistently.
  */
 
-import { computeMachineHealth } from './machineHealth';
+import { machineStatusVerdict } from './machineHealth';
 
 const COLUMNS = [
   ['Machine', (m) => m.machine_name || m.machine_id],
@@ -30,7 +30,7 @@ function escapeCell(value) {
  */
 export function buildMachinesCSV(machines = []) {
   const rows = (Array.isArray(machines) ? machines : []).map((machine) => {
-    const health = computeMachineHealth(machine);
+    const health = machineStatusVerdict(machine);
     return COLUMNS.map(([, read]) => escapeCell(read(machine, health))).join(',');
   });
   return [COLUMNS.map(([header]) => escapeCell(header)).join(','), ...rows].join('\n');

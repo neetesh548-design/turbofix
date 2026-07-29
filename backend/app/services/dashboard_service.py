@@ -7,6 +7,18 @@ from typing import List, Optional, Union
 from app.repositories.base import CustomKpiRepository, MachineRepository, TicketRepository
 
 
+def _machine_status_bucket(machine: dict) -> str | None:
+    status = str(machine.get("status") or "").strip().lower()
+    return {
+        "healthy": "running", "operational": "running", "active": "running", "running": "running",
+        "down": "down", "breakdown": "down", "shutdown": "down",
+        "waiting_spare": "down", "waiting_vendor": "down", "decommissioned": "down",
+        "maintenance": "maintenance", "under_maintenance": "maintenance", "servicing": "maintenance",
+        "preventive_maintenance": "maintenance", "planned_maintenance": "maintenance",
+        "issue": "issues", "issues": "issues", "warning": "issues",
+    }.get(status)
+
+
 def compute_kpis(
     company_code: str = "",
     company_name: str = "",
@@ -56,7 +68,8 @@ def compute_kpis(
     machines_down = 0
     for m in machines:
         mid = m.get("machine_id") or m.get("id")
-        if m.get("has_open_tickets") or (mid and mid in machines_with_open_tickets):
+        bucket = _machine_status_bucket(m)
+        if bucket == "down":
             machines_down += 1
     if not machines and open_tickets_list:
         machines_down = len(machines_with_open_tickets)

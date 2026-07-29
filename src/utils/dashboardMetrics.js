@@ -29,7 +29,7 @@ import {
   ticketClosedAt,
   ticketAgeHours,
 } from './ticketSla.js';
-import { computeMachineHealth, databaseStatusBucket, nextPmInfo, HEALTH } from './machineHealth.js';
+import { computeMachineHealth, databaseStatusBucket, machineStatusVerdict, nextPmInfo, HEALTH } from './machineHealth.js';
 
 export const MS_PER_HOUR = 3_600_000;
 export const MS_PER_DAY = 24 * MS_PER_HOUR;
@@ -396,7 +396,7 @@ export function fleetHealthMap(machines, now = new Date()) {
   };
 
   asArray(machines).forEach((machine) => {
-    const health = computeMachineHealth(machine, reference);
+    const health = machineStatusVerdict(machine, reference);
     // Database status is authoritative. Derived health is only used for
     // legacy rows that do not have a recognized machine status.
     const bucket = databaseStatusBucket(machine) || health.status;

@@ -5,7 +5,7 @@ import {
   CalendarClock, User, Wrench, CheckCircle2,
 } from 'lucide-react';
 import MachineHealthIndicator from './MachineHealthIndicator';
-import { computeMachineHealth, formatDate, describeDayOffset, daysSince } from '@/utils/machineHealth';
+import { machineStatusVerdict, formatDate, describeDayOffset, daysSince } from '@/utils/machineHealth';
 
 const URGENCY_TONE = { low: 'low', medium: 'medium', high: 'high', critical: 'critical' };
 
@@ -67,7 +67,7 @@ function MachineDetailDrawer({
 
   if (!machine) return null;
 
-  const health = computeMachineHealth(machine);
+  const health = machineStatusVerdict(machine);
   const { pm, service, openCount } = health;
   const record = machine.track_record || {};
   const openTickets = Array.isArray(record.open_list) ? record.open_list : [];

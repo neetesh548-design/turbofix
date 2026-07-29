@@ -66,17 +66,17 @@ def sample_machines():
         {
             'machine_id': 'M040',
             'name': 'Compressor A1',
-            'has_open_tickets': False,
+            'status': 'healthy',
         },
         {
             'machine_id': 'M042',
             'name': 'Motor B3',
-            'has_open_tickets': True,
+            'status': 'down',
         },
         {
             'machine_id': 'M043',
             'name': 'Pump C2',
-            'has_open_tickets': True,
+            'status': 'down',
         },
     ]
 
@@ -164,7 +164,8 @@ def test_compute_kpis_plant_health_percentage():
         {'status': 'open', 'machine_id': 'M041', 'urgency': 'MEDIUM'},
     ]
     machines = [
-        {'machine_id': f'M{i:03d}'} for i in range(40, 50)  # 10 machines total
+        {'machine_id': f'M{i:03d}', 'status': 'down' if i in (40, 41) else 'healthy'}
+        for i in range(40, 50)
     ]
 
     with patch('app.repositories.base.get_tickets') as mock_get_tickets, \
