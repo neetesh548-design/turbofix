@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "src/lib/roles.js": {
-    "mtime": 1785236940.9609125,
-    "ast_hash": "729f42734d264ee31a3a9abe58f07b6d",
+    "mtime": 1785348183.6997266,
+    "ast_hash": "ce7a046029602274231f09ac9427318a",
     "semantic_hash": ""
   },
   "src/lib/utils.js": {
@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785341795.5392523,
-    "ast_hash": "15fd904e61477f056d19c159436ade12",
+    "mtime": 1785348465.3467493,
+    "ast_hash": "1b263f3525fe467fc9adef14c6b03093",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785337102.0126958,
-    "ast_hash": "8760eb6655bdc389b27148ec16e6849d",
+    "mtime": 1785348127.1477444,
+    "ast_hash": "bda1e4397cfc8c3c5cb6bdb4b216931a",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1785236944.7790086,
-    "ast_hash": "f16b5a77b3e3ee2a4703e18539473878",
+    "mtime": 1785348207.0286422,
+    "ast_hash": "8fcb08f4fc85ca2d95aa5bdc4c93fcbc",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -1615,8 +1615,8 @@
     "semantic_hash": "9be176435a50e02f8b242f34c1fe3e93"
   },
   "src/pages/Kaizen.jsx": {
-    "mtime": 1785056748.5982065,
-    "ast_hash": "a321e6af03001a36120d65cde7168e18",
+    "mtime": 1785348136.293922,
+    "ast_hash": "5cf2fffd9cbc341e61848c0f34ab1eb1",
     "semantic_hash": ""
   },
   "supabase/migrations/20260724010000_create_kaizen_opportunities.sql": {
@@ -2040,8 +2040,8 @@
     "semantic_hash": ""
   },
   "src/__tests__/roles.test.js": {
-    "mtime": 1785236949.363153,
-    "ast_hash": "41c69142241551e7b75711b2d3aa7194",
+    "mtime": 1785348146.5194957,
+    "ast_hash": "bfd88151d537bf9cdd2ec179032acf35",
     "semantic_hash": ""
   },
   "src/__tests__/utils.test.js": {
@@ -2135,8 +2135,8 @@
     "semantic_hash": ""
   },
   "src/components/tickets/TicketDetailPanel.jsx": {
-    "mtime": 1785184759.8985977,
-    "ast_hash": "182ff7c95f6db5fc54569e6ae57a0d18",
+    "mtime": 1785347963.1196146,
+    "ast_hash": "d74194050826001562bb095dc543915d",
     "semantic_hash": ""
   },
   "src/components/tickets/TicketKpiBar.jsx": {
@@ -2145,13 +2145,13 @@
     "semantic_hash": ""
   },
   "src/components/tickets/TicketRow.jsx": {
-    "mtime": 1785017720.324403,
-    "ast_hash": "53e17d2d9cc26b650209789b8e248b78",
+    "mtime": 1785347942.4086182,
+    "ast_hash": "ce3ba22710d37dc4ac3dcb7d08e23214",
     "semantic_hash": ""
   },
   "src/components/tickets/TicketToolbar.jsx": {
-    "mtime": 1785018024.5810661,
-    "ast_hash": "095550e537cc72ef4d20bdab75cee638",
+    "mtime": 1785347976.276735,
+    "ast_hash": "36eb5edc0b29794d7142e85462a86f9b",
     "semantic_hash": ""
   },
   "src/utils/ticketExport.js": {
@@ -2240,8 +2240,8 @@
     "semantic_hash": ""
   },
   "src/components/dashboard/SupervisorDashboard.jsx": {
-    "mtime": 1785184789.2334225,
-    "ast_hash": "baf3c2878dd9aa4477fc114debe82569",
+    "mtime": 1785348041.0061774,
+    "ast_hash": "40d8bfa99b59cab6711e24995b45baa1",
     "semantic_hash": ""
   },
   "src/components/dashboard/TechnicianDashboard.jsx": {
@@ -2265,8 +2265,8 @@
     "semantic_hash": ""
   },
   "tests/role-dashboards.spec.js": {
-    "mtime": 1785023258.4439,
-    "ast_hash": "3105e43bb3a634b371ab9e38decf88c3",
+    "mtime": 1785348567.58318,
+    "ast_hash": "fa39b2345a35bff55a28757978958cac",
     "semantic_hash": ""
   },
   "scripts/redesign-page-agent.js": {
@@ -2350,8 +2350,8 @@
     "semantic_hash": ""
   },
   "src/pages/ReportBreakdown.jsx": {
-    "mtime": 1785234653.1001565,
-    "ast_hash": "24750ccf2bacd51647b497c758c5cb7b",
+    "mtime": 1785348136.0518415,
+    "ast_hash": "731570a13a4ae1019203d3a09c594548",
     "semantic_hash": ""
   },
   "src/utils/breakdownRouter.js": {
@@ -2775,8 +2775,8 @@
     "semantic_hash": ""
   },
   "backend/whatsapp-bridge/main.go": {
-    "mtime": 1785305460.4839957,
-    "ast_hash": "e221bd0a544bb996f4be406350b2082e",
+    "mtime": 1785348759.2954135,
+    "ast_hash": "86972000dc3211e69392d269c0631448",
     "semantic_hash": ""
   },
   "backend/tests/test_otp_auth.py": {
@@ -2842,6 +2842,16 @@
   "supabase/migrations/20260729120000_qr_gateway_remembered_sessions.sql": {
     "mtime": 1785347178.202871,
     "ast_hash": "a33bb929c655c77b1f7244dbd120da20",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/SpecialistDashboard.jsx": {
+    "mtime": 1785348218.084926,
+    "ast_hash": "3430e575f3a77385d0524c55e72c8134",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260729130000_role_safe_ticket_actions.sql": {
+    "mtime": 1785348623.9819603,
+    "ast_hash": "aa6dcc97f9aede098fe8f40f0ab10c6d",
     "semantic_hash": ""
   }
 }
