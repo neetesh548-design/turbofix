@@ -33,8 +33,8 @@ function MachineFilterBar({ search, onSearchChange, status, onStatusChange, view
           value={search}
           data-testid="machine-search"
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search by machine name or location"
-          aria-label="Search machines by name or location"
+          placeholder="Search name, asset code or location"
+          aria-label="Search machines by name, asset code or location"
         />
         {search && (
           <button type="button" className="machine-search-clear" onClick={() => onSearchChange('')} aria-label="Clear search">

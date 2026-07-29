@@ -137,7 +137,7 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
             data-testid="machine-view-details"
             onClick={(event) => { event.stopPropagation(); onOpen?.(machine); }}
           >
-            Details <ChevronRight size={14} aria-hidden="true" />
+            Open machine <ChevronRight size={14} aria-hidden="true" />
           </button>
         </div>
       </footer>

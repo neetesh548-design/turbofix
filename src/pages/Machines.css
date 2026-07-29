@@ -65,6 +65,35 @@
 .machines-add-btn:hover { filter: brightness(1.08); }
 .machines-add-btn:active { transform: translateY(1px); }
 
+/* A tiny orientation cue keeps the long machine workflow self-explanatory
+   without adding another dashboard panel. */
+.machine-board-guidance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  margin: -4px 0 16px;
+  padding: 8px 12px;
+  color: var(--slate);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.76rem;
+}
+
+.machine-board-guidance-step { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.machine-board-guidance-step strong {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #04140a;
+  background: var(--brand);
+  font-size: 0.68rem;
+}
+.machine-board-result-count { margin-left: auto; color: var(--slate-light); font-weight: 700; white-space: nowrap; }
+
 /* ---------- Filter bar ---------- */
 
 .machine-filterbar {
@@ -137,6 +166,11 @@
    fit a phone screen) with a hidden scrollbar and no other affordance, so
    the last chip just looked cut off. A trailing fade hints there's more. */
 @media (max-width: 719px) {
+  .machine-board-guidance { overflow-x: auto; scrollbar-width: none; padding-right: 16px; }
+  .machine-board-guidance::-webkit-scrollbar { display: none; }
+  .machine-board-guidance-step { flex: 0 0 auto; }
+  .machine-board-guidance > svg { flex: 0 0 auto; }
+  .machine-board-result-count { position: sticky; right: 0; margin-left: auto; padding-left: 12px; background: var(--bg, #0b1118); }
   .machine-filter-chips {
     padding-right: 20px;
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);

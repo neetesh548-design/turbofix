@@ -1996,7 +1996,7 @@ export default function Machines() {
             <div className="machines-board-head">
               <div>
                 <h1>Machines</h1>
-                <p>Every machine, colour-coded by health. Green is running, amber needs a look, red is stopped. Open a card for the detail.</p>
+                <p>Find a machine, see what needs attention, and take the next action without leaving this page.</p>
               </div>
               <button type="button" className="machines-add-btn" data-testid="machine-add" onClick={() => setShowAddForm(!showAddForm)}>
                 {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine {!showingDemo && companyQuota && <span style={{ marginLeft: '6px', fontSize: '11px', background: machines.length >= companyQuota ? '#dc2626' : 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>{machines.length}/{companyQuota}</span>}</>}
@@ -2219,6 +2219,15 @@ export default function Machines() {
               onViewChange={setDirectoryView}
               summary={fleetSummary}
             />
+
+            <div className="machine-board-guidance" role="status" aria-live="polite">
+              <span className="machine-board-guidance-step"><strong>1</strong> Search or filter</span>
+              <ChevronRight size={14} aria-hidden="true" />
+              <span className="machine-board-guidance-step"><strong>2</strong> Open the machine</span>
+              <ChevronRight size={14} aria-hidden="true" />
+              <span className="machine-board-guidance-step"><strong>3</strong> Report, maintain or review</span>
+              <span className="machine-board-result-count">{boardMachines.length} visible</span>
+            </div>
 
             {boardMachines.length > 0 && (
               <div className="machine-select-row">
