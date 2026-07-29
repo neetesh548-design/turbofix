@@ -127,10 +127,9 @@ export function ticketWorkInProgress(ticket) {
  *
  * The stored machine status is the source of truth for explicit Down and
  * Maintenance states. An unresolved ticket is an operational overlay: a
- * running machine becomes Issues, or Down when the ticket contains an
- * explicit downtime signal. This prevents an open breakdown from appearing
- * as Running while avoiding the unsafe assumption that every ticket means
- * production has stopped.
+ * any unresolved ticket puts the machine into Down until work is started.
+ * Once work is started, the machine moves to Maintenance. This keeps the
+ * operational board aligned with the live repair workflow.
  */
 export function machineDisplayStatus(machine, tickets = null, now = new Date()) {
   const base = machineStatusVerdict(machine, now);
@@ -151,14 +150,12 @@ export function machineDisplayStatus(machine, tickets = null, now = new Date()) 
   }
   if (bucket === 'down' || bucket === 'maintenance') return base;
   if (bucket === HEALTH.RUNNING || !bucket) {
-    const downtime = openTickets.some(ticketIndicatesDowntime);
-    const status = downtime ? HEALTH.DOWN : HEALTH.ISSUES;
     return {
       ...base,
-      status,
-      label: HEALTH_LABELS[status],
-      color: HEALTH_COLORS[status],
-      reasons: [downtime ? 'Open ticket indicates machine downtime' : 'Open ticket requires attention', ...base.reasons],
+      status: HEALTH.DOWN,
+      label: HEALTH_LABELS[HEALTH.DOWN],
+      color: HEALTH_COLORS[HEALTH.DOWN],
+      reasons: ['Open ticket awaiting technician work', ...base.reasons],
     };
   }
   return base;
