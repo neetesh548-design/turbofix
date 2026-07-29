@@ -38,6 +38,42 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 function SearchMetadata() {
   const { pathname } = useLocation();
 
+  const metadata = {
+    '/': {
+      title: 'TurboFix | AI Maintenance Management Software for Manufacturing',
+      description: 'TurboFix helps manufacturing plants control breakdowns, preventive maintenance, machine history, spare parts, and technician work in one verified system.',
+    },
+    '/why-turbofix.html': {
+      title: 'Why TurboFix | Maintenance Software Built for Manufacturing Plants',
+      description: 'See how TurboFix replaces paper logbooks and scattered messages with accountable maintenance workflows and machine-specific history.',
+    },
+    '/platform.html': {
+      title: 'Manufacturing Maintenance Platform | TurboFix',
+      description: 'Manage breakdowns, preventive maintenance, machine records, spare parts, shutdown planning, and plant reliability from TurboFix.',
+    },
+    '/records-platform.html': {
+      title: 'AI Maintenance Records and Machine History | TurboFix',
+      description: 'Digitize handwritten maintenance registers, PDFs, spreadsheets, manuals, and job cards into reviewable machine history.',
+    },
+    '/workflow.html': {
+      title: 'Breakdown and Repair Workflow for Manufacturing | TurboFix',
+      description: 'Follow every issue from QR report to technician work, repair evidence, supervisor verification, and root-cause analysis.',
+    },
+    '/demo.html': {
+      title: 'TurboFix Product Demo | Plant Maintenance Software',
+      description: 'See how operators, technicians, maintenance heads, and plant owners use TurboFix to reduce maintenance delays and repeat breakdowns.',
+    },
+    '/pricing.html': {
+      title: 'TurboFix Pricing | Manufacturing Maintenance Software',
+      description: 'Explore transparent per-machine pricing for TurboFix maintenance management software and book a guided plant walkthrough.',
+    },
+    '/contact.html': {
+      title: 'Book a TurboFix Plant Walkthrough',
+      description: 'Talk with TurboFix about breakdown control, preventive maintenance, machine history, and technician accountability for your plant.',
+    },
+  };
+  const page = metadata[pathname] || null;
+
   useEffect(() => {
     const isPublicMarketingPage = [
       '/',
@@ -57,9 +93,16 @@ function SearchMetadata() {
     );
     document.querySelector('link[rel="canonical"]')?.setAttribute(
       'href',
-      `https://turbofix.co.in${isPublicMarketingPage ? '/' : pathname}`,
+      `https://turbofix.co.in${isPublicMarketingPage ? (pathname === '/' ? '/' : pathname) : pathname}`,
     );
-  }, [pathname]);
+    if (page) {
+      document.title = page.title;
+      document.querySelector('meta[name="description"]')?.setAttribute('content', page.description);
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', page.title);
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', page.description);
+      document.querySelector('meta[property="og:url"]')?.setAttribute('content', `https://turbofix.co.in${pathname === '/' ? '/' : pathname}`);
+    }
+  }, [pathname, page]);
 
   return null;
 }
