@@ -92,6 +92,8 @@ export default function Machines() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [companyQuota, setCompanyQuota] = useState(null);
+
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [machineEdit, setMachineEdit] = useState(null);
   const [machineEditSaving, setMachineEditSaving] = useState(false);
@@ -288,13 +290,17 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
+      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes, compRes] = await Promise.all([
         supabase.from('machines').select('*'),
         supabase.from('tickets').select('id,machine_id,status,issue_text,created_at,urgency'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
+        supabase.from('companies').select('machine_quota').maybeSingle(),
       ]);
+
+      if (compRes.data?.machine_quota) setCompanyQuota(compRes.data.machine_quota);
+
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
@@ -970,9 +976,16 @@ export default function Machines() {
     setError('');
     setSuccess('');
     try {
+      const quota = companyQuota || 5;
+      const currentCount = (machines || []).length;
+      if (!showingDemo && currentCount >= quota) {
+        throw new Error(`Machine limit reached: Your account is permitted up to ${quota} machines (${currentCount} currently registered). Contact your administrator to increase your quota.`);
+      }
+
       const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
       const factoryId = factoryRows?.[0]?.id;
       if (!factoryId) throw new Error('No factory found. Please set up a factory first.');
+
 
       const { data: newRow, error: insertErr } = await supabase.from('machines').insert({
         name, location,
@@ -1979,7 +1992,7 @@ export default function Machines() {
                 <p>Every machine, colour-coded by health. Green is running, amber needs a look, red is stopped. Open a card for the detail.</p>
               </div>
               <button type="button" className="machines-add-btn" data-testid="machine-add" onClick={() => setShowAddForm(!showAddForm)}>
-                {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine</>}
+                {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine {!showingDemo && companyQuota && <span style={{ marginLeft: '6px', fontSize: '11px', background: machines.length >= companyQuota ? '#dc2626' : 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>{machines.length}/{companyQuota}</span>}</>}
               </button>
             </div>
 
@@ -1996,6 +2009,15 @@ export default function Machines() {
             {/* Onboard machine form */}
             {showAddForm && (
               <div className="vault-card machine-onboard-card">
+                {!showingDemo && companyQuota && machines.length >= companyQuota && (
+                  <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '14px 18px', borderRadius: '10px', marginBottom: '20px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <CircleAlert size={20} style={{ flexShrink: 0, color: '#ef4444' }} />
+                    <div>
+                      <strong style={{ display: 'block', color: '#fff' }}>Machine Quota Limit Reached ({machines.length} of {companyQuota} Machines)</strong>
+                      <span>Your workspace has reached its permitted machine limit of {companyQuota} machines. Submission is disabled. Please contact your platform administrator to raise your machine plan quota.</span>
+                    </div>
+                  </div>
+                )}
                 <div className="machine-onboard-header">
                   <div>
                     <span className="machine-onboard-kicker">New machine</span>
@@ -2004,6 +2026,7 @@ export default function Machines() {
                   </div>
                   <span className="machine-onboard-time">About 2 minutes</span>
                 </div>
+
                 <form onSubmit={handleAddSubmit} className="machine-onboard-form">
                   <section className="machine-form-section">
                     <div className="machine-form-section-heading">
@@ -2173,8 +2196,9 @@ export default function Machines() {
 
                   <div className="machine-form-actions">
                     <div><strong>TurboFix creates the machine ID and QR tag automatically.</strong><span>The machine page stays the workflow layer; analytics and machine history power the signals underneath. You can upload manuals, BOM, and diagrams after onboarding.</span></div>
-                    <button type="submit" className="vault-btn vault-btn-primary machine-submit" disabled={technicians.length === 0}>Add machine</button>
+                    <button type="submit" className="vault-btn vault-btn-primary machine-submit" disabled={technicians.length === 0 || (!showingDemo && companyQuota && machines.length >= companyQuota)}>Add machine</button>
                   </div>
+
                 </form>
               </div>
             )}

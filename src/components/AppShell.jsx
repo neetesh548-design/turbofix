@@ -143,6 +143,30 @@ export default function AppShell({ children, active }) {
   const audioChunksRef = useRef([]);
   const [seniorMode, setSeniorMode] = useState(() => localStorage.getItem('tf_senior_mode') === 'true');
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState(null);
+
+  useEffect(() => {
+    if (!authed || !user?.company_code || user?.inventory_mode === 'demo') return;
+    const checkQuota = async () => {
+      try {
+        const [compRes, mRes] = await Promise.all([
+          supabase.from('companies').select('machine_quota').eq('domain', user.company_code.toLowerCase()).single(),
+          supabase.from('machines').select('id', { count: 'exact', head: true }),
+        ]);
+        const quota = compRes.data?.machine_quota ?? 5;
+        const used = mRes.count ?? 0;
+        if (used >= quota) {
+          setQuotaInfo({ used, quota });
+        } else {
+          setQuotaInfo(null);
+        }
+      } catch (_err) {
+        // Ignore fallback
+      }
+    };
+    checkQuota();
+  }, [authed, user?.company_code, user?.inventory_mode]);
+
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -495,10 +519,22 @@ export default function AppShell({ children, active }) {
             >
               <LogOut size={17} />
             </button>
-          </div>
         </header>
 
+        {quotaInfo && quotaInfo.used >= quotaInfo.quota && (
+          <div className="bg-amber-500/15 text-amber-900 dark:text-amber-200 border-b border-amber-500/30 px-4 py-2.5 text-xs font-medium flex items-center justify-between gap-3 shadow-inner z-30">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 animate-ping" />
+              <span><strong>Machine Limit Reached:</strong> Your company has onboarded <strong>{quotaInfo.used}</strong> of <strong>{quotaInfo.quota}</strong> permitted machines. Please contact your administrator to upgrade your plan.</span>
+            </div>
+            <a href="mailto:admin@turbofix.co.in" className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-900 dark:text-amber-100 font-bold transition-colors flex-shrink-0">
+              Upgrade Plan
+            </a>
+          </div>
+        )}
+
         {searchOpen && (
+
           <div
             className="fixed inset-0 z-[999] bg-slate-900/60 dark:bg-slate-950/75 backdrop-blur-sm flex items-start justify-center pt-20 sm:pt-28 px-4"
             onClick={() => setSearchOpen(false)}
