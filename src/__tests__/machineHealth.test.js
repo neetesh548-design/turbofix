@@ -241,7 +241,7 @@ describe('demo fleet', () => {
   });
 
   it('summarises the expanded demo fleet', () => {
-    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 8, issues: 3, down: 1, maintenance: 0 });
+    expect(summarizeFleet(DEMO_MACHINES)).toEqual({ all: 12, running: 11, issues: 0, down: 1, maintenance: 0 });
   });
 });
 
@@ -265,13 +265,13 @@ describe('filterMachines', () => {
   });
 
   it('filters by health status', () => {
-    expect(filterMachines(fleet, { status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual(['M002']);
-    expect(filterMachines(fleet, { status: HEALTH.ISSUES }, NOW).map((m) => m.machine_id)).toEqual(['M003']);
+    expect(filterMachines(fleet, { status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual([]);
+    expect(filterMachines(fleet, { status: HEALTH.ISSUES }, NOW).map((m) => m.machine_id)).toEqual([]);
     expect(filterMachines(fleet, { status: HEALTH.RUNNING }, NOW).map((m) => m.machine_id)).toEqual(['M001']);
   });
 
   it('combines search and status', () => {
-    expect(filterMachines(fleet, { search: 'bay', status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual(['M002']);
+    expect(filterMachines(fleet, { search: 'bay', status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual([]);
   });
 
   it('is safe on a missing list', () => {

@@ -68,7 +68,7 @@ export const HEALTH_LABELS = {
 };
 
 const DATABASE_STATUS_BUCKETS = {
-  operational: HEALTH.RUNNING, active: HEALTH.RUNNING, running: HEALTH.RUNNING,
+  operational: HEALTH.RUNNING, active: HEALTH.RUNNING, healthy: HEALTH.RUNNING, running: HEALTH.RUNNING,
   under_maintenance: 'maintenance', maintenance: 'maintenance', servicing: 'maintenance',
   preventive_maintenance: 'maintenance', planned_maintenance: 'maintenance',
   breakdown: HEALTH.DOWN, down: HEALTH.DOWN, shutdown: HEALTH.DOWN,
