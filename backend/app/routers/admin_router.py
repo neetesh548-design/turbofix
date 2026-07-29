@@ -570,8 +570,11 @@ def admin_update_company(
     if not fields:
         raise HTTPException(status_code=400, detail="nothing to update")
 
-    users.update_company(company_code, fields)
+    ok = users.update_company(company_code, fields)
+    if not ok:
+        raise HTTPException(status_code=500, detail="failed to save company changes")
     company = users.get_company(company_code)
+
     log.info("admin.company_updated", company_code=company_code, fields=list(fields.keys()))
     return {
         "company_code": company_code,

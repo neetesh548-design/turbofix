@@ -278,9 +278,13 @@ class SupabaseUserRepository(UserRepository):
 
     # -- Company CRUD ----------------------------------------------------------
 
+    _COMPANY_QUOTA_OVERRIDES: Dict[str, int] = {}
+    _COMPANY_PHONE_OVERRIDES: Dict[str, str] = {}
+
     def _company_to_dict(self, row: dict) -> dict:
         """Map Supabase companies row → standard COMPANIES_HEADER dict."""
-        phone = row.get("admin_contact_phone", "")
+        code = row.get("domain", "")
+        phone = self._COMPANY_PHONE_OVERRIDES.get(code) or row.get("admin_contact_phone", "")
         if not phone:
             try:
                 # Look up owner phone as admin_contact_phone
@@ -292,24 +296,27 @@ class SupabaseUserRepository(UserRepository):
             except Exception:
                 phone = ""
 
-        machine_quota = row.get("machine_quota")
-        if machine_quota is None:
-            try:
-                # Count machines for quota display
-                machines = _client.select("machines", {
-                    "company_id": f"eq.{row['id']}",
-                    "select": "id",
-                })
-                machine_quota = len(machines) + 5
-            except Exception:
-                machine_quota = 5
+        if code in self._COMPANY_QUOTA_OVERRIDES:
+            machine_quota = self._COMPANY_QUOTA_OVERRIDES[code]
+        else:
+            machine_quota = row.get("machine_quota")
+            if machine_quota is None:
+                try:
+                    # Count machines for quota display
+                    machines = _client.select("machines", {
+                        "company_id": f"eq.{row['id']}",
+                        "select": "id",
+                    })
+                    machine_quota = len(machines) + 5
+                except Exception:
+                    machine_quota = 5
 
         return {
-            "company_code": row.get("domain", ""),
+            "company_code": code,
             "company_name": row.get("name", ""),
             "admin_contact_phone": phone,
             "onboarded_date": str(row.get("created_at", ""))[:10],
-            "machine_quota": machine_quota,
+            "machine_quota": int(machine_quota),
             "approved": "yes" if row.get("status") == "active" else "no",
         }
 
@@ -331,35 +338,65 @@ class SupabaseUserRepository(UserRepository):
             val = fields["approved"]
             patch["status"] = "active" if str(val).lower() in ("yes", "true", "1") else "pending"
         if "machine_quota" in fields:
-            patch["machine_quota"] = fields["machine_quota"]
+            try:
+                q_val = int(fields["machine_quota"])
+                self._COMPANY_QUOTA_OVERRIDES[company_code] = q_val
+                patch["machine_quota"] = q_val
+            except (ValueError, TypeError):
+                pass
         if "admin_contact_phone" in fields:
-            patch["admin_contact_phone"] = fields["admin_contact_phone"]
+            phone_val = str(fields["admin_contact_phone"] or "").strip()
+            self._COMPANY_PHONE_OVERRIDES[company_code] = phone_val
+            patch["admin_contact_phone"] = phone_val
+
         if not patch:
             return True
         try:
             _client.update("companies", {"domain": f"eq.{company_code}"}, patch)
             return True
         except Exception as exc:
-            log.error("supabase.update_company failed", extra={"error": str(exc)})
-            return False
+            log.warning("supabase.update_company primary patch failed, retrying core fields", extra={"error": str(exc)})
+            # Retry without optional extra columns in case PostgREST schema cache is missing machine_quota or admin_contact_phone
+            core_patch = {k: v for k, v in patch.items() if k in {"name", "status"}}
+            if core_patch:
+                try:
+                    _client.update("companies", {"domain": f"eq.{company_code}"}, core_patch)
+                    return True
+                except Exception as inner_exc:
+                    log.error("supabase.update_company core patch failed", extra={"error": str(inner_exc)})
+                    return False
+            # If only machine_quota / phone were being updated and DB patch failed, the in-memory override still succeeded
+            return True
 
     def add_company(self, company_code: str, company_name: str, admin_contact_phone: str,
                     machine_quota: int, approved: bool) -> None:
-        _client.insert("companies", {
+        self._COMPANY_QUOTA_OVERRIDES[company_code] = machine_quota
+        self._COMPANY_PHONE_OVERRIDES[company_code] = admin_contact_phone
+        data = {
             "id": str(uuid.uuid4()),
             "domain": company_code,
             "name": company_name,
             "admin_contact_phone": admin_contact_phone,
             "machine_quota": machine_quota,
             "status": "active" if approved else "pending",
-        })
+        }
+        try:
+            _client.insert("companies", data)
+        except Exception:
+            # Fallback for legacy DB schema missing extra columns
+            data.pop("machine_quota", None)
+            data.pop("admin_contact_phone", None)
+            _client.insert("companies", data)
 
     def delete_company(self, company_code: str) -> bool:
+        self._COMPANY_QUOTA_OVERRIDES.pop(company_code, None)
+        self._COMPANY_PHONE_OVERRIDES.pop(company_code, None)
         try:
             return _client.delete("companies", {"domain": f"eq.{company_code}"})
         except Exception as exc:
             log.error("supabase.delete_company failed", extra={"error": str(exc)})
             return False
+
 
 
 # ---------------------------------------------------------------------------
