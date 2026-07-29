@@ -8331,6 +8331,7 @@ details.faq-item p {
   margin-left: auto;
 }
 .public-nav-meta { display: none; }
+.public-nav-mobile-account { display: none; }
 
 .public-nav-account {
   display: flex;
@@ -8430,6 +8431,11 @@ details.faq-item p {
   }
   .public-nav-menu.open { display: block; }
   .public-nav-toggle { display: grid; }
+  .public-nav-mobile-account { display: block; margin: 8px 0 10px; }
+  .public-nav-mobile-account .public-nav-account { min-height: 54px; justify-content: flex-start; padding: 7px 12px; border-color: rgba(52, 211, 153, .3); background: rgba(16, 40, 34, .55); }
+  .public-nav-mobile-account .public-nav-account-text { gap: 2px; }
+  .public-nav-mobile-account .public-nav-account-text small { display: block; color: #6ee7b7; }
+  .public-nav-mobile-account .public-nav-account-text strong { font-size: .9rem; }
   .public-nav-resources-menu { position: static; min-width: 0; margin: 4px 0 8px; transform: none; border: 0; border-radius: 10px; padding: 3px; background: rgba(0,0,0,.15); box-shadow: none; }
   .public-nav-resources-trigger { width: 100%; justify-content: space-between; }
   .public-nav-resources-menu .public-nav-link { min-height: 48px; }
