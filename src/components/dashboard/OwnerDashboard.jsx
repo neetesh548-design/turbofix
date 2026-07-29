@@ -34,37 +34,37 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
     <div className="rd-board rd-board-owner" data-testid="owner-dashboard" data-loading={loading ? 'true' : 'false'}>
       <section className="rd-kpi-row" aria-label="Business KPIs">
         <DashboardKpiCard
-          label="Fleet value at risk"
+          label="Money at risk"
           icon={ShieldAlert}
           tone={valueAtRisk.machineCount > 0 ? 'danger' : 'ok'}
           value={valueAtRisk.known === false ? 'Set asset values' : formatInrCompact(valueAtRisk.value)}
-          hint={`${valueAtRisk.machineCount || 0} machine${valueAtRisk.machineCount === 1 ? '' : 's'} with open work or overdue PM`}
+          hint={`${valueAtRisk.machineCount || 0} machine${valueAtRisk.machineCount === 1 ? '' : 's'} need attention or service`}
           onClick={drill('machines')}
           data-testid="kpi-value-at-risk"
         />
         <DashboardKpiCard
-          label="Maintenance cost · this month"
+          label="Maintenance spend · this month"
           icon={Wallet}
           value={formatInrCompact(cost.total)}
-          hint={`${formatInrCompact(cost.repair)} labour & parts · ${formatInrCompact(cost.downtime)} lost production`}
+          hint={`${formatInrCompact(cost.repair)} labour and parts · ${formatInrCompact(cost.downtime)} production loss`}
           onClick={drill('secondary')}
           data-testid="kpi-maintenance-cost"
         />
         <DashboardKpiCard
-          label="Critical machines"
+          label="Important machines"
           icon={ShieldAlert}
           tone={(fleet.grid?.critical?.down || 0) > 0 ? 'danger' : 'ok'}
           value={(fleet.grid?.critical?.down || 0) + (fleet.grid?.critical?.issues || 0)}
-          hint={`${fleet.grid?.critical?.down || 0} down · ${fleet.grid?.critical?.issues || 0} need attention`}
+          hint={`${fleet.grid?.critical?.down || 0} stopped · ${fleet.grid?.critical?.issues || 0} need attention`}
           onClick={drill('machines')}
           data-testid="kpi-critical-machines"
         />
         <DashboardKpiCard
-          label="Downtime cost · this month"
+          label="Production loss · this month"
           icon={TrendingDown}
           tone={downtime.cost > 0 ? 'danger' : 'ok'}
           value={formatInrCompact(downtime.cost)}
-          hint={`${downtime.hours || 0} hours lost across ${downtime.ticketCount || 0} breakdown${downtime.ticketCount === 1 ? '' : 's'}`}
+          hint={`${downtime.hours || 0} hours lost across ${downtime.ticketCount || 0} machine issue${downtime.ticketCount === 1 ? '' : 's'}`}
           onClick={drill('downtime')}
           data-testid="kpi-downtime-cost"
         />
@@ -72,25 +72,25 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
 
       <div className="rd-split">
         <DashboardChart
-          title="Fleet health map"
-          subtitle="Where the risk sits"
+          title="Machine status"
+          subtitle="Current plant position"
           caption={`${fleet.total || 0} machines`}
         >
           <StatusDonut values={fleet.byStatus} total={fleet.total} />
         </DashboardChart>
 
-        <DashboardChart title="This month" subtitle="Operating summary" caption="Calendar month to date">
+        <DashboardChart title="This month" subtitle="Quick summary" caption="Month to date">
           <div className="rd-mini-grid">
-            <MiniStat label="Tickets opened" value={month.opened ?? 0} />
-            <MiniStat label="Tickets closed" value={month.closed ?? 0} tone="ok" />
-            <MiniStat label="PM completion" value={formatPct(month.pmCompletionPct, 'No PM logged')} />
+            <MiniStat label="New issues" value={month.opened ?? 0} />
+            <MiniStat label="Issues closed" value={month.closed ?? 0} tone="ok" />
+            <MiniStat label="Service completed" value={formatPct(month.pmCompletionPct, 'No data yet')} />
           </div>
         </DashboardChart>
       </div>
 
       <DashboardChart
-        title="Top problem machines"
-        subtitle="Ask about these first"
+        title="Machines needing attention"
+        subtitle="Fix these first"
         caption="Ranked by open work"
         action={<a className="rd-link" href="machines.html">All machines <ArrowUpRight size={13} /></a>}
       >
