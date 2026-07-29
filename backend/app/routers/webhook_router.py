@@ -101,7 +101,8 @@ async def receive_webhook(
             
             # Check if active QR breakdown session or machine ID / QR code format
             has_active_session = bool(sessions.get(phone))
-            is_qr_scan = bool(re.search(r"M-\d+|TF-M-|[A-Za-z0-9]+-[A-Za-z0-9]+|machine|breakdown|ticket|close", text_body, re.IGNORECASE))
+            is_qr_scan = bool(re.search(r"M-\d+|TF-M-|T\d+|[A-Za-z0-9]+-[A-Za-z0-9]+|machine|breakdown|ticket|close|resolve", text_body, re.IGNORECASE))
+
 
             
             if has_active_session or is_qr_scan:
