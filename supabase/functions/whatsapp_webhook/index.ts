@@ -307,6 +307,84 @@ interface GatekeeperResult {
   isUnverified: boolean;
 }
 
+type WhatsAppUser = { id: string; user_id?: string; factory_id: string; role: string; name?: string; phone_e164: string };
+
+async function resolveWhatsAppUser(
+  supabase: ReturnType<typeof getSupabase>,
+  phoneE164: string,
+): Promise<WhatsAppUser | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('id,user_id,factory_id,role,name,phone_e164')
+    .eq('phone_e164', phoneE164)
+    .maybeSingle();
+  return data || null;
+}
+
+function isChatQuestion(value: string) {
+  return /\b(show|what|which|status|summary|downtime|machine|ticket|assigned|maintenance|pending|open|today|help|report)\b/i.test(value);
+}
+
+async function handleRoleChat(
+  supabase: ReturnType<typeof getSupabase>,
+  from: string,
+  question: string,
+): Promise<boolean> {
+  const phoneE164 = `+${from.replace('+', '')}`;
+  const user = await resolveWhatsAppUser(supabase, phoneE164);
+  if (!user || !isChatQuestion(question)) return false;
+
+  const role = String(user.role || '').toLowerCase();
+  const scopedRoles = new Set(['technician', 'maintenance_technician', 'supervisor', 'maintenance_engineer', 'maintenance_head']);
+  const plantWide = ['owner', 'admin', 'maintenance_head'].includes(role);
+
+  let machineQuery = supabase
+    .from('machines')
+    .select('id,name,location,status,technician_user_id,supervisor_id,assigned_technician_phone')
+    .eq('factory_id', user.factory_id);
+  if (role === 'technician' || role === 'maintenance_technician') {
+    machineQuery = machineQuery.or(`technician_user_id.eq.${user.user_id || user.id},assigned_technician_phone.eq.${phoneE164}`);
+  } else if (role === 'supervisor') {
+    machineQuery = machineQuery.eq('supervisor_id', user.user_id || user.id);
+  }
+  const { data: machines } = await machineQuery.limit(100);
+  const machineRows = machines || [];
+  const machineIds = machineRows.map((machine: any) => machine.id).filter(Boolean);
+  let tickets: any[] = [];
+  if (machineIds.length) {
+    const { data } = await supabase
+      .from('tickets')
+      .select('id,machine_id,status,issue_text,urgency,created_at,resolved_at')
+      .in('machine_id', machineIds)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    tickets = data || [];
+  }
+
+  const context = [
+    `Role: ${role}`,
+    `User: ${user.name || phoneE164}`,
+    `Scope: ${plantWide ? 'factory-wide' : 'assigned machines only'}`,
+    `Machines:\n${machineRows.length ? machineRows.map((machine: any) => `- ${machine.name} | ${machine.location || 'location unknown'} | ${machine.status || 'unknown'} | id=${machine.id}`).join('\n') : '- None assigned'}`,
+    `Tickets:\n${tickets.length ? tickets.map((ticket: any) => `- ${ticket.id.slice(0, 8)} | machine=${ticket.machine_id} | ${ticket.status} | ${ticket.urgency || 'normal'} | ${String(ticket.issue_text || '').slice(0, 180)}`).join('\n') : '- None recorded'}`,
+  ].join('\n');
+
+  let answer = `TurboFix ${role} view\nMachines assigned: ${machineRows.length}\nOpen tickets: ${tickets.filter((ticket) => !['resolved', 'closed'].includes(String(ticket.status).toLowerCase())).length}`;
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
+  if (apiKey) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash'}:generateContent?key=${apiKey}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: `You are TurboFix WhatsApp assistant. Answer briefly using only the authorized context. Never mention records outside the user's scope. If data is missing, say so.\nQuestion: ${question}\nContext:\n${context}` }] }] }),
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      answer = payload?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || answer;
+    }
+  }
+  if (waConfigured()) await sendTextMessage(from, answer);
+  return true;
+}
+
 async function gatekeeper(
   supabase: ReturnType<typeof getSupabase>,
   phoneE164: string,
@@ -412,6 +490,9 @@ async function handleTextMessage(
     }
     return;
   }
+
+  // Known users can ask role-scoped questions without accidentally opening a ticket.
+  if (await handleRoleChat(supabase, from, text)) return;
 
   // 3. Route via gatekeeper
   const { result: gate, cleanedText } = await gatekeeper(supabase, phoneE164, text);
