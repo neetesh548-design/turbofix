@@ -63,7 +63,9 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
         };
       }
       window.MediaRecorder = MediaRecorderMock;
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
     });
+
 
     // Log browser console logs
     page.on('console', msg => console.log(`BROWSER LOG: [${msg.type()}] ${msg.text()}`));
