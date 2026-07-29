@@ -149,10 +149,14 @@ export default function AppShell({ children, active }) {
     if (!authed || !user?.company_code || user?.inventory_mode === 'demo') return;
     const checkQuota = async () => {
       try {
-        const [compRes, mRes] = await Promise.all([
-          supabase.from('companies').select('machine_quota').eq('domain', user.company_code.toLowerCase()).single(),
-          supabase.from('machines').select('id', { count: 'exact', head: true }),
-        ]);
+        const compRes = await supabase
+          .from('companies')
+          .select('id,machine_quota')
+          .ilike('domain', user.company_code)
+          .single();
+        const mRes = compRes.data?.id
+          ? await supabase.from('machines').select('id', { count: 'exact', head: true }).eq('company_id', compRes.data.id)
+          : { count: 0 };
         const quota = compRes.data?.machine_quota ?? 5;
         const used = mRes.count ?? 0;
         if (used >= quota) {
