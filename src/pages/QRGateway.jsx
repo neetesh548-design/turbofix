@@ -248,9 +248,19 @@ const GATEWAY_I18N = {
     transcribeError: 'Could not transcribe speech. Please try again or type the problem.',
     offlineSavedText: 'Saved offline. Ticket will sync when internet returns.',
     submittingErrorTitle: 'Submission Error',
-    submissionProblemText: 'There was a problem submitting your ticket. Please try again.'
+    submissionProblemText: 'There was a problem submitting your ticket. Please try again.',
+    otpGateTitle: 'WhatsApp OTP Verification',
+    otpGateDesc: 'Enter the 6-digit OTP code sent to your WhatsApp to verify your identity and log a breakdown ticket:',
+    sendOtp: 'Send WhatsApp OTP',
+    verifyOtp: 'Verify OTP',
+    resendOtp: 'Resend OTP',
+    sendingOtp: 'Sending OTP...',
+    verifyingOtp: 'Verifying...',
+    changePhone: 'Change Phone Number',
+    otpPlaceholder: 'Enter 6-digit OTP'
   }
 };
+
 
 export default function QRGateway() {
   const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
@@ -292,9 +302,26 @@ export default function QRGateway() {
   const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
   const [phoneInput, setPhoneInput] = useState('');
 
+  // WhatsApp OTP Verification state
+  const [otpStep, setOtpStep] = useState('phone'); // 'phone' | 'verify'
+  const [otpInput, setOtpInput] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [otpDebug, setOtpDebug] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setInterval(() => setResendTimer(t => t - 1), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendTimer]);
+
   // Offline queue state
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
   const [offlineQueued, setOfflineQueued] = useState(false);
+
 
   const t = (key) => (GATEWAY_I18N[lang] || GATEWAY_I18N['hi-IN'])[key] || key;
   const machineContextLabel = machine.name ? `${machine.name}${machine.loc ? ` · ${machine.loc}` : ''}` : 'Selected machine';
@@ -1210,21 +1237,69 @@ export default function QRGateway() {
     }
   };
 
-  const handlePhoneProceed = () => {
+  const handleSendOTP = async () => {
     if (!phoneInput.trim() || !phoneInput.match(/^\d{10}$/)) {
-      alert(t('invalidPhone'));
+      setOtpError(t('invalidPhone'));
       return;
     }
-    localStorage.setItem('tf_reporter_phone', phoneInput.trim());
-    if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
-    setReporterPhone(phoneInput.trim());
-    setPhoneGate(false);
-    setWorkflowStage('capture');
-    
-    setTimeout(() => {
-      greetUser();
-    }, 400);
+    setOtpError('');
+    setOtpSending(true);
+    try {
+      const apiHost = import.meta.env.VITE_BACKEND_URL || '';
+      const res = await fetch(`${apiHost}/auth/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to send OTP');
+
+      setOtpStep('verify');
+      setResendTimer(30);
+      if (data.otp_debug) {
+        setOtpDebug(data.otp_debug);
+      }
+      speak(lang === 'hi-IN' ? 'आपके व्हाट्सएप पर ओटीपी भेज दिया गया है।' : lang === 'mr-IN' ? 'तुमच्या व्हॉट्सअॅपवर ओटीपी पाठवला आहे.' : 'OTP sent to your WhatsApp number.');
+    } catch (err) {
+      setOtpError(err.message || 'Failed to send OTP via WhatsApp.');
+    } finally {
+      setOtpSending(false);
+    }
   };
+
+  const handleVerifyOTP = async () => {
+    if (!otpInput.trim() || otpInput.trim().length !== 6) {
+      setOtpError(t('otpPlaceholder'));
+      return;
+    }
+    setOtpError('');
+    setOtpVerifying(true);
+    try {
+      const apiHost = import.meta.env.VITE_BACKEND_URL || '';
+      const res = await fetch(`${apiHost}/auth/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneInput.trim(), otp: otpInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
+
+      localStorage.setItem('tf_reporter_phone', phoneInput.trim());
+      if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
+      setReporterPhone(phoneInput.trim());
+      setPhoneGate(false);
+      setWorkflowStage('capture');
+
+      setTimeout(() => {
+        greetUser();
+      }, 400);
+    } catch (err) {
+      setOtpError(err.message || 'Incorrect OTP code.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
 
   const handleFetchStatus = async () => {
     if (!machine.id) return;
@@ -1378,7 +1453,7 @@ export default function QRGateway() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-gate" style={{ background: '#151e28', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h2 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--foreground)', textAlign: 'center' }}>
-              {t('phoneGateTitle')}
+              {otpStep === 'verify' ? t('otpGateTitle') : t('phoneGateTitle')}
             </h2>
             
             <div className="qr-gateway-segment-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1418,43 +1493,109 @@ export default function QRGateway() {
               </div>
             </div>
 
-            <p style={{ margin: 0, fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.35' }}>
-              {t('phoneGateDesc')}
-            </p>
-            <label htmlFor="qr-phone" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
-              {t('phoneGatePlaceholder')}
-            </label>
-            <input
-              id="qr-phone"
-              type="tel" 
-              maxLength={10} 
-              value={phoneInput} 
-              onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))} 
-              placeholder={t('phoneGatePlaceholder')} 
-              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
-            />
-            <label htmlFor="qr-reporter-name" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
-              {t('reporterNameLabel')}
-            </label>
-            <input
-              id="qr-reporter-name"
-              type="text"
-              maxLength={48}
-              value={reporterName}
-              onChange={(e) => setReporterName(e.target.value)}
-              placeholder={t('reporterNamePlaceholder')}
-              style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '0.95rem', color: 'white', boxSizing: 'border-box' }}
-            />
-            <button 
-              type="button" 
-              onClick={handlePhoneProceed} 
-              style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}
-            >
-              {t('proceed')}
-            </button>
+            {otpError && (
+              <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', padding: '8px 12px', borderRadius: '10px', fontSize: '0.75rem', textAlign: 'center' }}>
+                {otpError}
+              </div>
+            )}
+
+            {otpStep === 'phone' ? (
+              <>
+                <p style={{ margin: 0, fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.35' }}>
+                  {t('phoneGateDesc')}
+                </p>
+                <label htmlFor="qr-phone" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+                  {t('phoneGatePlaceholder')}
+                </label>
+                <input
+                  id="qr-phone"
+                  type="tel" 
+                  maxLength={10} 
+                  value={phoneInput} 
+                  onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))} 
+                  placeholder={t('phoneGatePlaceholder')} 
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '1rem', color: 'white', letterSpacing: '2px', textAlign: 'center', boxSizing: 'border-box' }}
+                />
+                <label htmlFor="qr-reporter-name" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+                  {t('reporterNameLabel')}
+                </label>
+                <input
+                  id="qr-reporter-name"
+                  type="text"
+                  maxLength={48}
+                  value={reporterName}
+                  onChange={(e) => setReporterName(e.target.value)}
+                  placeholder={t('reporterNamePlaceholder')}
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '0.95rem', color: 'white', boxSizing: 'border-box' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={handleSendOTP} 
+                  disabled={otpSending}
+                  style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', opacity: otpSending ? 0.7 : 1 }}
+                >
+                  {otpSending ? t('sendingOtp') : t('sendOtp')}
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8', textAlign: 'center', lineHeight: '1.35' }}>
+                  {t('otpGateDesc')} <strong>+91 {phoneInput}</strong>
+                </p>
+
+                {otpDebug && (
+                  <div style={{ background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', color: '#4ade80', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', textAlign: 'center', fontWeight: 'bold' }}>
+                    Demo OTP Preview: {otpDebug}
+                  </div>
+                )}
+
+                <label htmlFor="qr-otp-input" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+                  {t('otpPlaceholder')}
+                </label>
+                <input
+                  id="qr-otp-input"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                  placeholder="• • • • • •"
+                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(134,59,255,0.5)', borderRadius: '12px', padding: '12px', fontSize: '1.4rem', color: '#4ade80', letterSpacing: '8px', textAlign: 'center', fontWeight: 'bold', boxSizing: 'border-box' }}
+                />
+
+                <button 
+                  type="button" 
+                  onClick={handleVerifyOTP} 
+                  disabled={otpVerifying}
+                  style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', opacity: otpVerifying ? 0.7 : 1 }}
+                >
+                  {otpVerifying ? t('verifyingOtp') : t('verifyOtp')}
+                </button>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setOtpStep('phone'); setOtpError(''); setOtpInput(''); }}
+                    style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    {t('changePhone')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSendOTP}
+                    disabled={resendTimer > 0 || otpSending}
+                    style={{ background: 'none', border: 'none', color: resendTimer > 0 ? '#64748b' : 'var(--brand)', fontSize: '0.72rem', cursor: resendTimer > 0 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                  >
+                    {resendTimer > 0 ? `Resend in ${resendTimer}s` : t('resendOtp')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
-      ) : success ? (
+      )
+ : success ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '340px', width: '100%', margin: '0 auto', gap: '12px', zIndex: 10 }}>
           <div className="qr-gateway-card qr-gateway-success" style={{ 
             background: '#151e28', 
