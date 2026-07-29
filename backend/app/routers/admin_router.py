@@ -672,6 +672,35 @@ def get_gemini_config(_: bool = Depends(get_current_admin)):
     }
 
 
+@router.get("/whatsapp/bridge-status")
+async def get_whatsapp_bridge_status(_: bool = Depends(get_current_admin)):
+    """Check status of the zero-cost whatsmeow WhatsApp Web QR bridge."""
+    bridge_url = getattr(config, "WHATSAPP_BRIDGE_URL", "") or "http://localhost:8080"
+    provider = getattr(config, "WHATSAPP_PROVIDER", "auto")
+    try:
+        from app.infrastructure.http_client import resilient_get
+        r = await resilient_get(f"{bridge_url.rstrip('/')}/api/status", timeout=3.0)
+        data = r.json() if hasattr(r, "json") else {}
+        return {
+            "provider": provider,
+            "bridge_url": bridge_url,
+            "configured": True,
+            "connected": data.get("connected", True),
+            "phone": data.get("phone", config.WHATSAPP_DISPLAY_NUMBER or "Paired"),
+            "details": data,
+        }
+    except Exception:
+        return {
+            "provider": provider,
+            "bridge_url": bridge_url,
+            "configured": bool(config.WHATSAPP_BRIDGE_URL),
+            "connected": False,
+            "phone": config.WHATSAPP_DISPLAY_NUMBER or "",
+            "details": {"status": f"Bridge offline at {bridge_url}"},
+        }
+
+
+
 @router.post("/config/gemini")
 def update_gemini_config(body: GeminiConfigUpdate, _: bool = Depends(get_current_admin)):
     config.GEMINI_API_KEY = body.gemini_api_key

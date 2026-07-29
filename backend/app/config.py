@@ -31,8 +31,11 @@ WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
 WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
 WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "")
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v20.0")
+WHATSAPP_PROVIDER = os.getenv("WHATSAPP_PROVIDER", "auto")
+WHATSAPP_BRIDGE_URL = os.getenv("WHATSAPP_BRIDGE_URL", "")
 # The Cloud API "from" number fan-out sends as (Meta phone_number_id, not the raw number).
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+
 
 # The human-dialable TurboFix WhatsApp number (no "+", no spaces, e.g. "919900012345") -
 # distinct from WHATSAPP_PHONE_NUMBER_ID above. Used to build the wa.me QR link returned

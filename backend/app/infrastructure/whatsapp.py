@@ -20,6 +20,11 @@ def _use_wacrm() -> bool:
     return is_configured()
 
 
+def _use_bridge() -> bool:
+    from app.infrastructure.whatsapp_bridge_client import is_configured
+    return is_configured()
+
+
 def _graph_url(path: str) -> str:
     return f"https://graph.facebook.com/{config.WHATSAPP_API_VERSION}/{path}"
 
@@ -58,6 +63,17 @@ async def _send_named_template(
             params=params,
         )
         return
+
+    if _use_bridge():
+        from app.infrastructure import whatsapp_bridge_client
+        await whatsapp_bridge_client.send_template_message(
+            to=to,
+            template_name=template_name,
+            language=language,
+            params=params,
+        )
+        return
+
 
     headers = {
         "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
@@ -106,6 +122,12 @@ async def send_text_message(to: str, text: str) -> None:
         from app.infrastructure import wacrm_client
         await wacrm_client.send_text_message(to, text)
         return
+
+    if _use_bridge():
+        from app.infrastructure import whatsapp_bridge_client
+        await whatsapp_bridge_client.send_text_message(to, text)
+        return
+
 
     headers = {
         "Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}",
