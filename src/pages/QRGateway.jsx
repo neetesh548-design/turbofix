@@ -318,9 +318,10 @@ export default function QRGateway() {
   // Reporter state & WhatsApp OTP Gate
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
   const [reporterName, setReporterName] = useState(() => localStorage.getItem('tf_reporter_name') || '');
-  const [otpVerified, setOtpVerified] = useState(() => Boolean(sessionStorage.getItem('tf_otp_verified')));
-  const [phoneGate, setPhoneGate] = useState(() => !sessionStorage.getItem('tf_otp_verified'));
+  const [otpVerified, setOtpVerified] = useState(() => Boolean(sessionStorage.getItem('tf_otp_verified') || localStorage.getItem('tf_reporter_phone')));
+  const [phoneGate, setPhoneGate] = useState(() => !sessionStorage.getItem('tf_otp_verified') && !localStorage.getItem('tf_reporter_phone'));
   const [phoneInput, setPhoneInput] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
+
 
 
   // WhatsApp OTP Verification state
