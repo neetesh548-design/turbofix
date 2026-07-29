@@ -81,6 +81,14 @@ export function databaseStatusBucket(machine) {
 }
 
 const DOWNTIME_LANGUAGE = /\b(stopped|stop|not running|down|breakdown|shut ?down|shutdown|won['’]?t run|can['’]?t run|cannot run|no production|production stopped|emergency stop|trip(ped)?|failed)\b/i;
+const WORK_IN_PROGRESS_STAGES = new Set([
+  'work_started',
+  'in_progress',
+  'verification_pending',
+  'waiting_approval',
+  'waiting_spare',
+  'waiting_vendor',
+]);
 
 export function openTicketsForMachine(machine, tickets = null) {
   if (Array.isArray(tickets)) {
@@ -109,6 +117,11 @@ export function ticketIndicatesDowntime(ticket) {
   ].filter(Boolean).join(' '));
 }
 
+export function ticketWorkInProgress(ticket) {
+  const stage = String(ticket?.lifecycle_stage || ticket?.stage || '').trim().toLowerCase();
+  return WORK_IN_PROGRESS_STAGES.has(stage);
+}
+
 /**
  * Resolve the status shown to operators.
  *
@@ -124,8 +137,19 @@ export function machineDisplayStatus(machine, tickets = null, now = new Date()) 
   const bucket = databaseStatusBucket(machine);
   const openTickets = openTicketsForMachine(machine, tickets);
 
-  if (bucket === 'down' || bucket === 'maintenance') return base;
   if (openTickets.length === 0 && openTicketCount(machine) === 0) return base;
+  const workInProgress = openTickets.some(ticketWorkInProgress);
+  const rawStatus = String(machine?.status || '').trim().toLowerCase();
+  if (workInProgress && rawStatus !== 'decommissioned') {
+    return {
+      ...base,
+      status: 'maintenance',
+      label: 'Maintenance',
+      color: '#38bdf8',
+      reasons: ['Work in progress on an open ticket', ...base.reasons],
+    };
+  }
+  if (bucket === 'down' || bucket === 'maintenance') return base;
   if (bucket === HEALTH.RUNNING || !bucket) {
     const downtime = openTickets.some(ticketIndicatesDowntime);
     const status = downtime ? HEALTH.DOWN : HEALTH.ISSUES;

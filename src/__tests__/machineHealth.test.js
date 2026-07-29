@@ -44,6 +44,16 @@ describe('machineDisplayStatus', () => {
     expect(machineDisplayStatus(row).status).toBe(HEALTH.DOWN);
   });
 
+  it('shows initiated breakdown repair as Maintenance, not Down', () => {
+    const row = machine({ track_record: { open: 1, open_list: [{ type: 'breakdown', lifecycle_stage: 'work_started', issue_text: 'Machine stopped' }] } });
+    expect(machineDisplayStatus(row).status).toBe('maintenance');
+  });
+
+  it('shows a stopped machine as Maintenance once waiting for a spare', () => {
+    const row = machine({ status: 'down', track_record: { open: 1, open_list: [{ lifecycle_stage: 'waiting_spare', issue_text: 'Motor failed' }] } });
+    expect(machineDisplayStatus(row).status).toBe('maintenance');
+  });
+
   it('keeps explicit maintenance authoritative over open tickets', () => {
     const row = machine({ status: 'under_maintenance', track_record: { open: 1, open_list: [{ issue_text: 'Inspection required' }] } });
     expect(machineDisplayStatus(row).status).toBe('maintenance');
