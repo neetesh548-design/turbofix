@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultRoles, getRoleLabel, canViewWorkspace, normalizeRole, roleContribution } from '../lib/roles';
+import { CAPABILITIES, can, defaultRoles, getRoleLabel, canViewWorkspace, normalizeRole, roleContribution } from '../lib/roles';
 
 describe('src/lib/roles', () => {
   describe('normalizeRole', () => {
@@ -84,6 +84,28 @@ describe('src/lib/roles', () => {
       expect(canViewWorkspace('operator', 'settings')).toBe(false);
       expect(canViewWorkspace('operator', 'team')).toBe(false);
       expect(canViewWorkspace('operator', 'tickets')).toBe(false);
+    });
+  });
+
+  describe('ticket capabilities', () => {
+    it('keeps repair work, dispatch, closure, and business oversight separate', () => {
+      expect(can('maintenance_technician', CAPABILITIES.START_REPAIR)).toBe(true);
+      expect(can('maintenance_technician', CAPABILITIES.ASSIGN_TICKET)).toBe(false);
+      expect(can('maintenance_technician', CAPABILITIES.VERIFY_CLOSE)).toBe(false);
+
+      expect(can('supervisor', CAPABILITIES.ASSIGN_TICKET)).toBe(true);
+      expect(can('supervisor', CAPABILITIES.VERIFY_CLOSE)).toBe(true);
+
+      expect(can('owner', CAPABILITIES.VIEW_FINANCIALS)).toBe(true);
+      expect(can('owner', CAPABILITIES.UPDATE_REPAIR)).toBe(false);
+      expect(can('operator', CAPABILITIES.START_REPAIR)).toBe(false);
+    });
+
+    it('limits verification and external roles to their intended actions', () => {
+      expect(can('quality_inspector', CAPABILITIES.VERIFY_CLOSE)).toBe(true);
+      expect(can('safety_officer', CAPABILITIES.ASSIGN_TICKET)).toBe(false);
+      expect(can('vendor', CAPABILITIES.UPDATE_REPAIR)).toBe(true);
+      expect(can('vendor', CAPABILITIES.VIEW_ALL_TICKETS)).toBe(false);
     });
   });
 

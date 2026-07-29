@@ -33,6 +33,7 @@ import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
 import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
+import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -52,6 +53,7 @@ import {
 } from '../utils/demoDashboard.js';
 import { supabase } from '@/supabaseClient';
 import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
+import { can, CAPABILITIES, normalizeRole } from '../lib/roles';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
 import './Dashboard.css';
 
@@ -118,6 +120,10 @@ export default function Dashboard() {
   if (cacheRef.current === null) cacheRef.current = createMetricsCache();
 
   const role = useMemo(() => resolveDashboardRole(user?.role), [user]);
+  const appRole = normalizeRole(user?.role);
+  const specialistRole = ['maintenance_head', 'quality_inspector', 'safety_officer'].includes(appRole)
+    ? appRole
+    : null;
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -162,12 +168,12 @@ export default function Dashboard() {
   //  - the Engineer board has no root_cause / component / capa_status anywhere
   // A board on real data never falls back; the banner only appears when it does.
   const noFleetData = !loading && shouldUseDemoFleet(sources.machines, sources.tickets);
-  const usingDemoTeam = role === DASHBOARD_ROLES.SUPERVISOR
-    && (noFleetData || shouldUseDemoTeam(sources.team));
-  const usingDemoReliability = role === DASHBOARD_ROLES.ENGINEER
-    && (noFleetData || shouldUseDemoReliability(sources.tickets));
   const demoSession = user?.inventory_mode === 'demo';
-  const isDemo = !loading && (demoSession || noFleetData || usingDemoTeam || usingDemoReliability);
+  const usingDemoTeam = demoSession && role === DASHBOARD_ROLES.SUPERVISOR
+    && (noFleetData || shouldUseDemoTeam(sources.team));
+  const usingDemoReliability = demoSession && role === DASHBOARD_ROLES.ENGINEER
+    && (noFleetData || shouldUseDemoReliability(sources.tickets));
+  const isDemo = !loading && demoSession;
 
   const metrics = useMemo(() => {
     const shouldScope = isShiftScopedRole(user?.role);
@@ -208,7 +214,12 @@ export default function Dashboard() {
     return cacheRef.current.resolve(key, () => buildRoleMetrics(role, input));
   }, [role, sources, user, isDemo, noFleetData, demoSession]);
 
-  const heading = ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
+  const specialistHeadings = {
+    maintenance_head: { kicker: 'Exceptions', lead: 'Safety, technical and high-impact decisions requiring your authority.' },
+    quality_inspector: { kicker: 'Quality assurance', lead: 'Repairs awaiting evidence review and quality release.' },
+    safety_officer: { kicker: 'Safety control', lead: 'Unsafe conditions, restart checks and missing safety evidence.' },
+  };
+  const heading = specialistHeadings[specialistRole] || ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
 
@@ -221,7 +232,7 @@ export default function Dashboard() {
 
   return (
     <AppShell active="overview">
-      <div className="decision-page md-dashboard rd-page" data-role={role} data-testid="dashboard-page">
+      <div className="decision-page md-dashboard rd-page" data-role={specialistRole || role} data-testid="dashboard-page">
         <div className="md-aurora" aria-hidden="true" />
 
         <header className="md-header rd-header">
@@ -231,7 +242,7 @@ export default function Dashboard() {
             <p>{heading.lead}</p>
           </div>
           <div className="decision-actions">
-            <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>
+            {can(user?.role, CAPABILITIES.PLAN_SHUTDOWN) && <a className="btn btn-ghost btn-sm" href="shutdown-planner.html">Plan a shutdown</a>}
             <a className="btn btn-primary btn-sm" href="assistant.html">Open maintenance help</a>
           </div>
         </header>
@@ -246,18 +257,27 @@ export default function Dashboard() {
             "more is coming", not "nothing is here yet". */}
         {loading && <p className="rd-loading" role="status">Refreshing live data…</p>}
 
-        {!loading && noFleetData && (
+        {!loading && demoSession && (
           <p className="rd-demo-banner" data-testid="dashboard-demo-banner">
-            Showing sample data — no machines or tickets came back from the workspace.
-            Every number below is illustrative until your plant data loads.
+            Demo Mode — every number below is sample data, not your plant.
           </p>
         )}
 
-        {role === DASHBOARD_ROLES.OWNER && (
+        {!loading && noFleetData && !demoSession && (
+          <p className="rd-demo-banner" data-testid="dashboard-demo-banner">
+            No live machines or tickets are available yet. Add a machine or check the workspace connection.
+          </p>
+        )}
+
+        {specialistRole && (
+          <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
+        )}
+
+        {!specialistRole && role === DASHBOARD_ROLES.OWNER && (
           <OwnerDashboard metrics={metrics} loading={loading} />
         )}
 
-        {role === DASHBOARD_ROLES.TECHNICIAN && (
+        {!specialistRole && role === DASHBOARD_ROLES.TECHNICIAN && (
           <TechnicianDashboard
             metrics={metrics}
             user={user}
@@ -266,7 +286,7 @@ export default function Dashboard() {
           />
         )}
 
-        {role === DASHBOARD_ROLES.SUPERVISOR && (
+        {!specialistRole && role === DASHBOARD_ROLES.SUPERVISOR && (
           <>
             <SupervisorDashboard metrics={metrics} loading={loading} isDemoData={usingDemoTeam && !noFleetData} />
             <ClosedLoopControlCard
@@ -278,7 +298,7 @@ export default function Dashboard() {
           </>
         )}
 
-        {role === DASHBOARD_ROLES.ENGINEER && (
+        {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
           <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
         )}
 

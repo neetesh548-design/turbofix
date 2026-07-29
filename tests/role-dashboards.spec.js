@@ -21,6 +21,7 @@ async function signInAs(page, role, name = 'Test User') {
       name: userName,
       role: userRole,
       company_code: 'PUNE-PLANT-01',
+      inventory_mode: 'demo',
     }));
   }, { jwt: FAKE_JWT, userRole: role, userName: name });
 }
@@ -40,7 +41,7 @@ test.describe('Role-aware dashboard routing', () => {
     await expect(page.getByTestId('technician-dashboard')).toHaveCount(0);
 
     // The four business KPIs the owner board promises.
-    for (const id of ['kpi-value-at-risk', 'kpi-maintenance-cost', 'kpi-sla-compliance', 'kpi-downtime-cost']) {
+    for (const id of ['kpi-value-at-risk', 'kpi-maintenance-cost', 'kpi-critical-machines', 'kpi-downtime-cost']) {
       await expect(page.getByTestId(id)).toBeVisible();
     }
   });
@@ -78,17 +79,31 @@ test.describe('Role-aware dashboard routing', () => {
     await expect(page.getByTestId('kpi-rca-completion')).toBeVisible();
   });
 
-  test('an unrecognised role falls back to the owner board', async ({ page }) => {
+  test('quality inspector gets a dedicated verification board', async ({ page }) => {
     await signInAs(page, 'quality_inspector', 'Priya Nair');
     await gotoDashboard(page);
 
-    await expect(page.getByTestId('dashboard-page')).toHaveAttribute('data-role', 'owner');
-    await expect(page.getByTestId('owner-dashboard')).toBeVisible();
+    await expect(page.getByTestId('dashboard-page')).toHaveAttribute('data-role', 'quality_inspector');
+    await expect(page.getByTestId('quality_inspector-dashboard')).toBeVisible();
+    await expect(page.getByTestId('owner-dashboard')).toHaveCount(0);
   });
+
+  for (const [role, testId] of [
+    ['maintenance_head', 'maintenance_head-dashboard'],
+    ['safety_officer', 'safety_officer-dashboard'],
+  ]) {
+    test(`${role} gets a dedicated action board`, async ({ page }) => {
+      await signInAs(page, role);
+      await gotoDashboard(page);
+      await expect(page.getByTestId('dashboard-page')).toHaveAttribute('data-role', role);
+      await expect(page.getByTestId(testId)).toBeVisible();
+      await expect(page.getByTestId('owner-dashboard')).toHaveCount(0);
+    });
+  }
 });
 
-test.describe('Demo-data fallback', () => {
-  test('labels the board as sample data when the workspace returns nothing', async ({ page }) => {
+test.describe('Explicit demo mode', () => {
+  test('labels the board as sample data for an explicit demo session', async ({ page }) => {
     await signInAs(page, 'owner');
     await gotoDashboard(page);
     await expect(page.getByTestId('dashboard-demo-banner')).toBeVisible();

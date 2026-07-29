@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars, Sparkline } from './DashboardChart.jsx';
-import { ShiftHeroLeaderboard } from './ShiftHeroLeaderboard.jsx';
 import { formatHours, formatPct } from '../../utils/dashboardMetrics.js';
 
 const TREND_COPY = {
@@ -101,10 +100,6 @@ export default function SupervisorDashboard({ metrics, loading = false, isDemoDa
           data-testid="kpi-team-utilization"
         />
       </section>
-
-      <div style={{ margin: '16px 0' }}>
-        <ShiftHeroLeaderboard technicians={team} />
-      </div>
 
       <DashboardChart
         title="Team status"

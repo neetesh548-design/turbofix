@@ -38,6 +38,70 @@ export function getRoleLabel(roleVal, customRoles = []) {
   return normalizedRole.replace(/_/g, ' ');
 }
 
+export const CAPABILITIES = Object.freeze({
+  VIEW_ALL_TICKETS: 'view_all_tickets',
+  START_REPAIR: 'start_repair',
+  UPDATE_REPAIR: 'update_repair',
+  ASSIGN_TICKET: 'assign_ticket',
+  CHANGE_PRIORITY: 'change_priority',
+  VERIFY_CLOSE: 'verify_close',
+  BULK_TICKET_ACTIONS: 'bulk_ticket_actions',
+  EXPORT_TICKETS: 'export_tickets',
+  SHIFT_HANDOVER: 'shift_handover',
+  PLAN_SHUTDOWN: 'plan_shutdown',
+  VIEW_FINANCIALS: 'view_financials',
+});
+
+const ROLE_CAPABILITIES = {
+  operator: [],
+  maintenance_technician: [
+    CAPABILITIES.START_REPAIR,
+    CAPABILITIES.UPDATE_REPAIR,
+  ],
+  maintenance_engineer: [
+    CAPABILITIES.VIEW_ALL_TICKETS,
+    CAPABILITIES.START_REPAIR,
+    CAPABILITIES.UPDATE_REPAIR,
+    CAPABILITIES.CHANGE_PRIORITY,
+    CAPABILITIES.EXPORT_TICKETS,
+    CAPABILITIES.PLAN_SHUTDOWN,
+  ],
+  supervisor: [
+    CAPABILITIES.VIEW_ALL_TICKETS,
+    CAPABILITIES.START_REPAIR,
+    CAPABILITIES.UPDATE_REPAIR,
+    CAPABILITIES.ASSIGN_TICKET,
+    CAPABILITIES.CHANGE_PRIORITY,
+    CAPABILITIES.VERIFY_CLOSE,
+    CAPABILITIES.BULK_TICKET_ACTIONS,
+    CAPABILITIES.EXPORT_TICKETS,
+    CAPABILITIES.SHIFT_HANDOVER,
+    CAPABILITIES.PLAN_SHUTDOWN,
+  ],
+  maintenance_head: Object.values(CAPABILITIES),
+  owner: [
+    CAPABILITIES.VIEW_ALL_TICKETS,
+    CAPABILITIES.EXPORT_TICKETS,
+    CAPABILITIES.VIEW_FINANCIALS,
+    CAPABILITIES.PLAN_SHUTDOWN,
+  ],
+  quality_inspector: [
+    CAPABILITIES.VIEW_ALL_TICKETS,
+    CAPABILITIES.VERIFY_CLOSE,
+    CAPABILITIES.EXPORT_TICKETS,
+  ],
+  safety_officer: [
+    CAPABILITIES.VIEW_ALL_TICKETS,
+    CAPABILITIES.VERIFY_CLOSE,
+    CAPABILITIES.EXPORT_TICKETS,
+  ],
+  vendor: [CAPABILITIES.UPDATE_REPAIR],
+};
+
+export function can(role, capability) {
+  return Boolean(ROLE_CAPABILITIES[normalizeRole(role)]?.includes(capability));
+}
+
 // 'kaizen' is on every role. A suggestion scheme that only management can
 // open collects nothing: the operator who sees the waste has to be able to
 // reach the submission form, and the Kaizen page renders a board per role
@@ -50,18 +114,21 @@ export function getRoleLabel(roleVal, customRoles = []) {
 // and filters the machine picker accordingly, so access here is not the
 // place to draw the boundary — the form itself is.
 const ROLE_NAV = {
-  operator: ['machines', 'inventory', 'assistant', 'support', 'kaizen', 'report'],
+  operator: ['machines', 'assistant', 'support', 'kaizen', 'report'],
   // 'overview' is the technician's own dashboard (their queue and machines),
   // not the business board — the Dashboard page renders per role. Without it
   // AppShell would gate technicians out of the view built for them.
-  maintenance_technician: ['overview', 'machines', 'records', 'tickets', 'assistant', 'technician', 'support', 'kaizen', 'report'],
-  maintenance_engineer: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
-  supervisor: ['overview', 'machines', 'inventory', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'kaizen', 'report'],
-  maintenance_head: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'technician', 'support', 'team', 'settings', 'kaizen', 'report'],
-  owner: ['overview', 'machines', 'inventory', 'records', 'tickets', 'assistant', 'shutdown', 'support', 'team', 'settings', 'kaizen', 'report'],
-  quality_inspector: ['overview', 'machines', 'inventory', 'records', 'tickets', 'support', 'kaizen', 'report'],
-  safety_officer: ['overview', 'machines', 'inventory', 'records', 'tickets', 'support', 'kaizen', 'report'],
-  vendor: ['machines', 'inventory', 'records', 'support', 'kaizen', 'report'],
+  maintenance_technician: ['overview', 'tickets', 'technician', 'machines', 'records', 'assistant', 'kaizen', 'report'],
+  maintenance_engineer: ['overview', 'tickets', 'machines', 'records', 'shutdown', 'assistant', 'kaizen', 'report'],
+  supervisor: ['overview', 'tickets', 'machines', 'inventory', 'shutdown', 'team', 'kaizen', 'report'],
+  maintenance_head: ['overview', 'tickets', 'machines', 'records', 'shutdown', 'team', 'settings', 'kaizen', 'report'],
+  owner: ['overview', 'support', 'machines', 'tickets', 'team', 'settings', 'kaizen', 'report'],
+  quality_inspector: ['overview', 'machines', 'records', 'tickets', 'kaizen', 'report'],
+  safety_officer: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'report'],
+  // Contract scoping exists in the reporting flow only. Keep plant-wide
+  // machine and record workspaces closed until server-side vendor contracts
+  // are available there too.
+  vendor: ['support', 'kaizen', 'report'],
 };
 
 export function canViewWorkspace(role, workspace) {

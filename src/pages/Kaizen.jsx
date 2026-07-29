@@ -40,7 +40,7 @@ import {
   resolveKaizenRole,
   nextIdeaId,
 } from '../utils/kaizenMetrics.js';
-import { DEMO_KAIZENS, DEMO_OPERATOR, shouldUseDemoKaizen } from '../utils/demoKaizen.js';
+import { DEMO_KAIZENS, DEMO_OPERATOR } from '../utils/demoKaizen.js';
 import { createMetricsCache, readStoredUser } from '../utils/dashboardMetrics.js';
 import { supabase } from '@/supabaseClient';
 import './Dashboard.css';
@@ -151,7 +151,7 @@ export default function Kaizen() {
     fetchKaizenSources()
       .then((sources) => {
         if (!mounted) return;
-        const demo = shouldUseDemoKaizen(sources.ideas);
+        const demo = user?.inventory_mode === 'demo';
         cacheRef.current.clear();
         setIsDemo(demo);
         setIdeas(demo ? DEMO_KAIZENS : sources.ideas);
@@ -160,13 +160,13 @@ export default function Kaizen() {
       .catch((err) => {
         if (!mounted) return;
         setError(err?.message || 'Could not reach the workspace');
-        setIsDemo(true);
-        setIdeas(DEMO_KAIZENS);
+        setIsDemo(false);
+        setIdeas([]);
       })
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };
-  }, []);
+  }, [user?.inventory_mode]);
 
   /**
    * On demo data a signed-out visitor would otherwise see an empty "My

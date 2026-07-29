@@ -25,6 +25,8 @@ import {
 } from '@/utils/ticketSla';
 import { urgencyRank } from '@/utils/ticketMeta';
 import { QUEUE_FILTERS } from '@/utils/ticketQueues';
+import { can, CAPABILITIES } from '@/lib/roles';
+import { normalizeRole } from '@/lib/roles';
 import './Tickets.css';
 
 /** How often the SLA clock re-renders. One minute is enough for hour-scale SLAs. */
@@ -94,6 +96,18 @@ export default function Tickets() {
 
   const signedInUser = useMemo(readSignedInUser, []);
   const currentUserId = signedInUser?.user_id || signedInUser?.id || null;
+  const appRole = normalizeRole(signedInUser?.role);
+  const permissions = useMemo(() => ({
+    select: can(signedInUser?.role, CAPABILITIES.BULK_TICKET_ACTIONS),
+    assign: can(signedInUser?.role, CAPABILITIES.ASSIGN_TICKET),
+    start: can(signedInUser?.role, CAPABILITIES.START_REPAIR),
+    updateRepair: can(signedInUser?.role, CAPABILITIES.UPDATE_REPAIR),
+    changePriority: can(signedInUser?.role, CAPABILITIES.CHANGE_PRIORITY),
+    verifyClose: can(signedInUser?.role, CAPABILITIES.VERIFY_CLOSE),
+    export: can(signedInUser?.role, CAPABILITIES.EXPORT_TICKETS),
+    handover: can(signedInUser?.role, CAPABILITIES.SHIFT_HANDOVER),
+    bulk: can(signedInUser?.role, CAPABILITIES.BULK_TICKET_ACTIONS),
+  }), [signedInUser?.role]);
 
   const fetchTickets = useCallback(async () => {
     setError('');
@@ -245,6 +259,11 @@ export default function Tickets() {
    */
   const updateLifecycleStage = useCallback(
     async (ticketId, nextStage, nextStatus = null) => {
+      const closing = nextStage === 'closed' || nextStatus === 'resolved';
+      if (closing ? !permissions.verifyClose : !permissions.updateRepair) {
+        setError('Your role is not authorized to perform this work-order action.');
+        return;
+      }
       setError('');
       const patch = { lifecycle_stage: nextStage };
       if (nextStatus) patch.status = nextStatus;
@@ -268,7 +287,7 @@ export default function Tickets() {
         setError(err.message);
       }
     },
-    []
+    [permissions.updateRepair, permissions.verifyClose]
   );
 
   const handleCloseTicket = useCallback(
@@ -297,6 +316,14 @@ export default function Tickets() {
    */
   const handleFieldChange = useCallback(
     async (ticketId, patch) => {
+      if (
+        ('urgency' in patch && !permissions.changePriority) ||
+        ('assigned_to' in patch && !permissions.assign) ||
+        (('root_cause' in patch || 'repair_action' in patch || 'parts_used' in patch) && !permissions.updateRepair)
+      ) {
+        setError('Your role is not authorized to change that work-order field.');
+        return;
+      }
       setError('');
       const ticket = tickets.find((t) => idOf(t) === ticketId);
       if (!ticket) return;
@@ -343,7 +370,7 @@ export default function Tickets() {
         setError(err.message);
       }
     },
-    [tickets, techniciansList]
+    [tickets, techniciansList, permissions]
   );
 
   /** Row-level "assign" shortcut: opens the drill-down where the picker lives. */
@@ -353,7 +380,23 @@ export default function Tickets() {
   // Derived data
   // ---------------------------------------------------------------------
 
-  const { activeTickets, archivedTickets } = useMemo(() => partitionTickets(tickets), [tickets]);
+  const roleTicketPool = useMemo(() => {
+    if (appRole === 'quality_inspector') {
+      return tickets.filter((ticket) =>
+        ['repair_completed', 'verification_pending', 'closed'].includes(String(ticket.lifecycle_stage || '').toLowerCase())
+      );
+    }
+    if (appRole === 'safety_officer') {
+      const safetyWords = ['unsafe', 'danger', 'fire', 'smoke', 'shock', 'guard', 'loto'];
+      return tickets.filter((ticket) =>
+        String(ticket.urgency || '').toLowerCase() === 'critical' ||
+        safetyWords.some((word) => String(ticket.issue_text || '').toLowerCase().includes(word))
+      );
+    }
+    return tickets;
+  }, [appRole, tickets]);
+
+  const { activeTickets, archivedTickets } = useMemo(() => partitionTickets(roleTicketPool), [roleTicketPool]);
 
   const summary = useMemo(() => summarizeTickets(activeTickets, now), [activeTickets, now]);
 
@@ -362,7 +405,7 @@ export default function Tickets() {
   const baseFiltered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
-    return tickets.filter((t) => {
+    return roleTicketPool.filter((t) => {
       if (term) {
         const haystack = [
           t.wo_number,
@@ -407,7 +450,7 @@ export default function Tickets() {
       return true;
     });
   }, [
-    tickets,
+    roleTicketPool,
     searchTerm,
     filterMachine,
     filterTechnician,
@@ -541,6 +584,10 @@ export default function Tickets() {
   );
 
   const bulkClose = useCallback(async () => {
+    if (!permissions.bulk || !permissions.verifyClose) {
+      setError('Your role is not authorized to close multiple work orders.');
+      return;
+    }
     const ids = [...selectedIds];
     if (ids.length === 0) return;
     if (
@@ -580,10 +627,14 @@ export default function Tickets() {
       if (previousTickets) setTickets(previousTickets);
       setError(err.message);
     }
-  }, [selectedIds]);
+  }, [selectedIds, permissions.bulk, permissions.verifyClose]);
 
   const bulkAssign = useCallback(
     async (technicianUserId) => {
+      if (!permissions.bulk || !permissions.assign) {
+        setError('Your role is not authorized to assign multiple work orders.');
+        return;
+      }
       const ids = [...selectedIds];
       if (ids.length === 0 || !technicianUserId) return;
 
@@ -629,7 +680,7 @@ export default function Tickets() {
         setError(err.message);
       }
     },
-    [selectedIds, tickets, techniciansList]
+    [selectedIds, tickets, techniciansList, permissions.bulk, permissions.assign]
   );
 
   const resetFilters = useCallback(() => {
@@ -666,7 +717,7 @@ export default function Tickets() {
             </p>
           </div>
           <div className="tickets-heading-actions">
-            {archivedTickets.length > 0 && (
+            {permissions.export && archivedTickets.length > 0 && (
               <button
                 type="button"
                 className="tickets-icon-btn"
@@ -677,14 +728,14 @@ export default function Tickets() {
                 Archive ({archivedTickets.length})
               </button>
             )}
-            <button
+            {permissions.handover && <button
               type="button"
               className="tickets-icon-btn"
               onClick={() => setHandoverOpen(true)}
               title="Generate 1-click shift handover digest"
             >
               📋 Shift handover
-            </button>
+            </button>}
             <button
               type="button"
               className="tickets-icon-btn"
@@ -768,7 +819,7 @@ export default function Tickets() {
           onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
           advancedOpen={showAdvanced}
           onToggleAdvanced={() => setShowAdvanced((open) => !open)}
-          onExport={handleExport}
+          onExport={permissions.export ? handleExport : undefined}
         />
 
         {showAdvanced && (
@@ -885,7 +936,7 @@ export default function Tickets() {
           </div>
         )}
 
-        {selectedIds.size > 0 && (
+        {permissions.bulk && selectedIds.size > 0 && (
           <div className="tickets-bulk-bar" role="region" aria-label="Bulk actions">
             <strong>
               {selectedIds.size} selected
@@ -1001,6 +1052,7 @@ export default function Tickets() {
                   onToggleSelect={toggleSelect}
                   onStart={handleStart}
                   onAssign={handleAssign}
+                  permissions={permissions}
                   now={now}
                 >
                   {isExpanded && (
@@ -1012,6 +1064,7 @@ export default function Tickets() {
                       onClose={handleCloseTicket}
                       onFieldChange={handleFieldChange}
                       now={now}
+                      permissions={permissions}
                     />
                   )}
                 </TicketRow>

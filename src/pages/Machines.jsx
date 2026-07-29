@@ -426,12 +426,9 @@ export default function Machines() {
       const visibleMachines = visibleMachinesForUser(mData, signedInUser);
       const queryParams = new URLSearchParams(window.location.search);
 
-      // A brand-new workspace has no machines. Rather than showing a blank
-      // board, seed the sample fleet so the health states are demonstrable —
-      // same pattern the Tickets page uses. `?demo=0` opts out and gives the
-      // genuine empty state, which is what the empty-state tests exercise.
-      const demoAllowed = queryParams.get('demo') !== '0';
-      const useDemo = signedInUser?.inventory_mode === 'demo' || (visibleMachines.length === 0 && demoAllowed);
+      // Sample machines belong only to an explicit demo session. Empty live
+      // workspaces must remain honest so setup and connection gaps are visible.
+      const useDemo = signedInUser?.inventory_mode === 'demo';
       const displayedMachines = useDemo ? visibleMachinesForUser(DEMO_MACHINES, signedInUser) : visibleMachines;
       setShowingDemo(useDemo);
       setMachines(displayedMachines);

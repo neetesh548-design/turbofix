@@ -30,6 +30,7 @@ export default function TicketDetailPanel({
   onClose,
   onFieldChange,
   now,
+  permissions = {},
 }) {
   const [showPartModal, setShowPartModal] = React.useState(false);
   const closed = isTicketClosed(ticket);
@@ -59,7 +60,7 @@ export default function TicketDetailPanel({
   return (
     <div className="tickets-detail">
       {/* Inline edit — change priority or owner without leaving the queue. */}
-      {!closed && (
+      {!closed && (permissions.changePriority || permissions.assign) && (
         <div
           style={{
             display: 'flex',
@@ -69,7 +70,7 @@ export default function TicketDetailPanel({
             borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {permissions.changePriority && <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <small
               style={{
                 color: 'var(--slate-light)',
@@ -91,9 +92,9 @@ export default function TicketDetailPanel({
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-          </label>
+          </label>}
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200 }}>
+          {permissions.assign && <label style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200 }}>
             <small
               style={{
                 color: 'var(--slate-light)',
@@ -118,7 +119,7 @@ export default function TicketDetailPanel({
                 </option>
               ))}
             </select>
-          </label>
+          </label>}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'flex-end' }}>
             <small
@@ -179,7 +180,7 @@ export default function TicketDetailPanel({
       )}
 
       {/* 1-Tap Past Fix Memory — Auto-suggests past repair pattern */}
-      {!closed && (
+      {!closed && permissions.updateRepair && (
         <div
           style={{
             margin: '12px 0',
@@ -393,7 +394,7 @@ export default function TicketDetailPanel({
         </div>
       </div>
 
-      {!closed && (
+      {!closed && (permissions.updateRepair || permissions.verifyClose) && (
         <div className="tickets-stage-actions">
           <span
             style={{
@@ -405,7 +406,7 @@ export default function TicketDetailPanel({
           >
             1-tap stage action:
           </span>
-          {STAGE_ACTIONS.map(({ stage, label, color, rgb }) => (
+          {permissions.updateRepair && STAGE_ACTIONS.map(({ stage, label, color, rgb }) => (
             <button
               type="button"
               key={stage}
@@ -420,7 +421,7 @@ export default function TicketDetailPanel({
               {label}
             </button>
           ))}
-          <button
+          {permissions.updateRepair && <button
             type="button"
             className="tickets-stage-btn"
             style={{
@@ -434,22 +435,22 @@ export default function TicketDetailPanel({
             }}
           >
             📦 Request Part
-          </button>
-          <a
+          </button>}
+          {permissions.updateRepair && <a
             className="tickets-stage-btn"
             href={`rca.html?machine=${encodeURIComponent(ticket.machine_id || '')}&ticket=${encodeURIComponent(ticketId || '')}&repeat=${ticket.repeat_failure_flag || ticket.repeat_failure_count ? 1 : 0}`}
             style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
             RCA
-          </a>
-          <button
+          </a>}
+          {permissions.verifyClose && <button
             type="button"
             className="tickets-stage-btn"
             style={{ background: 'var(--brand)', color: '#052e16', border: '1px solid var(--brand)' }}
             onClick={() => onClose(ticketId)}
           >
             Verify &amp; close
-          </button>
+          </button>}
         </div>
       )}
 

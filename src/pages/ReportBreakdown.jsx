@@ -66,8 +66,6 @@ import {
   DEMO_REPORTER,
   DEMO_TECHNICIANS,
   DEMO_VENDOR_CONTACT,
-  shouldUseDemoMachines,
-  shouldUseDemoReports,
 } from '../utils/demoBreakdown.js';
 import { readStoredUser } from '../utils/dashboardMetrics.js';
 import { isShiftScopedRole, visibleMachinesForUser } from '../utils/machineVisibility.js';
@@ -237,18 +235,16 @@ export default function ReportBreakdown() {
       .then((sources) => {
         if (!mounted) return;
         const demoSession = user?.inventory_mode === 'demo';
-        const demoMachines = demoSession || shouldUseDemoMachines(sources.machines);
-        const demoReports = demoSession || shouldUseDemoReports(sources.reports);
-        setIsDemo(demoMachines);
-        setMachines(demoMachines ? DEMO_BREAKDOWN_MACHINES : sources.machines);
-        setReports(demoReports ? DEMO_BREAKDOWN_REPORTS : sources.reports);
+        setIsDemo(demoSession);
+        setMachines(demoSession ? DEMO_BREAKDOWN_MACHINES : sources.machines);
+        setReports(demoSession ? DEMO_BREAKDOWN_REPORTS : sources.reports);
       })
       .catch((err) => {
         if (!mounted) return;
         setError(err?.message || 'Could not reach the workspace');
-        setIsDemo(true);
-        setMachines(DEMO_BREAKDOWN_MACHINES);
-        setReports(DEMO_BREAKDOWN_REPORTS);
+        setIsDemo(false);
+        setMachines([]);
+        setReports([]);
       })
       .finally(() => { if (mounted) setLoading(false); });
 

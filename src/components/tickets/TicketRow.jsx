@@ -35,6 +35,7 @@ function TicketRow({
   onToggleSelect,
   onStart,
   onAssign,
+  permissions = {},
   now,
   children,
 }) {
@@ -78,14 +79,14 @@ function TicketRow({
       >
         {/* Select */}
         <div className="tickets-col-select">
-          <input
+          {permissions.select && <input
             type="checkbox"
             className="tickets-checkbox"
             checked={selected}
             onClick={swallow}
             onChange={() => onToggleSelect(ticketId)}
             aria-label={`Select work order ${ticket.wo_number || ticketId}`}
-          />
+          />}
         </div>
 
         {/* Identity */}
@@ -186,7 +187,7 @@ function TicketRow({
           <div className="tickets-actions" onClick={swallow} role="presentation">
             {!closed && (
               <>
-                <button
+                {permissions.assign && <button
                   type="button"
                   className="tickets-action"
                   title="Assign technician"
@@ -194,8 +195,8 @@ function TicketRow({
                   onClick={() => onAssign(ticketId)}
                 >
                   <UserPlus size={14} />
-                </button>
-                <button
+                </button>}
+                {permissions.start && <button
                   type="button"
                   className="tickets-action"
                   title="Start repair"
@@ -203,7 +204,7 @@ function TicketRow({
                   onClick={() => onStart(ticketId)}
                 >
                   <Play size={14} />
-                </button>
+                </button>}
               </>
             )}
             {closed && (

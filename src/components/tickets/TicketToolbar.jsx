@@ -102,10 +102,10 @@ export default function TicketToolbar({
         Filters
       </button>
 
-      <button type="button" className="tickets-icon-btn" onClick={onExport}>
+      {onExport && <button type="button" className="tickets-icon-btn" onClick={onExport}>
         <Download size={14} />
         Export
-      </button>
+      </button>}
     </div>
   );
 }
