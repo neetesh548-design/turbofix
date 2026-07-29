@@ -14,16 +14,15 @@
 
 import React from 'react';
 import {
-  ShieldAlert, Wallet, Timer, TrendingDown, Factory, ArrowUpRight,
+  ShieldAlert, Wallet, TrendingDown, Factory, ArrowUpRight,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars, StatusDonut } from './DashboardChart.jsx';
-import { formatInrCompact, formatHours, formatPct } from '../../utils/dashboardMetrics.js';
+import { formatInrCompact, formatPct } from '../../utils/dashboardMetrics.js';
 
 export default function OwnerDashboard({ metrics, loading = false, onDrilldown }) {
   const valueAtRisk = metrics?.valueAtRisk || {};
   const cost = metrics?.maintenanceCost || {};
-  const sla = metrics?.sla || {};
   const downtime = metrics?.downtime || {};
   const fleet = metrics?.fleetHealth || {};
   const problems = Array.isArray(metrics?.problemMachines) ? metrics.problemMachines : [];
@@ -52,13 +51,13 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           data-testid="kpi-maintenance-cost"
         />
         <DashboardKpiCard
-          label="SLA compliance"
-          icon={Timer}
-          tone={sla.pct == null ? '' : sla.pct >= 90 ? 'ok' : sla.pct >= 75 ? 'warning' : 'danger'}
-          value={formatPct(sla.pct, 'Nothing closed yet')}
-          hint={sla.total ? `${sla.met} met · ${sla.missed} missed · last 30 days` : 'No resolved tickets in the window'}
-          onClick={drill('urgent')}
-          data-testid="kpi-sla-compliance"
+          label="Critical machines"
+          icon={ShieldAlert}
+          tone={(fleet.grid?.critical?.down || 0) > 0 ? 'danger' : 'ok'}
+          value={(fleet.grid?.critical?.down || 0) + (fleet.grid?.critical?.issues || 0)}
+          hint={`${fleet.grid?.critical?.down || 0} down · ${fleet.grid?.critical?.issues || 0} need attention`}
+          onClick={drill('machines')}
+          data-testid="kpi-critical-machines"
         />
         <DashboardKpiCard
           label="Downtime cost · this month"
@@ -84,14 +83,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           <div className="rd-mini-grid">
             <MiniStat label="Tickets opened" value={month.opened ?? 0} />
             <MiniStat label="Tickets closed" value={month.closed ?? 0} tone="ok" />
-            <MiniStat label="SLA breached" value={month.breached ?? 0} tone={month.breached ? 'danger' : 'ok'} />
             <MiniStat label="PM completion" value={formatPct(month.pmCompletionPct, 'No PM logged')} />
-            <MiniStat label="Avg. resolution" value={formatHours(month.avgResolutionHours)} />
-            <MiniStat
-              label="Clearance rate"
-              value={formatPct(month.clearanceRatePct, '—')}
-              tone={month.clearanceRatePct != null && month.clearanceRatePct < 100 ? 'warning' : 'ok'}
-            />
           </div>
         </DashboardChart>
       </div>

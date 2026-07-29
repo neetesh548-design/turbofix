@@ -33,7 +33,6 @@ import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
 import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
-import AdvancedAnalyticsBoard from '../components/dashboard/AdvancedAnalyticsBoard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -255,16 +254,7 @@ export default function Dashboard() {
         )}
 
         {role === DASHBOARD_ROLES.OWNER && (
-          <>
-            <OwnerDashboard metrics={metrics} loading={loading} />
-            <ClosedLoopControlCard
-              openWorkCount={legacyData.open_work_count || 0}
-              loopGapCount={legacyData.loop_gap_count || 0}
-              loopGaps={legacyData.loop_gaps || []}
-              onTakeAction={() => { window.location.href = 'technician.html'; }}
-            />
-            <AdvancedAnalyticsBoard data={legacyData} />
-          </>
+          <OwnerDashboard metrics={metrics} loading={loading} />
         )}
 
         {role === DASHBOARD_ROLES.TECHNICIAN && (
