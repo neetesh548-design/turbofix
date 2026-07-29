@@ -99,9 +99,10 @@ async def receive_webhook(
         if msg_type == "text":
             text_body = message.get("text", {}).get("body", "")
             
-            # Check if active QR breakdown session or QR code format
+            # Check if active QR breakdown session or machine ID / QR code format
             has_active_session = bool(sessions.get(phone))
-            is_qr_scan = bool(re.search(r"TF-M-|machine|breakdown|ticket|close", text_body, re.IGNORECASE))
+            is_qr_scan = bool(re.search(r"M-\d+|TF-M-|[A-Za-z0-9]+-[A-Za-z0-9]+|machine|breakdown|ticket|close", text_body, re.IGNORECASE))
+
             
             if has_active_session or is_qr_scan:
                 await ticket_service.handle_text_message(
