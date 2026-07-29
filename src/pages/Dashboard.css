@@ -969,6 +969,23 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
 .rd-sparkline.danger { stroke: var(--md-red); }
 .rd-sparkline.ok { stroke: var(--md-green); }
 
+.rd-donut-layout { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 22px; min-height: 150px; }
+.rd-donut {
+  width: 148px; height: 148px; border-radius: 50%; display: grid; place-content: center; text-align: center;
+  position: relative; box-shadow: inset 0 0 0 1px rgba(250, 245, 238, 0.08);
+}
+.rd-donut::after { content: ''; position: absolute; inset: 22px; border-radius: 50%; background: var(--md-panel, #121a24); }
+.rd-donut strong, .rd-donut span { position: relative; z-index: 1; }
+.rd-donut strong { font-family: 'Rajdhani', sans-serif; font-size: 2rem; line-height: 1; color: var(--md-ink); }
+.rd-donut span { font-size: 0.66rem; color: var(--md-ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.rd-donut-legend { display: grid; gap: 10px; }
+.rd-donut-item { display: grid; grid-template-columns: 9px 1fr auto; align-items: center; gap: 8px; color: var(--md-ink-dim); font-size: 0.78rem; }
+.rd-donut-dot { width: 8px; height: 8px; border-radius: 50%; }
+.rd-donut-item strong { color: var(--md-ink); font-family: 'Rajdhani', sans-serif; font-size: 1rem; }
+.rd-risk-links { display: grid; gap: 5px; margin-top: 12px; }
+.rd-risk-links a { color: var(--md-ink-dim); font-size: 0.72rem; text-decoration: none; }
+.rd-risk-links a:hover { color: var(--md-accent); }
+
 /* ---------- owner: fleet map ---------- */
 .rd-fleet-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .rd-fleet-pill {
@@ -1196,6 +1213,8 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
 }
 
 @media (max-width: 720px) {
+  .rd-donut-layout { grid-template-columns: 1fr; justify-items: center; }
+  .rd-donut-legend { width: 100%; }
   .rd-status-grid-wrap {
     padding-right: 14px;
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent 100%);

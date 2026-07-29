@@ -160,3 +160,39 @@ export function StatusGrid({ map, onCellClick }) {
     </div>
   );
 }
+
+export function StatusDonut({ values = {}, total = 0 }) {
+  const items = [
+    ['running', 'Running', '#22c55e'],
+    ['issues', 'Issues', '#eab308'],
+    ['down', 'Down', '#ef4444'],
+    ['maintenance', 'Maintenance', '#38bdf8'],
+  ];
+  const safeTotal = Number(total) || items.reduce((sum, [key]) => sum + (Number(values[key]) || 0), 0);
+  let cursor = 0;
+  const stops = items.map(([key, , color]) => {
+    const value = Number(values[key]) || 0;
+    const start = safeTotal ? (cursor / safeTotal) * 100 : 0;
+    cursor += value;
+    const end = safeTotal ? (cursor / safeTotal) * 100 : 0;
+    return `${color} ${start}% ${end}%`;
+  });
+
+  return (
+    <div className="rd-donut-layout">
+      <div className="rd-donut" style={{ background: safeTotal ? `conic-gradient(${stops.join(', ')})` : '#243142' }} aria-label={`${safeTotal} machines by status`} role="img">
+        <strong>{safeTotal}</strong>
+        <span>machines</span>
+      </div>
+      <div className="rd-donut-legend">
+        {items.map(([key, label, color]) => (
+          <div className="rd-donut-item" key={key}>
+            <span className="rd-donut-dot" style={{ background: color }} />
+            <span>{label}</span>
+            <strong>{Number(values[key]) || 0}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

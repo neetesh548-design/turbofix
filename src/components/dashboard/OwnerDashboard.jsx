@@ -17,12 +17,8 @@ import {
   ShieldAlert, Wallet, Timer, TrendingDown, Factory, ArrowUpRight,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
-import DashboardChart, { StatusGrid } from './DashboardChart.jsx';
+import DashboardChart, { HorizontalBars, StatusDonut } from './DashboardChart.jsx';
 import { formatInrCompact, formatHours, formatPct } from '../../utils/dashboardMetrics.js';
-
-const URGENCY_LABEL = {
-  critical: 'Critical', high: 'High', medium: 'Medium', low: 'Low',
-};
 
 export default function OwnerDashboard({ metrics, loading = false, onDrilldown }) {
   const valueAtRisk = metrics?.valueAtRisk || {};
@@ -81,20 +77,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           subtitle="Where the risk sits"
           caption={`${fleet.total || 0} machines`}
         >
-          <div className="rd-fleet-summary">
-            {[
-              ['running', 'Running', 'ok'],
-              ['issues', 'Issues', 'warning'],
-              ['down', 'Down', 'danger'],
-              ['maintenance', 'Maintenance', 'info'],
-            ].map(([key, label, tone]) => (
-              <div className={`rd-fleet-pill ${tone}`} key={key}>
-                <strong>{fleet.byStatus?.[key] ?? 0}</strong>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <StatusGrid map={fleet} />
+          <StatusDonut values={fleet.byStatus} total={fleet.total} />
         </DashboardChart>
 
         <DashboardChart title="This month" subtitle="Operating summary" caption="Calendar month to date">
@@ -119,33 +102,25 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
         caption="Ranked by open work"
         action={<a className="rd-link" href="machines.html">All machines <ArrowUpRight size={13} /></a>}
       >
-        {problems.length ? (
-          <div className="rd-table-wrap">
-            <table className="rd-table" data-testid="owner-problem-machines">
-              <thead>
-                <tr>
-                  <th scope="col">Machine</th>
-                  <th scope="col">Open</th>
-                  <th scope="col">Last issue</th>
-                  <th scope="col">Assigned</th>
-                  <th scope="col">Next action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {problems.map((row) => (
-                  <tr key={row.machineId} className={`rd-row-${row.urgencyTone}`}>
-                    <th scope="row">
-                      <a href={`machines.html?machine=${encodeURIComponent(row.machineId)}`}>{row.machineName}</a>
-                      <small className={`rd-chip rd-chip-${row.urgencyTone}`}>{URGENCY_LABEL[row.worstUrgency] || 'Medium'}</small>
-                    </th>
-                    <td className="rd-num">{row.openTickets}</td>
-                    <td className="rd-truncate" title={row.lastIssue}>{row.lastIssue}</td>
-                    <td>{row.assignedTo || 'Unassigned'}</td>
-                    <td className="rd-next-action">{row.nextAction}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {problems.length ? (
+          <div data-testid="owner-problem-machines">
+            <HorizontalBars
+              items={problems.map((row) => ({
+                id: row.machineId,
+                label: row.machineName,
+                value: row.openTickets,
+                tone: row.urgencyTone === 'critical' ? 'danger' : row.urgencyTone === 'high' ? 'warning' : '',
+                display: `${row.openTickets} open`,
+              }))}
+              emptyText="No machine has open work."
+            />
+            <div className="rd-risk-links">
+              {problems.slice(0, 3).map((row) => (
+                <a key={row.machineId} href={`machines.html?machine=${encodeURIComponent(row.machineId)}`}>
+                  {row.machineName} · {row.nextAction}
+                </a>
+              ))}
+            </div>
           </div>
         ) : (
           <p className="rd-empty">
