@@ -298,10 +298,12 @@ export default function Machines() {
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
-        supabase.from('companies').select('machine_quota').maybeSingle(),
+        signedInUser?.company_code
+          ? supabase.from('companies').select('machine_quota').ilike('domain', signedInUser.company_code).single()
+          : Promise.resolve({ data: null, error: null }),
       ]);
 
-      if (compRes.data?.machine_quota) setCompanyQuota(compRes.data.machine_quota);
+      if (compRes.data?.machine_quota != null) setCompanyQuota(Number(compRes.data.machine_quota));
 
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
