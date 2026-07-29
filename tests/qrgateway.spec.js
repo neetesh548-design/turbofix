@@ -122,13 +122,19 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     });
   });
 
+  const ensureBypassedPhoneGate = async (page) => {
+    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await page.evaluate(() => {
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
+    });
+    await page.reload();
+  };
+
   test('Scenario 1: Reporter Mobile Identification (Phone Gate)', async ({ page }) => {
     // Clear localStorage to trigger phone gate
-    await page.addInitScript(() => {
-      window.localStorage.clear();
-    });
-
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await page.evaluate(() => window.localStorage.clear());
+    await page.reload();
 
     // Verify phone gate is visible (in either Hindi or English)
     const phoneHeader = page.locator('h2', { hasText: /Mobile Identification|मोबाइल नंबर सत्यापन|WhatsApp OTP/ });
@@ -154,10 +160,8 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
 
   test('Scenario 2 & 3: Voice recording, Gemini transcription, and Editing', async ({ page }) => {
-    // Set phone number in localStorage to bypass phone gate
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
+    await ensureBypassedPhoneGate(page);
+
 
     // Mock Gemini transcription Edge function response
     await page.route('**/functions/v1/*', async (route) => {
@@ -177,7 +181,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     // Click to start recording (using the mic button which is the first button containing SVG)
     await page.locator('#voice-mic-button').click({ force: true });
@@ -210,11 +214,8 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   });
 
   test('Scenario 4: Photo capture and attachment preview', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
+    await ensureBypassedPhoneGate(page);
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
 
     // Attach mock photo file
     const fileChooserPromise = page.waitForEvent('filechooser');
@@ -287,7 +288,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     // Record voice (click to start and click to stop)
     await page.locator('#voice-mic-button').click({ force: true });
@@ -314,10 +315,6 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   });
 
   test('Scenario 6: Successful Ticket Submission and receipt visual', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
-
     // Mock tickets check (no duplicates) and ticket insertion
     await page.route('**/rest/v1/tickets?*', async (route) => {
       if (route.request().method() === 'GET') {
@@ -360,7 +357,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     await page.locator('#voice-mic-button').click({ force: true });
     await expect(page.locator('span', { hasText: /रोकने के लिए दबाएं|Tap to stop/ })).toBeVisible();
@@ -391,10 +388,6 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   });
 
   test('Scenario 7: Transcription Failure and Fallback to Manual Input', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
-
     // Mock Gemini transcription failure (status 500)
     await page.route('**/functions/v1/*', async (route) => {
       const requestBody = route.request().postDataJSON();
@@ -413,7 +406,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       }
     });
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     // Trigger recording
     await page.locator('#voice-mic-button').click({ force: true });
@@ -436,11 +429,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   });
 
   test('Scenario 8: Language Translation Toggle updates UI labels', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
-
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     // Verify default Hindi state
     await expect(page.locator('span', { hasText: /बोलने के लिए/ })).toBeVisible();
@@ -457,11 +446,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   });
 
   test('Scenario 9: Empty Description validation prevention', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
-    });
-
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
 
     // Open manual entry form
     await page.locator('button', { hasText: /लिखकर दर्ज करें|Trouble speaking\? Write here/ }).click();
@@ -487,7 +472,6 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
 
   test('Scenario 10: Microphone Access Denied Fallback', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
       // Mock getUserMedia to reject
       Object.defineProperty(navigator, 'mediaDevices', {
         value: {
@@ -497,7 +481,8 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       });
     });
 
-    await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
+    await ensureBypassedPhoneGate(page);
+
 
     // Click mic button
     await page.locator('#voice-mic-button').click({ force: true });
