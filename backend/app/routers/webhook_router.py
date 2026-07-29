@@ -98,16 +98,28 @@ async def receive_webhook(
 
         if msg_type == "text":
             text_body = message.get("text", {}).get("body", "")
-            await ticket_service.handle_text_message(
-                phone=phone,
-                text=text_body,
-                background_tasks=background_tasks,
-                sessions=sessions,
-                tickets=tickets,
-                machines=machines,
-                events=events,
-                tech_work=tech_work,
-            )
+            
+            # Check if active QR breakdown session or QR code format
+            has_active_session = bool(sessions.get(phone))
+            is_qr_scan = bool(re.search(r"TF-M-|machine|breakdown|ticket|close", text_body, re.IGNORECASE))
+            
+            if has_active_session or is_qr_scan:
+                await ticket_service.handle_text_message(
+                    phone=phone,
+                    text=text_body,
+                    background_tasks=background_tasks,
+                    sessions=sessions,
+                    tickets=tickets,
+                    machines=machines,
+                    events=events,
+                    tech_work=tech_work,
+                )
+            else:
+                from app.services import whatsapp_chat_service
+                from app.infrastructure.whatsapp import send_message
+                reply = await whatsapp_chat_service.handle_registered_whatsapp_message(phone, text_body)
+                background_tasks.add_task(send_message, phone, reply)
+
         elif msg_type == "audio":
             await ticket_service.handle_audio_message(
                 phone=phone,

@@ -120,12 +120,12 @@ async def send_text_message(to: str, text: str) -> None:
     """Send a plain text message."""
     if _use_wacrm():
         from app.infrastructure import wacrm_client
-        await wacrm_client.send_text_message(to, text)
+        await wacrm_client.send_text_message(to=to, text=text)
         return
 
     if _use_bridge():
         from app.infrastructure import whatsapp_bridge_client
-        await whatsapp_bridge_client.send_text_message(to, text)
+        await whatsapp_bridge_client.send_text_message(to=to, text=text)
         return
 
 
@@ -145,6 +145,10 @@ async def send_text_message(to: str, text: str) -> None:
         json=payload,
     )
     log.info("whatsapp.text_sent", to=to)
+
+
+# Alias for conversational chat & digest services
+send_message = send_text_message
 
 
 async def send_escalation_template(to: str, params: List[str]) -> None:
