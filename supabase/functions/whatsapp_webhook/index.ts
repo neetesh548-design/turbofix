@@ -361,12 +361,43 @@ async function handleRoleChat(
     tickets = data || [];
   }
 
+  const graphNodes: any[] = [];
+  const graphEdges: any[] = [];
+  if (machineIds.length) {
+    const { data: graphs } = await supabase
+      .from('machine_knowledge_graphs')
+      .select('machine_id,nodes,edges')
+      .in('machine_id', machineIds)
+      .eq('company_id', user.factory_id)
+      .limit(20);
+    for (const graph of graphs || []) {
+      graphNodes.push(...(Array.isArray(graph.nodes) ? graph.nodes.slice(0, 80) : []));
+      graphEdges.push(...(Array.isArray(graph.edges) ? graph.edges.slice(0, 120) : []));
+    }
+  }
+
+  const { data: recentMessages } = await supabase
+    .from('whatsapp_messages')
+    .select('direction,content,created_at')
+    .eq('phone_e164', phoneE164)
+    .order('created_at', { ascending: false })
+    .limit(8);
+  const conversation = (recentMessages || []).reverse();
+  const graph = { nodes: graphNodes, edges: graphEdges };
+  await supabase.from('whatsapp_conversations').upsert({
+    phone_e164: phoneE164, user_id: user.user_id || user.id, company_id: user.factory_id,
+    role, graph, updated_at: new Date().toISOString(),
+  }, { onConflict: 'phone_e164' });
+  await supabase.from('whatsapp_messages').insert({ phone_e164: phoneE164, direction: 'in', content: question.slice(0, 2000) });
+
   const context = [
     `Role: ${role}`,
     `User: ${user.name || phoneE164}`,
     `Scope: ${plantWide ? 'factory-wide' : 'assigned machines only'}`,
     `Machines:\n${machineRows.length ? machineRows.map((machine: any) => `- ${machine.name} | ${machine.location || 'location unknown'} | ${machine.status || 'unknown'} | id=${machine.id}`).join('\n') : '- None assigned'}`,
     `Tickets:\n${tickets.length ? tickets.map((ticket: any) => `- ${ticket.id.slice(0, 8)} | machine=${ticket.machine_id} | ${ticket.status} | ${ticket.urgency || 'normal'} | ${String(ticket.issue_text || '').slice(0, 180)}`).join('\n') : '- None recorded'}`,
+    `Knowledge graph:\n${JSON.stringify(graph).slice(0, 18000)}`,
+    `Recent conversation:\n${conversation.map((message: any) => `${message.direction === 'in' ? 'User' : 'Assistant'}: ${String(message.content).slice(0, 500)}`).join('\n') || '- New conversation'}`,
   ].join('\n');
 
   let answer = `TurboFix ${role} view\nMachines assigned: ${machineRows.length}\nOpen tickets: ${tickets.filter((ticket) => !['resolved', 'closed'].includes(String(ticket.status).toLowerCase())).length}`;
@@ -382,6 +413,7 @@ async function handleRoleChat(
     }
   }
   if (waConfigured()) await sendTextMessage(from, answer);
+  await supabase.from('whatsapp_messages').insert({ phone_e164: phoneE164, direction: 'out', content: answer.slice(0, 4000) });
   return true;
 }
 
