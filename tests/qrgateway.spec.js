@@ -129,12 +129,17 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
 
     // Verify phone gate is visible (in either Hindi or English)
-    const phoneHeader = page.locator('h3', { hasText: /Mobile Identification|मोबाइल नंबर सत्यापन/ });
+    const phoneHeader = page.locator('h2', { hasText: /Mobile Identification|मोबाइल नंबर सत्यापन|WhatsApp OTP/ });
     await expect(phoneHeader).toBeVisible();
 
-    // Fill valid phone number and proceed
+    // Fill valid phone number and send OTP
     await page.fill('input[type="tel"]', '9876543210');
-    await page.locator('button', { hasText: /Proceed|आगे बढ़ें/ }).click();
+    await page.locator('button', { hasText: /Send WhatsApp OTP|व्हाट्सएप ओटीपी भेजें|व्हॉट्सअॅप ओटीपी पाठवा|Proceed/i }).click();
+
+    // Fill OTP and verify
+    await expect(page.locator('#qr-otp-input')).toBeVisible({ timeout: 10000 });
+    await page.fill('#qr-otp-input', '123456');
+    await page.locator('button', { hasText: /Verify OTP|ओटीपी सत्यापित करें|ओटीपी पडताळा/i }).click();
 
     // Gate should close
     await expect(phoneHeader).not.toBeVisible();
@@ -144,6 +149,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     const savedPhone = await page.evaluate(() => window.localStorage.getItem('tf_reporter_phone'));
     expect(savedPhone).toBe('9876543210');
   });
+
 
   test('Scenario 2 & 3: Voice recording, Gemini transcription, and Editing', async ({ page }) => {
     // Set phone number in localStorage to bypass phone gate
