@@ -39,6 +39,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           tone={valueAtRisk.machineCount > 0 ? 'danger' : 'ok'}
           value={valueAtRisk.known === false ? 'Set asset values' : formatInrCompact(valueAtRisk.value)}
           hint={`${valueAtRisk.machineCount || 0} machine${valueAtRisk.machineCount === 1 ? '' : 's'} need attention or service`}
+          info={{ summary: 'Estimated value of machines needing attention.', detail: 'Adds the replacement value of machines with open issues or overdue service.' }}
           onClick={drill('machines')}
           data-testid="kpi-value-at-risk"
         />
@@ -47,6 +48,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           icon={Wallet}
           value={formatInrCompact(cost.total)}
           hint={`${formatInrCompact(cost.repair)} labour and parts · ${formatInrCompact(cost.downtime)} production loss`}
+          info={{ summary: 'Money spent on repairs and regular maintenance this month.', detail: 'Adds parts cost, labour cost, and recorded production loss from maintenance work.' }}
           onClick={drill('secondary')}
           data-testid="kpi-maintenance-cost"
         />
@@ -56,6 +58,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           tone={(fleet.grid?.critical?.down || 0) > 0 ? 'danger' : 'ok'}
           value={(fleet.grid?.critical?.down || 0) + (fleet.grid?.critical?.issues || 0)}
           hint={`${fleet.grid?.critical?.down || 0} stopped · ${fleet.grid?.critical?.issues || 0} need attention`}
+          info={{ summary: 'Important machines that are stopped or need attention.', detail: 'Counts critical machines marked Down or Issues in the current machine records.' }}
           onClick={drill('machines')}
           data-testid="kpi-critical-machines"
         />
@@ -65,6 +68,7 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
           tone={downtime.cost > 0 ? 'danger' : 'ok'}
           value={formatInrCompact(downtime.cost)}
           hint={`${downtime.hours || 0} hours lost across ${downtime.ticketCount || 0} machine issue${downtime.ticketCount === 1 ? '' : 's'}`}
+          info={{ summary: 'Estimated money lost while machines were stopped.', detail: 'Multiplies recorded downtime hours by each machine’s hourly loss rate.' }}
           onClick={drill('downtime')}
           data-testid="kpi-downtime-cost"
         />

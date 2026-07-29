@@ -880,6 +880,18 @@ button.rd-kpi:focus-visible { outline: 2px solid var(--md-accent); outline-offse
   font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--md-ink-dim); font-weight: 600;
 }
+.rd-kpi-info { position: relative; display: inline-flex; color: var(--md-ink-dim); font-size: .78rem; text-transform: none; letter-spacing: 0; cursor: help; }
+.rd-kpi-info:hover, .rd-kpi-info:focus { color: var(--md-accent); }
+.rd-kpi-info-popover {
+  position: absolute; z-index: 20; top: calc(100% + 9px); left: 0; display: none; width: 245px; padding: 11px 12px;
+  border: 1px solid var(--md-line); border-radius: 10px; color: var(--md-ink-dim); background: #111a25;
+  box-shadow: 0 14px 30px rgba(0,0,0,.35); font-size: .72rem; font-weight: 500; line-height: 1.45; text-transform: none; letter-spacing: 0;
+}
+.rd-kpi-info:hover .rd-kpi-info-popover, .rd-kpi-info:focus .rd-kpi-info-popover { display: grid; gap: 8px; }
+.rd-kpi-info-popover strong { color: var(--md-ink); font-size: .75rem; font-weight: 600; }
+.rd-kpi-info-popover details { border-top: 1px solid var(--md-line); padding-top: 7px; }
+.rd-kpi-info-popover summary { color: var(--md-accent); cursor: pointer; font-weight: 600; }
+.rd-kpi-info-popover details span { display: block; margin-top: 5px; }
 .rd-kpi-value-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .rd-kpi-value {
   font-family: 'Rajdhani', 'Outfit', sans-serif;

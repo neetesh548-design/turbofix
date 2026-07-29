@@ -37,6 +37,7 @@ export default function DashboardKpiCard({
   tone = '',
   icon: Icon,
   trend,
+  info,
   onClick,
   'data-testid': testId,
 }) {
@@ -53,6 +54,18 @@ export default function DashboardKpiCard({
       <span className="rd-kpi-label">
         {Icon ? <Icon size={14} aria-hidden="true" /> : null}
         {label}
+        {info && (
+          <span className="rd-kpi-info" tabIndex="0" aria-label={`More information about ${label}`}>
+            ⓘ
+            <span className="rd-kpi-info-popover" role="tooltip">
+              <strong>{info.summary}</strong>
+              <details>
+                <summary>How is this calculated?</summary>
+                <span>{info.detail}</span>
+              </details>
+            </span>
+          </span>
+        )}
       </span>
       <span className="rd-kpi-value-row">
         <strong className="rd-kpi-value">{value ?? '—'}</strong>
