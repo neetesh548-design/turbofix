@@ -134,7 +134,16 @@ const GATEWAY_I18N = {
     transcribeError: 'ट्रांसक्रिप्शन नहीं हो सका। कृपया लिखकर दर्ज करें।',
     offlineSavedText: 'ऑफ़लाइन सहेजा गया। इंटरनेट आते ही सिंक हो जाएगा।',
     submittingErrorTitle: 'सबमिट त्रुटि',
-    submissionProblemText: 'टिकट दर्ज करने में समस्या हुई। कृपया दोबारा प्रयास करें।'
+    submissionProblemText: 'टिकट दर्ज करने में समस्या हुई। कृपया दोबारा प्रयास करें।',
+    otpGateTitle: 'व्हाट्सएप ओटीपी सत्यापन',
+    otpGateDesc: 'शिकायत दर्ज करने के लिए आपके व्हाट्सएप पर भेजे गए 6 अंकों का ओटीपी कोड दर्ज करें:',
+    sendOtp: 'व्हाट्सएप ओटीपी भेजें',
+    verifyOtp: 'ओटीपी सत्यापित करें',
+    resendOtp: 'दोबारा ओटीपी भेजें',
+    sendingOtp: 'ओटीपी भेजा जा रहा है...',
+    verifyingOtp: 'सत्यापित हो रहा है...',
+    changePhone: 'मोबाइल नंबर बदलें',
+    otpPlaceholder: '6 अंकों का ओटीपी दर्ज करें'
   },
   'mr-IN': {
     brand: 'TURBOFIX',
@@ -191,8 +200,18 @@ const GATEWAY_I18N = {
     transcribeError: 'आवाज ओळखता आली नाही. कृपया टाईप करून कळवा.',
     offlineSavedText: 'ऑफलाइन सेव्ह केले. इंटरनेट आल्यावर सिंक होईल.',
     submittingErrorTitle: 'सबमिट त्रुटी',
-    submissionProblemText: 'तिकीट नोंदवताना समस्या आली. कृपया पुन्हा प्रयत्न करा.'
+    submissionProblemText: 'तिकीट नोंदवताना समस्या आली. कृपया पुन्हा प्रयत्न करा.',
+    otpGateTitle: 'व्हॉट्सअॅप ओटीपी पडताळणी',
+    otpGateDesc: 'तक्रार नोंदवण्यासाठी तुमच्या व्हॉट्सअॅपवर पाठवलेला ६ अंकी ओटीपी कोड टाका:',
+    sendOtp: 'व्हॉट्सअॅप ओटीपी पाठवा',
+    verifyOtp: 'ओटीपी पडताळा',
+    resendOtp: 'पुन्हा ओटीपी पाठवा',
+    sendingOtp: 'ओटीपी पाठवत आहे...',
+    verifyingOtp: 'पडताळत आहे...',
+    changePhone: 'मोबाईल नंबर बदला',
+    otpPlaceholder: '६ अंकी ओटीपी प्रविष्ट करा'
   },
+
   'en-US': {
     brand: 'TURBOFIX',
     listenGuide: 'Listen Guide',
@@ -296,11 +315,13 @@ export default function QRGateway() {
   const [pendingAudioBlob, setPendingAudioBlob] = useState(null);
   const [pendingAudioUrl, setPendingAudioUrl] = useState('');
 
-  // Reporter state (remembered)
+  // Reporter state & WhatsApp OTP Gate
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
   const [reporterName, setReporterName] = useState(() => localStorage.getItem('tf_reporter_name') || '');
-  const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem('tf_reporter_phone'));
-  const [phoneInput, setPhoneInput] = useState('');
+  const [otpVerified, setOtpVerified] = useState(() => Boolean(sessionStorage.getItem('tf_otp_verified')));
+  const [phoneGate, setPhoneGate] = useState(() => !sessionStorage.getItem('tf_otp_verified'));
+  const [phoneInput, setPhoneInput] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
+
 
   // WhatsApp OTP Verification state
   const [otpStep, setOtpStep] = useState('phone'); // 'phone' | 'verify'
@@ -1050,7 +1071,18 @@ export default function QRGateway() {
     setWorkflowStage('submitting');
 
     try {
+      if (!otpVerified && !sessionStorage.getItem('tf_otp_verified')) {
+        setPhoneGate(true);
+        setOtpStep('phone');
+        setOtpError(lang === 'hi-IN' ? 'टिकट दर्ज करने के लिए पहले व्हाट्सएप ओटीपी सत्यापित करें।' : lang === 'mr-IN' ? 'तक्रार नोंदवण्यासाठी आधी व्हॉट्सअॅप ओटीपी पडताळा.' : 'Please verify WhatsApp OTP first to authorize this breakdown ticket.');
+        setIsSubmittingTicket(false);
+        setCheckingDuplicate(false);
+        setUploadingPhoto(false);
+        return;
+      }
+
       if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
+
       if (!navigator.onLine) {
         console.log('Device is offline. Queuing ticket locally.');
         const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
@@ -1284,11 +1316,14 @@ export default function QRGateway() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
 
+      sessionStorage.setItem('tf_otp_verified', 'true');
       localStorage.setItem('tf_reporter_phone', phoneInput.trim());
       if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
       setReporterPhone(phoneInput.trim());
+      setOtpVerified(true);
       setPhoneGate(false);
       setWorkflowStage('capture');
+
 
       setTimeout(() => {
         greetUser();
