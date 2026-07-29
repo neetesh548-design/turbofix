@@ -63,8 +63,8 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
         };
       }
       window.MediaRecorder = MediaRecorderMock;
-      window.localStorage.setItem('tf_reporter_phone', '9876543210');
     });
+
 
 
     // Log browser console logs
@@ -112,15 +112,33 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
       });
     });
 
-    // 4. Mock Storage Get Public URL
-    await page.route('**/storage/v1/object/public/repair-proofs/*', async (route) => {
+    // 5. Mock WhatsApp OTP endpoints
+    await page.route('**/auth/otp/send', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ publicUrl: 'https://supabase.co/storage/v1/object/public/repair-proofs/MOCK-MACHINE-123/test-img.png' })
+        body: JSON.stringify({ status: 'sent', message: 'OTP sent', otp_debug: '123456' })
       });
     });
+
+    await page.route('**/auth/otp/verify', async (route) => {
+      const body = route.request().postDataJSON() || {};
+      if (body.otp === '123456') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ verified: true, phone: body.phone })
+        });
+      } else {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({ detail: 'Incorrect OTP code. Please check your WhatsApp and try again.' })
+        });
+      }
+    });
   });
+
 
   const ensureBypassedPhoneGate = async (page) => {
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
