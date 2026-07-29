@@ -21,7 +21,9 @@ import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { downloadMachinesCSV } from '../utils/machineExport';
 import { visibleMachinesForUser } from '../utils/machineVisibility';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
+import { formatSupabaseError } from '../utils/errorFormatting';
 import './Machines.css';
+
 
 const WORKSPACE_TABS = [
   { id: 'info', label: 'Overview', hint: 'Status and response', Icon: Activity },
@@ -1015,7 +1017,7 @@ export default function Machines() {
         maintenance_head_user_id: headUserId || null,
         factory_id: factoryId,
       }).select().single();
-      if (insertErr) throw new Error(insertErr.message);
+      if (insertErr) throw new Error(formatSupabaseError(insertErr, 'Machine onboarding failed.', companyQuota));
 
       if (onboardPhotoFile) {
         await uploadMachinePhoto(onboardPhotoFile, newRow.id);
@@ -1028,8 +1030,9 @@ export default function Machines() {
       setOnboardPhotoFile(null);
       fetchData();
     } catch (err) {
-      setError(err.message);
+      setError(formatSupabaseError(err, 'Machine could not be onboarded.', companyQuota));
     }
+
   };
 
   const getAssignment = (machine, key) => machine?.assignments?.[key] || null;
