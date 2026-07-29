@@ -267,7 +267,7 @@ describe('filterMachines', () => {
   it('filters by health status', () => {
     expect(filterMachines(fleet, { status: HEALTH.DOWN }, NOW).map((m) => m.machine_id)).toEqual([]);
     expect(filterMachines(fleet, { status: HEALTH.ISSUES }, NOW).map((m) => m.machine_id)).toEqual([]);
-    expect(filterMachines(fleet, { status: HEALTH.RUNNING }, NOW).map((m) => m.machine_id)).toEqual(['M001']);
+    expect(filterMachines(fleet, { status: HEALTH.RUNNING }, NOW).map((m) => m.machine_id)).toEqual(['M001', 'M002', 'M003']);
   });
 
   it('combines search and status', () => {

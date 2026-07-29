@@ -1,5 +1,5 @@
 import React from 'react';
-import { computeMachineHealth, HEALTH } from '@/utils/machineHealth';
+import { machineStatusVerdict, HEALTH } from '@/utils/machineHealth';
 
 /**
  * MachineHealthIndicator — the traffic light on a machine card.
@@ -16,7 +16,7 @@ import { computeMachineHealth, HEALTH } from '@/utils/machineHealth';
  * - showLabel (bool): render the text label beside the dot, default true
  */
 function MachineHealthIndicator({ machine, health, size = 'md', showLabel = true }) {
-  const verdict = health || computeMachineHealth(machine);
+  const verdict = health || machineStatusVerdict(machine);
   const tooltip = verdict.reasons.join(' · ');
 
   return (

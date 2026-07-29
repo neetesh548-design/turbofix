@@ -80,6 +80,15 @@ export function databaseStatusBucket(machine) {
   return DATABASE_STATUS_BUCKETS[String(machine?.status || '').trim().toLowerCase()] || null;
 }
 
+export function machineStatusVerdict(machine, now = new Date()) {
+  const health = computeMachineHealth(machine, now);
+  const bucket = databaseStatusBucket(machine);
+  if (!bucket) return health;
+  const labels = { running: 'Running', issues: 'Needs a look', down: 'Down', maintenance: 'Maintenance' };
+  const colors = { running: '#22c55e', issues: '#eab308', down: '#ef4444', maintenance: '#38bdf8' };
+  return { ...health, status: bucket, label: labels[bucket], color: colors[bucket] };
+}
+
 /* -----------------------------------------------------------
    Date helpers — all comparisons happen at local midnight so a
    PM due "today" reads as 0 days regardless of the clock time.
