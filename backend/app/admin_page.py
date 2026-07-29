@@ -638,6 +638,7 @@ ADMIN_HTML = r"""<!DOCTYPE html>
           <div><label for="onboardEmail">Owner email</label><input type="email" id="onboardEmail" placeholder="owner@company.example" required></div>
           <div><label for="onboardQuota">Initial machine plan</label><input type="number" id="onboardQuota" value="5" min="1" required></div>
           <div class="full"><label for="onboardPassword">Temporary owner password</label><input type="password" id="onboardPassword" minlength="8" autocomplete="new-password" placeholder="Min 8 chars, 1 uppercase, 1 digit" required></div>
+          <div class="field"><label for="onboardPasswordConfirm">Confirm owner password</label><input type="password" id="onboardPasswordConfirm" required autocomplete="new-password" placeholder="Re-enter the owner password"></div>
         </div>
         <div class="err" id="onboardErr" role="alert"></div>
         <div class="form-footer"><button type="button" class="btn btn-outline" id="cancelOnboard">Cancel</button><button type="submit" class="btn btn-primary" id="onboardSubmitBtn">Create and approve workspace</button></div>
@@ -766,6 +767,7 @@ async function loadAiConfig() {
     }
   } catch (error) {
     console.warn("Failed to load Gemini config:", error);
+    showToast("Could not load AI configuration", "error");
   }
 }
 
@@ -810,6 +812,7 @@ async function loadAiUsage() {
     }
   } catch (error) {
     console.warn("Failed to load AI usage dashboard:", error);
+    showToast("Could not load AI usage data", "error");
   } finally {
     btn.disabled = false;
     btn.textContent = "Refresh metrics";
@@ -1212,7 +1215,8 @@ document.addEventListener("keydown", (event) => {
     if (searchEl) searchEl.focus();
   } else if (event.key === "Escape") {
     closeDrawer();
-    ["onboardModal", "dashboardModal", "workspaceModal", "teamModal", "passwordModal"].forEach(closeModal);
+    ["onboardModal", "dashboardModal", "workspaceModal", "teamModal"].forEach(closeModal);
+    closePasswordReset();
   } else if ((event.key === "r" || event.key === "R") && !isInput && !event.metaKey && !event.ctrlKey) {
     event.preventDefault();
     if (refreshBtn) refreshBtn.click();
@@ -1286,6 +1290,9 @@ $("onboardForm").addEventListener("submit", async (event) => {
   button.disabled = true;
   button.textContent = "Creating workspace…";
   try {
+    const pw1 = $("onboardPassword").value;
+    const pw2 = $("onboardPasswordConfirm").value;
+    if (pw1 !== pw2) { error.textContent = "The password confirmation does not match."; return; }
     const response = await api("/admin/companies", { method: "POST", body: JSON.stringify({ company_code: $("onboardCode").value.trim(), company_name: $("onboardName").value.trim(), admin_contact_phone: $("onboardPhone").value.trim(), owner_name: $("onboardOwnerName").value.trim(), owner_email: $("onboardEmail").value.trim(), owner_password: $("onboardPassword").value, machine_quota: Number.parseInt($("onboardQuota").value, 10) }) });
     if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.detail || "Onboarding could not be completed."); }
     const result = await response.json();
@@ -1501,7 +1508,7 @@ function showBroadcastForm() {
     try {
       const lines = $("wacrmBcRecipients").value.trim().split("\n").filter(Boolean);
       const recipients = lines.map(line => {
-        const parts = line.split(",").map(p => p.trim());
+        const parts = line.match(/("[^"]*"|[^,]+)/g)?.map(s => s.replace(/^"|"$/g, '').trim()) || [line.trim()];
         return { to: parts[0], params: parts.slice(1) };
       });
       if (!confirmAdminAction(`Launch broadcast to ${recipients.length} recipients?`)) { status.textContent = ""; return; }
@@ -1530,7 +1537,7 @@ async function loadWacrmWebhooks() {
 
 function showRegisterWebhookForm() {
   const el = $("wacrmContent");
-  const defaultUrl = location.origin + "/wacrm-webhook";
+  const defaultUrl = (API || location.origin) + "/wacrm-webhook";
   el.innerHTML = `<div style="max-width:480px;"><h3 style="font-size:16px;margin-bottom:16px;">Register webhook endpoint</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Tell WaCRM where to forward incoming messages. The URL below points to this TurboFix backend.</p><form id="wacrmWebhookForm"><div class="field" style="margin-top:0;"><label for="wacrmHookUrl">Webhook URL</label><input type="url" id="wacrmHookUrl" value="${esc(defaultUrl)}" required></div><div class="field"><label for="wacrmHookEvents">Events (comma-separated)</label><input type="text" id="wacrmHookEvents" value="message.received,message.delivered,message.read"></div><div class="form-footer" style="margin-top:16px;"><button type="button" class="btn btn-outline" id="wacrmCancelHook">Cancel</button><button type="submit" class="btn btn-primary">Register</button></div></form><div class="status" id="wacrmHookStatus" role="status"></div></div>`;
   $("wacrmCancelHook").addEventListener("click", loadWacrmWebhooks);
   $("wacrmWebhookForm").addEventListener("submit", async (e) => {

@@ -307,6 +307,10 @@ class UserRepository(ABC):
     def add_company(self, company_code: str, company_name: str, admin_contact_phone: str, machine_quota: int, approved: bool) -> None:
         """Insert a new company row. Keys must match COMPANIES_HEADER."""
 
+    @abstractmethod
+    def delete_company(self, company_code: str) -> bool:
+        """Remove the matching company row. Returns True if found."""
+
 
 class DocumentRepository(ABC):
     """Read/write access to the Documents metadata entity."""

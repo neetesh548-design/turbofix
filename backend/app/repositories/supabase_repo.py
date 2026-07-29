@@ -280,23 +280,36 @@ class SupabaseUserRepository(UserRepository):
 
     def _company_to_dict(self, row: dict) -> dict:
         """Map Supabase companies row → standard COMPANIES_HEADER dict."""
-        # Look up owner phone as admin_contact_phone
-        owner = _client.select_one("users", {
-            "company_id": f"eq.{row['id']}",
-            "role": "eq.owner",
-        })
-        phone = owner.get("phone", "") if owner else ""
-        # Count machines for quota display
-        machines = _client.select("machines", {
-            "company_id": f"eq.{row['id']}",
-            "select": "id",
-        })
+        phone = row.get("admin_contact_phone", "")
+        if not phone:
+            try:
+                # Look up owner phone as admin_contact_phone
+                owner = _client.select_one("users", {
+                    "company_id": f"eq.{row['id']}",
+                    "role": "eq.owner",
+                })
+                phone = owner.get("phone", "") if owner else ""
+            except Exception:
+                phone = ""
+
+        machine_quota = row.get("machine_quota")
+        if machine_quota is None:
+            try:
+                # Count machines for quota display
+                machines = _client.select("machines", {
+                    "company_id": f"eq.{row['id']}",
+                    "select": "id",
+                })
+                machine_quota = len(machines) + 5
+            except Exception:
+                machine_quota = 5
+
         return {
             "company_code": row.get("domain", ""),
             "company_name": row.get("name", ""),
             "admin_contact_phone": phone,
             "onboarded_date": str(row.get("created_at", ""))[:10],
-            "machine_quota": len(machines) + 5,  # current + headroom
+            "machine_quota": machine_quota,
             "approved": "yes" if row.get("status") == "active" else "no",
         }
 
@@ -317,6 +330,10 @@ class SupabaseUserRepository(UserRepository):
         if "approved" in fields:
             val = fields["approved"]
             patch["status"] = "active" if str(val).lower() in ("yes", "true", "1") else "pending"
+        if "machine_quota" in fields:
+            patch["machine_quota"] = fields["machine_quota"]
+        if "admin_contact_phone" in fields:
+            patch["admin_contact_phone"] = fields["admin_contact_phone"]
         if not patch:
             return True
         try:
@@ -332,8 +349,17 @@ class SupabaseUserRepository(UserRepository):
             "id": str(uuid.uuid4()),
             "domain": company_code,
             "name": company_name,
+            "admin_contact_phone": admin_contact_phone,
+            "machine_quota": machine_quota,
             "status": "active" if approved else "pending",
         })
+
+    def delete_company(self, company_code: str) -> bool:
+        try:
+            return _client.delete("companies", {"domain": f"eq.{company_code}"})
+        except Exception as exc:
+            log.error("supabase.delete_company failed", extra={"error": str(exc)})
+            return False
 
 
 # ---------------------------------------------------------------------------

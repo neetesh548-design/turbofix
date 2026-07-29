@@ -644,7 +644,12 @@ def admin_onboard_company(
         })
     except Exception as exc:
         log.error("admin.onboard_company.add_user_failed", error=str(exc))
-        raise HTTPException(status_code=500, detail="Internal error while creating owner account.")
+        # Rollback: delete the orphaned company
+        try:
+            users.delete_company(company_code)
+        except Exception:
+            log.warning("admin.onboard_company.rollback_failed", company_code=company_code)
+        raise HTTPException(status_code=500, detail="Internal error while creating owner account. The company was not created.")
     
     log.info("admin.company_onboarded", company_code=company_code, owner_user=user_id)
     return {"status": "created", "company_code": company_code, "owner_user_id": user_id}
