@@ -9430,7 +9430,27 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @media (max-width: 1450px) {
-  .machine-workspace-tabs { max-width: 100%; float: none; margin-right: 0; }
+  .machine-workspace-tabs {
+    max-width: 100%;
+    float: none;
+    margin-right: 0;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 14px;
+  }
+
+  .machine-workspace-tabs button {
+    flex: 0 0 auto;
+    min-height: 52px;
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
 }
 
 @media (max-width: 1120px) {
