@@ -34,7 +34,12 @@ test.describe('WhatsApp OTP & Edge Cases Verification', () => {
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({ verified: true, phone: body.phone })
+            body: JSON.stringify({
+              verified: true,
+              phone: body.phone,
+              session_token: 'a'.repeat(64),
+              session: { id: 'session-1' }
+            })
           });
         } else {
           await route.fulfill({

@@ -57,6 +57,7 @@ import { decryptUrlParams } from '../utils/urlEncryption';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 
 const OFFLINE_QUEUE_KEY = 'tf_offline_tickets';
+const QR_SESSION_KEY = 'tf_qr_session_token';
 const ORB_ANIMATIONS = `
 @keyframes voice-ripple-1 {
   0% { transform: scale(1); opacity: 0.5; }
@@ -333,8 +334,8 @@ export default function QRGateway() {
   // Reporter state & WhatsApp OTP Gate
   const [reporterPhone, setReporterPhone] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
   const [reporterName, setReporterName] = useState(() => localStorage.getItem('tf_reporter_name') || '');
-  const [otpVerified, setOtpVerified] = useState(() => Boolean(sessionStorage.getItem('tf_otp_verified')));
-  const [phoneGate, setPhoneGate] = useState(() => !sessionStorage.getItem('tf_otp_verified'));
+  const [otpVerified, setOtpVerified] = useState(() => Boolean(localStorage.getItem(QR_SESSION_KEY)));
+  const [phoneGate, setPhoneGate] = useState(() => !localStorage.getItem(QR_SESSION_KEY));
   const [phoneInput, setPhoneInput] = useState(() => localStorage.getItem('tf_reporter_phone') || '');
 
 
@@ -348,6 +349,26 @@ export default function QRGateway() {
   const [otpError, setOtpError] = useState('');
   const [otpDebug, setOtpDebug] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem(QR_SESSION_KEY);
+    if (!token) return;
+    invokeOtp({ action: 'session', session_token: token }, 'Could not restore your login')
+      .then(({ session }) => {
+        setReporterPhone(session.phone);
+        setPhoneInput(session.phone);
+        if (session.reporter_name) setReporterName(session.reporter_name);
+        localStorage.setItem('tf_reporter_phone', session.phone);
+        setOtpVerified(true);
+        setPhoneGate(false);
+      })
+      .catch(() => {
+        localStorage.removeItem(QR_SESSION_KEY);
+        sessionStorage.removeItem('tf_otp_verified');
+        setOtpVerified(false);
+        setPhoneGate(true);
+      });
+  }, []);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -376,10 +397,19 @@ export default function QRGateway() {
 
   // Auto-retry helper for transient edge function failures
   const invokeWithRetry = async (functionName, options, maxRetries = 2) => {
+    const requestOptions = functionName === 'ticket_gateway'
+      ? {
+          ...options,
+          body: {
+            ...options.body,
+            session_token: localStorage.getItem(QR_SESSION_KEY)
+          }
+        }
+      : options;
     let attempt = 0;
     while (attempt <= maxRetries) {
       try {
-        const result = await supabase.functions.invoke(functionName, options);
+        const result = await supabase.functions.invoke(functionName, requestOptions);
         if (result.error && (result.error.message.includes('non-2xx') || result.error.message.includes('FetchError'))) {
           throw result.error;
         }
@@ -429,7 +459,11 @@ export default function QRGateway() {
       for (const item of queue) {
         try {
           const { error } = await supabase.functions.invoke('ticket_gateway', {
-            body: { action: 'log_ticket', payload: item }
+            body: {
+              action: 'log_ticket',
+              payload: item,
+              session_token: localStorage.getItem(QR_SESSION_KEY)
+            }
           });
           if (error) {
             console.error('Failed to sync offline ticket:', error);
@@ -1088,7 +1122,7 @@ export default function QRGateway() {
     setWorkflowStage('submitting');
 
     try {
-      if (!otpVerified && !sessionStorage.getItem('tf_otp_verified')) {
+      if (!otpVerified || !localStorage.getItem(QR_SESSION_KEY)) {
         setPhoneGate(true);
         setOtpStep('phone');
         setOtpError(lang === 'hi-IN' ? 'टिकट दर्ज करने के लिए पहले व्हाट्सएप ओटीपी सत्यापित करें।' : lang === 'mr-IN' ? 'तक्रार नोंदवण्यासाठी आधी व्हॉट्सअॅप ओटीपी पडताळा.' : 'Please verify WhatsApp OTP first to authorize this breakdown ticket.');
@@ -1178,26 +1212,16 @@ export default function QRGateway() {
         if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
         insertedTicket = data.data;
       } catch (edgeErr) {
-        console.warn('Edge function log_ticket unavailable/failed, executing resilient direct DB fallback:', edgeErr);
-        const ticketRecord = {
+        console.warn('Secure ticket gateway unavailable; storing ticket in offline queue:', edgeErr);
+        const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+        queue.push(payload);
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+        insertedTicket = {
+          id: 'offline-' + Date.now(),
           machine_id: payload.machine_id,
-          issue_text: payload.issue_text,
-          urgency: payload.urgency || 'high',
-          status: 'open',
-          reporter_phone: payload.reporter_phone || null,
-          ai_summary: payload.ai_summary || {},
           created_at: new Date().toISOString(),
+          offline: true
         };
-        const { data: dbData, error: dbErr } = await supabase.from('tickets').insert(ticketRecord).select().single();
-        if (dbErr) {
-          console.warn('Supabase DB insert failed, storing ticket in offline queue:', dbErr);
-          const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-          queue.push(payload);
-          localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-          insertedTicket = { ...ticketRecord, id: 'offline-' + Date.now() };
-        } else {
-          insertedTicket = dbData;
-        }
       }
 
       setSubmittedTicketInfo(insertedTicket);
@@ -1320,12 +1344,18 @@ export default function QRGateway() {
     setOtpError('');
     setOtpVerifying(true);
     try {
-      await invokeOtp(
-        { action: 'verify', phone: phoneInput.trim(), otp: otpInput.trim() },
+      const result = await invokeOtp(
+        {
+          action: 'verify',
+          phone: phoneInput.trim(),
+          otp: otpInput.trim(),
+          reporter_name: reporterName.trim()
+        },
         'OTP verification failed',
       );
 
-      sessionStorage.setItem('tf_otp_verified', 'true');
+      localStorage.setItem(QR_SESSION_KEY, result.session_token);
+      sessionStorage.removeItem('tf_otp_verified');
       localStorage.setItem('tf_reporter_phone', phoneInput.trim());
       if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
       setReporterPhone(phoneInput.trim());
@@ -1341,6 +1371,23 @@ export default function QRGateway() {
       setOtpError(err.message || 'Incorrect OTP code.');
     } finally {
       setOtpVerifying(false);
+    }
+  };
+
+  const handleQrLogout = async () => {
+    const sessionToken = localStorage.getItem(QR_SESSION_KEY);
+    localStorage.removeItem(QR_SESSION_KEY);
+    sessionStorage.removeItem('tf_otp_verified');
+    setOtpVerified(false);
+    setPhoneGate(true);
+    setOtpStep('phone');
+    setOtpInput('');
+    if (sessionToken) {
+      try {
+        await invokeOtp({ action: 'logout', session_token: sessionToken }, 'Could not log out');
+      } catch (error) {
+        console.warn('QR session logout notice:', error);
+      }
     }
   };
 
@@ -1398,6 +1445,15 @@ export default function QRGateway() {
             <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '1px', color: 'var(--foreground)' }}>TURBOFIX</span>
           </div>
           <div className="qr-gateway-identity-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            {otpVerified && (
+              <button
+                type="button"
+                onClick={handleQrLogout}
+                style={{ minHeight: '44px', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}
+              >
+                Log out
+              </button>
+            )}
             <button 
               type="button" 
               onClick={() => setSpeakFeedback(!speakFeedback)} 

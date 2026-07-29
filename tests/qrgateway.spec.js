@@ -120,8 +120,24 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
           status: body.otp === '123456' ? 200 : 400,
           contentType: 'application/json',
           body: JSON.stringify(body.otp === '123456'
-            ? { verified: true, phone: body.phone }
+            ? {
+                verified: true,
+                phone: body.phone,
+                session_token: 'a'.repeat(64),
+                session: { id: 'session-1', reporter_name: 'Test Reporter' }
+              }
             : { detail: 'Incorrect OTP code. Please check your WhatsApp and try again.' })
+        });
+        return;
+      }
+      if (body.action === 'session') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            valid: true,
+            session: { id: 'session-1', phone: '9876543210', reporter_name: 'Test Reporter' }
+          })
         });
         return;
       }
@@ -137,7 +153,7 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
   const ensureBypassedPhoneGate = async (page) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('tf_reporter_phone', '9876543210');
-      window.sessionStorage.setItem('tf_otp_verified', 'true');
+      window.localStorage.setItem('tf_qr_session_token', 'a'.repeat(64));
     });
     await page.goto('/qr-gateway.html?id=MOCK-MACHINE-123');
   };
@@ -172,6 +188,13 @@ test.describe('QR Gateway Issue Reporting Flow', () => {
     await expect(page.locator('span', { hasText: /बोलने के लिए|Tap to speak/ })).toBeVisible();
     
     // Verify phone is saved in localStorage
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('tf_qr_session_token')))
+      .toBe('a'.repeat(64));
+
+    // Remembered login survives a reload and is revalidated with the server.
+    await page.reload();
+    await expect(phoneHeader).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
     const savedPhone = await page.evaluate(() => window.localStorage.getItem('tf_reporter_phone'));
     expect(savedPhone).toBe('9876543210');
   });

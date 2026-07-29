@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { sendTextMessage, isConfigured as whatsappConfigured } from '../_shared/whatsapp.ts'
+import { createQrSession, normalizePhone, validateQrSession } from '../_shared/qrSession.ts'
 
 const allowedOrigins = new Set([
   'https://turbofix.co.in',
@@ -24,7 +25,6 @@ const reply = (req: Request, body: Record<string, unknown>, status = 200) => new
   { status, headers: { ...cors(req), 'Content-Type': 'application/json' } },
 )
 
-const normalizePhone = (value: unknown) => String(value ?? '').replace(/\D/g, '')
 const hashOtp = async (phone: string, otp: string) => {
   const bytes = new TextEncoder().encode(`${phone}:${otp}`)
   const digest = await crypto.subtle.digest('SHA-256', bytes)
@@ -54,13 +54,29 @@ serve(async (req) => {
     return reply(req, { detail: 'Invalid JSON request body.' }, 400)
   }
 
-  const phone = normalizePhone(body.phone)
-  if (phone.length !== 10) {
-    return reply(req, { detail: 'Please enter a valid 10-digit mobile number.' }, 400)
-  }
-
   const admin = getAdmin()
   const now = Date.now()
+
+  if (body.action === 'session') {
+    const session = await validateQrSession(admin, body.session_token)
+    if (!session) return reply(req, { detail: 'Your remembered login has expired.', valid: false }, 401)
+    return reply(req, { valid: true, session: {
+      id: session.id,
+      phone: session.phone,
+      user_id: session.user_id,
+      reporter_name: session.reporter_name,
+      expires_at: session.expires_at,
+    } })
+  }
+
+  if (body.action === 'logout') {
+    const session = await validateQrSession(admin, body.session_token, false)
+    if (session) await admin.from('qr_gateway_sessions').update({ revoked_at: new Date().toISOString() }).eq('id', session.id)
+    return reply(req, { logged_out: true })
+  }
+
+  const phone = normalizePhone(body.phone)
+  if (phone.length !== 10) return reply(req, { detail: 'Please enter a valid 10-digit mobile number.' }, 400)
 
   if (body.action === 'send') {
     const { data: existing } = await admin.from('otp_challenges').select('resend_at').eq('phone', phone).maybeSingle()
@@ -115,7 +131,23 @@ serve(async (req) => {
       return reply(req, { detail: attempts >= 5 ? 'Too many incorrect OTP attempts. Please request a new code.' : 'Incorrect OTP code. Please check your WhatsApp and try again.' }, 400)
     }
     await admin.from('otp_challenges').delete().eq('phone', phone)
-    return reply(req, { verified: true, phone })
+    try {
+      const { token, session } = await createQrSession(admin, phone, body.reporter_name)
+      return reply(req, {
+        verified: true,
+        phone,
+        session_token: token,
+        session: {
+          id: session.id,
+          user_id: session.user_id,
+          reporter_name: session.reporter_name,
+          expires_at: session.expires_at,
+        },
+      })
+    } catch (error) {
+      console.error('otp.session_create_failed', error)
+      return reply(req, { detail: 'OTP verified, but the remembered login could not be created. Please try again.' }, 500)
+    }
   }
 
   return reply(req, { detail: 'Unsupported OTP action.' }, 400)

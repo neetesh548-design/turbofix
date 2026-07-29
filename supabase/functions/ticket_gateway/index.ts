@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { validateQrSession } from '../_shared/qrSession.ts'
 
 const allowedOrigins = new Set([
   'https://turbofix.co.in', 'https://www.turbofix.co.in',
@@ -85,6 +86,13 @@ serve(async (req) => {
     }
 
     const action = text(body.action)
+    const protectedActions = new Set(['log_ticket', 'update_ticket', 'get_ticket', 'check_duplicate'])
+    const qrSession = protectedActions.has(action)
+      ? await validateQrSession(admin, body.session_token)
+      : null
+    if (protectedActions.has(action) && !qrSession) {
+      return reply(req, { error: 'Your QR Gateway login has expired. Please verify your mobile number again.' }, 401)
+    }
 
     // Public Machine Details Lookup (bypasses RLS for anonymous QR Gateway operators)
     if (action === 'get_machine_details') {
@@ -124,6 +132,17 @@ serve(async (req) => {
     if (action === 'log_ticket') {
       const { payload } = body
       if (!payload || !payload.machine_id) return reply(req, { error: 'Invalid payload.' }, 400)
+      payload.reporter_phone = qrSession.phone
+      payload.reporter_user_id = qrSession.user_id
+      payload.qr_session_id = qrSession.id
+      payload.source = 'qr_gateway'
+      payload.lifecycle_stage = 'open'
+      payload.ai_summary = {
+        ...(payload.ai_summary || {}),
+        reporter_name: qrSession.reporter_name || payload.ai_summary?.reporter_name || null,
+        verified_reporter: true,
+        source: 'qr_gateway',
+      }
 
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(payload.machine_id));
       let mQuery = admin.from('machines').select('id, factory_id');
@@ -304,6 +323,10 @@ serve(async (req) => {
     if (action === 'update_ticket') {
       const { ticket_id, patches } = body
       if (!ticket_id || !patches) return reply(req, { error: 'Invalid payload.' }, 400)
+      patches.reporter_phone = qrSession.phone
+      patches.reporter_user_id = qrSession.user_id
+      patches.qr_session_id = qrSession.id
+      patches.source = 'qr_gateway'
       const { data, error } = await admin
         .from('tickets')
         .update(patches)
