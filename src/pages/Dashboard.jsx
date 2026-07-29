@@ -162,13 +162,13 @@ export default function Dashboard() {
   //  - the Supervisor board has no team rows to build cards from
   //  - the Engineer board has no root_cause / component / capa_status anywhere
   // A board on real data never falls back; the banner only appears when it does.
-  const noFleetData = shouldUseDemoFleet(sources.machines, sources.tickets);
+  const noFleetData = !loading && shouldUseDemoFleet(sources.machines, sources.tickets);
   const usingDemoTeam = role === DASHBOARD_ROLES.SUPERVISOR
     && (noFleetData || shouldUseDemoTeam(sources.team));
   const usingDemoReliability = role === DASHBOARD_ROLES.ENGINEER
     && (noFleetData || shouldUseDemoReliability(sources.tickets));
   const demoSession = user?.inventory_mode === 'demo';
-  const isDemo = demoSession || noFleetData || usingDemoTeam || usingDemoReliability;
+  const isDemo = !loading && (demoSession || noFleetData || usingDemoTeam || usingDemoReliability);
 
   const metrics = useMemo(() => {
     const shouldScope = isShiftScopedRole(user?.role);
