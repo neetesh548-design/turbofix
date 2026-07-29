@@ -24,8 +24,8 @@ def session_store():
     return SessionStore()
 
 
-@pytest.mark.asyncio
-async def test_initialize_ticket_escalation(admin_token, auth_headers, session_store):
+@pytest.mark.anyio
+async def test_initialize_ticket_escalation(admin_token, admin_auth_headers, session_store):
     """Test creating a new ticket escalation record."""
     ticket_id = 'T123'
     factory_id = 'F001'
@@ -38,7 +38,7 @@ async def test_initialize_ticket_escalation(admin_token, auth_headers, session_s
     # Should now be monitored for auto-escalation at configured hours
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_escalation_fires_at_threshold(admin_token, session_store):
     """Test automatic escalation triggers after N hours."""
     ticket_id = 'T456'
@@ -53,7 +53,7 @@ async def test_escalation_fires_at_threshold(admin_token, session_store):
         # to maintenance head with escalation message
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_check_repeat_failure_detects_pattern(admin_token):
     """Test repeat failure detection (same machine, same issue within N days)."""
     machine_id = 'M001'
@@ -77,8 +77,8 @@ async def test_check_repeat_failure_detects_pattern(admin_token):
     # Should return True (repeat detected)
 
 
-@pytest.mark.asyncio
-async def test_approve_ticket_closure_as_supervisor(admin_token, auth_headers):
+@pytest.mark.anyio
+async def test_approve_ticket_closure_as_supervisor(admin_token, admin_auth_headers):
     """Test supervisor approving technician's closure report."""
     ticket_id = 'T789'
     supervisor_phone = '+91-9999999999'
@@ -96,7 +96,7 @@ async def test_approve_ticket_closure_as_supervisor(admin_token, auth_headers):
     # 4. Update MachineRepository.has_open_ticket flag
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_reject_ticket_closure_with_reason(admin_token):
     """Test supervisor rejecting technician's closure (incomplete work)."""
     ticket_id = 'T789'
@@ -117,7 +117,7 @@ async def test_reject_ticket_closure_with_reason(admin_token):
     # 4. Notify maintenance head of repeated closure attempts
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delegate_to_colleague(admin_token):
     """Test technician delegating ticket to colleague."""
     ticket_id = 'T999'
@@ -138,7 +138,7 @@ async def test_delegate_to_colleague(admin_token):
     # 4. Notify supervisor of reassignment
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_mark_outsourced_escalation(admin_token):
     """Test marking issue as outsourced (vendor/contractor involvement)."""
     ticket_id = 'T555'
@@ -161,7 +161,7 @@ async def test_mark_outsourced_escalation(admin_token):
     # 4. Notify finance team for vendor payment setup
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_submit_closure_with_evidence(admin_token):
     """Test technician submitting closure evidence (photo/notes)."""
     ticket_id = 'T777'
@@ -190,7 +190,7 @@ async def test_submit_closure_with_evidence(admin_token):
     # 4. Trigger AI root cause analysis if enabled
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_send_escalation_whatsapp_format(admin_token):
     """Test WhatsApp message formatting for escalation alerts."""
     ticket = {
@@ -219,7 +219,7 @@ async def test_send_escalation_whatsapp_format(admin_token):
         assert '5 hours' in str(call_args) or '5h' in str(call_args)
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_initialize_part_request_escalation(admin_token):
     """Test escalation when spare parts unavailable in stock."""
     machine_id = 'M042'
@@ -250,7 +250,7 @@ def test_escalation_loop_runs_periodically():
     pass
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_escalation_respects_shift_boundaries(admin_token):
     """Test escalation timing respects factory shift schedule."""
     ticket_id = 'T888'

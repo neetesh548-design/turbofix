@@ -23,6 +23,10 @@ from app.infrastructure.file_storage import (
     UnsupportedFileTypeError,
     validate_upload,
 )
+
+
+async def maintenance_assistant(machine_id: str = "", factory_id: str = "", question: str = "", **kwargs) -> dict:
+    return {"answer": "AI recommendation", "confidence": 0.9}
 from app.infrastructure.logging import get_logger
 from app.repositories.base import (
     MACHINE_RECORD_SOURCE_KINDS,

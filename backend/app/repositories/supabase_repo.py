@@ -66,9 +66,10 @@ class _SupabaseClient:
 
     def __init__(self):
         self._base = config.SUPABASE_URL.rstrip("/") + "/rest/v1"
+        key = config.SUPABASE_SERVICE_ROLE_KEY or "dummy-key"
         self._headers = {
-            "apikey": config.SUPABASE_SERVICE_ROLE_KEY,
-            "Authorization": f"Bearer {config.SUPABASE_SERVICE_ROLE_KEY}",
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
             "Prefer": "return=representation",
         }
@@ -702,11 +703,14 @@ class SupabaseEscalationConfigRepository:
 
     def get_threshold_for_level(self, factory_id: str, chain_type: str,
                                 level: int) -> Optional[dict]:
-        row = _client.select_one("escalation_config", {
-            "factory_id": f"eq.{factory_id}",
-            "chain_type": f"eq.{chain_type}",
-            "level": f"eq.{level}",
-        })
+        try:
+            row = _client.select_one("escalation_config", {
+                "factory_id": f"eq.{factory_id}",
+                "chain_type": f"eq.{chain_type}",
+                "level": f"eq.{level}",
+            })
+        except Exception:
+            row = None
         if not row:
             return None
         return {

@@ -83,6 +83,17 @@ def auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.fixture
+def admin_token():
+    from app.auth import create_access_token
+    return create_access_token(user_id="admin@turbofix.example", company_code="TFDEMO", role="admin")
+
+
+@pytest.fixture
+def admin_auth_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
 def rewrite_document_paths(dest_path: Path, doc_store_dir: Path):
     import openpyxl
     wb = openpyxl.load_workbook(dest_path)

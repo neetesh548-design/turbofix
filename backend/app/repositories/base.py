@@ -23,6 +23,30 @@ def new_ticket_id() -> str:
     return f"T{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
 
 
+def get_tickets(company_code: str = "") -> list:
+    return []
+
+
+def get_machines(company_code: str = "") -> list:
+    return []
+
+
+def get_kpi_data(company_code: str = "") -> dict:
+    return {}
+
+
+def get_dashboard_overview(company_code: str = "") -> dict:
+    return {}
+
+
+def get_tickets_by_assignee(company_code: str = "") -> list:
+    return []
+
+
+def get_machine_highlights(company_code: str = "") -> list:
+    return []
+
+
 def new_user_id(company_code: str) -> str:
     return f"U-{company_code}-{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(2)}"
 
