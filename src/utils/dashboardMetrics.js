@@ -398,10 +398,29 @@ export function fleetHealthMap(machines, now = new Date()) {
   asArray(machines).forEach((machine) => {
     const health = computeMachineHealth(machine, reference);
     const rawStatus = String(machine?.status || '').toLowerCase();
-    const isMaintenance = ['under_maintenance', 'maintenance', 'servicing'].includes(rawStatus);
-    // "Maintenance" is a planned state, so it is reported separately from
-    // the unplanned "issues" bucket even though health rates both amber.
-    const bucket = isMaintenance && health.status !== HEALTH.DOWN ? 'maintenance' : health.status;
+    const databaseStatus = {
+      operational: 'running',
+      active: 'running',
+      healthy: 'running',
+      running: 'running',
+      under_maintenance: 'maintenance',
+      maintenance: 'maintenance',
+      servicing: 'maintenance',
+      preventive_maintenance: 'maintenance',
+      planned_maintenance: 'maintenance',
+      breakdown: 'down',
+      down: 'down',
+      shutdown: 'down',
+      waiting_spare: 'down',
+      waiting_vendor: 'down',
+      decommissioned: 'down',
+      issue: 'issues',
+      issues: 'issues',
+      warning: 'issues',
+    }[rawStatus];
+    // Database status is authoritative. Derived health is only used for
+    // legacy rows that do not have a recognized machine status.
+    const bucket = databaseStatus || health.status;
     const criticality = machineCriticality(machine);
 
     byStatus[bucket] += 1;
