@@ -156,8 +156,7 @@ export default function Login() {
         .from('companies')
         .select('id, status')
         .eq('domain', cleanCode)
-        .maybeSingle()
-        .catch(() => ({ data: null }));
+        .maybeSingle();
 
       if (existingComp) {
         setSuccess(`Company code "${cleanCode}" is already registered. Your request has been logged. Please contact support at turbofixsolution@gmail.com for fast workspace review & activation.`);
@@ -184,27 +183,35 @@ export default function Login() {
       }
 
       // Create owner user record in Supabase users table (non-fatal)
-      await supabase.from('users').insert({
-        id: crypto.randomUUID(),
-        company_id: compId,
-        name: cleanOwner,
-        email: cleanEmail,
-        phone: cleanPhone,
-        role: 'owner',
-      }).catch(() => {});
+      try {
+        await supabase.from('users').insert({
+          id: crypto.randomUUID(),
+          company_id: compId,
+          name: cleanOwner,
+          email: cleanEmail,
+          phone: cleanPhone,
+          role: 'owner',
+        });
+      } catch (uErr) {
+        console.warn('User profile insert note:', uErr);
+      }
 
       // Create Supabase Auth User (non-fatal)
-      await supabase.auth.signUp({
-        email: cleanEmail,
-        password: regPassword,
-        options: {
-          data: {
-            company_code: cleanCode,
-            name: cleanOwner,
-            role: 'owner',
+      try {
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password: regPassword,
+          options: {
+            data: {
+              company_code: cleanCode,
+              name: cleanOwner,
+              role: 'owner',
+            },
           },
-        },
-      }).catch(() => {});
+        });
+      } catch (aErr) {
+        console.warn('Auth signup note:', aErr);
+      }
 
       setSuccess(`Your company registration request for "${cleanName}" (${cleanCode}) has been submitted to the admin for approval! Please contact turbofixsolution@gmail.com for fast workspace review & activation.`);
       setError(null);
