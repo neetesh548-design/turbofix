@@ -605,8 +605,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785447784.5632343,
-    "ast_hash": "5f56717a2f1f083b3a7e91e4f6be62f6",
+    "mtime": 1785449021.987965,
+    "ast_hash": "fdc5e317ffa1b6ac8c069d09bec5e709",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785447924.9512103,
-    "ast_hash": "444d2f45a7bf749df657da3a012d92ab",
+    "mtime": 1785448648.1685212,
+    "ast_hash": "511514c197938215fe44196e1f38ed66",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785448217.9216838,
-    "ast_hash": "f9db4132ef7e0913ec5c077fef7781b0",
+    "mtime": 1785448341.2853842,
+    "ast_hash": "f70ce13ba281b49811bd67f2e2d2cd5b",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -2972,6 +2972,11 @@
   "scripts/deploy_5_agents_demo_factory.js": {
     "mtime": 1785448198.394433,
     "ast_hash": "b8f9385ac1197ab5a8d829abb855d391",
+    "semantic_hash": ""
+  },
+  "scripts/deploy_exide_battery_factory.js": {
+    "mtime": 1785448328.523533,
+    "ast_hash": "b65aab7eae3df7d0d506eb2c5979c823",
     "semantic_hash": ""
   }
 }
