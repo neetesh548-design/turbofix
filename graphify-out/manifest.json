@@ -640,8 +640,8 @@
     "semantic_hash": "88ffb2a9cdb73d8c4f284fbe22ed3815"
   },
   "src/components/Navbar.jsx": {
-    "mtime": 1785341662.7323534,
-    "ast_hash": "f68a7c85cc39bfb73c73e65621e51f08",
+    "mtime": 1785450327.0216947,
+    "ast_hash": "f18c669afc90049d15da74e632829230",
     "semantic_hash": ""
   },
   "src/components/NotificationCenter.jsx": {

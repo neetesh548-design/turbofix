@@ -134,26 +134,82 @@ export default function Home() {
               <p>Bring in old machine history, verify what is trustworthy, and then run daily maintenance from the same system instead of switching between records and execution.</p>
             </div>
             <div className="marketing-outcomes-grid">
-              <article>
-                <span>01</span>
-                <Gauge />
-                <h3>See operational risk</h3>
-                <p>Track open breakdowns, SLA risk, MTTR, downtime cost, and plant health from one owner-ready view.</p>
-                <strong>For plant owners</strong>
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+                <div className="relative h-48 overflow-hidden rounded-t-xl">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`}
+                    alt="Plant Director & Factory Owner"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
+                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 backdrop-blur-md">
+                    For Factory Owners &amp; VPs
+                  </span>
+                </div>
+                <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">"I get real-time MTTR &amp; downtime cost clarity."</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      "No more morning surprise breakdowns or hidden production losses. TurboFix gives me live executive control, CapEx replacement alerts, and plant-wide uptime confidence."
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-emerald-400">
+                    <span>Plant Director &amp; Owner View</span>
+                    <ArrowRight size={13} />
+                  </div>
+                </div>
               </article>
-              <article>
-                <span>02</span>
-                <ClipboardCheck />
-                <h3>Enforce accountable work</h3>
-                <p>Route every issue to an owner, require repair evidence, and close work only after verification.</p>
-                <strong>For maintenance heads</strong>
+
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+                <div className="relative h-48 overflow-hidden rounded-t-xl">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`}
+                    alt="Maintenance Head & Reliability Lead"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
+                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 backdrop-blur-md">
+                    For Maintenance Heads
+                  </span>
+                </div>
+                <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">"Work is closed only after verified photo proof."</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      "Every repair requires mandatory photo evidence, 5-Why Ishikawa root-cause analysis, and my sign-off before AI integrates it into our trusted machine knowledge base."
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-sky-400">
+                    <span>Maintenance Head Sign-off</span>
+                    <ArrowRight size={13} />
+                  </div>
+                </div>
               </article>
-              <article>
-                <span>03</span>
-                <BrainCircuit />
-                <h3>Build machine intelligence</h3>
-                <p>Turn approved records, repairs, spares, and root causes into trusted machine-specific knowledge.</p>
-                <strong>For long-term reliability</strong>
+
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+                <div className="relative h-48 overflow-hidden rounded-t-xl">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/technician_shift_lead.jpg`}
+                    alt="Shift Supervisor & Lead Technician"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
+                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 backdrop-blur-md">
+                    For Shift Techs &amp; Supervisors
+                  </span>
+                </div>
+                <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">"10-second QR scan to start work &amp; log notes."</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      "Shift A, B, and C technicians log repairs right at the machine with voice notes, photo proof, and auto-guided checklists without paper hassle."
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-amber-400">
+                    <span>Field Technician Work Queue</span>
+                    <ArrowRight size={13} />
+                  </div>
+                </div>
               </article>
             </div>
             <div className="marketing-executive-proof">
