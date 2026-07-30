@@ -388,6 +388,9 @@ Deno.serve(async (req: Request) => {
       company_name: c.name || c.company_name || '',
       approved: c.status === 'active' ? 'yes' : 'no',
       machine_quota: c.machine_quota || 5,
+      user_quota: c.user_quota || 10,
+      machine_quota_exceeded: (machineCounts[c.id] || 0) > (c.machine_quota || 5),
+      user_quota_exceeded: (userCounts[c.id] || 0) > (c.user_quota || 10),
       admin_contact_phone: c.admin_contact_phone || '',
       users_count: userCounts[c.id] || 0,
       machines_count: machineCounts[c.id] || 0,
@@ -431,6 +434,7 @@ Deno.serve(async (req: Request) => {
       const companyName = String(body.company_name || '').trim()
       const adminPhone = String(body.admin_contact_phone || '').trim()
       const quota = Number(body.machine_quota) || 5
+      const userQuota = Number(body.user_quota) || 10
 
       if (!companyCode || !companyName) {
         return reply(req, { detail: 'company_code and company_name are required' }, 400)
@@ -444,6 +448,7 @@ Deno.serve(async (req: Request) => {
           name: companyName,
           admin_contact_phone: adminPhone,
           machine_quota: quota,
+          user_quota: userQuota,
           status: 'active',
         })
         .select()
@@ -462,14 +467,23 @@ Deno.serve(async (req: Request) => {
     try {
       const companyCode = quotaMatch[1]
       const body = await req.json()
-      const quota = Number(body.quota) || 5
+      const updateObj: Record<string, unknown> = {}
+      if (body.machine_quota !== undefined || body.quota !== undefined) {
+        updateObj.machine_quota = Number(body.machine_quota ?? body.quota)
+      }
+      if (body.user_quota !== undefined) {
+        updateObj.user_quota = Number(body.user_quota)
+      }
+      if (Object.keys(updateObj).length === 0) {
+        return reply(req, { detail: 'Provide machine_quota or user_quota' }, 400)
+      }
       const { error } = await supabase
         .from('companies')
-        .update({ machine_quota: quota })
+        .update(updateObj)
         .eq('domain', companyCode)
 
       if (error) return reply(req, { detail: error.message }, 500)
-      return reply(req, { status: 'success', message: `Quota updated to ${quota}` })
+      return reply(req, { status: 'success', message: `Quota updated for ${companyCode}`, ...updateObj })
     } catch {
       return reply(req, { detail: 'Invalid payload' }, 400)
     }

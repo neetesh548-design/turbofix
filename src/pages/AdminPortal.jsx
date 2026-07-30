@@ -52,11 +52,13 @@ export default function AdminPortal() {
   const [provName, setProvName] = useState('');
   const [provPhone, setProvPhone] = useState('');
   const [provQuota, setProvQuota] = useState(5);
+  const [provUserQuota, setProvUserQuota] = useState(10);
   const [provCompSubmitting, setProvCompSubmitting] = useState(false);
 
   // Edit Quota Modal State
   const [quotaModalComp, setQuotaModalComp] = useState(null);
-  const [newQuotaValue, setNewQuotaValue] = useState(5);
+  const [newMachineQuota, setNewMachineQuota] = useState(5);
+  const [newUserQuota, setNewUserQuota] = useState(10);
 
   // Provision Machine Modal State
   const [showProvMachine, setShowProvMachine] = useState(false);
@@ -185,10 +187,10 @@ export default function AdminPortal() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ quota: Number(newQuotaValue) }),
+        body: JSON.stringify({ machine_quota: Number(newMachineQuota), user_quota: Number(newUserQuota) }),
       });
-      if (!res.ok) throw new Error('Failed to update company machine quota');
-      setActionSuccess(`Machine quota for ${quotaModalComp.company_code} updated to ${newQuotaValue}`);
+      if (!res.ok) throw new Error('Failed to update company quotas');
+      setActionSuccess(`Quotas for ${quotaModalComp.company_code} updated — Machines: ${newMachineQuota}, Users: ${newUserQuota}`);
       setQuotaModalComp(null);
       loadAllData();
     } catch (err) {
@@ -213,6 +215,7 @@ export default function AdminPortal() {
           company_name: provName,
           admin_contact_phone: provPhone,
           machine_quota: Number(provQuota),
+          user_quota: Number(provUserQuota),
         }),
       });
       if (!res.ok) {
@@ -364,8 +367,11 @@ export default function AdminPortal() {
   // Overall Health Metrics
   const healthyCount = machines.filter((m) => m.status === 'running' || m.status === 'healthy').length;
   const breakdownCount = machines.filter((m) => m.status === 'breakdown' || m.status === 'down').length;
-  const maintenanceCount = machines.filter((m) => m.status === 'maintenance').length;
+  const _maintenanceCount = machines.filter((m) => m.status === 'maintenance').length;
   const totalFleetMachines = machines.length;
+  const quotaExceededCompanies = companies.filter(
+    (c) => (c.machines_count || 0) > (c.machine_quota || 5) || (c.users_count || 0) > (c.user_quota || 10)
+  );
 
   if (!token) {
     return (
@@ -488,7 +494,7 @@ export default function AdminPortal() {
         )}
 
         {/* Global Operational Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Workspaces</p>
@@ -534,6 +540,25 @@ export default function AdminPortal() {
             </div>
             <div className="p-3.5 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20">
               <Ticket className="w-6 h-6" />
+            </div>
+          </div>
+
+          <div className={`bg-slate-900/90 border rounded-2xl p-5 flex items-center justify-between shadow-xl ${
+            quotaExceededCompanies.length > 0 ? 'border-red-500/50 bg-red-950/20' : 'border-slate-800'
+          }`}>
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quota Exceeded</p>
+              <p className={`text-3xl font-black mt-1 ${quotaExceededCompanies.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {quotaExceededCompanies.length}
+              </p>
+              <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                {quotaExceededCompanies.length > 0
+                  ? `${quotaExceededCompanies.map(c => c.company_code).join(', ')} over limit`
+                  : 'All factories within limits'}
+              </p>
+            </div>
+            <div className={`p-3.5 rounded-2xl border ${quotaExceededCompanies.length > 0 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+              <AlertTriangle className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -666,8 +691,8 @@ export default function AdminPortal() {
                       <th className="p-4">Domain Code</th>
                       <th className="p-4">Organization Name</th>
                       <th className="p-4">Status</th>
-                      <th className="p-4">Fleet Machines (Used / Quota)</th>
-                      <th className="p-4">Users</th>
+                      <th className="p-4">Machines (Used / Quota)</th>
+                      <th className="p-4">Users (Used / Quota)</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -692,22 +717,35 @@ export default function AdminPortal() {
                         </td>
                         <td className="p-4 text-slate-300">
                           <div className="flex items-center gap-2">
-                            <span>
+                            <span className={(c.machines_count || 0) > (c.machine_quota || 5) ? 'text-red-400 font-bold' : ''}>
                               {c.machines_count || 0} / {c.machine_quota || 5}
                             </span>
+                            {(c.machines_count || 0) > (c.machine_quota || 5) && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
+                            )}
                             <button
                               onClick={() => {
                                 setQuotaModalComp(c);
-                                setNewQuotaValue(c.machine_quota || 5);
+                                setNewMachineQuota(c.machine_quota || 5);
+                                setNewUserQuota(c.user_quota || 10);
                               }}
-                              title="Edit Machine Quota"
+                              title="Edit Quotas"
                               className="p-1 text-slate-500 hover:text-amber-400 hover:bg-slate-800 rounded transition-colors"
                             >
                               <Sliders className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
-                        <td className="p-4 text-slate-300">{c.users_count || 0}</td>
+                        <td className="p-4 text-slate-300">
+                          <div className="flex items-center gap-2">
+                            <span className={(c.users_count || 0) > (c.user_quota || 10) ? 'text-red-400 font-bold' : ''}>
+                              {c.users_count || 0} / {c.user_quota || 10}
+                            </span>
+                            {(c.users_count || 0) > (c.user_quota || 10) && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-4 text-right space-x-2">
                           {c.approved !== 'yes' && (
                             <button
@@ -958,15 +996,27 @@ export default function AdminPortal() {
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
-                <input
-                  type="number"
-                  value={provQuota}
-                  onChange={(e) => setProvQuota(e.target.value)}
-                  min="1"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
+                  <input
+                    type="number"
+                    value={provQuota}
+                    onChange={(e) => setProvQuota(e.target.value)}
+                    min="1"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">User Quota</label>
+                  <input
+                    type="number"
+                    value={provUserQuota}
+                    onChange={(e) => setProvUserQuota(e.target.value)}
+                    min="1"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button
@@ -989,26 +1039,49 @@ export default function AdminPortal() {
         </div>
       )}
 
-      {/* MODAL: Edit Quota */}
+      {/* MODAL: Edit Quotas (Machine + User) */}
       {quotaModalComp && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-100">
-              Edit Machine Quota: <span className="text-amber-400">{quotaModalComp.company_code}</span>
+              Edit Quotas: <span className="text-amber-400">{quotaModalComp.company_code}</span>
             </h3>
+            <p className="text-xs text-slate-400">Set the maximum number of machines and users this factory is allowed. If exceeded, the factory must contact TurboFix admin for approval.</p>
             <form onSubmit={handleUpdateQuotaSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Allowed Machine Capacity</label>
-                <input
-                  type="number"
-                  value={newQuotaValue}
-                  onChange={(e) => setNewQuotaValue(e.target.value)}
-                  min="1"
-                  max="500"
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
+                  <input
+                    type="number"
+                    value={newMachineQuota}
+                    onChange={(e) => setNewMachineQuota(e.target.value)}
+                    min="1"
+                    max="500"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Current: {quotaModalComp.machines_count || 0} machines</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">User Quota</label>
+                  <input
+                    type="number"
+                    value={newUserQuota}
+                    onChange={(e) => setNewUserQuota(e.target.value)}
+                    min="1"
+                    max="500"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Current: {quotaModalComp.users_count || 0} users</p>
+                </div>
               </div>
+              {((quotaModalComp.machines_count || 0) > newMachineQuota || (quotaModalComp.users_count || 0) > newUserQuota) && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  Warning: Current usage exceeds the new quota. The factory will need to reduce usage or request an increase.
+                </div>
+              )}
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
