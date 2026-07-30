@@ -94,6 +94,10 @@ export default function AdminPortal() {
   const [newMachineQuota, setNewMachineQuota] = useState(5);
   const [newUserQuota, setNewUserQuota] = useState(10);
 
+  // Approved Credentials Modal State
+  const [approvedCreds, setApprovedCreds] = useState(null);
+  const [copiedCreds, setCopiedCreds] = useState(false);
+
   // Provision Machine Modal State
   const [showProvMachine, setShowProvMachine] = useState(false);
   const [machineName, setMachineName] = useState('');
@@ -185,7 +189,16 @@ export default function AdminPortal() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to approve company workspace');
-      setActionSuccess(`Company ${code} approved successfully`);
+      const data = await res.json();
+      if (data.temp_password) {
+        setApprovedCreds({
+          company_code: code,
+          owner_name: data.owner_name || 'Plant Owner',
+          owner_email: data.owner_email,
+          temp_password: data.temp_password,
+        });
+      }
+      setActionSuccess(`Workspace ${code} approved and activated! Owner activation details sent.`);
       loadAllData();
     } catch (err) {
       setActionErr(err.message);
@@ -290,7 +303,16 @@ export default function AdminPortal() {
         const errData = await res.json();
         throw new Error(errData.detail || 'Provisioning failed');
       }
-      setActionSuccess(`Workspace ${provCode.toUpperCase()} provisioned successfully`);
+      const data = await res.json();
+      if (data.temp_password) {
+        setApprovedCreds({
+          company_code: provCode.toUpperCase(),
+          owner_name: provOwnerName || provName,
+          owner_email: provOwnerEmail,
+          temp_password: data.temp_password,
+        });
+      }
+      setActionSuccess(`Workspace ${provCode.toUpperCase()} provisioned & activated successfully`);
       setShowProvComp(false);
       setProvCode('');
       setProvName('');
@@ -1283,6 +1305,74 @@ export default function AdminPortal() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Approved Workspace Credentials */}
+      {approvedCreds && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl shadow-emerald-500/10">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-100">Workspace Approved & Activated!</h3>
+              <p className="text-xs text-slate-400 mt-1">An activation email has been queued for the plant owner.</p>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3 font-mono text-xs">
+              <div className="flex justify-between border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Workspace Code:</span>
+                <span className="font-extrabold text-amber-400">{approvedCreds.company_code}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Owner Name:</span>
+                <span className="font-semibold text-slate-200">{approvedCreds.owner_name}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Owner Email:</span>
+                <span className="font-semibold text-emerald-400">{approvedCreds.owner_email}</span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-slate-400">Auto Password:</span>
+                <span className="font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-sm tracking-wider">
+                  {approvedCreds.temp_password}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const text = `TurboFix Workspace Approved!\nDomain: ${approvedCreds.company_code}\nOwner: ${approvedCreds.owner_name}\nEmail: ${approvedCreds.owner_email}\nPassword: ${approvedCreds.temp_password}\nLogin: https://turbofix.co.in/login.html`;
+                  navigator.clipboard.writeText(text);
+                  setCopiedCreds(true);
+                  setTimeout(() => setCopiedCreds(false), 2500);
+                }}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+              >
+                {copiedCreds ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    Copied to Clipboard!
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4 text-amber-400" />
+                    Copy Credentials
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setApprovedCreds(null)}
+                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

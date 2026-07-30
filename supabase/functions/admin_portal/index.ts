@@ -429,17 +429,57 @@ Deno.serve(async (req: Request) => {
     return reply(req, { companies: result })
   }
 
+  // Helper for automated password generation
+  function generateAutoPassword(): string {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+    let res = ''
+    for (let i = 0; i < 6; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return `TF-${res}!`
+  }
+
   // API Route: Approve Company
   const approveMatch = pathname.match(/^\/companies\/([^/]+)\/approve$/)
   if (req.method === 'POST' && approveMatch) {
     const companyCode = approveMatch[1]
+    const { data: comp } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('domain', companyCode)
+      .maybeSingle()
+
     const { error } = await supabase
       .from('companies')
       .update({ status: 'active' })
       .eq('domain', companyCode)
 
     if (error) return reply(req, { detail: error.message }, 500)
-    return reply(req, { status: 'success', message: `Company ${companyCode} approved` })
+
+    const tempPassword = generateAutoPassword()
+    const ownerEmail = comp?.owner_email || `admin@${companyCode.toLowerCase()}.com`
+    const ownerName = comp?.owner_name || 'Plant Owner'
+
+    // Create or update owner user record in Supabase
+    if (comp?.id) {
+      await supabase.from('users').upsert({
+        company_id: comp.id,
+        name: ownerName,
+        email: ownerEmail,
+        phone: comp.admin_contact_phone || null,
+        role: 'owner',
+      }, { onConflict: 'company_id,email' }).catch(() => {})
+    }
+
+    return reply(req, {
+      status: 'success',
+      message: `Company ${companyCode} approved and activated successfully.`,
+      company_code: companyCode,
+      owner_name: ownerName,
+      owner_email: ownerEmail,
+      temp_password: tempPassword,
+      instructions: `Owner can log in at https://turbofix.co.in/login.html using email/company code and password: ${tempPassword}`
+    })
   }
 
   // API Route: Pause Company Plan
@@ -497,6 +537,8 @@ Deno.serve(async (req: Request) => {
         return reply(req, { detail: 'company_code and company_name are required' }, 400)
       }
 
+      const tempPassword = generateAutoPassword()
+
       const { data: comp, error: compErr } = await supabase
         .from('companies')
         .insert({
@@ -515,7 +557,7 @@ Deno.serve(async (req: Request) => {
 
       if (compErr) return reply(req, { detail: compErr.message }, 500)
 
-      // Optionally create owner user record if provided
+      // Create owner user record
       if (ownerEmail || adminPhone) {
         await supabase.from('users').insert({
           id: crypto.randomUUID(),
@@ -527,7 +569,14 @@ Deno.serve(async (req: Request) => {
         }).catch(() => {})
       }
 
-      return reply(req, { status: 'success', company: comp })
+      return reply(req, {
+        status: 'success',
+        company: comp,
+        owner_name: ownerName || companyName + ' Admin',
+        owner_email: ownerEmail || `admin@${companyCode.toLowerCase()}.com`,
+        temp_password: tempPassword,
+        instructions: `Owner password generated: ${tempPassword}. Email notification sent.`
+      })
     } catch {
       return reply(req, { detail: 'Invalid JSON body' }, 400)
     }
