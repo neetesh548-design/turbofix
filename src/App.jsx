@@ -33,6 +33,7 @@ const Inventory = lazy(() => import('./pages/Inventory'));
 const Kaizen = lazy(() => import('./pages/Kaizen'));
 const ReportBreakdown = lazy(() => import('./pages/ReportBreakdown'));
 const RCA = lazy(() => import('./pages/RCA'));
+const AdminPortal = lazy(() => import('./pages/AdminPortal'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function SearchMetadata() {
@@ -166,6 +167,8 @@ function App() {
                 <Route path="/rca" element={<Navigate to="/rca.html" replace />} />
                 <Route path="/report-breakdown.html" element={<ReportBreakdown />} />
                 <Route path="/report-breakdown" element={<Navigate to="/report-breakdown.html" replace />} />
+                <Route path="/admin.html" element={<AdminPortal />} />
+                <Route path="/admin" element={<Navigate to="/admin.html" replace />} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
