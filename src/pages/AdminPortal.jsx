@@ -18,6 +18,8 @@ import {
   Check,
   Edit3,
   Sliders,
+  Pause,
+  Play,
 } from 'lucide-react';
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
@@ -178,6 +180,38 @@ export default function AdminPortal() {
       });
       if (!res.ok) throw new Error('Failed to approve company workspace');
       setActionSuccess(`Company ${code} approved successfully`);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  const handlePauseCompany = async (code) => {
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/companies/${code}/pause`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to pause company workspace plan');
+      setActionSuccess(`Company ${code} workspace plan paused`);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  const handleResumeCompany = async (code) => {
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/companies/${code}/resume`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to resume company workspace plan');
+      setActionSuccess(`Company ${code} workspace plan resumed`);
       loadAllData();
     } catch (err) {
       setActionErr(err.message);
@@ -352,14 +386,15 @@ export default function AdminPortal() {
     }
   };
 
-  // Filtered Computed Lists
+  // Filtered Computed List
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
       const matchesSearch =
         c.company_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.company_name && c.company_name.toLowerCase().includes(searchQuery.toLowerCase()));
-      if (statusFilter === 'active') return matchesSearch && c.approved === 'yes';
-      if (statusFilter === 'pending') return matchesSearch && c.approved !== 'yes';
+        c.company_name.toLowerCase().includes(searchQuery.toLowerCase());
+      if (statusFilter === 'active') return matchesSearch && (c.status === 'active' || (c.approved === 'yes' && c.status !== 'paused'));
+      if (statusFilter === 'paused') return matchesSearch && c.status === 'paused';
+      if (statusFilter === 'pending') return matchesSearch && c.approved !== 'yes' && c.status !== 'paused';
       return matchesSearch;
     });
   }, [companies, searchQuery, statusFilter]);
@@ -754,9 +789,17 @@ export default function AdminPortal() {
                   Active
                 </button>
                 <button
+                  onClick={() => setStatusFilter('paused')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'paused' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400'
+                  }`}
+                >
+                  Paused
+                </button>
+                <button
                   onClick={() => setStatusFilter('pending')}
                   className={`px-2.5 py-1 rounded-lg font-semibold ${
-                    statusFilter === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400'
+                    statusFilter === 'pending' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-400'
                   }`}
                 >
                   Pending
@@ -790,12 +833,16 @@ export default function AdminPortal() {
                         </td>
                         <td className="p-4 text-slate-300 font-medium">{c.company_name || c.company_code}</td>
                         <td className="p-4">
-                          {c.approved === 'yes' ? (
+                          {c.status === 'paused' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                              <Pause className="w-3 h-3" /> Plan Paused
+                            </span>
+                          ) : c.approved === 'yes' || c.status === 'active' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                               <Check className="w-3 h-3" /> Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                               Pending Approval
                             </span>
                           )}
@@ -832,7 +879,24 @@ export default function AdminPortal() {
                           </div>
                         </td>
                         <td className="p-4 text-right space-x-2">
-                          {c.approved !== 'yes' && (
+                          {c.status === 'paused' ? (
+                            <button
+                              onClick={() => handleResumeCompany(c.company_code)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
+                              title="Resume Factory Plan"
+                            >
+                              <Play className="w-3.5 h-3.5" /> Resume Plan
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handlePauseCompany(c.company_code)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-semibold transition-colors"
+                              title="Pause Factory Plan"
+                            >
+                              <Pause className="w-3.5 h-3.5" /> Pause Plan
+                            </button>
+                          )}
+                          {c.approved !== 'yes' && c.status !== 'paused' && (
                             <button
                               onClick={() => handleApproveCompany(c.company_code)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"

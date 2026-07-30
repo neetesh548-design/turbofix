@@ -386,6 +386,7 @@ Deno.serve(async (req: Request) => {
     const result = companies.map(c => ({
       company_code: c.domain || c.company_code || '',
       company_name: c.name || c.company_name || '',
+      status: c.status || 'active',
       approved: c.status === 'active' ? 'yes' : 'no',
       machine_quota: c.machine_quota || 5,
       user_quota: c.user_quota || 10,
@@ -411,6 +412,32 @@ Deno.serve(async (req: Request) => {
 
     if (error) return reply(req, { detail: error.message }, 500)
     return reply(req, { status: 'success', message: `Company ${companyCode} approved` })
+  }
+
+  // API Route: Pause Company Plan
+  const pauseMatch = pathname.match(/^\/companies\/([^/]+)\/pause$/)
+  if (req.method === 'POST' && pauseMatch) {
+    const companyCode = pauseMatch[1]
+    const { error } = await supabase
+      .from('companies')
+      .update({ status: 'paused' })
+      .eq('domain', companyCode)
+
+    if (error) return reply(req, { detail: error.message }, 500)
+    return reply(req, { status: 'success', message: `Company ${companyCode} plan paused` })
+  }
+
+  // API Route: Resume Company Plan
+  const resumeMatch = pathname.match(/^\/companies\/([^/]+)\/resume$/)
+  if (req.method === 'POST' && resumeMatch) {
+    const companyCode = resumeMatch[1]
+    const { error } = await supabase
+      .from('companies')
+      .update({ status: 'active' })
+      .eq('domain', companyCode)
+
+    if (error) return reply(req, { detail: error.message }, 500)
+    return reply(req, { status: 'success', message: `Company ${companyCode} plan resumed` })
   }
 
   // API Route: Delete/Reject Company
