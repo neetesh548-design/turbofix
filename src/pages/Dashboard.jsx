@@ -250,6 +250,32 @@ export default function Dashboard() {
           </div>
         </header>
 
+        {/* Executive Persona Connection Banner */}
+        <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-emerald-500/30">
+          <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`}
+              alt="Plant Operations Executive Control"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+            <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
+              Live Fleet Control Room
+            </span>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
+              <span>Plant VP &amp; Factory Owner View</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-100 leading-snug">
+              "Real-time visibility into every machine breakdown, SLA timer, and financial downtime risk across all shifts."
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Stay ahead of production bottlenecks. Track open breakdowns, maintenance head sign-offs, and critical replacement alerts live from your plant dashboard.
+            </p>
+          </div>
+        </div>
+
         {/* Stitch Obsidian Executive Summary Strip — Instant Important Info */}
         {loading ? (
           <div className="stitch-glass-tile p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl animate-pulse">

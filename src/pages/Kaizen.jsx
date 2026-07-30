@@ -283,6 +283,32 @@ export default function Kaizen() {
           </div>
         </header>
 
+        {/* Kaizen Connection Banner */}
+        <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-amber-500/30">
+          <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/kaizen_innovation_shopfloor.jpg`}
+              alt="Shopfloor Kaizen Innovation"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+            <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/40 backdrop-blur-md">
+              Shopfloor Kaizen Center
+            </span>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-semibold border border-amber-500/20">
+              <span>Production Engineer &amp; Operator View</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-100 leading-snug">
+              "Empower shopfloor technicians to submit low-cost fixture improvements and track realized rupee savings."
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              From operator submission to 30-day trial verification and plant-wide standardisation, track your ROI and Kaizen leaderboard live.
+            </p>
+          </div>
+        </div>
+
         {/* Visual Kaizen Realized Savings Bar Chart */}
         {!loading && (
           <div className="mb-6">

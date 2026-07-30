@@ -176,6 +176,32 @@ export default function ShutdownPlanner() {
       <a className="btn btn-ghost btn-sm" href="machines.html">Manage machine data</a>
     </div>
 
+    {/* Shutdown Overhaul Connection Banner */}
+    <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-emerald-500/30">
+      <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+        <img
+          src={`${import.meta.env.BASE_URL}assets/shutdown_overhaul_team.jpg`}
+          alt="Annual Overhaul &amp; Shutdown Maintenance"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+        <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
+          Planned Overhaul Command
+        </span>
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
+          <span>Maintenance Head &amp; Production Head View</span>
+        </div>
+        <h2 className="text-lg font-bold text-slate-100 leading-snug">
+          "Zero schedule overruns — compare available window hours against preventive maintenance tasks and open work orders."
+        </h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Align maintenance, production, and plant management on upcoming Sunday overhauls with real-time Gantt schedule tracking.
+        </p>
+      </div>
+    </div>
+
     {loadError && <div className="decision-alert" role="alert">{loadError}</div>}
 
     <div style={{ maxWidth: '600px', margin: '32px auto' }}>

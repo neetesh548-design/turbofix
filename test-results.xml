@@ -1,12 +1,12 @@
-<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="33.997548">
-<testsuite name="homepage-audit.spec.js" timestamp="2026-07-30T22:52:07.209Z" hostname="chromium" tests="4" failures="0" skipped="0" time="122.546" errors="0">
-<testcase name="TurboFix Homepage E2E Audit › 1. Verify homepage title, hero heading, and primary CTAs" classname="homepage-audit.spec.js" time="30.318">
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="37.477652">
+<testsuite name="homepage-audit.spec.js" timestamp="2026-07-30T23:05:01.729Z" hostname="chromium" tests="4" failures="0" skipped="0" time="117.071" errors="0">
+<testcase name="TurboFix Homepage E2E Audit › 1. Verify homepage title, hero heading, and primary CTAs" classname="homepage-audit.spec.js" time="29.614">
 </testcase>
-<testcase name="TurboFix Homepage E2E Audit › 2. Verify Executive Connection Cards &amp; custom persona portraits" classname="homepage-audit.spec.js" time="31.127">
+<testcase name="TurboFix Homepage E2E Audit › 2. Verify Executive Connection Cards &amp; custom persona portraits" classname="homepage-audit.spec.js" time="28.214">
 </testcase>
-<testcase name="TurboFix Homepage E2E Audit › 3. Verify Theme Toggle switches between Dark and Light Mode" classname="homepage-audit.spec.js" time="31.362">
+<testcase name="TurboFix Homepage E2E Audit › 3. Verify Theme Toggle switches between Dark and Light Mode" classname="homepage-audit.spec.js" time="30.495">
 </testcase>
-<testcase name="TurboFix Homepage E2E Audit › 4. Verify Navbar brand and navigation links" classname="homepage-audit.spec.js" time="29.739">
+<testcase name="TurboFix Homepage E2E Audit › 4. Verify Navbar brand and navigation links" classname="homepage-audit.spec.js" time="28.748">
 </testcase>
 </testsuite>
 </testsuites>

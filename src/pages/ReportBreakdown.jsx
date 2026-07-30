@@ -507,6 +507,32 @@ export default function ReportBreakdown() {
           )}
         </header>
 
+        {/* QR Scan Connection Banner */}
+        <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-amber-500/30">
+          <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
+              alt="10-Second QR Code Breakdown Reporting"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+            <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/40 backdrop-blur-md">
+              Instant 10-Sec QR Scan
+            </span>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-semibold border border-amber-500/20">
+              <span>Machine Operator &amp; Technician View</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-100 leading-snug">
+              "No dropdown menus or paper forms — scan the machine tag, record voice notes, and notify shift leads instantly."
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Every breakdown alert automatically routes to assigned shift technicians, notifies production engineers, and logs exact timestamped evidence.
+            </p>
+          </div>
+        </div>
+
         {error && (
           <div className="decision-alert">
             {error}. Sample machines are shown until the workspace is reachable.

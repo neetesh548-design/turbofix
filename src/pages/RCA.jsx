@@ -217,6 +217,32 @@ export default function RCA() {
           </div>
         </header>
 
+        {/* RCA 5-Why Connection Banner */}
+        <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-purple-500/30">
+          <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/rca_team_collaboration.jpg`}
+              alt="5-Why Ishikawa Root Cause Analysis"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+            <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-300 border border-purple-500/40 backdrop-blur-md">
+              5-Why Ishikawa Analysis
+            </span>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold border border-purple-500/20">
+              <span>Maintenance Head &amp; Reliability Lead View</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-100 leading-snug">
+              "Never repeat the same breakdown twice — drill down through 5-Why Ishikawa categories to find the root cause."
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Every completed RCA automatically suggests low-cost Kaizen fixes, updates preventive maintenance procedures, and saves approved engineering knowledge.
+            </p>
+          </div>
+        </div>
+
         {error   && <div className="decision-alert">{error}</div>}
         {success && <div className="decision-alert success">{success}</div>}
         {loading && <p className="rd-loading" role="status">Loading RCA context…</p>}

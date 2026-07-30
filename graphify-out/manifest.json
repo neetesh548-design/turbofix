@@ -565,14 +565,14 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785451771.5298448,
-    "ast_hash": "5b20bd4a425ee3ab15a14c662bb7b1f7",
+    "mtime": 1785451914.4977627,
+    "ast_hash": "c4c8da2499961336d4fb195577ec3ede",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
-    "mtime": 1785001667.497356,
-    "ast_hash": "6724f1b85cd25941b643380bb9f53a02",
-    "semantic_hash": "6724f1b85cd25941b643380bb9f53a02"
+    "mtime": 1785451901.088881,
+    "ast_hash": "6da87f5b3f96107d04c6c255791b36c9",
+    "semantic_hash": ""
   },
   "src/__tests__/dashboard.test.js": {
     "mtime": 1784752643.1200993,

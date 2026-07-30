@@ -508,6 +508,32 @@ export default function Records() {
   return <AppShell active="records">
     <div className="records-page">
       <header className="records-page-head"><div><span className="records-kicker"><Sparkles />AI records</span><h1>Turn old records into trusted machine knowledge.</h1><p>Upload handwritten registers or soft copies. TurboFix structures the information, your team verifies it, and only Maintenance Head approval makes it available to AI.</p></div><button className="records-button primary large" onClick={() => setUploadOpen(true)} disabled={!machines.length}><CloudUpload />Add records</button></header>
+      
+      {/* Records OCR Connection Banner */}
+      <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-sky-500/30">
+        <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+          <img
+            src={`${import.meta.env.BASE_URL}assets/records_ocr_digitization.jpg`}
+            alt="AI Digitization of Physical Maintenance Registers"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+          <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/30 text-sky-300 border border-sky-500/40 backdrop-blur-md">
+            Handwritten OCR &amp; Manual Vault
+          </span>
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-semibold border border-sky-500/20">
+            <span>Maintenance Head &amp; AI Gatekeeper View</span>
+          </div>
+          <h2 className="text-lg font-bold text-slate-100 leading-snug">
+            "Convert 10 years of paper logbooks, PDFs, and OEM wiring diagrams into approved AI machine intelligence."
+          </h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Every record passes through an interactive OCR verification workspace — and becomes active knowledge only after explicit Maintenance Head sign-off.
+          </p>
+        </div>
+      </div>
       <div className="records-flow-strip"><span><b>1</b><em>Upload</em><small>Photo or soft copy</small></span><ChevronRight /><span><b>2</b><em>AI reads</em><small>Structured draft</small></span><ChevronRight /><span><b>3</b><em>Team verifies</em><small>Correct uncertain data</small></span><ChevronRight /><span><b>4</b><em>Head approves</em><small>Available to TurboFix AI</small></span></div>
       {error && <div className="records-alert error"><TriangleAlert />{error}<button onClick={() => setError('')}><X /></button></div>}
       {message && <div className="records-alert success"><CheckCircle2 />{message}<button onClick={() => setMessage('')}><X /></button></div>}
