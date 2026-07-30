@@ -545,8 +545,8 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785434940.1082575,
-    "ast_hash": "41cb3d61d812784dbef3b7631e774496",
+    "mtime": 1785437863.9624696,
+    "ast_hash": "995c97549d5c588b299eda5439527af0",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -1335,8 +1335,8 @@
     "semantic_hash": "94f2b6814f55abb5c407013ebd815639"
   },
   "vite.config.js": {
-    "mtime": 1785187826.4281943,
-    "ast_hash": "be3d25444c6e3544e2f347b847404ff1",
+    "mtime": 1785437715.9310617,
+    "ast_hash": "f444c7a647c7a0d923d166f36613492e",
     "semantic_hash": ""
   },
   "vitest.config.js": {
@@ -2940,8 +2940,18 @@
     "semantic_hash": ""
   },
   "admin-portal-prod-playwright.png": {
-    "mtime": 1785435128.091374,
-    "ast_hash": "a6de9415d9b5787be0b883a6f199552c",
+    "mtime": 1785437747.6360245,
+    "ast_hash": "f8a12d1b7428a7e7e6bde5efc10a6b57",
+    "semantic_hash": ""
+  },
+  "admin.html": {
+    "mtime": 1785437705.1007476,
+    "ast_hash": "65381c242f222ed1b789e152f7a31624",
+    "semantic_hash": ""
+  },
+  "admin_portal.html": {
+    "mtime": 1785437708.3267608,
+    "ast_hash": "65381c242f222ed1b789e152f7a31624",
     "semantic_hash": ""
   }
 }
