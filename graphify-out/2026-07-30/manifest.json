@@ -2933,5 +2933,15 @@
     "mtime": 1785435044.1312745,
     "ast_hash": "6c76355f0b52f5fc1feb203ff5109397",
     "semantic_hash": ""
+  },
+  "tests/admin-portal-prod.spec.js": {
+    "mtime": 1785435116.1355116,
+    "ast_hash": "3b60d4bef3223e1c68ff9a7c82c45ab5",
+    "semantic_hash": ""
+  },
+  "admin-portal-prod-playwright.png": {
+    "mtime": 1785435128.091374,
+    "ast_hash": "a6de9415d9b5787be0b883a6f199552c",
+    "semantic_hash": ""
   }
 }

@@ -14,13 +14,14 @@ test('Verify Production TurboFix Admin Control Room login & Supabase Edge Functi
 
   // Wait for Control Room header & workspace metric cards
   console.log('Waiting for Supabase Edge Control Gateway live production data...');
+  await page.waitForSelector('header', { timeout: 15000 });
   await expect(page.locator('header')).toContainText('TURBOFIX PLATFORM CONTROL');
   await expect(page.locator('header')).toContainText('Direct Cloud Gateway Active');
 
   // Verify metric cards
-  await expect(page.locator('text=Total Workspaces')).toBeVisible();
-  await expect(page.locator('text=Active Fleet Machines')).toBeVisible();
-  await expect(page.locator('text=Open Breakdown Tickets')).toBeVisible();
+  await expect(page.locator('text=Workspaces').first()).toBeVisible();
+  await expect(page.locator('text=Total Fleet Machines').first()).toBeVisible();
+  await expect(page.locator('text=Active Breakdown Tickets').first()).toBeVisible();
 
   // Verify table loaded with companies
   await page.waitForSelector('table tr', { timeout: 15000 });

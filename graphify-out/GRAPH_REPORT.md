@@ -1,7 +1,7 @@
 # Graph Report - TurboFix  (2026-07-30)
 
 ## Corpus Check
-- 554 files · ~669,913 words
+- 554 files · ~672,760 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ae6ec8de`
+- Built from commit: `e0721b76`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

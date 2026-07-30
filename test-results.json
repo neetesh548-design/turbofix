@@ -4,9 +4,8 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/admin-portal-prod.spec.js",
-      "--project=chromium",
-      "--project=mobile-chrome"
+      "tests/admin-portal.spec.js",
+      "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
     "rootDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -20,7 +19,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 2
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
@@ -29,7 +28,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -45,7 +44,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "firefox",
         "name": "firefox",
@@ -61,7 +60,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "webkit",
         "name": "webkit",
@@ -77,7 +76,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "mobile-chrome",
         "name": "mobile-chrome",
@@ -93,7 +92,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "mobile-safari",
         "name": "mobile-safari",
@@ -149,13 +148,13 @@
   },
   "suites": [
     {
-      "title": "admin-portal-prod.spec.js",
-      "file": "admin-portal-prod.spec.js",
+      "title": "admin-portal.spec.js",
+      "file": "admin-portal.spec.js",
       "column": 0,
       "line": 0,
       "specs": [
         {
-          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
+          "title": "Verify TurboFix Admin Control Room login & Supabase Edge Function integration",
           "ok": true,
           "tags": [],
           "tests": [
@@ -170,25 +169,55 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4570,
+                  "duration": 3883,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
+                      "text": "Navigating to local React Admin Portal...\n"
                     },
                     {
-                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
+                      "text": "PAGE LOG: [vite] connecting...\n"
                     },
                     {
-                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
+                      "text": "PAGE LOG: [vite] connected.\n"
                     },
                     {
-                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
+                      "text": "PAGE LOG: [vite] connecting...\n"
+                    },
+                    {
+                      "text": "PAGE LOG: [vite] connected.\n"
+                    },
+                    {
+                      "text": "PAGE LOG: [Meta Pixel] - Invalid PixelID: null.\n"
+                    },
+                    {
+                      "text": "PAGE LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                    },
+                    {
+                      "text": "PAGE LOG: Service Worker registered via vite-plugin-pwa\n"
+                    },
+                    {
+                      "text": "PAGE LOG: Service Worker registered via vite-plugin-pwa\n"
+                    },
+                    {
+                      "text": "PAGE LOG: App ready to work offline\n"
+                    },
+                    {
+                      "text": "PAGE LOG: App ready to work offline\n"
+                    },
+                    {
+                      "text": "Waiting for Supabase Edge Control Gateway data...\n"
+                    },
+                    {
+                      "text": "Found 7 registered plant company workspaces in Control Room.\n"
+                    },
+                    {
+                      "text": "Saved screenshot to admin-portal-playwright.png\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-30T18:12:03.162Z",
+                  "startTime": "2026-07-30T18:51:30.090Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -196,55 +225,8 @@
               "status": "expected"
             }
           ],
-          "id": "26b8cc031e585e249615-18b47c26415ab2c2b2f3",
-          "file": "admin-portal-prod.spec.js",
-          "line": 3,
-          "column": 1
-        },
-        {
-          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "mobile-chrome",
-              "projectName": "mobile-chrome",
-              "results": [
-                {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
-                  "status": "passed",
-                  "duration": 4939,
-                  "errors": [],
-                  "stdout": [
-                    {
-                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
-                    },
-                    {
-                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
-                    },
-                    {
-                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
-                    },
-                    {
-                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
-                    }
-                  ],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-30T18:12:03.159Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "26b8cc031e585e249615-aef4ae0c691b7d199223",
-          "file": "admin-portal-prod.spec.js",
+          "id": "3b8b8ba22d7610aa7e29-7c2eda2e53ea81e04f18",
+          "file": "admin-portal.spec.js",
           "line": 3,
           "column": 1
         }
@@ -253,9 +235,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-30T18:11:58.872Z",
-    "duration": 9641.745,
-    "expected": 2,
+    "startTime": "2026-07-30T18:51:25.966Z",
+    "duration": 8398.782,
+    "expected": 1,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

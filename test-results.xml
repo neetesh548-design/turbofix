@@ -1,22 +1,21 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="9.641745">
-<testsuite name="admin-portal-prod.spec.js" timestamp="2026-07-30T18:12:02.629Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.57" errors="0">
-<testcase name="Verify Production TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal-prod.spec.js" time="4.57">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="8.398781999999999">
+<testsuite name="admin-portal.spec.js" timestamp="2026-07-30T18:51:29.742Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.883" errors="0">
+<testcase name="Verify TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal.spec.js" time="3.883">
 <system-out>
-<![CDATA[Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...
-Waiting for Supabase Edge Control Gateway live production data...
-Found 7 registered plant company workspaces in Production Control Room.
-Saved screenshot to admin-portal-prod-playwright.png
-]]>
-</system-out>
-</testcase>
-</testsuite>
-<testsuite name="admin-portal-prod.spec.js" timestamp="2026-07-30T18:12:02.629Z" hostname="mobile-chrome" tests="1" failures="0" skipped="0" time="4.939" errors="0">
-<testcase name="Verify Production TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal-prod.spec.js" time="4.939">
-<system-out>
-<![CDATA[Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...
-Waiting for Supabase Edge Control Gateway live production data...
-Found 7 registered plant company workspaces in Production Control Room.
-Saved screenshot to admin-portal-prod-playwright.png
+<![CDATA[Navigating to local React Admin Portal...
+PAGE LOG: [vite] connecting...
+PAGE LOG: [vite] connected.
+PAGE LOG: [vite] connecting...
+PAGE LOG: [vite] connected.
+PAGE LOG: [Meta Pixel] - Invalid PixelID: null.
+PAGE LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+PAGE LOG: Service Worker registered via vite-plugin-pwa
+PAGE LOG: Service Worker registered via vite-plugin-pwa
+PAGE LOG: App ready to work offline
+PAGE LOG: App ready to work offline
+Waiting for Supabase Edge Control Gateway data...
+Found 7 registered plant company workspaces in Control Room.
+Saved screenshot to admin-portal-playwright.png
 ]]>
 </system-out>
 </testcase>

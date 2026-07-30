@@ -672,8 +672,8 @@ export default function AdminPortal() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {filteredCompanies.map((c) => (
-                      <tr key={c.company_code} className="hover:bg-slate-800/40 transition-colors">
+                    {filteredCompanies.map((c, idx) => (
+                      <tr key={`${c.company_code}-${idx}`} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-4 font-bold text-slate-100 flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                           {c.company_code}

@@ -1,4 +1,3 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const allowedOrigins = new Set([
@@ -299,9 +298,13 @@ loadDashboard();
 // ---------------------------------------------------------------------------
 // Server Handler
 // ---------------------------------------------------------------------------
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: cors(req) })
+    const headers = new Headers(cors(req))
+    headers.set('access-control-allow-origin', '*')
+    headers.set('access-control-allow-methods', 'GET, POST, OPTIONS, DELETE, PUT')
+    headers.set('access-control-allow-headers', 'authorization, x-client-info, apikey, content-type')
+    return new Response(null, { status: 204, headers })
   }
 
   const url = new URL(req.url)
@@ -612,5 +615,3 @@ serve(async (req: Request) => {
 
   return reply(req, { detail: 'Endpoint not found' }, 404)
 })
-
-Deno.serve(handler)

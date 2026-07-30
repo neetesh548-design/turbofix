@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify TurboFix Admin Control Room login & Supabase Edge Function integration', async ({ page }) => {
+  page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+  page.on('pageerror', (err) => console.log('PAGE ERROR:', err));
+
   console.log('Navigating to local React Admin Portal...');
   await page.goto('http://localhost:5173/admin.html');
 
@@ -14,13 +17,14 @@ test('Verify TurboFix Admin Control Room login & Supabase Edge Function integrat
 
   // Wait for Control Room header & workspace metric cards
   console.log('Waiting for Supabase Edge Control Gateway data...');
+  await page.waitForSelector('header', { timeout: 15000 });
   await expect(page.locator('header')).toContainText('TURBOFIX PLATFORM CONTROL');
   await expect(page.locator('header')).toContainText('Direct Cloud Gateway Active');
 
   // Verify metric cards
-  await expect(page.locator('text=Total Workspaces')).toBeVisible();
-  await expect(page.locator('text=Active Fleet Machines')).toBeVisible();
-  await expect(page.locator('text=Open Breakdown Tickets')).toBeVisible();
+  await expect(page.locator('text=Workspaces').first()).toBeVisible();
+  await expect(page.locator('text=Total Fleet Machines').first()).toBeVisible();
+  await expect(page.locator('text=Active Breakdown Tickets').first()).toBeVisible();
 
   // Verify table loaded with companies
   await page.waitForSelector('table tr', { timeout: 10000 });

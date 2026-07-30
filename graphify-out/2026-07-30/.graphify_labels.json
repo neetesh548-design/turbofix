@@ -389,5 +389,6 @@
   "387": ".list",
   "388": ".next_record_id",
   "389": ".update",
-  "390": "admin-portal.spec.js"
+  "390": "admin-portal.spec.js",
+  "391": "admin-portal-prod.spec.js"
 }
