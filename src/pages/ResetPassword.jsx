@@ -190,17 +190,29 @@ export default function ResetPassword() {
       }
       setRequestLoading(true);
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
+        let sent = false;
+        // Try passwordless 6-digit Email OTP via signInWithOtp
+        const { error: otpErr } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
         });
-        if (error) {
-          setRequestError(error.message);
+
+        if (!otpErr) {
+          sent = true;
+          setRequestSuccess('6-digit Email OTP code sent — check your inbox.');
         } else {
+          // Fallback to resetPasswordForEmail
+          const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
+          });
+          if (resetErr) throw resetErr;
+          sent = true;
           setRequestSuccess('Verification code sent — check your inbox.');
-          setStep('verify');
         }
-      } catch {
-        setRequestError('Failed to send verification email. Please try again.');
+
+        if (sent) setStep('verify');
+      } catch (err) {
+        setRequestError(err.message || 'Failed to send verification email. Please try again.');
       } finally {
         setRequestLoading(false);
       }
@@ -260,29 +272,38 @@ export default function ResetPassword() {
         return;
       }
       if (!token) {
-        setVerifyError('Please enter the verification code.');
+        setVerifyError('Please enter the 6-digit verification code.');
         return;
       }
       setVerifyLoading(true);
       try {
+        // Try type: 'email' (from signInWithOtp), then 'recovery', then 'invite'
+        const { error: emailOtpError } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+        if (!emailOtpError) {
+          setStep('reset');
+          return;
+        }
+
         const { error: recoveryError } = await supabase.auth.verifyOtp({ email, token, type: 'recovery' });
         if (!recoveryError) {
           setStep('reset');
           return;
         }
+
         const { error: inviteError } = await supabase.auth.verifyOtp({ email, token, type: 'invite' });
         if (inviteError) {
-          setVerifyError('Invalid or expired code. Please request a new one.');
+          setVerifyError(inviteError.message || 'Invalid or expired OTP code. Please request a new one.');
         } else {
           setStep('reset');
         }
-      } catch {
-        setVerifyError('Failed to verify code.');
+      } catch (err) {
+        setVerifyError(err.message || 'Failed to verify OTP code.');
       } finally {
         setVerifyLoading(false);
       }
     }
   };
+
 
   const handleSetNewPassword = async () => {
     setResetMsg('');
