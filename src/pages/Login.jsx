@@ -102,31 +102,42 @@ export default function Login() {
     try {
       if (regPassword.length < 8) throw new Error('Password must be at least 8 characters.');
 
+      // 1. Submit company registration to Backend API (/auth/register)
+      const regResp = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_code: companyCode.toUpperCase().trim(),
+          company_name: companyName.trim(),
+          admin_contact_phone: phone.trim(),
+          owner_name: ownerName.trim(),
+          owner_email: email.trim(),
+          owner_password: regPassword,
+        }),
+      });
+
+      if (!regResp.ok) {
+        const errData = await regResp.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Registration failed. Please check your information.');
+      }
+
+      // 2. Also register in Supabase Auth in background if enabled
       try {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
+        await supabase.auth.signUp({
+          email: email.trim(),
           password: regPassword,
           options: {
             data: {
-              name: ownerName,
+              name: ownerName.trim(),
               role: 'owner',
-              company_code: companyCode.toUpperCase(),
-              company_name: companyName,
-              phone,
+              company_code: companyCode.toUpperCase().trim(),
+              company_name: companyName.trim(),
+              phone: phone.trim(),
             }
           }
         });
-        if (signUpError) throw signUpError;
-
-        if (data.user) {
-          await supabase.from('companies').insert({
-            name: companyName,
-            domain: companyCode.toLowerCase(),
-            status: 'pending',
-          });
-        }
       } catch (spErr) {
-        console.warn('Supabase registration API notice:', spErr);
+        console.warn('Supabase Auth registration notice:', spErr);
       }
 
       setSuccess('Registration submitted. A TurboFix administrator will review and activate your workspace within 2 hours.');
@@ -137,6 +148,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="tf-login-page min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
