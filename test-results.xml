@@ -1,8 +1,8 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="15.615425">
-<testsuite name="machines-page-check.spec.js" timestamp="2026-07-30T23:17:19.539Z" hostname="chromium" tests="2" failures="0" skipped="0" time="25.317" errors="0">
-<testcase name="Machines Page Diagnostics › Check if /machines.html opens cleanly for signed-in user" classname="machines-page-check.spec.js" time="12.644">
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="6.705081">
+<testsuite name="settings-records-audit.spec.js" timestamp="2026-07-30T23:27:46.798Z" hostname="chromium" tests="2" failures="0" skipped="0" time="8.825" errors="0">
+<testcase name="Settings and Work Records UI Audit › Check Settings page for UI issues and errors" classname="settings-records-audit.spec.js" time="4.302">
 </testcase>
-<testcase name="Machines Page Diagnostics › Check if /machines route redirects to /machines.html and loads" classname="machines-page-check.spec.js" time="12.673">
+<testcase name="Settings and Work Records UI Audit › Check Records page for UI issues and errors" classname="settings-records-audit.spec.js" time="4.523">
 </testcase>
 </testsuite>
 </testsuites>

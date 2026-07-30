@@ -506,7 +506,7 @@ export default function Records() {
   };
 
   return <AppShell active="records">
-    <div className="records-page">
+    <div className="records-page" data-testid="records-page">
       <header className="records-page-head"><div><span className="records-kicker"><Sparkles />AI records</span><h1>Turn old records into trusted machine knowledge.</h1><p>Upload handwritten registers or soft copies. TurboFix structures the information, your team verifies it, and only Maintenance Head approval makes it available to AI.</p></div><button className="records-button primary large" onClick={() => setUploadOpen(true)} disabled={!machines.length}><CloudUpload />Add records</button></header>
       
       {/* Records OCR Connection Banner */}

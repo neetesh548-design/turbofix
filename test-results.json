@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/machines-page-check.spec.js",
+      "tests/settings-records-audit.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,20 +148,20 @@
   },
   "suites": [
     {
-      "title": "machines-page-check.spec.js",
-      "file": "machines-page-check.spec.js",
+      "title": "settings-records-audit.spec.js",
+      "file": "settings-records-audit.spec.js",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Machines Page Diagnostics",
-          "file": "machines-page-check.spec.js",
+          "title": "Settings and Work Records UI Audit",
+          "file": "settings-records-audit.spec.js",
           "line": 3,
           "column": 6,
           "specs": [
             {
-              "title": "Check if /machines.html opens cleanly for signed-in user",
+              "title": "Check Settings page for UI issues and errors",
               "ok": true,
               "tags": [],
               "tests": [
@@ -176,12 +176,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12644,
+                      "duration": 4302,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-30T23:17:20.819Z",
+                      "startTime": "2026-07-30T23:27:47.356Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -189,13 +189,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "b44890ba3ac158303a17-f626e43e9b13defa252e",
-              "file": "machines-page-check.spec.js",
-              "line": 23,
+              "id": "772529114525061842f7-eee5ba9cf0aa1641c57f",
+              "file": "settings-records-audit.spec.js",
+              "line": 22,
               "column": 3
             },
             {
-              "title": "Check if /machines route redirects to /machines.html and loads",
+              "title": "Check Records page for UI issues and errors",
               "ok": true,
               "tags": [],
               "tests": [
@@ -210,12 +210,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 12673,
+                      "duration": 4523,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-30T23:17:20.825Z",
+                      "startTime": "2026-07-30T23:27:47.344Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -223,9 +223,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "b44890ba3ac158303a17-89bb69860e2201bebdd7",
-              "file": "machines-page-check.spec.js",
-              "line": 41,
+              "id": "772529114525061842f7-d7e337f1b0d1fb040887",
+              "file": "settings-records-audit.spec.js",
+              "line": 40,
               "column": 3
             }
           ]
@@ -235,8 +235,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-30T23:17:18.553Z",
-    "duration": 15615.425,
+    "startTime": "2026-07-30T23:27:45.867Z",
+    "duration": 6705.081,
     "expected": 2,
     "skipped": 0,
     "unexpected": 0,

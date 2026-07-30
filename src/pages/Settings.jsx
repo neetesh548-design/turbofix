@@ -277,7 +277,7 @@ export default function Settings() {
 
   return (
     <AppShell active="settings">
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-6 sm:px-6 lg:px-8 transition-colors duration-200">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-6 sm:px-6 lg:px-8 transition-colors duration-200 settings-page" data-testid="settings-page">
         <div className="mx-auto max-w-7xl space-y-5">
           <header className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -315,6 +315,32 @@ export default function Settings() {
             </div>
           </header>
 
+          {/* Plant Settings & Security Connection Banner */}
+          <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-teal-500/30">
+            <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
+              <img
+                src={`${import.meta.env.BASE_URL}assets/plant_settings_security.jpg`}
+                alt="Plant Governance & Cybersecurity"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
+              <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/30 text-teal-300 border border-teal-500/40 backdrop-blur-md">
+                Plant Governance Command
+              </span>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold border border-teal-500/20">
+                <span>Plant Director &amp; IT Security View</span>
+              </div>
+              <h2 className="text-lg font-bold text-slate-100 leading-snug">
+                "Configure plant-wide SLA escalation matrix, role access privileges, and offline AI encryption keys with total audit transparency."
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Seamlessly tune automatic data refresh rates, background AI enrichment permissions, custom team roles, and immutable system audit logs.
+              </p>
+            </div>
+          </div>
+
           {error && (
             <AntDAlert
               message="Action Needed"
@@ -350,7 +376,7 @@ export default function Settings() {
                 <Tabs
                   activeKey={effectiveTab}
                   onChange={handleTabChange}
-                  tabPosition="left"
+                  tabPlacement="left"
                   size="small"
                   className="settings-nav"
                   items={visibleTabs.map((tab) => ({
