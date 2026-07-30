@@ -60,3 +60,31 @@ describe('Multi-Tenant Isolation Security Tests (Section 17)', () => {
     });
   });
 });
+
+import { isRealFactoryUser, filterRowsForUserCompany } from '../utils/tenant';
+import { shouldUseDemoFleet } from '../utils/demoDashboard';
+
+describe('Strict Multi-Tenant Isolation & Demo Fallback Rules', () => {
+  it('shouldUseDemoFleet MUST return false for real factory users even with 0 machines and 0 tickets', () => {
+    const realUser = { company_code: 'NKS', inventory_mode: 'real' };
+    expect(shouldUseDemoFleet([], [], realUser)).toBe(false);
+    expect(isRealFactoryUser(realUser)).toBe(true);
+  });
+
+  it('shouldUseDemoFleet returns true only for unauthenticated demo sessions with 0 machines', () => {
+    const demoUser = { company_code: 'TFDEMO', inventory_mode: 'demo' };
+    expect(shouldUseDemoFleet([], [], demoUser)).toBe(true);
+  });
+
+  it('filterRowsForUserCompany strips demo seed machines for real accounts', () => {
+    const realUser = { company_code: 'NKS', inventory_mode: 'real' };
+    const mixedRows = [
+      { id: 'bb100000-0001', company_code: 'NKS', name: 'Demo Machine Seed' },
+      { id: 'real-m1', company_code: 'NKS', name: 'Real Machine 1' },
+      { id: 'real-m2', company_code: 'OTHER', name: 'Other Factory Machine' },
+    ];
+    const filtered = filterRowsForUserCompany(mixedRows, realUser);
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].id).toBe('real-m1');
+  });
+});

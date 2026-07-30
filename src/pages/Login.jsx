@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { safeRedirectPath } from '../utils/auth';
+import { apiFetch } from '../lib/api';
 import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Wrench, Building2, AlertCircle } from 'lucide-react';
 
 export default function Login() {
@@ -66,8 +67,46 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      const loginEmail = identifier.includes('@') ? identifier : `${identifier}@phone.turbofix.co.in`;
-      
+      // 1. Primary Authentication Path: Backend REST API (/auth/login)
+      try {
+        const apiResp = await apiFetch('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            identifier: identifier.trim(),
+            password: password,
+          }),
+        });
+
+        if (apiResp.ok) {
+          const resData = await apiResp.json();
+          if (resData.access_token && resData.user) {
+            localStorage.setItem('tf_token', resData.access_token);
+            localStorage.setItem('tf_user', JSON.stringify(resData.user));
+            window.dispatchEvent(new Event('authChanged'));
+
+            if (resData.user.must_change_password) {
+              navigate(`${import.meta.env.BASE_URL}reset-password.html?must_change=true`, { replace: true });
+              return;
+            }
+
+            performPostLoginRedirect();
+            return;
+          }
+        } else {
+          const errPayload = await apiResp.json().catch(() => ({}));
+          if (apiResp.status === 403) {
+            throw new Error(errPayload.detail || 'Your company registration is pending approval.');
+          }
+        }
+      } catch (backendErr) {
+        if (backendErr.message && backendErr.message.includes('pending approval')) {
+          throw backendErr;
+        }
+        // Proceed to Supabase fallback if backend fails
+      }
+
+      // 2. Secondary Fallback Path: Direct Supabase Client Auth
+      const loginEmail = identifier.includes('@') ? identifier.trim() : `${identifier.trim()}@phone.turbofix.co.in`;
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
       if (signInError || !data?.user || !data.session?.access_token) {
         throw new Error('Invalid credentials. Check your phone/email and password, or use Quick Demo Access.');
@@ -102,10 +141,8 @@ export default function Login() {
     try {
       if (regPassword.length < 8) throw new Error('Password must be at least 8 characters.');
 
-      // 1. Submit company registration to Backend API (/auth/register)
-      const regResp = await fetch('/auth/register', {
+      const regResp = await apiFetch('/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           company_code: companyCode.toUpperCase().trim(),
           company_name: companyName.trim(),
@@ -119,25 +156,6 @@ export default function Login() {
       if (!regResp.ok) {
         const errData = await regResp.json().catch(() => ({}));
         throw new Error(errData.detail || 'Registration failed. Please check your information.');
-      }
-
-      // 2. Also register in Supabase Auth in background if enabled
-      try {
-        await supabase.auth.signUp({
-          email: email.trim(),
-          password: regPassword,
-          options: {
-            data: {
-              name: ownerName.trim(),
-              role: 'owner',
-              company_code: companyCode.toUpperCase().trim(),
-              company_name: companyName.trim(),
-              phone: phone.trim(),
-            }
-          }
-        });
-      } catch (spErr) {
-        console.warn('Supabase Auth registration notice:', spErr);
       }
 
       setSuccess('Registration submitted. A TurboFix administrator will review and activate your workspace within 2 hours.');

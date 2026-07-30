@@ -25,6 +25,7 @@ import {
 } from '@/utils/ticketSla';
 import { urgencyRank } from '@/utils/ticketMeta';
 import { QUEUE_FILTERS } from '@/utils/ticketQueues';
+import { filterRowsForUserCompany } from '@/utils/tenant';
 import { can, CAPABILITIES } from '@/lib/roles';
 import { normalizeRole } from '@/lib/roles';
 import './Tickets.css';
@@ -119,9 +120,19 @@ export default function Tickets() {
       return;
     }
     try {
+      const compRes = signedInUser?.company_code
+        ? await supabase.from('companies').select('id, name, domain').ilike('domain', signedInUser.company_code).maybeSingle()
+        : { data: null };
+      const companyId = compRes.data?.id || null;
+
+      let machinesQuery = supabase.from('machines').select('id,name,company_id,technician_user_id,supervisor_id');
+      if (companyId) {
+        machinesQuery = machinesQuery.eq('company_id', companyId);
+      }
+
       const [ticketsRes, machinesRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
         supabase.from('tickets').select('*'),
-        supabase.from('machines').select('id,name,technician_user_id,supervisor_id'),
+        machinesQuery,
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
@@ -130,22 +141,11 @@ export default function Tickets() {
       if (ticketsRes.error) throw new Error(ticketsRes.error.message);
       if (machinesRes.error) throw new Error(machinesRes.error.message);
 
-      let rawMachines = machinesRes.data || [];
-      let rawTickets = ticketsRes.data || [];
+      let rawMachines = (machinesRes.data || []).map((m) => ({ ...m, company_code: signedInUser?.company_code, company_id: companyId }));
+      let rawTickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || signedInUser?.company_code }));
 
-      const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
-      if (userComp && userComp !== 'TFDEMO') {
-        rawMachines = rawMachines.filter(m => {
-          const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
-          const mid = String(m.id || m.machine_id || '');
-          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-        });
-        rawTickets = rawTickets.filter(t => {
-          const code = (t.company_code || '').trim().toUpperCase();
-          const mid = String(t.machine_id || '');
-          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-        });
-      }
+      rawMachines = filterRowsForUserCompany(rawMachines, signedInUser);
+      rawTickets = filterRowsForUserCompany(rawTickets, signedInUser);
 
       const directoryMembers = directoryRes.data?.members || [];
       const teamMap = {};
@@ -218,9 +218,9 @@ export default function Tickets() {
         technician_name: machineTechNameMap[t.machine_id] || 'Unassigned',
       }));
 
-      // Demo data keeps management's board legible before a factory has logged
-      // anything. Scoped roles must see only their own queue, even when empty.
-      setTickets(data.length > 0 || shouldScope ? data : DEMO_TICKETS);
+      // Demo data belongs only to demo sessions. Empty real factories stay empty.
+      const demoSession = signedInUser?.inventory_mode === 'demo' || signedInUser?.company_code === 'TFDEMO';
+      setTickets(data.length > 0 || shouldScope || !demoSession ? data : DEMO_TICKETS);
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {

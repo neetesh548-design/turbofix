@@ -112,7 +112,7 @@ function App() {
   
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    const isRecoveryLink = hashParams.get('type') === 'recovery' || hashParams.has('access_token');
+    const isRecoveryLink = hashParams.get('type') === 'recovery' || (hashParams.has('access_token') && hashParams.get('type') === 'recovery');
     const appBasePath = `${basename || ''}/`;
     const currentPath = window.location.pathname;
 

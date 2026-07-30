@@ -9,7 +9,7 @@
  * 4. Backward compatible with plain legacy URL params (if permitted by Admin Settings).
  */
 
-const DEFAULT_ADMIN_SECRET = 'TF-ADMIN-URL-SECRET-KEY-2026-PRIMARY';
+const DEFAULT_ADMIN_SECRET = 'TF-DEFAULT-DEV-URL-ENCRYPTION-SECRET';
 const STORAGE_KEY_SECRET = 'tf_admin_url_encryption_secret';
 const STORAGE_KEY_CONFIG = 'tf_admin_url_encryption_config';
 

@@ -55,6 +55,7 @@ import { supabase } from '@/supabaseClient';
 import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
 import { can, CAPABILITIES, normalizeRole } from '../lib/roles';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
+import { filterRowsForUserCompany } from '../utils/tenant';
 import './Dashboard.css';
 
 const ROLE_HEADINGS = {
@@ -88,7 +89,7 @@ function fetchWithTimeout(promise, ms = 3000) {
  * The raw tables the role metrics run over. Deliberately separate from
  * fetchDashboardData(), which returns the pre-derived legacy shape.
  */
-async function fetchRoleSources() {
+async function fetchRoleSources(user) {
   const [machinesRes, ticketsRes, teamRes, pmLogsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
     fetchWithTimeout(supabase.from('machines').select('*')),
     fetchWithTimeout(supabase.from('tickets').select('*')),
@@ -99,8 +100,8 @@ async function fetchRoleSources() {
   ]);
 
   return {
-    machines: applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []),
-    tickets: ticketsRes.data || [],
+    machines: applyCurrentShiftAssignments(filterRowsForUserCompany(machinesRes.data || [], user), shiftRosterRes.data || [], shiftAssignmentRes.data || []),
+    tickets: filterRowsForUserCompany(ticketsRes.data || [], user),
     team: teamRes.data || [],
     pmLogs: pmLogsRes.data || [],
   };
@@ -144,7 +145,7 @@ export default function Dashboard() {
   useEffect(() => {
     let mounted = true;
 
-    Promise.all([fetchRoleSources(), fetchDashboardData().catch(() => fallback)])
+    Promise.all([fetchRoleSources(user), fetchDashboardData().catch(() => fallback)])
       .then(([nextSources, nextLegacy]) => {
         if (!mounted) return;
         cacheRef.current.clear();
@@ -160,7 +161,7 @@ export default function Dashboard() {
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };
-  }, []);
+  }, [user]);
 
   // Three reasons to show sample data, each narrower than the last:
   //  - Supabase gave us nothing at all (offline, empty, or past the 3s budget)

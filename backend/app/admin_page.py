@@ -63,9 +63,15 @@ const $ = (id) => document.getElementById(id);
 async function openApp(token) {
   const response = await fetch("/admin/app", { headers: {"Authorization": "Bearer " + token} });
   if (!response.ok) throw new Error("Your session has ended. Please sign in again.");
-  document.open();
-  document.write(await response.text());
-  document.close();
+  const html = await response.text();
+  document.documentElement.innerHTML = html;
+  // Re-execute scripts in inserted HTML
+  document.querySelectorAll("script").forEach((oldScript) => {
+    const newScript = document.createElement("script");
+    Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  });
 }
 async function login() {
   $("loginErr").textContent = "";

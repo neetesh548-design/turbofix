@@ -94,6 +94,16 @@ class LocalTicketRepository(TicketRepository):
                     )
             return tickets
 
+    def list_tickets(self) -> List[dict]:
+        with self._lock:
+            wb = openpyxl.load_workbook(self._path)
+            ws = wb["Tickets"]
+            tickets = []
+            for row_cells in ws.iter_rows(min_row=2):
+                if any(cell.value is not None for cell in row_cells):
+                    tickets.append({col: row_cells[i].value for i, col in enumerate(TICKETS_HEADER)})
+            return tickets
+
     def attach_photo(self, ticket_id: str, media_id: str) -> bool:
         with self._lock:
             wb = openpyxl.load_workbook(self._path)

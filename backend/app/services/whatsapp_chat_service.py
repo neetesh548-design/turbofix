@@ -83,7 +83,7 @@ def _build_role_context(user: Dict[str, Any]) -> str:
   """Fetch live snapshot of company machines, open tickets, and metrics for AI context."""
   from app.dependencies import get_tickets, get_machines
   company_id = user.get("company_id")
-  company_code = user.get("company_code", "TFDEMO")
+  company_code = user.get("company_code") or ""
   role = user.get("role", "technician").lower()
   
   # Fetch open tickets

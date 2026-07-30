@@ -110,8 +110,9 @@ OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-4.1-nano")
 # for owner/supervisor/maintenance_head. Dev default is an obviously-insecure secret
 # so a real deployment is forced to set its own via the environment.
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-insecure-secret-change-in-production")
+ADMIN_JWT_SECRET_KEY = os.getenv("ADMIN_JWT_SECRET_KEY", "") or JWT_SECRET_KEY
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))  # a work-shift default
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))  # 60 minute default session window
 
 # "local"  (default) saves files to disk. Files are LOST on Railway redeploys
 #           (ephemeral filesystem). Safe for local dev/test only.

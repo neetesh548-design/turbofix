@@ -172,7 +172,7 @@ def format_weekly_digest_message(data: Dict[str, Any]) -> str:
   )
 
 
-async def dispatch_daily_digest(company_code: str = "TFDEMO") -> int:
+async def dispatch_daily_digest(company_code: str) -> int:
   """Send daily digest to company executives. Returns count of messages sent."""
   payload = generate_daily_digest_payload(company_code)
   msg = format_daily_digest_message(payload)
@@ -188,7 +188,7 @@ async def dispatch_daily_digest(company_code: str = "TFDEMO") -> int:
   return sent_count
 
 
-async def dispatch_weekly_digest(company_code: str = "TFDEMO") -> int:
+async def dispatch_weekly_digest(company_code: str) -> int:
   """Send weekly executive digest to company executives."""
   payload = generate_weekly_digest_payload(company_code)
   msg = format_weekly_digest_message(payload)

@@ -184,7 +184,7 @@ export function getAllFeatureFlags(): Record<FeatureFlag, boolean> {
 export function logFeatureFlagsDebug() {
   console.group('[FeatureFlags Debug]');
   const user = getCurrentUser();
-  console.log('Current User:', user);
+  console.log('Current User ID:', user?.user_id || 'anonymous');
 
   Object.entries(FLAGS).forEach(([flag, config]) => {
     const enabled = isFeatureFlagEnabled(flag as FeatureFlag);

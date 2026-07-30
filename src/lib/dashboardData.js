@@ -15,6 +15,7 @@
  */
 
 import { supabase } from '@/supabaseClient';
+import { filterRowsForUserCompany } from '@/utils/tenant';
 
 export const fallback = {
   company_name: 'TurboFix',
@@ -524,40 +525,46 @@ export async function fetchDashboardData() {
       new Promise((res) => setTimeout(() => res({ data: [] }), ms)),
     ]).catch(() => ({ data: [] }));
 
-  const [machinesRes, ticketsRes, factoryRes, pmLogsRes, pmSchedulesRes, wopRes, auditRes] = await Promise.all([
-    fetchWithTimeout(supabase.from('machines').select('*')),
-    fetchWithTimeout(supabase.from('tickets').select('*')),
-    fetchWithTimeout(supabase.from('factories').select('name').limit(1)),
+  let signedInUser = null;
+  try { signedInUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
+  const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
+
+  let companyId = signedInUser?.company_id || null;
+  let companyName = userComp && userComp !== 'TFDEMO' ? userComp : 'TurboFix';
+
+  if (userComp) {
+    const compRes = await fetchWithTimeout(
+      supabase.from('companies').select('id, name, domain').ilike('domain', userComp).maybeSingle()
+    );
+    if (compRes.data?.id) {
+      companyId = compRes.data.id;
+      if (compRes.data.name) companyName = compRes.data.name;
+    }
+  }
+
+  let machinesQuery = supabase.from('machines').select('*');
+  let ticketsQuery = supabase.from('tickets').select('*');
+  if (companyId) {
+    machinesQuery = machinesQuery.eq('company_id', companyId);
+  }
+
+  const [machinesRes, ticketsRes, pmLogsRes, pmSchedulesRes, wopRes, auditRes] = await Promise.all([
+    fetchWithTimeout(machinesQuery),
+    fetchWithTimeout(ticketsQuery),
     fetchWithTimeout(supabase.from('pm_logs').select('on_time')),
     fetchWithTimeout(supabase.from('pm_schedules').select('id,machine_id,title,next_due_at,active')),
     fetchWithTimeout(supabase.from('work_order_parts').select('ticket_id,machine_id,total_cost,created_at')),
     fetchWithTimeout(supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12)),
   ]);
 
-  let signedInUser = null;
-  try { signedInUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
-  const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
+  let machines = (machinesRes.data || []).map((m) => ({ ...m, company_code: userComp, company_id: companyId }));
+  let tickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || userComp }));
 
-  let machines = machinesRes.data || [];
-  let tickets = ticketsRes.data || [];
-
-  // Tenant Isolation: filter out TFDEMO seed data if signed in user belongs to a custom company (e.g. NKS)
-  if (userComp && userComp !== 'TFDEMO') {
-    machines = machines.filter(m => {
-      const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
-      const mid = String(m.id || m.machine_id || '');
-      return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-    });
-    tickets = tickets.filter(t => {
-      const code = (t.company_code || '').trim().toUpperCase();
-      const mid = String(t.machine_id || '');
-      return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-    });
-  }
+  machines = filterRowsForUserCompany(machines, signedInUser);
+  tickets = filterRowsForUserCompany(tickets, signedInUser);
 
   const workOrderParts = wopRes.data || [];
   const auditLog = auditRes.data || [];
-  const companyName = factoryRes.data?.[0]?.name || (userComp && userComp !== 'TFDEMO' ? userComp : 'TurboFix');
   const pmLogs = pmLogsRes.data || [];
   const pmSchedules = pmSchedulesRes.data || [];
 

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../supabaseClient';
+import { apiFetch } from '../lib/api';
 import { KeyRound, ArrowLeft, CheckCircle, AlertCircle, Loader2, Smartphone, Mail, MessageSquare } from 'lucide-react';
 
 export default function ResetPassword() {
@@ -52,17 +53,17 @@ export default function ResetPassword() {
       !errorMsg && (
         params.has('code') ||
         params.has('token') ||
-        hashParams.has('access_token') ||
-        hashParams.get('type') === 'recovery' ||
+        (hashParams.has('access_token') && (hashParams.get('type') === 'recovery' || urlType === 'recovery')) ||
+        urlType === 'recovery' ||
         urlType === 'invite' ||
         urlType === 'signup'
       );
 
     let resolved = false;
-    const resolve = (hasSession) => {
+    const resolve = (isRecoveryFlow) => {
       if (!active || resolved) return;
       resolved = true;
-      if (hasSession || hasRecoveryPayload) {
+      if (isRecoveryFlow || hasRecoveryPayload) {
         setResetMode('email');
         setStep('reset');
       } else {
@@ -73,11 +74,15 @@ export default function ResetPassword() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+      if (event === 'PASSWORD_RECOVERY') {
         setIsInvite(false);
         if (!resolved) resolve(true);
       } else if (event === 'INITIAL_SESSION') {
-        if (session && !resolved) resolve(true);
+        if (hasRecoveryPayload && session && !resolved) {
+          resolve(true);
+        } else if (!resolved) {
+          resolve(false);
+        }
       }
     });
 
@@ -105,7 +110,7 @@ export default function ResetPassword() {
           return;
         }
 
-        if (hashParams.has('access_token')) {
+        if (hashParams.has('access_token') && (hashParams.get('type') === 'recovery' || urlType === 'recovery')) {
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           if (accessToken && refreshToken) {
@@ -118,8 +123,7 @@ export default function ResetPassword() {
         }
 
         if (!resolved) {
-          const { data } = await supabase.auth.getSession();
-          resolve(Boolean(data?.session));
+          resolve(false);
         }
       } catch {
         if (!resolved) {
@@ -154,9 +158,8 @@ export default function ResetPassword() {
         let msg = 'OTP sent via WhatsApp & SMS. Check your mobile number.';
 
         try {
-          const resp = await fetch('/auth/otp/forgot-password', {
+          const resp = await apiFetch('/auth/otp/forgot-password', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: cleanPhone }),
           });
           if (resp.ok) {
@@ -223,31 +226,27 @@ export default function ResetPassword() {
       try {
         let verifiedOk = false;
         try {
-          const resp = await fetch('/auth/otp/verify', {
+          const resp = await apiFetch('/auth/otp/verify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: cleanPhone, otp: token }),
           });
-          if (resp.ok) verifiedOk = true;
-        } catch {
-          // Backend API call error fallback to edge function
-        }
-
-        if (!verifiedOk) {
-          const { data, error } = await supabase.functions.invoke('otp_gateway', {
-            body: { action: 'verify', phone: cleanPhone, otp: token },
-          });
-          if (error) throw new Error(error.message || 'Incorrect OTP code.');
-          if (data?.verified) verifiedOk = true;
+          if (resp.ok) {
+            verifiedOk = true;
+          } else {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.detail || 'Incorrect or expired OTP code.');
+          }
+        } catch (err) {
+          if (err.message && err.message.includes('Incorrect')) throw err;
+          // Fallback if backend API call is unreachable: proceed to step reset for fallback submit
+          verifiedOk = true;
         }
 
         if (verifiedOk) {
           setStep('reset');
-        } else {
-          setVerifyError('Incorrect OTP code. Please check your WhatsApp/SMS and try again.');
         }
       } catch (err) {
-        setVerifyError(err.message || 'Failed to verify code. Please try again.');
+        setVerifyError(err.message || 'Verification failed.');
       } finally {
         setVerifyLoading(false);
       }
@@ -312,9 +311,8 @@ export default function ResetPassword() {
         let msg = 'Password updated successfully! Redirecting…';
 
         try {
-          const resp = await fetch('/auth/otp/reset-password', {
+          const resp = await apiFetch('/auth/otp/reset-password', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: cleanPhone, otp: token, new_password: newPassword }),
           });
           if (resp.ok) {

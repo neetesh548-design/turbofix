@@ -145,8 +145,12 @@ def get_dashboard(
         # - "open work" gap: tickets exist but no work assignment
         # - "technician owner" gap: work exists but no assigned technician
         loop_gaps = []
-        all_tickets = tickets.list_tickets()
-        company_tickets = [t for t in all_tickets if t.get("company_code") == user.company_code]
+        if hasattr(tickets, "get_company_tickets"):
+            company_tickets = tickets.get_company_tickets(user.company_code)
+        elif hasattr(tickets, "list_tickets"):
+            company_tickets = [t for t in tickets.list_tickets() if t.get("company_code") == user.company_code]
+        else:
+            company_tickets = []
         open_tickets = [t for t in company_tickets if str(t.get("status") or "Open").lower() == "open"]
 
         # Gap 1: Open work tracking

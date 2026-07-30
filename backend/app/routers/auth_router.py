@@ -29,7 +29,11 @@ router = APIRouter(prefix="/auth")
 
 
 def _company_approved(company: dict) -> bool:
-    return str(company.get("approved") or "").strip().lower() in {"yes", "true", "1"}
+    if not company:
+        return True
+    status = str(company.get("status") or "").strip().lower()
+    approved = str(company.get("approved") or "").strip().lower()
+    return status == "active" or approved in {"yes", "true", "1"} or company.get("approved") is True
 
 
 # ---------------------------------------------------------------------------
@@ -70,6 +74,7 @@ def login(request: Request, body: LoginRequest, users: UserRepository = Depends(
             "name": user["name"],
             "role": user["role"],
             "company_code": user["company_code"],
+            "must_change_password": bool(user.get("must_change_password", False)),
         },
     }
 
@@ -441,7 +446,8 @@ def verify_otp(request: Request, body: VerifyOTPRequest):
             raise HTTPException(status_code=400, detail="Too many incorrect OTP attempts. Please request a new code.")
         raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp/SMS and try again.")
 
-    _OTP_STORE.pop(phone_clean, None)
+    record["verified"] = True
+    record["verified_at"] = now_ts
     log.info("auth.otp_verified", phone=phone_clean)
     return {"verified": True, "phone": phone_clean}
 
@@ -538,7 +544,7 @@ def otp_reset_password(
             _OTP_STORE.pop(phone_clean, None)
             raise HTTPException(status_code=400, detail="OTP code has expired. Please request a new code.")
 
-        if not secrets.compare_digest(record["otp"], otp_input):
+        if not record.get("verified") and not secrets.compare_digest(record["otp"], otp_input):
             record["attempts"] += 1
             if record["attempts"] >= _OTP_MAX_ATTEMPTS:
                 _OTP_STORE.pop(phone_clean, None)

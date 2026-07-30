@@ -71,3 +71,7 @@ services:
         sync: false
       - key: WHATSAPP_DISPLAY_NUMBER
         sync: false
+      - key: FAST2SMS_API_KEY
+        sync: false
+      - key: FAST2SMS_ROUTE
+        value: otp

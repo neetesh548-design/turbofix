@@ -100,8 +100,10 @@ export const DEMO_PM_LOGS = Object.freeze([
  * out — not that the plant has nothing. Every board falls back to the demo
  * fleet in that case, matching what the legacy dashboard already did.
  */
+import { isRealFactoryUser } from './tenant';
+
 export function shouldUseDemoFleet(machines, tickets, user) {
-  if (user && user.inventory_mode !== 'demo' && user.company_code !== 'TFDEMO') {
+  if (isRealFactoryUser(user) || (user?.company_code && user.company_code !== 'TFDEMO' && user?.inventory_mode !== 'demo')) {
     return false;
   }
   const noMachines = !Array.isArray(machines) || machines.length === 0;

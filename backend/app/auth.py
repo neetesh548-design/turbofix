@@ -207,6 +207,12 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing bearer token")
 
     token = credentials.credentials
+    if token.startswith("demo:") and config.ENVIRONMENT == "production":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Demo tokens are disabled in production environment",
+        )
+
     payload = decode_access_token(token)
     # A per-company user must never be one of the special-purpose tokens (reset, admin).
     if payload is None or "company_code" not in payload:
@@ -314,7 +320,7 @@ def create_admin_token() -> str:
         "iat": now,
         "exp": now + config.ADMIN_TOKEN_EXPIRE_MINUTES * 60,
     }
-    return jwt.encode(payload, config.JWT_SECRET_KEY, algorithm=config.JWT_ALGORITHM)
+    return jwt.encode(payload, config.ADMIN_JWT_SECRET_KEY, algorithm=config.JWT_ALGORITHM)
 
 
 def get_current_admin(
@@ -323,7 +329,7 @@ def get_current_admin(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing bearer token")
     try:
-        payload = jwt.decode(credentials.credentials, config.JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM])
+        payload = jwt.decode(credentials.credentials, config.ADMIN_JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM])
     except jwt.PyJWTError:
         payload = None
     if payload is None or payload.get("purpose") != _ADMIN_PURPOSE:

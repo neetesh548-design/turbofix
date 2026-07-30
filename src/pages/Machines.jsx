@@ -22,6 +22,7 @@ import { downloadMachinesCSV } from '../utils/machineExport';
 import { visibleMachinesForUser } from '../utils/machineVisibility';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
 import { formatSupabaseError } from '../utils/errorFormatting';
+import { filterRowsForUserCompany } from '../utils/tenant';
 import './Machines.css';
 
 
@@ -292,39 +293,34 @@ export default function Machines() {
     setLoading(true);
     setError('');
     try {
-      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes, compRes] = await Promise.all([
-        supabase.from('machines').select('*'),
-        supabase.from('tickets').select('id,machine_id,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
+      const compRes = signedInUser?.company_code
+        ? await supabase.from('companies').select('id, machine_quota').ilike('domain', signedInUser.company_code).maybeSingle()
+        : { data: null };
+
+      if (compRes.data?.machine_quota != null) setCompanyQuota(Number(compRes.data.machine_quota));
+      const companyId = compRes.data?.id || null;
+
+      let machinesQuery = supabase.from('machines').select('*');
+      if (companyId) {
+        machinesQuery = machinesQuery.eq('company_id', companyId);
+      }
+
+      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
+        machinesQuery,
+        supabase.from('tickets').select('id,machine_id,company_code,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
-        signedInUser?.company_code
-          ? supabase.from('companies').select('machine_quota').ilike('domain', signedInUser.company_code).single()
-          : Promise.resolve({ data: null, error: null }),
       ]);
-
-      if (compRes.data?.machine_quota != null) setCompanyQuota(Number(compRes.data.machine_quota));
-
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
 
-      let rawMachines = machinesRes.data || [];
-      let rawTickets = ticketsRes.data || [];
+      let rawMachines = (machinesRes.data || []).map((m) => ({ ...m, company_code: signedInUser?.company_code, company_id: companyId }));
+      let rawTickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || signedInUser?.company_code }));
 
-      const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
-      if (userComp && userComp !== 'TFDEMO') {
-        rawMachines = rawMachines.filter(m => {
-          const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
-          const mid = String(m.id || m.machine_id || '');
-          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-        });
-        rawTickets = rawTickets.filter(t => {
-          const code = (t.company_code || '').trim().toUpperCase();
-          const mid = String(t.machine_id || '');
-          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
-        });
-      }
+      rawMachines = filterRowsForUserCompany(rawMachines, signedInUser);
+      rawTickets = filterRowsForUserCompany(rawTickets, signedInUser);
 
       const directoryUnavailable = Boolean(directoryRes.error || directoryRes.data?.error);
       const directoryMembers = directoryUnavailable ? [] : (directoryRes.data?.members || []);
