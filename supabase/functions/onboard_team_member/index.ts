@@ -331,7 +331,10 @@ serve(async (req) => {
   let memberId = crypto.randomUUID()
   let authCreated = false
   if (portalAccess) {
-    const appOrigin = Deno.env.get('APP_URL') || req.headers.get('origin') || 'https://turbofix.co.in'
+    // APP_URL must be set in edge function secrets for production.
+    // Falling back to req.headers.get('origin') is unsafe — in Supabase the
+    // origin header may be the API domain (supabase.co), not the app domain.
+    const appOrigin = Deno.env.get('APP_URL') || 'https://turbofix.co.in'
     const redirectTo = `${appOrigin.replace(/\/$/, '')}/reset-password.html`
     const { data: created, error: createError } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { name, role, company_id: owner.company_id },

@@ -110,7 +110,7 @@ export default function Team() {
       }
       const { data, error: onboardErr } = await supabase.functions.invoke('onboard_team_member', {
         body: {
-          name: name.trim(), phone: phone.trim(), email: email.trim(), password,
+          name: name.trim(), phone: phone.trim(), email: email.trim(),
           role, manager_user_id: managerUserId, department: department.trim(),
           plant_location: plantLocation.trim(), shift: shift.trim(), portal_access: portalAccess,
         },

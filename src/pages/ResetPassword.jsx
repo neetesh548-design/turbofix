@@ -2,18 +2,26 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../supabaseClient';
-import { KeyRound, ArrowLeft } from 'lucide-react';
+import { KeyRound, ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [requestMsg, setRequestMsg] = useState('');
-  const [verifyMsg, setVerifyMsg] = useState('');
+  // Separate success/error for each step
+  const [requestSuccess, setRequestSuccess] = useState('');
+  const [requestError, setRequestError] = useState('');
+  const [verifyError, setVerifyError] = useState('');
   const [resetMsg, setResetMsg] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
   const [step, setStep] = useState('request');
   const [checkingRecovery, setCheckingRecovery] = useState(true);
+  const [isInvite, setIsInvite] = useState(false);
+  // Loading states
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     document.title = 'Reset Password | TurboFix';
@@ -22,37 +30,63 @@ export default function ResetPassword() {
     let active = true;
     const params = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+    // Detect invite vs recovery context for UI messaging
+    const urlType = params.get('type') || hashParams.get('type') || '';
+    const inviteContext = urlType === 'invite' || urlType === 'signup';
+    if (inviteContext) setIsInvite(true);
+
     const hasRecoveryPayload = params.has('code')
       || params.has('token')
       || hashParams.has('access_token')
-      || hashParams.get('type') === 'recovery';
+      || hashParams.get('type') === 'recovery'
+      || urlType === 'invite'
+      || urlType === 'signup';
 
-    const finishRecoveryCheck = (hasSession) => {
+    const finishCheck = (hasSession) => {
       if (!active) return;
       setStep(hasSession || hasRecoveryPayload ? 'reset' : 'request');
       setCheckingRecovery(false);
     };
 
-    const initialiseRecovery = async () => {
+    const initialise = async () => {
       try {
-        // Supabase may use PKCE and return ?code=..., while older projects
-        // return the access token in the URL hash. Support both flows.
+        // PKCE flow: Supabase returns ?code=... for both recovery and invite
         if (params.get('code')) {
           const { error } = await supabase.auth.exchangeCodeForSession(params.get('code'));
-          if (error) setResetMsg('This reset link is invalid or has expired. Request a new one.');
+          if (error) setResetMsg('This link is invalid or has expired. Request a new one.');
         }
+
+        // Legacy token flow: ?token=xxx&type=invite or ?token=xxx&type=recovery
+        // Uses token_hash (no email needed) — fixes invited users landing on step 1
+        if (params.get('token') && !params.get('code')) {
+          const tokenType = (params.get('type') || 'recovery');
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: params.get('token'),
+            type: tokenType,
+          });
+          if (error) setResetMsg('This link is invalid or has expired. Request a new one.');
+        }
+
         const { data } = await supabase.auth.getSession();
-        finishRecoveryCheck(Boolean(data?.session));
-      } catch (error) {
-        finishRecoveryCheck(false);
-        if (hasRecoveryPayload) setResetMsg('This reset link is invalid or has expired. Request a new one.');
+        finishCheck(Boolean(data?.session));
+      } catch {
+        finishCheck(false);
+        if (hasRecoveryPayload) setResetMsg('This link is invalid or has expired. Request a new one.');
       }
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') finishRecoveryCheck(Boolean(session));
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        if (session?.user?.app_metadata?.provider === 'email' &&
+            !session?.user?.email_confirmed_at &&
+            session?.user?.invited_at) {
+          setIsInvite(true);
+        }
+        finishCheck(Boolean(session));
+      }
     });
-    initialiseRecovery();
+    initialise();
 
     return () => {
       active = false;
@@ -61,40 +95,45 @@ export default function ResetPassword() {
   }, []);
 
   const handleRequestLink = async () => {
-    setRequestMsg('');
-    setVerifyMsg('');
+    setRequestError('');
+    setRequestSuccess('');
     if (!email) {
-      setRequestMsg('Please enter your email.');
+      setRequestError('Please enter your email address.');
       return;
     }
+    setRequestLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
       });
       if (error) {
-        setRequestMsg(error.message);
+        setRequestError(error.message);
       } else {
-        setRequestMsg('Verification code sent. Please check your inbox.');
+        setRequestSuccess('Verification code sent — check your inbox (and spam folder).');
         setStep('verify');
       }
-    } catch (err) {
-      setRequestMsg('Failed to send verification code.');
+    } catch {
+      setRequestError('Failed to send verification code. Please try again.');
+    } finally {
+      setRequestLoading(false);
     }
   };
 
   const handleVerifyCode = async () => {
-    setVerifyMsg('');
+    setVerifyError('');
     const token = verificationCode.trim();
     if (!email) {
-      setVerifyMsg('Please enter your email.');
+      setVerifyError('Please enter your email address first.');
       setStep('request');
       return;
     }
     if (!token) {
-      setVerifyMsg('Please enter the verification code.');
+      setVerifyError('Please enter the verification code from your email.');
       return;
     }
+    setVerifyLoading(true);
     try {
+      // Try recovery OTP first, then invite OTP
       const { error: recoveryError } = await supabase.auth.verifyOtp({
         email,
         token,
@@ -102,7 +141,6 @@ export default function ResetPassword() {
       });
       if (!recoveryError) {
         setStep('reset');
-        setVerifyMsg('');
         return;
       }
 
@@ -112,18 +150,20 @@ export default function ResetPassword() {
         type: 'invite',
       });
       if (inviteError) {
-        setVerifyMsg('Invalid or expired code. Please request a new one.');
+        setVerifyError('Invalid or expired code. Please request a new one.');
       } else {
         setStep('reset');
-        setVerifyMsg('');
       }
-    } catch (err) {
-      setVerifyMsg('Failed to verify code.');
+    } catch {
+      setVerifyError('Failed to verify code. Please try again.');
+    } finally {
+      setVerifyLoading(false);
     }
   };
 
   const handleSetNewPassword = async () => {
     setResetMsg('');
+    setResetSuccess(false);
     if (!newPassword || newPassword.length < 8) {
       setResetMsg('Password must be at least 8 characters.');
       return;
@@ -132,20 +172,47 @@ export default function ResetPassword() {
       setResetMsg('Passwords do not match.');
       return;
     }
+    setResetLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) {
         setResetMsg(error.message);
       } else {
-        setResetMsg('Password updated successfully! Redirecting...');
+        setResetSuccess(true);
+        setResetMsg(isInvite
+          ? 'Password set! Welcome to TurboFix. Redirecting to sign in…'
+          : 'Password updated successfully! Redirecting…');
         setTimeout(() => {
           window.location.href = `${import.meta.env.BASE_URL}login.html`;
-        }, 1500);
+        }, 1800);
       }
-    } catch (err) {
-      setResetMsg('Failed to reset password.');
+    } catch {
+      setResetMsg('Failed to reset password. Please try again.');
+    } finally {
+      setResetLoading(false);
     }
   };
+
+  // Derive page heading and subtext based on step and invite context
+  const headings = {
+    request: {
+      title: isInvite ? 'Activate your account' : 'Reset your password',
+      sub: isInvite
+        ? "Enter your email to receive an activation code."
+        : "We'll email you a code to get back in.",
+    },
+    verify: {
+      title: 'Enter verification code',
+      sub: 'Use the 6-digit code sent to your account email.',
+    },
+    reset: {
+      title: isInvite ? 'Choose your password' : 'Choose a new password',
+      sub: isInvite
+        ? 'Set a password for your new TurboFix account.'
+        : 'Set a new password for your TurboFix account.',
+    },
+  };
+  const { title, sub } = headings[step] || headings.request;
 
   return (
     <div className="min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
@@ -157,20 +224,14 @@ export default function ResetPassword() {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3 shadow-inner">
                 <KeyRound size={24} />
               </div>
-              <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
-                {step === 'reset' ? 'Choose a new password' : step === 'verify' ? 'Enter verification code' : 'Reset your password'}
-              </h1>
-              <p className="text-slate-400 text-sm">
-                {step === 'reset'
-                  ? 'Set a new password for your TurboFix account.'
-                  : step === 'verify'
-                    ? 'Use the code sent to your account email.'
-                    : "We'll email you a code to get back in."}
-              </p>
+              <h1 className="text-2xl font-bold text-white tracking-tight mb-1">{title}</h1>
+              <p className="text-slate-400 text-sm">{sub}</p>
             </div>
 
             {checkingRecovery ? (
-              <div className="p-4 text-center text-slate-400 text-sm" role="status">Checking your reset link…</div>
+              <div className="p-4 text-center text-slate-400 text-sm flex items-center justify-center gap-2" role="status">
+                <Loader2 size={16} className="animate-spin" /> Checking your link…
+              </div>
             ) : step === 'request' ? (
               <div className="space-y-4">
                 <div>
@@ -180,7 +241,7 @@ export default function ResetPassword() {
                     id="email"
                     placeholder="you@company.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setRequestError(''); }}
                     autoComplete="email"
                     className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
                   />
@@ -189,14 +250,22 @@ export default function ResetPassword() {
                 <button
                   id="requestBtn"
                   onClick={handleRequestLink}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99]"
+                  disabled={requestLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  Send verification code
+                  {requestLoading ? <><Loader2 size={16} className="animate-spin" /> Sending…</> : 'Send verification code'}
                 </button>
 
-                {requestMsg && (
-                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm">
-                    {requestMsg}
+                {requestError && (
+                  <div className="p-3 bg-red-950/60 border border-red-800/80 text-red-300 rounded-xl text-sm flex items-start gap-2" role="alert">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-400" />
+                    <span>{requestError}</span>
+                  </div>
+                )}
+                {requestSuccess && (
+                  <div className="p-3 bg-emerald-950/60 border border-emerald-800/80 text-emerald-300 rounded-xl text-sm flex items-start gap-2" role="status">
+                    <CheckCircle size={16} className="shrink-0 mt-0.5 text-emerald-400" />
+                    <span>{requestSuccess}</span>
                   </div>
                 )}
 
@@ -215,58 +284,69 @@ export default function ResetPassword() {
                     id="verificationCode"
                     placeholder="6-digit code"
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
+                    onChange={(e) => { setVerificationCode(e.target.value); setVerifyError(''); }}
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
+                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all tracking-[0.2em] text-center text-lg font-semibold"
                   />
+                  <p className="mt-1.5 text-xs text-slate-500 text-center">Sent to {email}</p>
                 </div>
 
                 <button
                   id="verifyBtn"
                   onClick={handleVerifyCode}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99]"
+                  disabled={verifyLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  Verify code
+                  {verifyLoading ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : 'Verify code'}
                 </button>
 
-                {verifyMsg && (
-                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm" role="alert">
-                    {verifyMsg}
+                {verifyError && (
+                  <div className="p-3 bg-red-950/60 border border-red-800/80 text-red-300 rounded-xl text-sm flex items-start gap-2" role="alert">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-400" />
+                    <span>{verifyError}</span>
                   </div>
                 )}
 
                 <div className="flex items-center justify-center gap-4 pt-2 text-sm">
-                  <button type="button" onClick={handleRequestLink} className="text-emerald-400 hover:underline">
-                    Resend code
+                  <button type="button" onClick={handleRequestLink} disabled={requestLoading} className="text-emerald-400 hover:underline disabled:opacity-50">
+                    {requestLoading ? 'Sending…' : 'Resend code'}
                   </button>
-                  <button type="button" onClick={() => setStep('request')} className="text-slate-400 hover:text-slate-200 transition-colors">
+                  <button type="button" onClick={() => { setStep('request'); setVerifyError(''); }} className="text-slate-400 hover:text-slate-200 transition-colors">
                     Change email
                   </button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
+                {isInvite && (
+                  <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 rounded-xl text-sm flex items-start gap-2">
+                    <CheckCircle size={16} className="shrink-0 mt-0.5 text-emerald-400" />
+                    <span>Your invitation was verified. Choose a password to activate your account.</span>
+                  </div>
+                )}
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-300 mb-1">New password</label>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-300 mb-1">
+                    {isInvite ? 'Create password' : 'New password'}
+                  </label>
                   <input
                     type="password"
                     id="newPassword"
                     placeholder="at least 8 characters"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => { setNewPassword(e.target.value); setResetMsg(''); setResetSuccess(false); }}
                     autoComplete="new-password"
                     className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
                   />
                 </div>
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-1">Confirm new password</label>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-1">Confirm password</label>
                   <input
                     type="password"
                     id="confirmPassword"
                     placeholder="repeat it"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => { setConfirmPassword(e.target.value); setResetMsg(''); setResetSuccess(false); }}
                     autoComplete="new-password"
                     className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
                   />
@@ -275,14 +355,25 @@ export default function ResetPassword() {
                 <button
                   id="resetBtn"
                   onClick={handleSetNewPassword}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99]"
+                  disabled={resetLoading || resetSuccess}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  Set new password
+                  {resetLoading
+                    ? <><Loader2 size={16} className="animate-spin" /> Saving…</>
+                    : isInvite ? 'Activate account' : 'Set new password'}
                 </button>
 
                 {resetMsg && (
-                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm" role="alert">
-                    {resetMsg}
+                  <div
+                    className={`p-3 rounded-xl text-sm flex items-start gap-2 ${resetSuccess
+                      ? 'bg-emerald-950/60 border border-emerald-800/80 text-emerald-300'
+                      : 'bg-red-950/60 border border-red-800/80 text-red-300'}`}
+                    role="alert"
+                  >
+                    {resetSuccess
+                      ? <CheckCircle size={16} className="shrink-0 mt-0.5 text-emerald-400" />
+                      : <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-400" />}
+                    <span>{resetMsg}</span>
                   </div>
                 )}
 
