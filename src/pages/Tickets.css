@@ -23,15 +23,17 @@
 }
 
 .tickets-heading h1 {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
   margin: 0;
-  text-transform: uppercase;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
 .tickets-heading p {
-  color: var(--slate);
-  font-size: 0.9rem;
+  color: #94a3b8;
+  font-size: 0.88rem;
   margin: 4px 0 0;
 }
 
@@ -41,12 +43,12 @@
   flex-wrap: wrap;
 }
 
-/* ---------- KPI strip ---------- */
+/* ---------- KPI strip — Google Stitch Glass Tiles ---------- */
 .tickets-kpi-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .tickets-kpi {
@@ -54,51 +56,57 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   text-align: left;
-  background: linear-gradient(135deg, rgba(26, 31, 38, 0.75), rgba(15, 20, 25, 0.9));
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--kpi-accent, var(--slate-light));
-  border-radius: 12px;
+  background: rgba(18, 22, 30, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--kpi-accent, #50ffab);
+  border-radius: 16px;
   color: inherit;
   font: inherit;
   cursor: pointer;
   overflow: hidden;
-  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease),
-    box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tickets-kpi:hover {
   transform: translateY(-2px);
-  border-color: var(--kpi-accent, rgba(37, 211, 102, 0.5));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-color: rgba(80, 255, 171, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(80, 255, 171, 0.2);
 }
 
 .tickets-kpi:focus-visible {
-  outline: 2px solid var(--kpi-accent, rgba(37, 211, 102, 0.75));
+  outline: 2px solid var(--kpi-accent, #50ffab);
   outline-offset: 3px;
 }
 
 .tickets-kpi.is-active {
-  background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(15, 20, 25, 0.9));
-  border-color: var(--kpi-accent, #25d366);
-  box-shadow: 0 0 0 1px var(--kpi-accent, rgba(37, 211, 102, 0.35)) inset;
+  background: rgba(80, 255, 171, 0.08);
+  border-color: #50ffab;
+  box-shadow: 0 0 20px rgba(80, 255, 171, 0.2), inset 0 0 0 1px rgba(80, 255, 171, 0.3);
 }
 
 .tickets-kpi-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--slate-light);
-  font-size: 0.7rem;
+  color: #cbd5e1;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
 }
 
 .tickets-kpi-value {
-  font: 850 1.9rem/1 'Rajdhani', sans-serif;
-  color: var(--kpi-accent, var(--ink));
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 1.95rem;
+  line-height: 1;
+  color: #ffffff;
 }
 
 .tickets-kpi-hint {
@@ -343,28 +351,32 @@
 .tickets-sortable.is-active { color: #4ade80; }
 
 .tickets-row {
-  background: linear-gradient(135deg, rgba(26, 31, 38, 0.55), rgba(15, 20, 25, 0.8));
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-left: 3px solid var(--row-accent, transparent);
-  border-radius: 11px;
-  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease),
-    box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+  background: rgba(18, 22, 30, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid var(--row-accent, rgba(80, 255, 171, 0.4));
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tickets-row:hover {
   transform: translateY(-1px);
-  border-color: rgba(37, 211, 102, 0.4);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(80, 255, 171, 0.35);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(80, 255, 171, 0.15);
 }
 
 .tickets-row.is-expanded {
-  border-color: rgba(37, 211, 102, 0.45);
-  background: linear-gradient(135deg, rgba(37, 211, 102, 0.06), rgba(15, 20, 25, 0.85));
+  border-color: #50ffab;
+  background: rgba(80, 255, 171, 0.04);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(80, 255, 171, 0.2);
 }
 
 .tickets-row.is-selected {
-  border-color: rgba(96, 165, 250, 0.6);
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(15, 20, 25, 0.85));
+  border-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.06);
 }
 
 .tickets-row.is-breached { --row-accent: #f87171; }
@@ -372,7 +384,7 @@
 
 .tickets-row-main {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: none;
   border: 0;
   color: inherit;
@@ -382,27 +394,31 @@
 }
 
 .tickets-row-main:focus-visible {
-  outline: 2px solid rgba(37, 211, 102, 0.7);
+  outline: 2px solid #50ffab;
   outline-offset: -2px;
-  border-radius: 11px;
+  border-radius: 14px;
 }
 
 /* Cell: identity */
 .tickets-wo {
-  display: block;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8rem;
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--ink);
+  color: #50ffab;
+  background: rgba(80, 255, 171, 0.1);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(80, 255, 171, 0.25);
   letter-spacing: 0.02em;
 }
 
 .tickets-machine {
   display: block;
-  margin-top: 2px;
-  font-size: 0.9rem;
+  margin-top: 4px;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: var(--ink);
+  color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
