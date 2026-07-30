@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/admin-portal-prod.spec.js",
+      "tests/homepage-audit.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -19,7 +19,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 4
     },
     "preserveOutput": "always",
     "projects": [
@@ -28,7 +28,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "chromium",
         "name": "chromium",
@@ -44,7 +44,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "firefox",
         "name": "firefox",
@@ -60,7 +60,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "webkit",
         "name": "webkit",
@@ -76,7 +76,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "mobile-chrome",
         "name": "mobile-chrome",
@@ -92,7 +92,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "mobile-safari",
         "name": "mobile-safari",
@@ -140,74 +140,172 @@
     "version": "1.61.1",
     "workers": 4,
     "webServer": {
-      "command": "npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
-      "url": "http://localhost:4173",
-      "reuseExistingServer": true,
+      "command": "npx vite --host 127.0.0.1 --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false,
       "timeout": 120000
     }
   },
   "suites": [
     {
-      "title": "admin-portal-prod.spec.js",
-      "file": "admin-portal-prod.spec.js",
+      "title": "homepage-audit.spec.js",
+      "file": "homepage-audit.spec.js",
       "column": 0,
       "line": 0,
-      "specs": [
+      "specs": [],
+      "suites": [
         {
-          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
-          "ok": true,
-          "tags": [],
-          "tests": [
+          "title": "TurboFix Homepage E2E Audit",
+          "file": "homepage-audit.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
             {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
+              "title": "1. Verify homepage title, hero heading, and primary CTAs",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 5617,
-                  "errors": [],
-                  "stdout": [
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
                     {
-                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
-                    },
-                    {
-                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
-                    },
-                    {
-                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
-                    },
-                    {
-                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4916,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T22:50:04.323Z",
+                      "annotations": [],
+                      "attachments": []
                     }
                   ],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-30T19:27:34.971Z",
-                  "annotations": [],
-                  "attachments": []
+                  "status": "expected"
                 }
               ],
-              "status": "expected"
+              "id": "ced5514a534cd6190997-a5ecb95a3301db673351",
+              "file": "homepage-audit.spec.js",
+              "line": 8,
+              "column": 3
+            },
+            {
+              "title": "2. Verify Executive Connection Cards & custom persona portraits",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5242,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T22:50:04.295Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-6bd3d216e70681fcf4dd",
+              "file": "homepage-audit.spec.js",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "3. Verify Theme Toggle switches between Dark and Light Mode",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5552,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T22:50:04.281Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-db1b4c4cf899e05af9dd",
+              "file": "homepage-audit.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "4. Verify Navbar brand and navigation links",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4648,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T22:50:04.285Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-e946aaf503d4b27b638f",
+              "file": "homepage-audit.spec.js",
+              "line": 69,
+              "column": 3
             }
-          ],
-          "id": "26b8cc031e585e249615-18b47c26415ab2c2b2f3",
-          "file": "admin-portal-prod.spec.js",
-          "line": 3,
-          "column": 1
+          ]
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-30T19:27:29.567Z",
-    "duration": 11415.139000000001,
-    "expected": 1,
+    "startTime": "2026-07-30T22:50:02.514Z",
+    "duration": 7768.33,
+    "expected": 4,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

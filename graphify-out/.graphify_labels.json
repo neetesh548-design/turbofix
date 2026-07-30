@@ -147,7 +147,6 @@
   "145": "_FakeBrief",
   "146": "README.md",
   "147": "DashboardWidget.jsx",
-  "148": "badge.jsx",
   "149": "button.jsx",
   "150": "badge.jsx",
   "151": "button.jsx",
@@ -254,7 +253,6 @@
   "252": "badge.jsx",
   "253": "FakeAuthClient",
   "254": "dashboardLayout.js",
-  "255": "ErrorBoundary",
   "256": "SupabaseCustomKpiRepository",
   "257": "Support.jsx",
   "258": "auth.test.js",
@@ -365,7 +363,6 @@
   "372": ".next_ticket_id",
   "374": "pwa.js",
   "375": ".get",
-  "377": "translations.js",
   "390": "admin-portal.spec.js",
   "391": "admin-portal-prod.spec.js"
 }

@@ -36,6 +36,8 @@ const RCA = lazy(() => import('./pages/RCA'));
 import AdminPortal from './pages/AdminPortal';
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+import { ThemeProvider } from './hooks/useTheme';
+
 function SearchMetadata() {
   const { pathname } = useLocation();
 
@@ -135,66 +137,68 @@ function App() {
   }, [basename]);
 
   return (
-    <I18nProvider>
-      <AntDProvider>
-        <ViewModeProvider>
-          <MachineProvider>
-            <NotificationProvider>
-              <BrowserRouter basename={basename}>
-              <SearchMetadata />
-              <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
-                <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
-                <Route path="/platform.html" element={<Platform />} />
-                <Route path="/records-platform.html" element={<RecordsPlatform />} />
-                <Route path="/workflow.html" element={<Workflow />} />
-                <Route path="/demo.html" element={<MarketingDemo />} />
-                <Route path="/pricing.html" element={<Pricing />} />
-                <Route path="/contact.html" element={<MarketingContact />} />
-                <Route path="/qr-generator.html" element={<QRGenerator />} />
-                <Route path="/login.html" element={<Login />} />
-                <Route path="/login" element={<Navigate to="/login.html" replace />} />
-                <Route path="/dashboard.html" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
-                <Route path="/reset-password.html" element={<ResetPassword />} />
-                <Route path="/machines.html" element={<Machines />} />
-                <Route path="/tickets.html" element={<Tickets />} />
-                <Route path="/team.html" element={<Team />} />
-                <Route path="/settings.html" element={<Settings />} />
-                <Route path="/assistant.html" element={<Assistant />} />
-                <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
-                <Route path="/technician.html" element={<Technician />} />
-                <Route path="/records.html" element={<Records />} />
-                <Route path="/support.html" element={<Support />} />
-                <Route path="/qr-gateway.html" element={<QRGateway />} />
-                <Route path="/inventory.html" element={<Inventory />} />
-                <Route path="/kaizen.html" element={<Kaizen />} />
-                <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
-                <Route path="/rca.html" element={<RCA />} />
-                <Route path="/rca" element={<Navigate to="/rca.html" replace />} />
-                <Route path="/report-breakdown.html" element={<ReportBreakdown />} />
-                <Route path="/report-breakdown" element={<Navigate to="/report-breakdown.html" replace />} />
-                <Route path="/admin.html" element={<AdminPortal />} />
-                <Route path="/admin" element={<AdminPortal />} />
-                <Route path="/admin/*" element={<AdminPortal />} />
-                <Route path="/admin_portal.html" element={<AdminPortal />} />
-                <Route path="/admin_portal" element={<AdminPortal />} />
-                <Route path="/admin_portal/*" element={<AdminPortal />} />
-                <Route path="/superadmin.html" element={<AdminPortal />} />
-                <Route path="/superadmin" element={<AdminPortal />} />
-                <Route path="/superadmin/*" element={<AdminPortal />} />
-                <Route path="/control-room" element={<AdminPortal />} />
-                <Route path="/control-room/*" element={<AdminPortal />} />
-                <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-            </NotificationProvider>
-          </MachineProvider>
-        </ViewModeProvider>
-      </AntDProvider>
-    </I18nProvider>
+    <ThemeProvider>
+      <I18nProvider>
+        <AntDProvider>
+          <ViewModeProvider>
+            <MachineProvider>
+              <NotificationProvider>
+                <BrowserRouter basename={basename}>
+                <SearchMetadata />
+                <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
+                  <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
+                  <Route path="/platform.html" element={<Platform />} />
+                  <Route path="/records-platform.html" element={<RecordsPlatform />} />
+                  <Route path="/workflow.html" element={<Workflow />} />
+                  <Route path="/demo.html" element={<MarketingDemo />} />
+                  <Route path="/pricing.html" element={<Pricing />} />
+                  <Route path="/contact.html" element={<MarketingContact />} />
+                  <Route path="/qr-generator.html" element={<QRGenerator />} />
+                  <Route path="/login.html" element={<Login />} />
+                  <Route path="/login" element={<Navigate to="/login.html" replace />} />
+                  <Route path="/dashboard.html" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
+                  <Route path="/reset-password.html" element={<ResetPassword />} />
+                  <Route path="/machines.html" element={<Machines />} />
+                  <Route path="/tickets.html" element={<Tickets />} />
+                  <Route path="/team.html" element={<Team />} />
+                  <Route path="/settings.html" element={<Settings />} />
+                  <Route path="/assistant.html" element={<Assistant />} />
+                  <Route path="/shutdown-planner.html" element={<ShutdownPlanner />} />
+                  <Route path="/technician.html" element={<Technician />} />
+                  <Route path="/records.html" element={<Records />} />
+                  <Route path="/support.html" element={<Support />} />
+                  <Route path="/qr-gateway.html" element={<QRGateway />} />
+                  <Route path="/inventory.html" element={<Inventory />} />
+                  <Route path="/kaizen.html" element={<Kaizen />} />
+                  <Route path="/kaizen" element={<Navigate to="/kaizen.html" replace />} />
+                  <Route path="/rca.html" element={<RCA />} />
+                  <Route path="/rca" element={<Navigate to="/rca.html" replace />} />
+                  <Route path="/report-breakdown.html" element={<ReportBreakdown />} />
+                  <Route path="/report-breakdown" element={<Navigate to="/report-breakdown.html" replace />} />
+                  <Route path="/admin.html" element={<AdminPortal />} />
+                  <Route path="/admin" element={<AdminPortal />} />
+                  <Route path="/admin/*" element={<AdminPortal />} />
+                  <Route path="/admin_portal.html" element={<AdminPortal />} />
+                  <Route path="/admin_portal" element={<AdminPortal />} />
+                  <Route path="/admin_portal/*" element={<AdminPortal />} />
+                  <Route path="/superadmin.html" element={<AdminPortal />} />
+                  <Route path="/superadmin" element={<AdminPortal />} />
+                  <Route path="/superadmin/*" element={<AdminPortal />} />
+                  <Route path="/control-room" element={<AdminPortal />} />
+                  <Route path="/control-room/*" element={<AdminPortal />} />
+                  <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+              </NotificationProvider>
+            </MachineProvider>
+          </ViewModeProvider>
+        </AntDProvider>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }
 

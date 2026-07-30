@@ -1,13 +1,12 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="11.415139000000002">
-<testsuite name="admin-portal-prod.spec.js" timestamp="2026-07-30T19:27:34.600Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.617" errors="0">
-<testcase name="Verify Production TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal-prod.spec.js" time="5.617">
-<system-out>
-<![CDATA[Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...
-Waiting for Supabase Edge Control Gateway live production data...
-Found 7 registered plant company workspaces in Production Control Room.
-Saved screenshot to admin-portal-prod-playwright.png
-]]>
-</system-out>
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="7.76833">
+<testsuite name="homepage-audit.spec.js" timestamp="2026-07-30T22:50:03.482Z" hostname="chromium" tests="4" failures="0" skipped="0" time="20.358" errors="0">
+<testcase name="TurboFix Homepage E2E Audit › 1. Verify homepage title, hero heading, and primary CTAs" classname="homepage-audit.spec.js" time="4.916">
+</testcase>
+<testcase name="TurboFix Homepage E2E Audit › 2. Verify Executive Connection Cards &amp; custom persona portraits" classname="homepage-audit.spec.js" time="5.242">
+</testcase>
+<testcase name="TurboFix Homepage E2E Audit › 3. Verify Theme Toggle switches between Dark and Light Mode" classname="homepage-audit.spec.js" time="5.552">
+</testcase>
+<testcase name="TurboFix Homepage E2E Audit › 4. Verify Navbar brand and navigation links" classname="homepage-audit.spec.js" time="4.648">
 </testcase>
 </testsuite>
 </testsuites>
