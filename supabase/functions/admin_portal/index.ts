@@ -362,15 +362,25 @@ Deno.serve(async (req: Request) => {
     const { data: companies, error: compErr } = await supabase.from('companies').select('*')
     if (compErr) return reply(req, { detail: compErr.message }, 500)
 
-    const { data: users } = await supabase.from('users').select('company_id')
+    const { data: users } = await supabase.from('users').select('company_id, role, name, email, phone')
     const { data: machines } = await supabase.from('machines').select('company_id, factory_id')
     const { data: tickets } = await supabase.from('tickets').select('factory_id, status')
-
     const { data: aiLogs } = await supabase.from('ai_usage_log').select('company_id, tokens_est')
 
     const userCounts: Record<string, number> = {}
+    const companyOwners: Record<string, { name: string; email: string; phone: string }> = {}
+
     users?.forEach(u => {
-      if (u.company_id) userCounts[u.company_id] = (userCounts[u.company_id] || 0) + 1
+      if (u.company_id) {
+        userCounts[u.company_id] = (userCounts[u.company_id] || 0) + 1
+        if (u.role === 'owner' || u.role === 'OWNER' || !companyOwners[u.company_id]) {
+          companyOwners[u.company_id] = {
+            name: u.name || '',
+            email: u.email || '',
+            phone: u.phone || '',
+          }
+        }
+      }
     })
 
     const machineCounts: Record<string, number> = {}
@@ -394,22 +404,27 @@ Deno.serve(async (req: Request) => {
       }
     })
 
-    const result = companies.map(c => ({
-      company_code: c.domain || c.company_code || '',
-      company_name: c.name || c.company_name || '',
-      status: c.status || 'active',
-      approved: c.status === 'active' ? 'yes' : 'no',
-      machine_quota: c.machine_quota || 5,
-      user_quota: c.user_quota || 10,
-      machine_quota_exceeded: (machineCounts[c.id] || 0) > (c.machine_quota || 5),
-      user_quota_exceeded: (userCounts[c.id] || 0) > (c.user_quota || 10),
-      admin_contact_phone: c.admin_contact_phone || '',
-      users_count: userCounts[c.id] || 0,
-      machines_count: machineCounts[c.id] || 0,
-      open_tickets_count: openTicketCounts[c.id] || 0,
-      ai_tokens_used: aiTokenCounts[c.id] || aiTokenCounts[c.domain] || 0,
-      ai_requests_count: aiRequestCounts[c.id] || aiRequestCounts[c.domain] || 0,
-    }))
+    const result = companies.map(c => {
+      const ownerInfo = companyOwners[c.id] || companyOwners[c.domain] || {}
+      return {
+        company_code: c.domain || c.company_code || '',
+        company_name: c.name || c.company_name || '',
+        owner_name: c.owner_name || ownerInfo.name || 'Plant Admin',
+        owner_email: c.owner_email || ownerInfo.email || `admin@${(c.domain || 'turbofix.co.in').toLowerCase()}`,
+        admin_contact_phone: c.admin_contact_phone || ownerInfo.phone || '',
+        status: c.status || 'active',
+        approved: c.status === 'active' ? 'yes' : 'no',
+        machine_quota: c.machine_quota || 5,
+        user_quota: c.user_quota || 10,
+        machine_quota_exceeded: (machineCounts[c.id] || 0) > (c.machine_quota || 5),
+        user_quota_exceeded: (userCounts[c.id] || 0) > (c.user_quota || 10),
+        users_count: userCounts[c.id] || 0,
+        machines_count: machineCounts[c.id] || 0,
+        open_tickets_count: openTicketCounts[c.id] || 0,
+        ai_tokens_used: aiTokenCounts[c.id] || aiTokenCounts[c.domain] || 0,
+        ai_requests_count: aiRequestCounts[c.id] || aiRequestCounts[c.domain] || 0,
+      }
+    })
 
     return reply(req, { companies: result })
   }
@@ -472,7 +487,9 @@ Deno.serve(async (req: Request) => {
       const body = await req.json()
       const companyCode = String(body.company_code || '').trim().toUpperCase()
       const companyName = String(body.company_name || '').trim()
-      const adminPhone = String(body.admin_contact_phone || '').trim()
+      const ownerName = String(body.owner_name || body.name || '').trim()
+      const ownerEmail = String(body.owner_email || body.email || '').trim()
+      const adminPhone = String(body.admin_contact_phone || body.phone || '').trim()
       const quota = Number(body.machine_quota) || 5
       const userQuota = Number(body.user_quota) || 10
 
@@ -486,6 +503,8 @@ Deno.serve(async (req: Request) => {
           id: crypto.randomUUID(),
           domain: companyCode,
           name: companyName,
+          owner_name: ownerName || companyName + ' Admin',
+          owner_email: ownerEmail || `admin@${companyCode.toLowerCase()}.com`,
           admin_contact_phone: adminPhone,
           machine_quota: quota,
           user_quota: userQuota,
@@ -495,6 +514,19 @@ Deno.serve(async (req: Request) => {
         .single()
 
       if (compErr) return reply(req, { detail: compErr.message }, 500)
+
+      // Optionally create owner user record if provided
+      if (ownerEmail || adminPhone) {
+        await supabase.from('users').insert({
+          id: crypto.randomUUID(),
+          company_id: comp.id,
+          name: ownerName || 'Owner',
+          email: ownerEmail || null,
+          phone: adminPhone || null,
+          role: 'owner',
+        }).catch(() => {})
+      }
+
       return reply(req, { status: 'success', company: comp })
     } catch {
       return reply(req, { detail: 'Invalid JSON body' }, 400)

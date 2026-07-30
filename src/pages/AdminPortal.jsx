@@ -21,6 +21,9 @@ import {
   Pause,
   Play,
   Zap,
+  Mail,
+  Phone,
+  User,
 } from 'lucide-react';
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
@@ -79,6 +82,8 @@ export default function AdminPortal() {
   const [showProvComp, setShowProvComp] = useState(false);
   const [provCode, setProvCode] = useState('');
   const [provName, setProvName] = useState('');
+  const [provOwnerName, setProvOwnerName] = useState('');
+  const [provOwnerEmail, setProvOwnerEmail] = useState('');
   const [provPhone, setProvPhone] = useState('');
   const [provQuota, setProvQuota] = useState(5);
   const [provUserQuota, setProvUserQuota] = useState(10);
@@ -274,6 +279,8 @@ export default function AdminPortal() {
         body: JSON.stringify({
           company_code: provCode,
           company_name: provName,
+          owner_name: provOwnerName,
+          owner_email: provOwnerEmail,
           admin_contact_phone: provPhone,
           machine_quota: Number(provQuota),
           user_quota: Number(provUserQuota),
@@ -287,6 +294,8 @@ export default function AdminPortal() {
       setShowProvComp(false);
       setProvCode('');
       setProvName('');
+      setProvOwnerName('');
+      setProvOwnerEmail('');
       setProvPhone('');
       loadAllData();
     } catch (err) {
@@ -818,6 +827,7 @@ export default function AdminPortal() {
                     <tr>
                       <th className="p-4">Domain Code</th>
                       <th className="p-4">Organization Name</th>
+                      <th className="p-4">Owner / Contact</th>
                       <th className="p-4">Status</th>
                       <th className="p-4">Machines (Used / Quota)</th>
                       <th className="p-4">Users (Used / Quota)</th>
@@ -828,11 +838,29 @@ export default function AdminPortal() {
                   <tbody className="divide-y divide-slate-800">
                     {filteredCompanies.map((c, idx) => (
                       <tr key={`${c.company_code}-${idx}`} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-4 font-bold text-slate-100 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <td className="p-4 font-extrabold text-amber-400 font-mono flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span>
                           {c.company_code}
                         </td>
-                        <td className="p-4 text-slate-300 font-medium">{c.company_name || c.company_code}</td>
+                        <td className="p-4 text-slate-100 font-semibold">{c.company_name || c.company_code}</td>
+                        <td className="p-4">
+                          <div className="space-y-0.5 text-xs">
+                            <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                              <User className="w-3 h-3 text-slate-400" />
+                              {c.owner_name || 'Plant Manager'}
+                            </div>
+                            <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                              <Mail className="w-3 h-3 text-slate-500" />
+                              {c.owner_email || 'Not specified'}
+                            </div>
+                            {c.admin_contact_phone && (
+                              <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+                                <Phone className="w-3 h-3 text-emerald-400" />
+                                {c.admin_contact_phone}
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-4">
                           {c.status === 'paused' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
@@ -1143,43 +1171,79 @@ export default function AdminPortal() {
 
       {/* MODAL: Provision Company */}
       {showProvComp && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-100">Provision Organization Workspace</h3>
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div>
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-amber-500" />
+                Provision Organization Workspace
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">Register a new factory client with full owner credentials and machine/user operational limits.</p>
+            </div>
             <form onSubmit={handleProvisionCompanySubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Company Code / Domain</label>
-                <input
-                  type="text"
-                  value={provCode}
-                  onChange={(e) => setProvCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. ACME"
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Company Code / Domain</label>
+                  <input
+                    type="text"
+                    value={provCode}
+                    onChange={(e) => setProvCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. ACME"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 font-mono uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Company Full Name</label>
+                  <input
+                    type="text"
+                    value={provName}
+                    onChange={(e) => setProvName(e.target.value)}
+                    placeholder="e.g. Acme Manufacturing Ltd."
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Company Full Name</label>
-                <input
-                  type="text"
-                  value={provName}
-                  onChange={(e) => setProvName(e.target.value)}
-                  placeholder="e.g. Acme Manufacturing Ltd."
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                />
+
+              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-800/60">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Owner / Plant Manager Name</label>
+                  <input
+                    type="text"
+                    value={provOwnerName}
+                    onChange={(e) => setProvOwnerName(e.target.value)}
+                    placeholder="e.g. Rajesh Kumar"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Owner Email Address</label>
+                  <input
+                    type="email"
+                    value={provOwnerEmail}
+                    onChange={(e) => setProvOwnerEmail(e.target.value)}
+                    placeholder="e.g. rajesh@acme.com"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Admin Phone</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Owner Contact Phone (WhatsApp)</label>
                 <input
                   type="text"
                   value={provPhone}
                   onChange={(e) => setProvPhone(e.target.value)}
                   placeholder="e.g. +919876543210"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 font-mono"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-800/60">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
                   <input
@@ -1187,7 +1251,7 @@ export default function AdminPortal() {
                     value={provQuota}
                     onChange={(e) => setProvQuota(e.target.value)}
                     min="1"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 font-bold"
                   />
                 </div>
                 <div>
@@ -1197,24 +1261,25 @@ export default function AdminPortal() {
                     value={provUserQuota}
                     onChange={(e) => setProvUserQuota(e.target.value)}
                     min="1"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 font-bold"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-2">
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowProvComp(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={provCompSubmitting}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors disabled:opacity-50"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20"
                 >
-                  {provCompSubmitting ? 'Provisioning...' : 'Confirm Provisioning'}
+                  {provCompSubmitting ? 'Provisioning...' : 'Provision Organization Workspace'}
                 </button>
               </div>
             </form>
