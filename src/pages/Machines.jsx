@@ -13,6 +13,8 @@ import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import MachineCard from '../components/machines/MachineCard';
 import MachineFilterBar from '../components/machines/MachineFilterBar';
 import MachineDetailDrawer from '../components/machines/MachineDetailDrawer';
+import MachinePersonnelMatrixModal from '../components/machines/MachinePersonnelMatrixModal';
+import CapexEscalationModal from '../components/machines/CapexEscalationModal';
 import { supabase } from '@/supabaseClient';
 import { generateMachineQRUrl } from '../utils/urlEncryption';
 import { filterMachines, summarizeFleet, sortByHealth } from '../utils/machineHealth';
@@ -145,6 +147,35 @@ export default function Machines() {
   
   // Workspace active tab: 'info' | 'docs' | 'parts' | 'consumables' | 'calendar' | 'qr'
   const [wsTab, setWsTab] = useState('info');
+
+  // Personnel Roster Matrix & CapEx Escalation Modals
+  const [matrixModalOpen, setMatrixModalOpen] = useState(false);
+  const [matrixTargetMachine, setMatrixTargetMachine] = useState(null);
+  const [capexModalOpen, setCapexModalOpen] = useState(false);
+  const [capexTargetMachine, setCapexTargetMachine] = useState(null);
+
+  const savePersonnelMatrix = async (machineId, matrixData) => {
+    setMachines(prev => prev.map(m => {
+      if (String(m.id || m.machine_id) === String(machineId)) {
+        return {
+          ...m,
+          personnel_matrix: matrixData,
+          technician_user_id: matrixData.technicians[0] || m.technician_user_id,
+          supervisor_id: matrixData.supervisors[0] || m.supervisor_id,
+          engineer_user_id: matrixData.engineers[0] || m.engineer_user_id,
+          maint_head_id: matrixData.maint_head || m.maint_head_id,
+        };
+      }
+      return m;
+    }));
+    try {
+      await supabase.from('machines').update({
+        personnel_matrix: matrixData,
+      }).eq('id', machineId);
+    } catch {
+      // Ignore client sync errors on demo mode
+    }
+  };
 
   // Onboarding Form states
   const [name, setName] = useState('');
@@ -3596,8 +3627,29 @@ export default function Machines() {
             onQuickEditChange={(patch) => setQuickEdit((current) => ({ ...current, ...patch }))}
             onQuickEditCancel={() => setQuickEdit(null)}
             onQuickEditSave={saveQuickEdit}
+            onOpenPersonnelMatrix={(m) => { setMatrixTargetMachine(m); setMatrixModalOpen(true); }}
+            onOpenCapexEscalation={(m) => { setCapexTargetMachine(m); setCapexModalOpen(true); }}
           />
         )}
+
+        {/* Shift Personnel Roster Matrix Modal */}
+        <MachinePersonnelMatrixModal
+          machine={matrixTargetMachine}
+          usersList={teamMembers}
+          isOpen={matrixModalOpen}
+          onClose={() => { setMatrixModalOpen(false); setMatrixTargetMachine(null); }}
+          onSave={savePersonnelMatrix}
+        />
+
+        {/* CapEx Machine Replacement & Management Escalation Modal */}
+        <CapexEscalationModal
+          machine={capexTargetMachine}
+          isOpen={capexModalOpen}
+          onClose={() => { setCapexModalOpen(false); setCapexTargetMachine(null); }}
+          onEscalate={(proposal) => {
+            console.log('CapEx Escalation Proposal Submitted:', proposal);
+          }}
+        />
 
         {reportIssueOpen && issueTarget && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => !issueSaving && setReportIssueOpen(false)}>

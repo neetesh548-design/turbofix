@@ -258,6 +258,27 @@ function MachineDetailDrawer({
               </div>
             </div>
           </section>
+
+          {/* ---- Shift Roster Matrix & CapEx Management Escalation ---- */}
+          <section className="machine-drawer-section flex flex-col gap-2 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-xs font-semibold text-slate-200 transition-colors"
+              onClick={() => onOpenPersonnelMatrix?.(machine)}
+            >
+              <span>👥 Shift &amp; Department Personnel Matrix (Max 3 Techs/Sups, 1 Head)</span>
+              <ChevronRight size={14} className="text-slate-400" />
+            </button>
+
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-300 transition-colors"
+              onClick={() => onOpenCapexEscalation?.(machine)}
+            >
+              <span>⚠️ CapEx Machine Replacement Proposal (VP &amp; Owner Escalation)</span>
+              <ChevronRight size={14} className="text-amber-400" />
+            </button>
+          </section>
         </div>
 
         <footer className="machine-drawer-foot">

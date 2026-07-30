@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "src/lib/roles.js": {
-    "mtime": 1785348183.6997266,
-    "ast_hash": "ce7a046029602274231f09ac9427318a",
+    "mtime": 1785449428.4371393,
+    "ast_hash": "4ac6f9c7f30dcc140935cc943c4d7941",
     "semantic_hash": ""
   },
   "src/lib/utils.js": {
@@ -2490,8 +2490,8 @@
     "semantic_hash": ""
   },
   "src/utils/auth.js": {
-    "mtime": 1785231443.8441834,
-    "ast_hash": "70e3077bf9a1c9b4b5f53ab73876117a",
+    "mtime": 1785449425.7629564,
+    "ast_hash": "39e5e42fbb24a864e8383c55e40b0fb4",
     "semantic_hash": ""
   },
   "SUPABASE_GUIDE.md": {
