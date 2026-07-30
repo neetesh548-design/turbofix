@@ -429,11 +429,11 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar sticky top-0 z-40 flex items-center gap-3 px-4 py-2.5 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 shadow-md">
+        <header className="app-topbar sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-2.5 bg-[#0b0f17]/95 backdrop-blur-xl border-b border-slate-800/90 shadow-lg">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
-              className="ms-waffle-btn p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800/80 transition-colors cursor-pointer"
+              className="ms-waffle-btn p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800/80 transition-all cursor-pointer border border-transparent hover:border-slate-700/60"
               onClick={() => setAppLauncherOpen(true)}
               aria-label="Open Microsoft-style App Launcher"
               title="TurboFix Workspace Apps (Waffle Menu)"
@@ -442,68 +442,61 @@ export default function AppShell({ children, active }) {
             </button>
 
             <a href={BASE} className="app-topbar-brand flex items-center gap-2 flex-shrink-0" aria-label="TurboFix home">
-              <span className="app-logo">
+              <span className="app-logo w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_12px_rgba(80,255,171,0.2)]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#50ffab" /></svg>
               </span>
-              <span className="app-brand-name font-bold tracking-tight text-white"><b>TURBO</b><span className="text-emerald-400">FIX</span></span>
+              <span className="app-brand-name font-black tracking-tight text-white text-base"><b>TURBO</b><span className="text-[#50ffab]">FIX</span></span>
             </a>
 
             {/* Current Active Workspace Indicator Pill */}
             {active && (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 rounded-full text-xs font-medium border border-emerald-500/30 flex-shrink-0">
-                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 rounded-full text-xs font-semibold border border-emerald-500/30 flex-shrink-0 shadow-sm">
+                <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#50ffab] animate-pulse shadow-[0_0_8px_#50ffab]" />
                 <span className="capitalize">{active.replace('-', ' ')}</span>
               </div>
             )}
           </div>
 
-          {/* Search trigger — opens the command-style search overlay */}
+          {/* Search trigger — opens command-style search overlay */}
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex items-center gap-2 flex-1 max-w-sm mx-2 px-3 py-1.5 rounded-lg border border-slate-700/70 bg-slate-900/80 text-slate-400 text-xs hover:border-emerald-500/50 hover:text-slate-200 transition-colors cursor-pointer"
-            aria-label="Search the workspace"
+            className="hidden md:flex items-center gap-2 flex-1 max-w-sm mx-2 px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-400 text-xs hover:border-emerald-500/50 hover:text-slate-200 transition-all cursor-pointer shadow-inner"
+            aria-label="Search workspace"
           >
-            <Search size={15} className="flex-shrink-0 text-emerald-400" />
-            <span className="truncate">Search machines, tickets, pages…</span>
-            <kbd className="ml-auto flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-700 bg-slate-950 text-slate-400">/</kbd>
+            <Search size={15} className="flex-shrink-0 text-[#50ffab]" />
+            <span className="truncate">Search machines, tickets, work orders…</span>
+            <kbd className="ml-auto flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-700 bg-slate-950 text-slate-400">/</kbd>
           </button>
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="sm:hidden p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800 transition-colors cursor-pointer ml-auto"
-            aria-label="Search the workspace"
+            className="md:hidden p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800 transition-colors cursor-pointer ml-auto"
+            aria-label="Search workspace"
           >
             <Search size={18} />
           </button>
 
-          <div className="app-company hidden xl:flex items-center gap-2 flex-shrink-0">
-            <span className="app-company-name text-xs text-slate-300 font-semibold">{company}</span>
-            <span className="app-live text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-600/40 flex items-center gap-1.5">
-              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
-              {user?.inventory_mode === 'demo' ? 'Demo' : 'Live Workspace'}
-            </span>
-          </div>
-
+          {/* User Profile & Quick Action Buttons */}
           <div className="app-topbar-right flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <a
               href={REPORT_BREAKDOWN_URL}
-              className="app-quick-report-btn inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-md shadow-emerald-950/40"
+              className="app-quick-report-btn inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md shadow-emerald-950/50 hover:scale-[1.02]"
               title="Report Breakdown / Ticket"
             >
-              <Plus size={16} />
+              <Plus size={16} className="stroke-[3]" />
               <span>Report Issue</span>
             </a>
             <ThemeToggle />
-            {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
-            <div className="app-user flex items-center gap-2" title={user?.name || ''}>
-              <span className="app-avatar bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">{initial}</span>
-              <span className="app-user-name hidden xl:inline text-xs font-semibold text-slate-200">{user?.name || 'Staff'}</span>
+            {roleLabel && <span className="app-role-badge hidden sm:inline-block font-bold text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/80 text-emerald-300 border border-slate-700/80" title={roleContribution(user?.role)}>{roleLabel}</span>}
+            <div className="app-user flex items-center gap-2 px-2 py-1 rounded-xl bg-slate-900/60 border border-slate-800/80" title={user?.name || ''}>
+              <span className="app-avatar bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 w-7 h-7 rounded-lg flex items-center justify-center text-xs">{initial}</span>
+              <span className="app-user-name hidden xl:inline text-xs font-bold text-slate-200">{user?.name || 'Staff'}</span>
             </div>
             <button
               type="button"
               onClick={logout}
-              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-800/40"
               title="Log out"
               aria-label="Log out"
             >
@@ -512,8 +505,8 @@ export default function AppShell({ children, active }) {
           </div>
         </header>
 
-        {/* Seamless Stitch Obsidian Module Tabbar */}
-        <nav className="bg-[#0e121a]/95 border-b border-slate-800/80 px-4 py-1.5 overflow-x-auto flex items-center gap-1.5 scrollbar-none text-xs font-medium backdrop-blur-md sticky top-[53px] z-30 shadow-md">
+        {/* Ultra-Clean Stitch Obsidian Module Tab Bar */}
+        <nav className="bg-[#0e121a]/95 border-b border-slate-800/90 px-4 py-1.5 overflow-x-auto flex items-center gap-1.5 scrollbar-none text-xs font-semibold backdrop-blur-xl sticky top-[53px] z-30 shadow-md">
           {visibleAppNavItems(user?.role).map((item) => {
             const Icon = item.Icon;
             const isActive = active === item.id;
@@ -521,13 +514,13 @@ export default function AppShell({ children, active }) {
               <a
                 key={item.id}
                 href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/40 shadow-sm shadow-emerald-950/50'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                    ? 'bg-emerald-500/15 text-[#50ffab] font-bold border border-emerald-500/40 shadow-sm shadow-emerald-950/50'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 border border-transparent'
                 }`}
               >
-                <Icon size={14} className={isActive ? 'text-emerald-400' : 'text-slate-400'} />
+                <Icon size={14} className={isActive ? 'text-[#50ffab]' : 'text-slate-400'} />
                 <span>{item.label}</span>
               </a>
             );
