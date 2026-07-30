@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Building2, Cpu, Ticket, CheckCircle2, Trash2, LogOut, Lock } from 'lucide-react';
 
-const ADMIN_EDGE_URL = 'https://yvpiaqsoxsamwzaqdvzk.supabase.co/functions/v1/admin_portal';
+const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
 const TOKEN_KEY = 'tf_supabase_admin_token';
 
 export default function AdminPortal() {
