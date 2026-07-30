@@ -25,13 +25,13 @@ export default function Login() {
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  // Quick demo logins for 5 Real Factory Agent Personas (Apex Precision Auto Components Ltd)
+  // Quick demo logins for 5 Real Factory Agent Personas (Exide Energy Industries - Lead Acid Battery Division)
   const demoAccounts = [
-    { role: 'Plant Owner', email: 'owner@apexauto.in', name: 'Rajesh Sharma (MD)', company: 'apexauto', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'Operations Supervisor', email: 'supervisor@apexauto.in', name: 'Vikram Singh', company: 'apexauto', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'Reliability Engineer', email: 'engineer@apexauto.in', name: 'Amit Verma', company: 'apexauto', icon: ShieldCheck, color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20' },
-    { role: 'Lead Technician', email: 'technician@apexauto.in', name: 'Suresh Kumar', company: 'apexauto', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
-    { role: 'Safety Inspector', email: 'safety@apexauto.in', name: 'Priya Nair', company: 'apexauto', icon: CheckCircle, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20' },
+    { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
+    { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
+    { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', icon: ShieldCheck, color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20' },
+    { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
+    { role: 'EHS & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', icon: CheckCircle, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20' },
   ];
 
   const performPostLoginRedirect = () => {
