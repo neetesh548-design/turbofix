@@ -4,6 +4,11 @@ import CounterWidgetDefault from '../components/Counter/CounterWidget.jsx';
 import { useCounter } from '../components/Counter/useCounter.js';
 import { i18n } from '../utils/i18n.js';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const CSS_PATH = path.resolve(__dirname, '../components/Counter/CounterWidget.css');
 
 /**
  * CounterWidget Test Suite
@@ -224,27 +229,27 @@ describe('CounterWidget Component (30+ Tests)', () => {
 
   // CSS and Styling Tests (T041-T045)
   it('T041: CSS should have mobile styles', () => {
-    const css = fs.readFileSync('/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css', 'utf8');
+    const css = fs.readFileSync(CSS_PATH, 'utf8');
     expect(css).toContain('375px');
   });
 
   it('T042: CSS should have tablet styles', () => {
-    const css = fs.readFileSync('/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css', 'utf8');
+    const css = fs.readFileSync(CSS_PATH, 'utf8');
     expect(css).toContain('768px');
   });
 
   it('T043: CSS should have desktop styles', () => {
-    const css = fs.readFileSync('/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css', 'utf8');
+    const css = fs.readFileSync(CSS_PATH, 'utf8');
     expect(css).toContain('1280px');
   });
 
   it('T044: CSS should support dark mode', () => {
-    const css = fs.readFileSync('/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css', 'utf8');
+    const css = fs.readFileSync(CSS_PATH, 'utf8');
     expect(css).toContain('prefers-color-scheme: dark');
   });
 
   it('T045: CSS should support RTL layouts', () => {
-    const css = fs.readFileSync('/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css', 'utf8');
+    const css = fs.readFileSync(CSS_PATH, 'utf8');
     expect(css).toContain('[dir=\'rtl\']');
   });
 });

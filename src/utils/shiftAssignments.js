@@ -1,7 +1,6 @@
 function localParts(date, timezone = 'Asia/Kolkata') {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
-    weekday: 'short',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -13,10 +12,22 @@ function localParts(date, timezone = 'Asia/Kolkata') {
     return acc;
   }, {});
 
+  const localDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+
+  // Derive weekday numerically from the local date string to avoid locale-
+  // specific short-weekday abbreviations (e.g. 'Wed' vs 'Wed.') that vary
+  // across Node/ICU versions and can return -1 from indexOf().
+  const [y, m, d] = localDateStr.split('-').map(Number);
+  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun…6=Sat
+
+  // Normalize hour: some ICU builds emit 24 instead of 0 for midnight when
+  // using hour12:false, which breaks the overnight (start>end) range check.
+  const hour = Number(parts.hour) % 24;
+
   return {
-    date: `${parts.year}-${parts.month}-${parts.day}`,
-    weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday),
-    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+    date: localDateStr,
+    weekday,
+    minutes: hour * 60 + Number(parts.minute),
   };
 }
 
