@@ -572,3 +572,9 @@ entrypoint = "./functions/user-provisioning/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/user-provisioning/*.html" ]
+
+[functions.admin_portal]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin_portal/index.ts"
+
