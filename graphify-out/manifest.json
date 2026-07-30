@@ -555,8 +555,8 @@
     "semantic_hash": ""
   },
   "playwright.config.ts": {
-    "mtime": 1785232221.719242,
-    "ast_hash": "c5632874ff37e199bba67f21ad51e3a4",
+    "mtime": 1785451714.6033201,
+    "ast_hash": "26dcadc7e3a11769ee796c18d66bd02b",
     "semantic_hash": ""
   },
   "public/manifest.json": {
@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785438350.972558,
-    "ast_hash": "376a6cb1bb01bbfb6089c59d80eca922",
+    "mtime": 1785451771.5298448,
+    "ast_hash": "5b20bd4a425ee3ab15a14c662bb7b1f7",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -3007,6 +3007,11 @@
   "public/assets/technician_shift_lead.jpg": {
     "mtime": 1785451378.8086746,
     "ast_hash": "1e53516b75d88d70c2abfbf42eeb23c0",
+    "semantic_hash": ""
+  },
+  "tests/homepage-audit.spec.js": {
+    "mtime": 1785451798.6206858,
+    "ast_hash": "24efe8e2f04a14be6884149b37ebf3e4",
     "semantic_hash": ""
   }
 }

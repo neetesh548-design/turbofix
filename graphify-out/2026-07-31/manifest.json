@@ -790,8 +790,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785241372.653024,
-    "ast_hash": "bc14a6b7e05e247f5a3badffd1868dae",
+    "mtime": 1785451389.6703749,
+    "ast_hash": "7afaa36f5b53a64f2e6ff105f94cb664",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -2992,6 +2992,21 @@
   "src/components/ui/StitchVisualCharts.jsx": {
     "mtime": 1785449995.4880106,
     "ast_hash": "b751aab518e4e951e59f2e2c6faf30c5",
+    "semantic_hash": ""
+  },
+  "public/assets/maintenance_head_lead.jpg": {
+    "mtime": 1785451378.8046374,
+    "ast_hash": "beac3f02c1f3a1729643940e610c72f3",
+    "semantic_hash": ""
+  },
+  "public/assets/plant_owner_executive.jpg": {
+    "mtime": 1785451378.7998097,
+    "ast_hash": "17ba422803a0dfd50cc4641e7b180009",
+    "semantic_hash": ""
+  },
+  "public/assets/technician_shift_lead.jpg": {
+    "mtime": 1785451378.8086746,
+    "ast_hash": "1e53516b75d88d70c2abfbf42eeb23c0",
     "semantic_hash": ""
   }
 }

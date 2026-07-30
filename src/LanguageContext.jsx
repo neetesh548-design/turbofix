@@ -26,4 +26,10 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
-export const useLanguage = () => useContext(LanguageContext);
+const defaultLanguageContext = {
+  lang: 'en',
+  setLang: () => {},
+  t: (key) => key,
+};
+
+export const useLanguage = () => useContext(LanguageContext) || defaultLanguageContext;
