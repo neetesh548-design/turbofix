@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785450007.4713264,
-    "ast_hash": "b91d49071a1b2d2e57d57a456fd9afd3",
+    "mtime": 1785452353.145869,
+    "ast_hash": "15c19ed42049b1852476de656095392d",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -795,8 +795,8 @@
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785450044.5732675,
-    "ast_hash": "f26eb6351c953e6627d7c1886f6f51db",
+    "mtime": 1785452596.076874,
+    "ast_hash": "5e577a8e8a8aaa2af6f2b11771fff9fe",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -820,8 +820,8 @@
     "semantic_hash": "43a7f6de768a40e0af4731115fbab025"
   },
   "src/pages/Records.jsx": {
-    "mtime": 1785450085.6170416,
-    "ast_hash": "121636883977ca39475a901253365d37",
+    "mtime": 1785452652.5993593,
+    "ast_hash": "f289c8a9c7eb16ab24c4d52d2df22b91",
     "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
-    "mtime": 1785175130.683491,
-    "ast_hash": "444294c8f4c6c87580629ab98d6a2f85",
+    "mtime": 1785452676.8022664,
+    "ast_hash": "d9e41f8213389bb5ea2ad1e3ead7ac46",
     "semantic_hash": ""
   },
   "src/pages/Support.jsx": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/pages/Technician.jsx": {
-    "mtime": 1785450027.5612001,
-    "ast_hash": "7a95f4481c490c9cfacd6d42ba911f08",
+    "mtime": 1785452485.1519673,
+    "ast_hash": "3977c90cd47683987444890d961dfa36",
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
@@ -1615,8 +1615,8 @@
     "semantic_hash": "9be176435a50e02f8b242f34c1fe3e93"
   },
   "src/pages/Kaizen.jsx": {
-    "mtime": 1785450063.462838,
-    "ast_hash": "48e78bd45f049be9aa2dd6f2a56bc469",
+    "mtime": 1785452550.3421457,
+    "ast_hash": "d6348a457878474d9932ffa2f910d17d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260724010000_create_kaizen_opportunities.sql": {
@@ -2350,8 +2350,8 @@
     "semantic_hash": ""
   },
   "src/pages/ReportBreakdown.jsx": {
-    "mtime": 1785348136.0518415,
-    "ast_hash": "731570a13a4ae1019203d3a09c594548",
+    "mtime": 1785452436.0366945,
+    "ast_hash": "5dcd4ac347c0d79a1777fc5b16551315",
     "semantic_hash": ""
   },
   "src/utils/breakdownRouter.js": {
@@ -2435,8 +2435,8 @@
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785450054.2212005,
-    "ast_hash": "43305ae511916219fcd1130090c61e42",
+    "mtime": 1785452521.0004468,
+    "ast_hash": "3c45d7e6cd45bf58c3e4eaf99f6a832a",
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
@@ -3012,6 +3012,46 @@
   "tests/homepage-audit.spec.js": {
     "mtime": 1785451798.6206858,
     "ast_hash": "24efe8e2f04a14be6884149b37ebf3e4",
+    "semantic_hash": ""
+  },
+  "public/assets/dashboard_executive_control.jpg": {
+    "mtime": 1785452327.1915574,
+    "ast_hash": "81fef46c67a4d8eef8be0fc319905520",
+    "semantic_hash": ""
+  },
+  "public/assets/inventory_warehouse_spares.jpg": {
+    "mtime": 1785452327.2156136,
+    "ast_hash": "b825dd05a5e7791ab59196d69b887e8a",
+    "semantic_hash": ""
+  },
+  "public/assets/kaizen_innovation_shopfloor.jpg": {
+    "mtime": 1785452327.2112515,
+    "ast_hash": "5628ec90eb47586485e22dc1a9c676fb",
+    "semantic_hash": ""
+  },
+  "public/assets/qr_scanner_breakdown.jpg": {
+    "mtime": 1785452327.1980343,
+    "ast_hash": "6f936d93f72c2637974defd3bcc8b404",
+    "semantic_hash": ""
+  },
+  "public/assets/rca_team_collaboration.jpg": {
+    "mtime": 1785452327.2072172,
+    "ast_hash": "df4fa140614bfc37f2e6614b56333492",
+    "semantic_hash": ""
+  },
+  "public/assets/records_ocr_digitization.jpg": {
+    "mtime": 1785452327.2193491,
+    "ast_hash": "e9deda243659350c884305c65d77a023",
+    "semantic_hash": ""
+  },
+  "public/assets/shutdown_overhaul_team.jpg": {
+    "mtime": 1785452327.2225354,
+    "ast_hash": "ef3c1f1d53ff269848b85f4def304a83",
+    "semantic_hash": ""
+  },
+  "public/assets/technician_field_repair.jpg": {
+    "mtime": 1785452327.2031674,
+    "ast_hash": "62ccd2dbc6106cb721193ece26050166",
     "semantic_hash": ""
   }
 }

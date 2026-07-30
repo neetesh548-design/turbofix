@@ -3635,7 +3635,7 @@ export default function Machines() {
         {/* Shift Personnel Roster Matrix Modal */}
         <MachinePersonnelMatrixModal
           machine={matrixTargetMachine}
-          usersList={teamMembers}
+          usersList={team}
           isOpen={matrixModalOpen}
           onClose={() => { setMatrixModalOpen(false); setMatrixTargetMachine(null); }}
           onSave={savePersonnelMatrix}

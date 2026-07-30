@@ -164,6 +164,7 @@ function App() {
                     <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
                     <Route path="/reset-password.html" element={<ResetPassword />} />
                     <Route path="/machines.html" element={<Machines />} />
+                    <Route path="/machines" element={<Navigate to="/machines.html" replace />} />
                     <Route path="/tickets.html" element={<Tickets />} />
                     <Route path="/team.html" element={<Team />} />
                     <Route path="/settings.html" element={<Settings />} />

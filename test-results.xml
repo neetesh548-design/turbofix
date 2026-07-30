@@ -1,12 +1,8 @@
-<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="37.477652">
-<testsuite name="homepage-audit.spec.js" timestamp="2026-07-30T23:05:01.729Z" hostname="chromium" tests="4" failures="0" skipped="0" time="117.071" errors="0">
-<testcase name="TurboFix Homepage E2E Audit › 1. Verify homepage title, hero heading, and primary CTAs" classname="homepage-audit.spec.js" time="29.614">
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="15.615425">
+<testsuite name="machines-page-check.spec.js" timestamp="2026-07-30T23:17:19.539Z" hostname="chromium" tests="2" failures="0" skipped="0" time="25.317" errors="0">
+<testcase name="Machines Page Diagnostics › Check if /machines.html opens cleanly for signed-in user" classname="machines-page-check.spec.js" time="12.644">
 </testcase>
-<testcase name="TurboFix Homepage E2E Audit › 2. Verify Executive Connection Cards &amp; custom persona portraits" classname="homepage-audit.spec.js" time="28.214">
-</testcase>
-<testcase name="TurboFix Homepage E2E Audit › 3. Verify Theme Toggle switches between Dark and Light Mode" classname="homepage-audit.spec.js" time="30.495">
-</testcase>
-<testcase name="TurboFix Homepage E2E Audit › 4. Verify Navbar brand and navigation links" classname="homepage-audit.spec.js" time="28.748">
+<testcase name="Machines Page Diagnostics › Check if /machines route redirects to /machines.html and loads" classname="machines-page-check.spec.js" time="12.673">
 </testcase>
 </testsuite>
 </testsuites>
