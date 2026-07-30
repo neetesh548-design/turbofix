@@ -877,6 +877,17 @@ export default function AdminPortal() {
                             {(c.users_count || 0) > (c.user_quota || 10) && (
                               <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
                             )}
+                            <button
+                              onClick={() => {
+                                setQuotaModalComp(c);
+                                setNewMachineQuota(c.machine_quota || 5);
+                                setNewUserQuota(c.user_quota || 10);
+                              }}
+                              title="Edit User & Machine Quotas"
+                              className="p-1 text-slate-500 hover:text-amber-400 hover:bg-slate-800 rounded transition-colors"
+                            >
+                              <Sliders className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                         <td className="p-4 text-slate-300">
@@ -891,13 +902,24 @@ export default function AdminPortal() {
                           </div>
                         </td>
                         <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setQuotaModalComp(c);
+                              setNewMachineQuota(c.machine_quota || 5);
+                              setNewUserQuota(c.user_quota || 10);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-colors"
+                            title="Edit User & Machine Quotas"
+                          >
+                            <Sliders className="w-3.5 h-3.5 text-amber-400" /> Quotas
+                          </button>
                           {c.status === 'paused' ? (
                             <button
                               onClick={() => handleResumeCompany(c.company_code)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
                               title="Resume Factory Plan"
                             >
-                              <Play className="w-3.5 h-3.5" /> Resume Plan
+                              <Play className="w-3.5 h-3.5" /> Resume
                             </button>
                           ) : (
                             <button
@@ -905,7 +927,7 @@ export default function AdminPortal() {
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-semibold transition-colors"
                               title="Pause Factory Plan"
                             >
-                              <Pause className="w-3.5 h-3.5" /> Pause Plan
+                              <Pause className="w-3.5 h-3.5" /> Pause
                             </button>
                           )}
                           {c.approved !== 'yes' && c.status !== 'paused' && (
