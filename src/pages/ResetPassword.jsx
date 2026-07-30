@@ -118,11 +118,12 @@ export default function ResetPassword() {
           return;
         }
 
-        // Legacy token flow: ?token=xxx&type=invite or ?token=xxx&type=recovery
-        if (params.get('token')) {
-          const tokenType = params.get('type') || 'recovery';
+        // Token flow in search params or hash params
+        const rawToken = params.get('token') || hashParams.get('token');
+        if (rawToken) {
+          const tokenType = params.get('type') || hashParams.get('type') || 'recovery';
           const { error } = await supabase.auth.verifyOtp({
-            token_hash: params.get('token'),
+            token_hash: rawToken,
             type: tokenType,
           });
           if (error && !resolved) {
@@ -133,6 +134,22 @@ export default function ResetPassword() {
             resolve(Boolean(data?.session));
           }
           return;
+        }
+
+        // Implicit hash token payload: #access_token=...&refresh_token=...&type=recovery
+        if (hashParams.has('access_token')) {
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          if (accessToken && refreshToken) {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (!error && !resolved) {
+              resolve(true);
+              return;
+            }
+          }
         }
 
         // No URL payload — check for an existing session (e.g. user refreshed)
