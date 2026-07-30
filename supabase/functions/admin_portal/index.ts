@@ -16,17 +16,17 @@ const cors = (req: Request) => {
   }
 }
 
-const reply = (req: Request, body: Record<string, unknown> | Array<unknown>, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...cors(req), 'Content-Type': 'application/json' },
-  })
+const reply = (req: Request, body: Record<string, unknown> | Array<unknown>, status = 200) => {
+  const headers = new Headers(cors(req))
+  headers.set('content-type', 'application/json')
+  return new Response(JSON.stringify(body), { status, headers })
+}
 
-const htmlReply = (req: Request, html: string, status = 200) =>
-  new Response(html, {
-    status,
-    headers: { ...cors(req), 'Content-Type': 'text/html; charset=utf-8' },
-  })
+const htmlReply = (req: Request, html: string, status = 200) => {
+  const headers = new Headers(cors(req))
+  headers.set('content-type', 'text/html; charset=utf-8')
+  return new Response(html, { status, headers })
+}
 
 const getSupabaseClient = () => {
   const url = Deno.env.get('SUPABASE_URL') || ''
