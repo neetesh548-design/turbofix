@@ -190,34 +190,20 @@ export default function ResetPassword() {
       }
       setRequestLoading(true);
       try {
-        let sent = false;
-        // Try passwordless 6-digit Email OTP via signInWithOtp
-        const { error: otpErr } = await supabase.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false },
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
         });
+        if (resetErr) throw resetErr;
 
-        if (!otpErr) {
-          sent = true;
-          setRequestSuccess('6-digit Email OTP code sent — check your inbox.');
-        } else {
-          // Fallback to resetPasswordForEmail
-          const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
-          });
-          if (resetErr) throw resetErr;
-          sent = true;
-          setRequestSuccess('Verification code sent — check your inbox.');
-        }
-
-        if (sent) setStep('verify');
+        setRequestSuccess('A password reset link has been sent to your email ID. Please check your inbox (and spam folder) and click the link to set your new password.');
       } catch (err) {
-        setRequestError(err.message || 'Failed to send verification email. Please try again.');
+        setRequestError(err.message || 'Failed to send reset link. Please try again.');
       } finally {
         setRequestLoading(false);
       }
     }
   };
+
 
   const handleVerifyCode = async () => {
     setVerifyError('');
@@ -397,7 +383,7 @@ export default function ResetPassword() {
       title: isInvite ? 'Activate your account' : 'Reset your password',
       sub: resetMode === 'phone'
         ? 'We will send a 6-digit OTP to your mobile via WhatsApp & SMS.'
-        : "We'll email you a code to get back in.",
+        : "We'll email you a direct link to reset your password.",
     },
     verify: {
       title: 'Enter verification code',
@@ -501,8 +487,11 @@ export default function ResetPassword() {
                   disabled={requestLoading}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  {requestLoading ? <><Loader2 size={16} className="animate-spin" /> Sending OTP…</> : 'Send OTP via WhatsApp & SMS'}
+                  {requestLoading
+                    ? <><Loader2 size={16} className="animate-spin" /> {resetMode === 'phone' ? 'Sending OTP…' : 'Sending Link…'}</>
+                    : resetMode === 'phone' ? 'Send OTP via WhatsApp & SMS' : 'Send Password Reset Link'}
                 </button>
+
 
                 {requestError && (
                   <div className="p-3 bg-red-950/60 border border-red-800/80 text-red-300 rounded-xl text-sm flex items-start gap-2" role="alert">
