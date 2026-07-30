@@ -137,44 +137,71 @@ def _company_code_for_id(company_id: str) -> str:
 
 def _factory_id_for_code(code: str) -> str | None:
     """Given a company domain/code, return the corresponding factories UUID."""
-    if str(code or "").strip().upper() == "TFDEMO":
-        return "f1000000-0000-0000-0000-000000000099"
     company_id = _company_id_for_code(code)
     if not company_id:
+        if str(code or "").strip().upper() == "TFDEMO":
+            return "f1000000-0000-0000-0000-000000000099"
         return None
-    # Machines link to both company_id and factory_id; find a machine to get factory_id
+
+    # 1. Query factories table directly by company_id
+    factory = _client.select_one("factories", {"company_id": f"eq.{company_id}"})
+    if factory and factory.get("id"):
+        return factory["id"]
+
+    # 2. Machines link to both company_id and factory_id; find a machine to get factory_id
     machine = _client.select_one("machines", {
         "company_id": f"eq.{company_id}",
         "select": "factory_id",
     })
     if machine and machine.get("factory_id"):
         return machine["factory_id"]
-    # Fallback: look up factories by name match
+
+    # 3. Fallback: look up factories by name match
     company = _client.select_one("companies", {"id": f"eq.{company_id}"})
     if company:
         factory = _client.select_one("factories", {"name": f"eq.{company['name']}"})
-        if factory:
+        if factory and factory.get("id"):
             return factory["id"]
+
+    if str(code or "").strip().upper() == "TFDEMO":
+        return "f1000000-0000-0000-0000-000000000099"
     return None
 
 
 def _company_code_for_factory_id(factory_id: str) -> str:
     """Given a factory UUID, find the matching company domain code."""
-    if str(factory_id or "").strip() == "f1000000-0000-0000-0000-000000000099":
-        return "TFDEMO"
-    # Find a machine with this factory_id to get company_id
+    if not factory_id:
+        return ""
+
+    # 1. Query factories table directly for company_id
+    factory = _client.select_one("factories", {"id": f"eq.{factory_id}"})
+    if factory and factory.get("company_id"):
+        code = _company_code_for_id(factory["company_id"])
+        if code:
+            return code
+
+    # 2. Find a machine with this factory_id to get company_id
     machine = _client.select_one("machines", {
         "factory_id": f"eq.{factory_id}",
         "select": "company_id",
     })
     if machine and machine.get("company_id"):
-        return _company_code_for_id(machine["company_id"])
-    # Fallback: match by factory name → company name
-    factory = _client.select_one("factories", {"id": f"eq.{factory_id}"})
-    if factory:
+        code = _company_code_for_id(machine["company_id"])
+        if code:
+            return code
+
+    # 3. Fallback: match by factory name -> company name
+    if factory and factory.get("name"):
         company = _client.select_one("companies", {"name": f"eq.{factory['name']}"})
-        if company:
-            return company.get("domain", "")
+        if company and company.get("domain"):
+            return company["domain"]
+
+    # Check if seed TFDEMO company still exists in companies table
+    if str(factory_id or "").strip() == "f1000000-0000-0000-0000-000000000099":
+        demo_co = _client.select_one("companies", {"domain": "eq.TFDEMO"})
+        if demo_co:
+            return "TFDEMO"
+
     return ""
 
 
@@ -186,19 +213,25 @@ def _build_factory_to_code_map() -> dict:
         id_to_code = {c["id"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("id")}
         name_to_code = {c["name"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("name")}
 
+        # 1. Bulk mapping from factories table directly
+        factories = _client.select("factories")
+        for f in factories:
+            fid = f.get("id")
+            fcid = f.get("company_id")
+            fname = f.get("name")
+            if fid:
+                if fcid and fcid in id_to_code:
+                    f_map[fid] = id_to_code[fcid]
+                elif fname and fname in name_to_code:
+                    f_map[fid] = name_to_code[fname]
+
+        # 2. Bulk mapping from machines table
         machines = _client.select("machines", {"select": "factory_id,company_id"})
         for m in machines:
             fid = m.get("factory_id")
             cid = m.get("company_id")
-            if fid and cid and cid in id_to_code:
+            if fid and fid not in f_map and cid and cid in id_to_code:
                 f_map[fid] = id_to_code[cid]
-
-        factories = _client.select("factories")
-        for f in factories:
-            fid = f.get("id")
-            fname = f.get("name")
-            if fid and fid not in f_map and fname and fname in name_to_code:
-                f_map[fid] = name_to_code[fname]
     except Exception as exc:
         log.error("supabase._build_factory_to_code_map failed", extra={"error": str(exc)})
     return f_map
