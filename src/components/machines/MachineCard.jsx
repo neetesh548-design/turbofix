@@ -21,7 +21,7 @@ import { machineDisplayStatus } from '@/utils/machineHealth';
  * - onOpenMaintenance (fn(machine)): PM metric clicked
  * - selected (bool), onToggleSelect (fn(machineId)): batch-selection checkbox
  */
-function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMaintenance, selected, onToggleSelect }) {
+function MachineCard({ machine, onOpen, onViewDetails, onReportIssue, onOpenTickets, onOpenMaintenance, selected, onToggleSelect }) {
   const health = machineDisplayStatus(machine);
   const { pm, service, openCount, critical } = health;
 
@@ -138,7 +138,7 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
             type="button"
             className="machine-card-btn primary"
             data-testid="machine-view-details"
-            onClick={(event) => { event.stopPropagation(); onOpen?.(machine); }}
+            onClick={(event) => { event.stopPropagation(); (onViewDetails || onOpen)?.(machine); }}
           >
             Open machine <ChevronRight size={14} aria-hidden="true" />
           </button>

@@ -2318,6 +2318,7 @@ export default function Machines() {
                       key={machine.machine_id}
                       machine={machine}
                       onOpen={openDrawer}
+                      onViewDetails={(m) => openWorkspace(m, 'info')}
                       onReportIssue={openReportIssue}
                       onOpenTickets={openTicketsFor}
                       onOpenMaintenance={(machine) => openWorkspace(machine, 'pm')}
@@ -2510,7 +2511,7 @@ export default function Machines() {
                     <ChevronRight size={16} aria-hidden="true" />
                   </button>
                   <button type="button" className="machine-all-tools" onClick={() => setShowMoreOptions(true)}>
-                    All machine tools
+                    More options
                   </button>
                 </div>
               ) : (
