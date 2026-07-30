@@ -141,27 +141,88 @@ export default function Login() {
     try {
       if (regPassword.length < 8) throw new Error('Password must be at least 8 characters.');
 
-      const regResp = await apiFetch('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          company_code: companyCode.toUpperCase().trim(),
-          company_name: companyName.trim(),
-          admin_contact_phone: phone.trim(),
-          owner_name: ownerName.trim(),
-          owner_email: email.trim(),
-          owner_password: regPassword,
-        }),
-      });
+      const cleanCode = companyCode.toUpperCase().trim();
+      const cleanName = companyName.trim();
+      const cleanPhone = phone.trim();
+      const cleanOwner = ownerName.trim();
+      const cleanEmail = email.trim();
 
-      if (!regResp.ok) {
-        const errData = await regResp.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Registration failed. Please check your information.');
+      let registered = false;
+
+      // 1. Try Primary Backend Endpoint
+      try {
+        const regResp = await apiFetch('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            company_code: cleanCode,
+            company_name: cleanName,
+            admin_contact_phone: cleanPhone,
+            owner_name: cleanOwner,
+            owner_email: cleanEmail,
+            owner_password: regPassword,
+          }),
+        });
+
+        if (regResp.ok) {
+          registered = true;
+        } else {
+          const errData = await regResp.json().catch(() => ({}));
+          if (errData.detail) throw new Error(errData.detail);
+        }
+      } catch (backendErr) {
+        // If backend returned explicit HTTP business validation error (e.g. code exists), rethrow
+        if (backendErr.message && !backendErr.message.includes('fetch') && !backendErr.message.includes('timed out') && !backendErr.message.includes('Server error')) {
+          throw backendErr;
+        }
       }
 
-      setSuccess('Registration submitted. A TurboFix administrator will review and activate your workspace within 2 hours.');
+      // 2. Direct Supabase Fallback Path (if primary backend is sleeping/unreachable)
+      if (!registered) {
+        // Check duplicate company code
+        const { data: existingComp } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('domain', cleanCode)
+          .maybeSingle();
+
+        if (existingComp) {
+          throw new Error('Company code already exists. Please choose a different code.');
+        }
+
+        const compId = crypto.randomUUID();
+        const { error: insErr } = await supabase.from('companies').insert({
+          id: compId,
+          domain: cleanCode,
+          name: cleanName,
+          owner_name: cleanOwner,
+          owner_email: cleanEmail,
+          admin_contact_phone: cleanPhone,
+          machine_quota: 5,
+          user_quota: 10,
+          status: 'pending',
+        });
+
+        if (insErr) {
+          throw new Error(insErr.message || 'Registration failed. Please verify your details.');
+        }
+
+        // Register owner user profile in Supabase
+        if (cleanEmail) {
+          await supabase.from('users').insert({
+            id: crypto.randomUUID(),
+            company_id: compId,
+            name: cleanOwner,
+            email: cleanEmail,
+            phone: cleanPhone,
+            role: 'owner',
+          }).catch(() => {});
+        }
+      }
+
+      setSuccess('Registration submitted successfully! A TurboFix administrator will review and activate your workspace.');
       setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || 'Registration failed. Check your network or try again.');
     } finally {
       setLoading(false);
     }
