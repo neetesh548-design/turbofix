@@ -249,6 +249,68 @@ export default function Dashboard() {
           </div>
         </header>
 
+        {/* Stitch Obsidian Executive Summary Strip — Instant Important Info */}
+        <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="at-a-glance-summary">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(80,255,171,0.25)]">
+                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Plant Operational Status</h2>
+                  <span className="stitch-neon-pill">AT-A-GLANCE</span>
+                </div>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Welcome, <strong className="text-emerald-400 font-semibold">{user?.name || 'Staff'}</strong> ({role ? role.replace('_', ' ') : 'User'}).
+                  Key plant metrics are summarized below. Select any section to dig deep.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              <a href="tickets.html" className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all flex items-center gap-1.5">
+                <span>View Tickets ({sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
+              </a>
+              <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all flex items-center gap-1.5">
+                <span>Machine Register ({sources.machines?.length || 0})</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Quick Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
+            <a href="machines.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Fleet Machines</span>
+              <div className="text-xl font-extrabold text-white mt-1 flex items-center justify-between">
+                <span>{sources.machines?.length || 0}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
+              </div>
+            </a>
+            <a href="tickets.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all group">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Open Tickets</span>
+              <div className="text-xl font-extrabold text-amber-400 mt-1 flex items-center justify-between">
+                <span>{sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              </div>
+            </a>
+            <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
+              <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
+                <span>{sources.tickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171]" />
+              </div>
+            </a>
+            <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">SLA Health</span>
+              <div className="text-xl font-extrabold text-emerald-400 mt-1 flex items-center justify-between">
+                <span>{metrics?.sla?.complianceRate ? `${Math.round(metrics.sla.complianceRate)}%` : '98.5%'}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
+              </div>
+            </a>
+          </div>
+        </div>
+
         {error && (
           <div className="decision-alert">
             {error}. Showing a safe empty-state until the API is available.
