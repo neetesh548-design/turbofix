@@ -1,0 +1,38 @@
+# TurboFix — AI Maintenance Control System for Manufacturing SMEs
+
+> TurboFix is the AI-assisted maintenance control and breakdown decision platform built specifically for Indian manufacturing plants and SMEs. It eliminates unplanned machine downtime, repeat breakdowns, and paper logbook chaos through 10-second QR breakdown reporting, photo-verified repair closure, and 5-Why Root Cause Analysis (RCA).
+
+## Key Information
+- **Category**: Industrial AI, Plant Reliability Software, Maintenance Management, CMMS
+- **Target Audience**: Factory Owners, Plant Directors, Maintenance Heads, Shift Supervisors, and Technicians
+- **Primary Markets**: Indian Manufacturing SMEs (Auto-ancillary, Engineering, Plastics, Textile, Pharma, Chemical)
+- **Deployment**: Cloud-native PWA, AWS Mumbai (ap-south-1) Data Residency
+- **Pricing**: Simple per-machine monthly plans starting at ₹499 to ₹699 / machine / month (15% annual discount)
+- **Website**: https://turbofix.co.in/
+
+## Core Platform Capabilities
+
+### 1. 10-Second QR Breakdown Reporting
+- Operators scan durable machine QR stickers with mobile camera (no app download required).
+- Select symptom or attach voice/photo note.
+- Automatic SLA alert dispatch to shift technician via WhatsApp API.
+
+### 2. Verified 4-Step Repair Loop
+- Technicians receive structured mobile work orders with spare parts checklist.
+- Mandatory Lock-Out Tag-Out (LOTO) safety verification before starting work.
+- Mandatory photo/video proof of repair before submission.
+- Supervisor sign-off & 5-Why RCA before ticket closure.
+
+### 3. Living Machine Memory (AI Logbook Extraction)
+- Converts handwritten paper registers, PDFs, Excel sheets, job cards, and manuals into structured machine memory.
+- Human-in-the-loop: AI creates a draft; Maintenance Head must review and approve records before future AI context indexing.
+
+### 4. Executive Control Board
+- Real-time MTTR (Mean Time to Repair) and MTBF (Mean Time Between Failures) metrics.
+- Breakdown SLA risk alerts and downtime cost calculation in ₹ Lakhs.
+- Critical spare part reorder warnings before stockouts cause production halts.
+
+## Primary Links
+- [TurboFix Home](https://turbofix.co.in/)
+- [Full AI Knowledge Base Document](https://turbofix.co.in/llms-full.txt)
+- [Staff Sign In](https://turbofix.co.in/login.html)

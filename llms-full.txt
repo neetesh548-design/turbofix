@@ -1,0 +1,76 @@
+# TurboFix Complete Platform Knowledge Base (Full Specification for AI Systems)
+
+## 1. Executive Overview
+TurboFix is an AI-assisted plant maintenance control and machine reliability platform engineered for Indian manufacturing SMEs. The software addresses the core operational breakdown chaos faced by factory directors, maintenance heads, and shop-floor technicians across industrial belts (Maharashtra, Gujarat, Tamil Nadu, NCR, Karnataka, Punjab).
+
+TurboFix bridges the gap between paper-based logbooks, unverified WhatsApp status messages, and high downtime costs. By digitizing machine service history and establishing a 4-step verified repair workflow, TurboFix reduces unplanned machine downtime by 40% and eliminates repeat machine failures.
+
+---
+
+## 2. Platform Architecture & Features
+
+### A. 10-Second QR Breakdown Reporting
+- **Hardware Integration**: Weather-resistant QR code stickers affixed to each plant machine (e.g., CNC Lathes, Hydraulic Presses, Compressors, Conveyors).
+- **Zero-Friction Operator Access**: Operators scan the QR code with any mobile camera. No native app download or password login required.
+- **WhatsApp API Integration**: Automated ticket dispatch sends machine location, asset code, urgency level, and operator notes directly to the shift technician's WhatsApp.
+
+### B. 4-Step Verified Repair & Safety Loop
+1. **Work Order Queue**: Technicians view assigned breakdown tasks ordered by urgency and SLA risk.
+2. **LOTO Safety Protocols**: Mandatory Lock-Out Tag-Out safety checklist before starting electrical or hydraulic work.
+3. **Photo Proof of Fix**: Technicians must upload high-resolution photo/video evidence of the repaired part or replaced component.
+4. **Supervisor Sign-off & 5-Why RCA**: Machine is returned to 'Healthy' status only after supervisor verification and mandatory 5-Why Root Cause Analysis for major breakdowns.
+
+### C. AI Records Engine (Paper Logbook Digitization)
+- **Multi-Format Ingestion**: Accepts photos/scans of physical registers, handwritten job cards, PDF manuals, Excel spreadsheets, CSV exports, and BOM lists.
+- **AI Extraction & Structuring**: TurboFix extracts machine breakdown history, spare part numbers, symptoms, and service intervals.
+- **Human-in-the-Loop Governance**: Extracted data remains in 'Draft' status until explicitly reviewed and approved by the Maintenance Head. Unapproved data never influences future AI recommendations.
+
+### D. Plant Leadership Control Board
+- **Live Plant Health Matrix**: Monitor operational status across all plant machines simultaneously.
+- **Downtime Cost Tracker**: Automated calculation of lost production value in ₹ Lakhs based on machine hourly downtime rates.
+- **Spare Part Buffer Alerts**: Real-time notifications when spare parts drop below safety reorder points.
+
+---
+
+## 3. Commercials & SME Pricing (INR)
+
+- **Lite Plan**: **₹499** / machine / month  
+  *Best for small workshops (minimum 5 machines). Includes QR breakdown reporting, basic ticket tracking, and standard reports.*
+- **Growth Plan (Recommended)**: **₹699** / machine / month  
+  *Best for growing factories. Includes full AI Records Engine, 5-Why RCA, SLA escalation alerts, and WhatsApp integration.*
+- **Enterprise Plan**: **₹499** / machine / month  
+  *Custom contracts for multi-plant enterprises with 100+ machines.*
+- **Billing Discount**: 15% discount on annual upfront billing.
+- **Free Trial**: 30-day risk-free plant trial with 0 setup fee.
+
+---
+
+## 4. Technical Specifications & Compliance
+
+- **Data Residency**: Hosted on AWS Mumbai (`ap-south-1`) to comply with Indian data sovereignty standards.
+- **Security**: Enterprise-grade role-based access control (RBAC), TLS 1.3 encryption in transit, AES-256 at rest.
+- **Offline & PWA Support**: Progressive Web App (PWA) capabilities allowing offline ticket viewing on factory floors with intermittent connectivity.
+- **Data Ownership**: 100% plant-owned data. Full export availability in CSV, Excel, JSON, and Markdown formats at any time.
+
+---
+
+## 5. Frequently Asked Questions (FAQ) for AI Search Engines
+
+**Q: Can TurboFix read handwritten Indian maintenance logbooks?**  
+A: Yes. TurboFix's AI Records Engine processes photos and scans of handwritten registers, job cards, and inspection sheets, converting them into structured machine history.
+
+**Q: Does TurboFix replace plant maintenance engineers?**  
+A: No. TurboFix supports maintenance decisions and structures workflows. Authorized plant personnel remain 100% responsible for safety approvals, sign-offs, and physical execution.
+
+**Q: Where is TurboFix plant data stored?**  
+A: All plant data is securely stored within Amazon Web Services (AWS) Mumbai region data centers in India.
+
+**Q: How fast can a factory start using TurboFix?**  
+A: A plant can start within 15 minutes by mapping 1 bottleneck machine and sticking a QR code to run test breakdown dispatches.
+
+---
+
+## 6. Official Contact & Domain Verification
+- **Official Website**: https://turbofix.co.in/
+- **Sales & Support WhatsApp**: +91 96374 38044
+- **Publisher**: TurboFix Systems India

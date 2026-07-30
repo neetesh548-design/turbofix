@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1118" />
+
+    <!-- HTTPS Redirect Enforcement for Production Domain -->
+    <script>
+      if (window.location.protocol === 'http:' && window.location.hostname === 'turbofix.co.in') {
+        window.location.href = window.location.href.replace('http:', 'https:');
+      }
+    </script>
+
+    <!-- iOS Safari PWA Optimizations -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TurboFix" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://wcqgbleppiaddgfjrnpq.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://wcqgbleppiaddgfjrnpq.supabase.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Naskh+Arabic:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <!-- Primary Title & SEO Meta Tags -->
+    <title>TurboFix | AI Maintenance Management Software for Manufacturing</title>
+    <meta name="description" content="TurboFix helps manufacturing plants control breakdowns, preventive maintenance, machine history, spare parts, and technician work in one verified system." />
+    <meta name="keywords" content="manufacturing maintenance software, CMMS, preventive maintenance software, breakdown management, machine maintenance, plant reliability, maintenance work orders" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://turbofix.co.in/" />
+
+    <!-- AI Search Engine Optimization Tags (ChatGPT, Gemini, Claude, Perplexity) -->
+    <meta name="ai-summary" content="TurboFix is an AI-assisted plant maintenance control system for Indian manufacturing SMEs. Features include 10-second QR breakdown reporting over WhatsApp, photo-verified repair closure, 5-Why root cause analysis, and paper logbook AI extraction. Stored in AWS Mumbai. Pricing: ₹499 to ₹699 / machine / month." />
+    <meta name="chatgpt-description" content="TurboFix is the AI plant maintenance decision platform for Indian manufacturing SMEs. Features: QR machine reporting, verified repair proof, 5-Why RCA, and AI logbook digitization." />
+    <link rel="author" href="https://turbofix.co.in/llms.txt" />
+
+    <!-- Open Graph & Social Cards -->
+    <meta property="og:title" content="TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs" />
+    <meta property="og:description" content="Turn existing paper maintenance logbooks into trusted AI machine memory. 10-second breakdown reporting, verified technician repair loops, and real-time downtime cost tracking." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://turbofix.co.in/" />
+    <meta property="og:site_name" content="TurboFix" />
+    <meta property="og:image" content="https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@turbofix_ai" />
+
+    <!-- Analytics Tracking Script (Google Analytics GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TURBOFIX2026"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TURBOFIX2026', { send_page_view: true });
+    </script>
+
+    <!-- Facebook Pixel Tracking -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'FB_PIXEL_TURBOFIX_2026');
+      fbq('track', 'PageView');
+    </script>
+
+    <!-- Local Business, FAQ, & Software JSON-LD Schema (Google, ChatGPT, Claude, Gemini RAG Optimization) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://turbofix.co.in/#localbusiness",
+            "name": "TurboFix Systems India",
+            "url": "https://turbofix.co.in/",
+            "logo": "https://turbofix.co.in/favicon.svg",
+            "image": "https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png",
+            "description": "TurboFix builds AI-assisted breakdown control and maintenance decision software for Indian manufacturing SMEs.",
+            "telephone": "+91-9637438044",
+            "priceRange": "₹499 - ₹699 / machine / month",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "MIDC Industrial Zone",
+              "addressLocality": "Mumbai",
+              "addressRegion": "Maharashtra",
+              "postalCode": "400093",
+              "addressCountry": "IN"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 19.0760,
+              "longitude": 72.8777
+            },
+            "sameAs": [
+              "https://www.linkedin.com/company/turbofix-ai",
+              "https://x.com/turbofix_ai",
+              "https://www.facebook.com/turbofix.ai",
+              "https://www.instagram.com/turbofix_ai",
+              "https://www.youtube.com/@turbofix-ai"
+            ]
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://turbofix.co.in/#organization",
+            "name": "TurboFix",
+            "url": "https://turbofix.co.in/",
+            "logo": "https://turbofix.co.in/favicon.svg",
+            "description": "AI-assisted maintenance control software for manufacturing plants."
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://turbofix.co.in/#software",
+            "name": "TurboFix Plant Maintenance Platform",
+            "url": "https://turbofix.co.in/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web, Android, iOS PWA",
+            "description": "AI-driven machine maintenance control system with 10-second QR breakdown reporting, 5-Why root cause analysis, spare parts inventory, and shutdown planning.",
+            "offers": {
+              "@type": "Offer",
+              "price": "499.00",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
+            "publisher": { "@id": "https://turbofix.co.in/#organization" }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://turbofix.co.in/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can TurboFix read handwritten maintenance registers?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. TurboFix accepts photos and scans of handwritten registers, job cards, inspection sheets, and marked drawings, along with PDF, Excel, Word, CSV, text, manuals, and BOM files."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does 10-second QR breakdown reporting work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Operators scan a durable QR code sticker on the machine using their mobile phone camera without downloading any app. They select the breakdown symptom and submit. The assigned shift technician receives an instant WhatsApp alert with exact machine location and urgency level."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is the price of TurboFix for Indian manufacturing plants?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TurboFix plans start at ₹499 per machine per month for Lite and ₹699 per machine per month for Growth (which includes full AI Records Engine, 5-Why RCA, and SLA escalation alerts). A 15% discount applies to annual billing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where is plant maintenance data stored in TurboFix?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "All plant data is securely stored within Amazon Web Services (AWS) Mumbai region data centers (ap-south-1) to ensure full data sovereignty and high performance for Indian manufacturing units."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-DMPGbs9m.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-jT5RKm57.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-dom-DU6Bfucm.js">
+    <link rel="modulepreload" crossorigin href="/assets/SizeContext-BliBZLHx.js">
+    <link rel="modulepreload" crossorigin href="/assets/activity-DoOjkgvu.js">
+    <link rel="modulepreload" crossorigin href="/assets/building-2-BZeq_Guz.js">
+    <link rel="modulepreload" crossorigin href="/assets/check-DXQbGA9R.js">
+    <link rel="modulepreload" crossorigin href="/assets/circle-alert-BnxZnroA.js">
+    <link rel="modulepreload" crossorigin href="/assets/refresh-cw-FSTH7cXi.js">
+    <link rel="modulepreload" crossorigin href="/assets/x-Dbi12M3t.js">
+    <link rel="modulepreload" crossorigin href="/assets/shield-_T34VVm_.js">
+    <link rel="modulepreload" crossorigin href="/assets/trash-2-2HRb7ZBG.js">
+    <link rel="modulepreload" crossorigin href="/assets/triangle-alert-Bwaboxih.js">
+    <link rel="modulepreload" crossorigin href="/assets/config-provider-DnlHhVH5.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-Cavhq0Ht.css">
+  <link rel="manifest" href="/manifest.webmanifest"></head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if (window.location.protocol === 'file:') {
+        document.getElementById('root').innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#0b1118;color:#e5edf6;font-family:system-ui,sans-serif"><section style="max-width:560px;padding:32px;border:1px solid #334155;border-radius:16px;background:#151e28"><strong style="color:#4ade80;letter-spacing:.08em">TURBOFIX</strong><h1 style="margin:12px 0 8px">Open TurboFix through a web server</h1><p style="margin:0;color:#aab8c8;line-height:1.6">This React application cannot run by opening index.html directly. For local use, run <code style="color:#f8fafc">pnpm dev</code> and open <a style="color:#4ade80" href="http://127.0.0.1:5173/">http://127.0.0.1:5173/</a>. For normal use, open the deployed TurboFix website.</p></section></main>';
+      }
+    </script>
+  </body>
+</html>

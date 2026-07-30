@@ -1,0 +1,47 @@
+# TurboFix robots.txt — Standard & AI Search Crawlers (Google, ChatGPT, Claude, Gemini, Perplexity)
+User-agent: *
+Allow: /
+
+# OpenAI / ChatGPT Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude Crawlers
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Google Search & Gemini Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity AI Crawler
+User-agent: PerplexityBot
+Allow: /
+
+# Apple & Bing Crawlers
+User-agent: Applebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# AI Knowledge Standard Files
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+Sitemap: https://turbofix.co.in/sitemap.xml
