@@ -38,6 +38,9 @@ function MachineCard({ machine, onOpen, onReportIssue, onOpenTickets, onOpenMain
       data-machine-id={machine.machine_id}
       data-health={health.status}
       aria-label={`${machine.machine_name}, ${health.label}`}
+      onClick={() => onOpen?.(machine)}
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen?.(machine); } }}
     >
       <header className="machine-card-head">
         <div className="machine-card-head-start">
