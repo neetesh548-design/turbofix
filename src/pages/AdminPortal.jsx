@@ -22,12 +22,38 @@ import {
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
 const TOKEN_KEY = 'tf_supabase_admin_token';
+const SECRET_ACCESS_KEY = 'TurboFixSecure2026';
 
 export default function AdminPortal() {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || '');
   const [password, setPassword] = useState('');
   const [loginErr, setLoginErr] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+
+  // Check if URL has secret access key or if already authenticated
+  const isAuthorizedPath = useMemo(() => {
+    if (token) return true;
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get('key') || params.get('access_key') || params.get('secret');
+    return key === SECRET_ACCESS_KEY;
+  }, [token]);
+
+  // Honeypot trap state
+  const [honeypotPassword, setHoneypotPassword] = useState('');
+  const [honeypotErr, setHoneypotErr] = useState('');
+  const [honeypotSubmitting, setHoneypotSubmitting] = useState(false);
+
+  const handleHoneypotSubmit = (e) => {
+    e.preventDefault();
+    setHoneypotErr('');
+    setHoneypotSubmitting(true);
+    // Tarpit delay to waste attacker/bot resources
+    setTimeout(() => {
+      setHoneypotSubmitting(false);
+      setHoneypotErr('Access Denied: Invalid credentials. Security event logged with system administrator.');
+      setHoneypotPassword('');
+    }, 2200);
+  };
 
   // Active Tab: 'companies' | 'machines' | 'tickets'
   const [activeTab, setActiveTab] = useState('companies');
@@ -374,6 +400,65 @@ export default function AdminPortal() {
   );
 
   if (!token) {
+    if (!isAuthorizedPath) {
+      // Honeypot Decoy Page (Option 3)
+      return (
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-xl border border-slate-700">
+                <Shield className="w-5 h-5 text-slate-400" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-slate-200">System Administration</h1>
+                <p className="text-xs text-slate-500 font-medium tracking-wide">
+                  Restricted Operator Gateway • Secure Port 443
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleHoneypotSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  Administrator Credentials
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={honeypotPassword}
+                    onChange={(e) => setHoneypotPassword(e.target.value)}
+                    placeholder="Enter security passcode"
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 pl-9 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-slate-600"
+                  />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                </div>
+              </div>
+
+              {honeypotErr && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{honeypotErr}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={honeypotSubmitting}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 border border-slate-700 text-xs"
+              >
+                {honeypotSubmitting ? 'Verifying Security Token...' : 'Authenticate'}
+              </button>
+            </form>
+            <p className="text-[10px] text-slate-600 text-center mt-6">
+              Unauthorized access attempts are monitored and recorded. IP address logged.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Real Control Room Gateway (Option 2)
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
