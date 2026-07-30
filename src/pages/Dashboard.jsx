@@ -167,8 +167,8 @@ export default function Dashboard() {
   //  - the Supervisor board has no team rows to build cards from
   //  - the Engineer board has no root_cause / component / capa_status anywhere
   // A board on real data never falls back; the banner only appears when it does.
-  const noFleetData = !loading && shouldUseDemoFleet(sources.machines, sources.tickets);
-  const demoSession = user?.inventory_mode === 'demo';
+  const noFleetData = !loading && shouldUseDemoFleet(sources.machines, sources.tickets, user);
+  const demoSession = user?.inventory_mode === 'demo' || user?.company_code === 'TFDEMO';
   const usingDemoTeam = demoSession && role === DASHBOARD_ROLES.SUPERVISOR
     && (noFleetData || shouldUseDemoTeam(sources.team));
   const usingDemoReliability = demoSession && role === DASHBOARD_ROLES.ENGINEER
@@ -178,10 +178,10 @@ export default function Dashboard() {
   const metrics = useMemo(() => {
     const shouldScope = isShiftScopedRole(user?.role);
     const liveMachineIds = visibleMachineIdSet(sources.machines, user);
-    const demoUser = noFleetData && role === DASHBOARD_ROLES.TECHNICIAN
+    const demoUser = demoSession && role === DASHBOARD_ROLES.TECHNICIAN
       ? { ...(user || {}), user_id: DEMO_TEAM[0].user_id }
       : user;
-    const demoMachines = demoSession || !sources.machines.length ? DEMO_MACHINES : sources.machines;
+    const demoMachines = demoSession ? DEMO_MACHINES : sources.machines;
     const demoMachineIds = visibleMachineIdSet(demoMachines, demoUser);
     const demoTickets = buildDemoTickets();
     const liveSources = shouldScope
@@ -200,6 +200,7 @@ export default function Dashboard() {
         user: demoUser,
       }
       : { ...liveSources, user };
+
 
     // Cache key changes whenever the inputs that move a number move.
     const key = [

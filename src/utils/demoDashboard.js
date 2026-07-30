@@ -100,11 +100,15 @@ export const DEMO_PM_LOGS = Object.freeze([
  * out — not that the plant has nothing. Every board falls back to the demo
  * fleet in that case, matching what the legacy dashboard already did.
  */
-export function shouldUseDemoFleet(machines, tickets) {
+export function shouldUseDemoFleet(machines, tickets, user) {
+  if (user && user.inventory_mode !== 'demo' && user.company_code !== 'TFDEMO') {
+    return false;
+  }
   const noMachines = !Array.isArray(machines) || machines.length === 0;
   const noTickets = !Array.isArray(tickets) || tickets.length === 0;
   return noMachines && noTickets;
 }
+
 
 /** Demo team only when there is genuinely nobody to show. */
 export function shouldUseDemoTeam(team) {
