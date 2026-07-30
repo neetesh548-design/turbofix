@@ -6,11 +6,13 @@ import { KeyRound, ArrowLeft } from 'lucide-react';
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [requestMsg, setRequestMsg] = useState('');
+  const [verifyMsg, setVerifyMsg] = useState('');
   const [resetMsg, setResetMsg] = useState('');
-  const [isResetStep, setIsResetStep] = useState(false);
+  const [step, setStep] = useState('request');
   const [checkingRecovery, setCheckingRecovery] = useState(true);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function ResetPassword() {
 
     const finishRecoveryCheck = (hasSession) => {
       if (!active) return;
-      setIsResetStep(Boolean(hasSession || hasRecoveryPayload));
+      setStep(hasSession || hasRecoveryPayload ? 'reset' : 'request');
       setCheckingRecovery(false);
     };
 
@@ -60,6 +62,7 @@ export default function ResetPassword() {
 
   const handleRequestLink = async () => {
     setRequestMsg('');
+    setVerifyMsg('');
     if (!email) {
       setRequestMsg('Please enter your email.');
       return;
@@ -71,10 +74,51 @@ export default function ResetPassword() {
       if (error) {
         setRequestMsg(error.message);
       } else {
-        setRequestMsg('Reset link sent! Please check your inbox.');
+        setRequestMsg('Verification code sent. Please check your inbox.');
+        setStep('verify');
       }
     } catch (err) {
-      setRequestMsg('Failed to send reset link.');
+      setRequestMsg('Failed to send verification code.');
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setVerifyMsg('');
+    const token = verificationCode.trim();
+    if (!email) {
+      setVerifyMsg('Please enter your email.');
+      setStep('request');
+      return;
+    }
+    if (!token) {
+      setVerifyMsg('Please enter the verification code.');
+      return;
+    }
+    try {
+      const { error: recoveryError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'recovery',
+      });
+      if (!recoveryError) {
+        setStep('reset');
+        setVerifyMsg('');
+        return;
+      }
+
+      const { error: inviteError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'invite',
+      });
+      if (inviteError) {
+        setVerifyMsg('Invalid or expired code. Please request a new one.');
+      } else {
+        setStep('reset');
+        setVerifyMsg('');
+      }
+    } catch (err) {
+      setVerifyMsg('Failed to verify code.');
     }
   };
 
@@ -114,18 +158,20 @@ export default function ResetPassword() {
                 <KeyRound size={24} />
               </div>
               <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
-                {isResetStep ? 'Choose a new password' : 'Reset your password'}
+                {step === 'reset' ? 'Choose a new password' : step === 'verify' ? 'Enter verification code' : 'Reset your password'}
               </h1>
               <p className="text-slate-400 text-sm">
-                {isResetStep
+                {step === 'reset'
                   ? 'Set a new password for your TurboFix account.'
-                  : "We'll email you a link to get back in."}
+                  : step === 'verify'
+                    ? 'Use the code sent to your account email.'
+                    : "We'll email you a code to get back in."}
               </p>
             </div>
 
             {checkingRecovery ? (
               <div className="p-4 text-center text-slate-400 text-sm" role="status">Checking your reset link…</div>
-            ) : !isResetStep ? (
+            ) : step === 'request' ? (
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Account email</label>
@@ -145,7 +191,7 @@ export default function ResetPassword() {
                   onClick={handleRequestLink}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99]"
                 >
-                  Send reset link
+                  Send verification code
                 </button>
 
                 {requestMsg && (
@@ -158,6 +204,45 @@ export default function ResetPassword() {
                   <a href="login.html" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors">
                     <ArrowLeft size={14} /> Back to sign in
                   </a>
+                </div>
+              </div>
+            ) : step === 'verify' ? (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="verificationCode" className="block text-sm font-medium text-slate-300 mb-1">Verification code</label>
+                  <input
+                    type="text"
+                    id="verificationCode"
+                    placeholder="6-digit code"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
+                  />
+                </div>
+
+                <button
+                  id="verifyBtn"
+                  onClick={handleVerifyCode}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99]"
+                >
+                  Verify code
+                </button>
+
+                {verifyMsg && (
+                  <div className="p-3 bg-slate-900/80 border border-slate-700/80 text-slate-300 rounded-xl text-sm" role="alert">
+                    {verifyMsg}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-center gap-4 pt-2 text-sm">
+                  <button type="button" onClick={handleRequestLink} className="text-emerald-400 hover:underline">
+                    Resend code
+                  </button>
+                  <button type="button" onClick={() => setStep('request')} className="text-slate-400 hover:text-slate-200 transition-colors">
+                    Change email
+                  </button>
                 </div>
               </div>
             ) : (

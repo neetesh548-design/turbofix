@@ -126,7 +126,7 @@ export default function Team() {
       if (data?.error) throw new Error(data.error);
 
       setSuccess(portalAccess
-        ? `Invitation sent to ${email}. They must create their own password before signing in.`
+        ? `Invitation code sent to ${email}. They must create their own password before signing in.`
         : `Staff record for "${name}" created without portal access.`);
       setShowAddForm(false);
       
@@ -357,7 +357,7 @@ export default function Team() {
                   <div className="vault-field wide">
                     <label htmlFor="supEmail">Email address {portalAccess ? <span>Required for invitation</span> : <span>Optional</span>}</label>
                     <input type="email" id="supEmail" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. anil@company.com" required={portalAccess} />
-                    <small>{portalAccess ? 'Used only to send the secure password-setup link.' : 'Shown as "not available" when left blank.'}</small>
+                    <small>{portalAccess ? 'Used only to send the secure invitation code.' : 'Shown as "not available" when left blank.'}</small>
                   </div>
 
                   <div className="team-onboard-access">
@@ -366,7 +366,7 @@ export default function Team() {
                         <span><strong>Send TurboFix invitation</strong><small>They will receive an email and create their own password. You will never see it.</small></span>
                     </label>
                     <div className="vault-field">
-                    {portalAccess && <small className="team-invite-note">An invitation link will be sent to the email above.</small>}
+                    {portalAccess && <small className="team-invite-note">An invitation code will be sent to the email above.</small>}
                     </div>
                   </div>
                 </div>
