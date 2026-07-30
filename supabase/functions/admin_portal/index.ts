@@ -366,6 +366,8 @@ Deno.serve(async (req: Request) => {
     const { data: machines } = await supabase.from('machines').select('company_id, factory_id')
     const { data: tickets } = await supabase.from('tickets').select('factory_id, status')
 
+    const { data: aiLogs } = await supabase.from('ai_usage_log').select('company_id, tokens_est')
+
     const userCounts: Record<string, number> = {}
     users?.forEach(u => {
       if (u.company_id) userCounts[u.company_id] = (userCounts[u.company_id] || 0) + 1
@@ -383,6 +385,15 @@ Deno.serve(async (req: Request) => {
       }
     })
 
+    const aiTokenCounts: Record<string, number> = {}
+    const aiRequestCounts: Record<string, number> = {}
+    aiLogs?.forEach(log => {
+      if (log.company_id) {
+        aiTokenCounts[log.company_id] = (aiTokenCounts[log.company_id] || 0) + (log.tokens_est || 0)
+        aiRequestCounts[log.company_id] = (aiRequestCounts[log.company_id] || 0) + 1
+      }
+    })
+
     const result = companies.map(c => ({
       company_code: c.domain || c.company_code || '',
       company_name: c.name || c.company_name || '',
@@ -396,6 +407,8 @@ Deno.serve(async (req: Request) => {
       users_count: userCounts[c.id] || 0,
       machines_count: machineCounts[c.id] || 0,
       open_tickets_count: openTicketCounts[c.id] || 0,
+      ai_tokens_used: aiTokenCounts[c.id] || aiTokenCounts[c.domain] || 0,
+      ai_requests_count: aiRequestCounts[c.id] || aiRequestCounts[c.domain] || 0,
     }))
 
     return reply(req, { companies: result })

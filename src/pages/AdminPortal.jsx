@@ -20,6 +20,7 @@ import {
   Sliders,
   Pause,
   Play,
+  Zap,
 } from 'lucide-react';
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
@@ -433,6 +434,7 @@ export default function AdminPortal() {
   const quotaExceededCompanies = companies.filter(
     (c) => (c.machines_count || 0) > (c.machine_quota || 5) || (c.users_count || 0) > (c.user_quota || 10)
   );
+  const totalAiTokens = companies.reduce((acc, c) => acc + (c.ai_tokens_used || 0), 0);
 
   if (!token) {
     if (!isAuthorizedPath) {
@@ -614,27 +616,25 @@ export default function AdminPortal() {
         )}
 
         {/* Global Operational Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Workspaces</p>
               <p className="text-3xl font-black text-slate-100 mt-1">{companies.length}</p>
-              <p className="text-[11px] text-emerald-400 font-semibold mt-1">
-                {companies.filter((c) => c.approved === 'yes').length} Active Organizations
-              </p>
+              <p className="text-[11px] text-emerald-400 font-semibold mt-1">Plant Accounts</p>
             </div>
-            <div className="p-3.5 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20">
+            <div className="p-3.5 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
               <Building2 className="w-6 h-6" />
             </div>
           </div>
 
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Fleet Machines</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Machine Fleet</p>
               <p className="text-3xl font-black text-slate-100 mt-1">{totalFleetMachines}</p>
-              <p className="text-[11px] text-slate-400 font-semibold mt-1">Across all registered plants</p>
+              <p className="text-[11px] text-slate-400 font-semibold mt-1">{healthyCount} Healthy • {breakdownCount} Down</p>
             </div>
-            <div className="p-3.5 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
+            <div className="p-3.5 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20">
               <Cpu className="w-6 h-6" />
             </div>
           </div>
@@ -821,6 +821,7 @@ export default function AdminPortal() {
                       <th className="p-4">Status</th>
                       <th className="p-4">Machines (Used / Quota)</th>
                       <th className="p-4">Users (Used / Quota)</th>
+                      <th className="p-4">AI Tokens Used</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -876,6 +877,17 @@ export default function AdminPortal() {
                             {(c.users_count || 0) > (c.user_quota || 10) && (
                               <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
                             )}
+                          </div>
+                        </td>
+                        <td className="p-4 text-slate-300">
+                          <div className="flex items-center gap-1.5 font-mono text-xs">
+                            <Zap className="w-3.5 h-3.5 text-purple-400" />
+                            <span className="font-bold text-slate-200">
+                              {(c.ai_tokens_used || 0).toLocaleString()}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              ({c.ai_requests_count || 0} reqs)
+                            </span>
                           </div>
                         </td>
                         <td className="p-4 text-right space-x-2">
