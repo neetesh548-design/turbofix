@@ -4,7 +4,7 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/admin-portal.spec.js",
+      "tests/admin-portal-prod.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -148,13 +148,13 @@
   },
   "suites": [
     {
-      "title": "admin-portal.spec.js",
-      "file": "admin-portal.spec.js",
+      "title": "admin-portal-prod.spec.js",
+      "file": "admin-portal-prod.spec.js",
       "column": 0,
       "line": 0,
       "specs": [
         {
-          "title": "Verify TurboFix Admin Control Room login & Supabase Edge Function integration",
+          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
           "ok": true,
           "tags": [],
           "tests": [
@@ -169,55 +169,25 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3883,
+                  "duration": 4982,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "Navigating to local React Admin Portal...\n"
+                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
                     },
                     {
-                      "text": "PAGE LOG: [vite] connecting...\n"
+                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
                     },
                     {
-                      "text": "PAGE LOG: [vite] connected.\n"
+                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
                     },
                     {
-                      "text": "PAGE LOG: [vite] connecting...\n"
-                    },
-                    {
-                      "text": "PAGE LOG: [vite] connected.\n"
-                    },
-                    {
-                      "text": "PAGE LOG: [Meta Pixel] - Invalid PixelID: null.\n"
-                    },
-                    {
-                      "text": "PAGE LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
-                    },
-                    {
-                      "text": "PAGE LOG: Service Worker registered via vite-plugin-pwa\n"
-                    },
-                    {
-                      "text": "PAGE LOG: Service Worker registered via vite-plugin-pwa\n"
-                    },
-                    {
-                      "text": "PAGE LOG: App ready to work offline\n"
-                    },
-                    {
-                      "text": "PAGE LOG: App ready to work offline\n"
-                    },
-                    {
-                      "text": "Waiting for Supabase Edge Control Gateway data...\n"
-                    },
-                    {
-                      "text": "Found 7 registered plant company workspaces in Control Room.\n"
-                    },
-                    {
-                      "text": "Saved screenshot to admin-portal-playwright.png\n"
+                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-30T18:51:30.090Z",
+                  "startTime": "2026-07-30T18:52:15.970Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -225,8 +195,8 @@
               "status": "expected"
             }
           ],
-          "id": "3b8b8ba22d7610aa7e29-7c2eda2e53ea81e04f18",
-          "file": "admin-portal.spec.js",
+          "id": "26b8cc031e585e249615-18b47c26415ab2c2b2f3",
+          "file": "admin-portal-prod.spec.js",
           "line": 3,
           "column": 1
         }
@@ -235,8 +205,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-30T18:51:25.966Z",
-    "duration": 8398.782,
+    "startTime": "2026-07-30T18:52:11.853Z",
+    "duration": 9423.164,
     "expected": 1,
     "skipped": 0,
     "unexpected": 0,
