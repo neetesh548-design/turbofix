@@ -301,7 +301,7 @@ export default function QRGateway() {
   const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
   const [lang, setLang] = useState(() => localStorage.getItem('tf_lang') || 'hi-IN'); // hi-IN, en-US, mr-IN
   const [isListening, setIsListening] = useState(false);
-  const [speakFeedback, setSpeakFeedback] = useState(true);
+  const [speakFeedback, setSpeakFeedback] = useState(false);
   const [assistantPrompt, setAssistantPrompt] = useState('');
   const [workflowStage, setWorkflowStage] = useState('capture');
   const [voiceError, setVoiceError] = useState('');
@@ -601,41 +601,37 @@ export default function QRGateway() {
 
   const speak = (text) => {
     if (!speakFeedback || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      let best = null;
-      const langPrefix = lang.split('-')[0];
-
-      const preferredKeywords = lang === 'en-US'
-        ? ['google us', 'samantha', 'karen', 'daniel', 'google uk', 'rishi', 'moira', 'aaron']
-        : lang === 'hi-IN'
-        ? ['google हिन्दी', 'google hindi', 'lekha']
-        : ['google मराठी', 'google marathi'];
-
-      for (const v of voices) {
-        const vName = v.name.toLowerCase();
-        if (preferredKeywords.some(k => vName.includes(k))) {
-          best = v;
-          break;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        let best = null;
+        const langPrefix = lang.split('-')[0];
+        const preferredKeywords = lang === 'en-US'
+          ? ['google us', 'samantha', 'karen', 'daniel', 'google uk', 'rishi', 'moira', 'aaron']
+          : lang === 'hi-IN'
+          ? ['google हिन्दी', 'google hindi', 'lekha']
+          : ['google मराठी', 'google marathi'];
+        for (const v of voices) {
+          const vName = v.name.toLowerCase();
+          if (preferredKeywords.some(k => vName.includes(k))) {
+            best = v;
+            break;
+          }
         }
+        if (!best) {
+          best = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(langPrefix));
+        }
+        if (best) utterance.voice = best;
       }
-
-      if (!best) {
-        best = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(langPrefix));
-      }
-
-      if (best) utterance.voice = best;
+      utterance.rate = lang === 'en-US' ? 0.85 : 0.9;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis notice:', e);
     }
-
-    utterance.rate = lang === 'en-US' ? 0.85 : 0.9;
-    utterance.pitch = 1;
-
-    window.speechSynthesis.speak(utterance);
   };
 
   useEffect(() => {
@@ -1218,32 +1214,38 @@ export default function QRGateway() {
 
       let verified = false;
       if (reporterPhone) {
-        const { data: matchedUser } = await supabase
-          .from('users')
-          .select('role')
-          .or(`phone.eq.${reporterPhone},phone.eq.+91${reporterPhone}`)
-          .limit(1);
-        
-        if (matchedUser && matchedUser.length > 0) {
-          verified = true;
+        try {
+          const { data: matchedUser } = await supabase
+            .from('users')
+            .select('role')
+            .or(`phone.eq.${reporterPhone},phone.eq.+91${reporterPhone}`)
+            .limit(1);
+          if (matchedUser && matchedUser.length > 0) verified = true;
+        } catch (_vErr) {
+          // Fallback user verification notice handled silently
         }
       }
 
-      const uploadedUrl = await uploadIssuePhoto();
-      const payload = buildTicketPayload({ uploadedUrl, verified });
+      let uploadedUrl = null;
+      try {
+        uploadedUrl = await uploadIssuePhoto();
+      } catch (_pErr) {
+        console.warn('Photo upload exception handled silently:', _pErr);
+      }
 
-      let insertedTicket = null;
+      const payload = buildTicketPayload({ uploadedUrl, verified });
+      let insertedTicket = payload;
       saveTicketLocallyAndNotify(payload);
 
       try {
         const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
           body: { action: 'log_ticket', payload }
         });
-        if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
-        insertedTicket = data.data;
+        if (!fnError && data && !data.error && data.data) {
+          insertedTicket = data.data;
+        }
       } catch (edgeErr) {
-        console.warn('Secure ticket gateway unavailable; stored ticket in local queue:', edgeErr);
-        insertedTicket = payload;
+        console.warn('Secure ticket gateway notice (stored in local queue):', edgeErr);
       }
 
       setSubmittedTicketInfo(insertedTicket);

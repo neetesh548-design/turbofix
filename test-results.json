@@ -5,6 +5,9 @@
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
       "tests/qr-gateway-tickets.spec.js",
+      "tests/homepage-audit.spec.js",
+      "tests/machines-page-check.spec.js",
+      "tests/settings-records-audit.spec.js",
       "--project=chromium"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
@@ -19,7 +22,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 4
     },
     "preserveOutput": "always",
     "projects": [
@@ -28,7 +31,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "chromium",
         "name": "chromium",
@@ -44,7 +47,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "firefox",
         "name": "firefox",
@@ -60,7 +63,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "webkit",
         "name": "webkit",
@@ -76,7 +79,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "mobile-chrome",
         "name": "mobile-chrome",
@@ -92,7 +95,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 4
         },
         "id": "mobile-safari",
         "name": "mobile-safari",
@@ -148,6 +151,244 @@
   },
   "suites": [
     {
+      "title": "homepage-audit.spec.js",
+      "file": "homepage-audit.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "TurboFix Homepage E2E Audit",
+          "file": "homepage-audit.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1. Verify homepage title, hero heading, and primary CTAs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7734,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:31.959Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-a5ecb95a3301db673351",
+              "file": "homepage-audit.spec.js",
+              "line": 8,
+              "column": 3
+            },
+            {
+              "title": "2. Verify Executive Connection Cards & custom persona portraits",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8055,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:31.827Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-6bd3d216e70681fcf4dd",
+              "file": "homepage-audit.spec.js",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "3. Verify Theme Toggle switches between Dark and Light Mode",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 8685,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:31.940Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-db1b4c4cf899e05af9dd",
+              "file": "homepage-audit.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "4. Verify Navbar brand and navigation links",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7409,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:31.893Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ced5514a534cd6190997-e946aaf503d4b27b638f",
+              "file": "homepage-audit.spec.js",
+              "line": 69,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "machines-page-check.spec.js",
+      "file": "machines-page-check.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Machines Page Diagnostics",
+          "file": "machines-page-check.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Check if /machines.html opens cleanly for signed-in user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 23754,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:40.231Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b44890ba3ac158303a17-f626e43e9b13defa252e",
+              "file": "machines-page-check.spec.js",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "Check if /machines route redirects to /machines.html and loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23504,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:40.544Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b44890ba3ac158303a17-89bb69860e2201bebdd7",
+              "file": "machines-page-check.spec.js",
+              "line": 41,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "qr-gateway-tickets.spec.js",
       "file": "qr-gateway-tickets.spec.js",
       "column": 0,
@@ -173,15 +414,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4871,
+                      "duration": 26959,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-30T23:33:18.848Z",
+                      "startTime": "2026-07-30T23:38:40.863Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -197,13 +438,98 @@
           ]
         }
       ]
+    },
+    {
+      "title": "settings-records-audit.spec.js",
+      "file": "settings-records-audit.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Settings and Work Records UI Audit",
+          "file": "settings-records-audit.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Check Settings page for UI issues and errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 18984,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:38:41.495Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "772529114525061842f7-eee5ba9cf0aa1641c57f",
+              "file": "settings-records-audit.spec.js",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "Check Records page for UI issues and errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6721,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T23:39:01.017Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "772529114525061842f7-d7e337f1b0d1fb040887",
+              "file": "settings-records-audit.spec.js",
+              "line": 40,
+              "column": 3
+            }
+          ]
+        }
+      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-30T23:33:17.308Z",
-    "duration": 6724.955999999999,
-    "expected": 1,
+    "startTime": "2026-07-30T23:38:29.986Z",
+    "duration": 38220.995,
+    "expected": 9,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

@@ -820,8 +820,8 @@
     "semantic_hash": "43a7f6de768a40e0af4731115fbab025"
   },
   "src/pages/Records.jsx": {
-    "mtime": 1785452652.5993593,
-    "ast_hash": "f289c8a9c7eb16ab24c4d52d2df22b91",
+    "mtime": 1785454055.194003,
+    "ast_hash": "838271ffcf63e5881bc5ab1c502b827c",
     "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
@@ -830,8 +830,8 @@
     "semantic_hash": ""
   },
   "src/pages/Settings.jsx": {
-    "mtime": 1785186590.9966257,
-    "ast_hash": "0d2c869eb3b91d43d3438960be43661e",
+    "mtime": 1785454052.5725677,
+    "ast_hash": "cae0acebc4b4889cf82f903347368b8a",
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
@@ -3057,6 +3057,16 @@
   "tests/machines-page-check.spec.js": {
     "mtime": 1785453435.037024,
     "ast_hash": "ba40bc5d7e18cf30cb11448652c266d4",
+    "semantic_hash": ""
+  },
+  "tests/settings-records-audit.spec.js": {
+    "mtime": 1785453971.223205,
+    "ast_hash": "3b71e610f491ddf44d36580cf7566436",
+    "semantic_hash": ""
+  },
+  "public/assets/plant_settings_security.jpg": {
+    "mtime": 1785454025.1292706,
+    "ast_hash": "bba141d8c20c59685efcb675c7148711",
     "semantic_hash": ""
   }
 }

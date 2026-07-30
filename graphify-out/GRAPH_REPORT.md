@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-31)
 
 ## Corpus Check
-- 562 files · ~1,023,584 words
+- 563 files · ~1,024,259 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4340 nodes · 8019 edges · 388 communities (249 shown, 139 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 356 edges (avg confidence: 0.63)
+- 4341 nodes · 8018 edges · 388 communities (253 shown, 135 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 355 edges (avg confidence: 0.63)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b0b5aa02`
+- Built from commit: `8079c497`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -344,11 +344,9 @@
 - Navbar.jsx
 - ViewModeContext.jsx
 - MicrosoftAppLauncher.jsx
-- TicketDetailPanel.jsx
 - Home.jsx
 - .append
 - .get
-- .attach_voice_note
 
 ## God Nodes (most connected - your core abstractions)
 1. `react` - 135 edges
@@ -369,10 +367,10 @@
   settings-screenshot.png → docs/TURBOFIX_FEATURE_TICKET_LIST.md
 - `Records()` --references--> `MachineRecordRepository`  [INFERRED]
   src/pages/Records.jsx → docs/TURBOFIX_PRD.md
+- `QRGateway()` --references--> `TicketRepository`  [INFERRED]
+  src/pages/QRGateway.jsx → docs/TURBOFIX_TECHNICAL_ARCHITECTURE.md
 - `Machines()` --references--> `MachineRepository`  [INFERRED]
   src/pages/Machines.jsx → docs/TURBOFIX_TECHNICAL_ARCHITECTURE.md
-- `Dashboard()` --references--> `CustomKpiRepository`  [INFERRED]
-  src/pages/Dashboard.jsx → docs/TURBOFIX_TECHNICAL_ARCHITECTURE.md
 
 ## Import Cycles
 - 2-file cycle: `src/utils/i18n-provider.jsx -> src/utils/i18n.js -> src/utils/i18n-provider.jsx`
@@ -383,7 +381,7 @@
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 - **Smart Modules Configuration Options** — settings_screenshot_iot_predictive_power_signature, settings_screenshot_visual_spare_part_deduction, settings_screenshot_dynamic_supply_chain_sync, settings_screenshot_opportunistic_mesh_syncing, settings_screenshot_location_handshake_verification [EXTRACTED 1.00]
 
-## Communities (388 total, 139 thin omitted)
+## Communities (388 total, 135 thin omitted)
 
 ### Community 0 - "UserRepository"
 Cohesion: 0.09
@@ -475,7 +473,7 @@ Nodes (11): get_machine_data(), _approved_record_markdown(), build_machine_data(
 
 ### Community 22 - "wacrm_client.py"
 Cohesion: 0.03
-Nodes (8): react, compressImage(), PhotoCapture(), FormInput(), iconBg, STAGE_ACTIONS, Button(), buttonVariants
+Nodes (10): react, TREND_COPY, FormInput(), iconBg, Notification(), TYPE_STYLES, STAGE_ACTIONS, Badge() (+2 more)
 
 ### Community 23 - "Top Navigation Bar"
 Cohesion: 0.50
@@ -710,8 +708,8 @@ Cohesion: 0.08
 Nodes (17): get_ai_feedback(), get_escalation_config(), get_shift_config(), _build_factory_to_code_map(), _company_code_for_factory_id(), _company_code_for_id(), DocumentRepository, TechnicianWorkRepository (+9 more)
 
 ### Community 93 - "LocalMachineRecordRepository"
-Cohesion: 0.13
-Nodes (16): Closed-Loop Maintenance Lifecycle, TicketRepository, GATEWAY_I18N, invokeOtp(), QRGateway(), createQrSession(), hashToken(), newSessionToken() (+8 more)
+Cohesion: 0.20
+Nodes (11): createQrSession(), hashToken(), newSessionToken(), validateQrSession(), allowedOrigins, cors(), mimeToExtension(), optionalTicketColumns (+3 more)
 
 ### Community 94 - "LocalTechnicianWorkRepository"
 Cohesion: 0.18
@@ -966,8 +964,8 @@ Cohesion: 0.08
 Nodes (24): Assistant (`/assistant.html`), Dashboard (`/dashboard.html`), Home / Landing (`/`), Inventory (`/inventory.html`), Kaizen (`/kaizen.html`), Legend, Login (`/login.html`), Machines — list view (`/machines.html`) (+16 more)
 
 ### Community 257 - "Support.jsx"
-Cohesion: 0.13
-Nodes (29): LanguageGate(), CapabilityStrip(), ContactCard(), DEFAULT_FAQS, FaqAccordion(), PageHero(), PricingCalculator(), ProofBanner() (+21 more)
+Cohesion: 0.15
+Nodes (27): CapabilityStrip(), ContactCard(), DEFAULT_FAQS, FaqAccordion(), PageHero(), PricingCalculator(), ProofBanner(), contentByLanguage (+19 more)
 
 ### Community 258 - "auth.test.js"
 Cohesion: 0.50
@@ -1032,6 +1030,10 @@ Nodes (5): header, openOperationalPage(), OPERATIONAL_PAGES, payload, signIn()
 ### Community 279 - "check_threshold_drift"
 Cohesion: 0.70
 Nodes (3): appNavItems, launcherCategories(), visibleAppNavItems()
+
+### Community 281 - "get_technician_load"
+Cohesion: 0.40
+Nodes (5): Closed-Loop Maintenance Lifecycle, TicketRepository, GATEWAY_I18N, invokeOtp(), QRGateway()
 
 ### Community 282 - "SupervisorKaizen.jsx"
 Cohesion: 0.10
@@ -1157,6 +1159,10 @@ Nodes (3): MOCK_LOGS, configuredSupabaseUrl, supabase
 Cohesion: 0.50
 Nodes (4): check_and_flag_on_creation(), flag_repeat_failure(), Mark a ticket as a repeat failure case., Called after ticket creation to detect repeat failures.
 
+### Community 372 - ".next_ticket_id"
+Cohesion: 0.17
+Nodes (4): Footer(), LanguageGate(), Navbar(), SkipLink()
+
 ### Community 373 - "Technician.jsx"
 Cohesion: 0.50
 Nodes (3): TechnicianWorkRepository, defaultWork, Technician()
@@ -1172,9 +1178,9 @@ Nodes (4): approve_ticket_closure(), Maintenance Head approves closure — ticke
   public/icons.svg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **800 isolated node(s):** `FILE_ACCEPT`, `RECORD_TYPES`, `SECTION_FIELDS`, `SECTION_LABELS`, `EMPTY_EXTRACTION` (+795 more)
+- **800 isolated node(s):** `GATEWAY_I18N`, `ROLE_HEADINGS`, `EMPTY_DRAFT`, `FILE_ACCEPT`, `RECORD_TYPES` (+795 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **139 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **135 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -1183,11 +1189,11 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `FakeAuthClient`, `LocalTicketRepository`, `email_client.py`, `MachineRepository`, `machineIdOf`, `kpi_router.py`, `config.py`, `Top Navigation Bar`, `get_technician_load`, `test_vault_auth.py`, `ShutdownPlanner.jsx`, `Inventory.jsx`, `ticketQueues.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `conftest.py`, `gemini.py`, `health`, `test_report_router.py`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `RCA.jsx`, `test_report_router.py`, `LocalMachineRecordRepository`, `LocalTechnicianWorkRepository`, `Dashboard.jsx`, `Kaizen.jsx`, `FakeAsyncClient`, `.oxlintrc.json`, `StitchVisualCharts.jsx`, `Kaizen.jsx`, `MachineDetailDrawer.jsx`, `.list_data`, `handle_approve_command`, `tabs.jsx`, `roles.js`, `.next_ticket_id`, `Technician.jsx`, `Dashboard.jsx`, `Navbar.jsx`, `MachinesRefactored.jsx`, `TicketDetailPanel.jsx`, `Home.jsx`, `.append`, `.get`, `.attach_voice_note`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `FakeAuthClient`, `LocalTicketRepository`, `email_client.py`, `MachineRepository`, `machineIdOf`, `kpi_router.py`, `config.py`, `Top Navigation Bar`, `get_technician_load`, `test_vault_auth.py`, `ShutdownPlanner.jsx`, `Inventory.jsx`, `ticketQueues.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `conftest.py`, `gemini.py`, `health`, `test_report_router.py`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `RCA.jsx`, `test_report_router.py`, `LocalTechnicianWorkRepository`, `Dashboard.jsx`, `Kaizen.jsx`, `FakeAsyncClient`, `.oxlintrc.json`, `StitchVisualCharts.jsx`, `Kaizen.jsx`, `MachineDetailDrawer.jsx`, `.list_data`, `handle_approve_command`, `tabs.jsx`, `roles.js`, `.next_ticket_id`, `Technician.jsx`, `Dashboard.jsx`, `Navbar.jsx`, `MachinesRefactored.jsx`, `TicketDetailPanel.jsx`, `Home.jsx`, `.append`, `.get`?**
+  _High betweenness centrality (0.047) - this node is a cross-community bridge._
 - **Why does `TicketRepository` connect `fanout_service.py` to `SupabaseCustomKpiRepository`, `whatsapp_webhook/index.ts`, `DocumentRepository`, `webhook_router.py`, `SheetsTechnicianWorkRepository`, `MicrosoftAppLauncher.jsx`, `BaseModel`, `MachinesRefactored.jsx`, `SupabaseTicketRepository`, `useI18n`, `SupervisorKaizen.jsx`, `devDependencies`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `react` connect `LocalTicketRepository` to `Kaizen.jsx`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `config.py`, `AppShell.jsx`, `wacrm_client.py`, `get_technician_load`, `LocalTechnicianWorkRepository`?**
+- **Why does `react` connect `LocalTicketRepository` to `Kaizen.jsx`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `config.py`, `AppShell.jsx`, `wacrm_client.py`, `LocalTechnicianWorkRepository`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Are the 22 inferred relationships involving `CurrentUser` (e.g. with `AddSupervisorRequest` and `ForgotPasswordRequest`) actually correct?**
   _`CurrentUser` has 22 INFERRED edges - model-reasoned connections that need verification._
