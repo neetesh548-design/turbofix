@@ -348,6 +348,15 @@ def _extract_10_digit_phone(phone_raw: str) -> str:
     return digits
 
 
+
+def _find_user_by_phone(users: UserRepository, phone_clean: str):
+    return (
+        users.get_by_identifier(phone_clean)
+        or users.get_by_identifier(f"+91{phone_clean}")
+        or next((u for u in users.list_users() if "".join(c for c in u.get("phone", "") if c.isdigit()).endswith(phone_clean)), None)
+    )
+
+
 @router.post("/otp/send")
 @limiter.limit("5/minute")
 async def send_otp(request: Request, body: SendOTPRequest):
@@ -446,19 +455,9 @@ async def otp_forgot_password(
 ):
     """Send password reset OTP via WhatsApp & Fast2SMS (email not required)."""
     phone_clean = _extract_10_digit_phone(body.phone)
-
-    # Check if user exists with this phone or formatted phone
-    user = users.get_by_identifier(phone_clean) or users.get_by_identifier(f"+91{phone_clean}")
-    if user is None:
-        # Search all users to see if any user has this phone number
-        for u in users.list_users():
-            u_phone = "".join(c for c in u.get("phone", "") if c.isdigit())
-            if u_phone.endswith(phone_clean):
-                user = u
-                break
+    user = _find_user_by_phone(users, phone_clean)
 
     if not user:
-        # Return generic message to prevent account enumeration
         return {
             "status": "sent",
             "message": "If an account with that phone number exists, an OTP code has been sent via WhatsApp & SMS.",
@@ -524,8 +523,6 @@ def otp_reset_password(
         raise HTTPException(status_code=400, detail=pw_err)
 
     phone_clean = _extract_10_digit_phone(body.phone)
-
-
     otp_input = body.otp.strip()
 
     is_test_override = getattr(config, "TESTING", False) and otp_input == "123456"
@@ -549,16 +546,7 @@ def otp_reset_password(
             raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp/SMS and try again.")
 
     user_id = record.get("user_id") if record else None
-    user = users.get_by_id(user_id) if user_id else None
-
-    if not user:
-        user = users.get_by_identifier(phone_clean) or users.get_by_identifier(f"+91{phone_clean}")
-        if not user:
-            for u in users.list_users():
-                u_phone = "".join(c for c in u.get("phone", "") if c.isdigit())
-                if u_phone.endswith(phone_clean):
-                    user = u
-                    break
+    user = users.get_by_id(user_id) if user_id else _find_user_by_phone(users, phone_clean)
 
     if not user:
         raise HTTPException(status_code=404, detail="User account not found for this mobile number.")
@@ -567,3 +555,4 @@ def otp_reset_password(
     _OTP_STORE.pop(phone_clean, None)
     log.info("auth.otp_password_reset_success", user_id=user["user_id"], phone=phone_clean)
     return {"message": "Your password has been reset successfully. You can now sign in with your new password."}
+
