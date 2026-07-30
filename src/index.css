@@ -125,34 +125,30 @@
   --sidebar-ring: #25D366;
 }
 
-/* Light Theme Design Tokens */
+/* Light Theme Design Tokens — Google Stitch Daylight Scenario */
 [data-theme="light"] {
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #0f172a;
-  --card-bg: #f8fafc;
+  --card-bg: #ffffff;
   --card-foreground: #0f172a;
-  --popover: #f8fafc;
+  --popover: #ffffff;
   --popover-foreground: #0f172a;
-  /* Brand green is retained. The foreground flips to near-black because
-     #ffffff on #25D366 is 1.98:1 — a live AA failure on every element using
-     var(--primary)/var(--primary-foreground) (e.g. AppShell.jsx "Report Issue").
-     #0f172a on #25D366 = 9.00:1, matching the dark theme's existing pairing. */
-  --primary: #25D366;
-  --primary-foreground: #0f172a;
-  --secondary: #e2e8f0;
+  
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
-  --muted: #cbd5e1;
+  --muted: #e2e8f0;
   --muted-foreground: #475569;
-  --accent: #cbd5e1;
+  --accent: #e2e8f0;
   --accent-foreground: #0f172a;
-  /* #dc2626 (red-600) = 4.83:1 with white. Was #EF4444 = 3.76:1 (fail). */
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
   /* Semantic state colors — light theme */
-  --success: #047857;
+  --success: #059669;
   --success-foreground: #ffffff;
-  --warning: #b45309;
+  --warning: #d97706;
   --warning-foreground: #ffffff;
   --danger: #dc2626;
   --danger-foreground: #ffffff;
@@ -161,20 +157,72 @@
 
   --ui-border: rgba(15, 23, 42, 0.12);
   --input: rgba(15, 23, 42, 0.08);
-  --ring: #25D366;
-  --chart-1: #25D366;
-  --chart-2: #3B82F6;
-  --chart-3: #F59E0B;
-  --chart-4: #EF4444;
-  --chart-5: #8B5CF6;
-  --sidebar: #f8fafc;
+  --ring: #059669;
+  --chart-1: #059669;
+  --chart-2: #2563eb;
+  --chart-3: #d97706;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
+  --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #25D366;
-  --sidebar-primary-foreground: #0f172a;  /* 9.00:1; was #ffffff at 1.98:1 */
-  --sidebar-accent: #e2e8f0;
+  --sidebar-primary: #059669;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: rgba(15, 23, 42, 0.08);
-  --sidebar-ring: #25D366;
+  --sidebar-ring: #059669;
+
+  /* Demo & Layout Tokens for Light Mode */
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --navy: #ffffff;
+  --navy-2: #f1f5f9;
+  --navy-3: #e2e8f0;
+
+  --ink: #0f172a;
+  --slate: #334155;
+  --slate-light: #64748b;
+  --border: rgba(15, 23, 42, 0.12);
+
+  --green: #059669;
+  --green-dark: #047857;
+  --green-light: rgba(5, 150, 105, 0.12);
+  --brand: #059669;
+
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+[data-theme="light"] body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Light Theme Overrides for Stitch Glass Tiles & Cards */
+[data-theme="light"] .stitch-glass-tile,
+[data-theme="light"] .marketing-feature-card,
+[data-theme="light"] .marketing-pricing-card,
+[data-theme="light"] .marketing-calculator-box,
+[data-theme="light"] .rd-chart-card,
+[data-theme="light"] .tickets-row,
+[data-theme="light"] .tickets-kpi {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .tickets-wo {
+  color: #047857 !important;
+  background: rgba(5, 150, 105, 0.1) !important;
+  border-color: rgba(5, 150, 105, 0.3) !important;
+}
+
+[data-theme="light"] .tickets-machine,
+[data-theme="light"] .tickets-heading h1 {
+  color: #0f172a !important;
 }
 
 /* ===========================================================

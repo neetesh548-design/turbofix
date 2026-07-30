@@ -14,6 +14,7 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import MicrosoftAppLauncher from './MicrosoftAppLauncher';
+import { ThemeToggle } from './ThemeToggle';
 import { readAuth } from '../utils/auth';
 
 export default function Navbar() {
@@ -167,6 +168,7 @@ export default function Navbar() {
           </nav>
 
           <div className="public-nav-actions">
+            <ThemeToggle />
             <div className="public-nav-desktop-account">{accountLink}</div>
             {showMarketingCta && (
               <a href="/contact.html" className={`public-nav-demo ${activeHash === '/contact.html' ? 'active' : ''}`} onClick={scrollToContact}>

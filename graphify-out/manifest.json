@@ -785,8 +785,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785448648.1685212,
-    "ast_hash": "511514c197938215fe44196e1f38ed66",
+    "mtime": 1785450007.4713264,
+    "ast_hash": "b91d49071a1b2d2e57d57a456fd9afd3",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -795,8 +795,8 @@
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785238295.5746298,
-    "ast_hash": "522e096f11290ed4e85099ea2c27913b",
+    "mtime": 1785450044.5732675,
+    "ast_hash": "f26eb6351c953e6627d7c1886f6f51db",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -820,8 +820,8 @@
     "semantic_hash": "43a7f6de768a40e0af4731115fbab025"
   },
   "src/pages/Records.jsx": {
-    "mtime": 1785068955.1467922,
-    "ast_hash": "00b4455d194bde04395b677b21cf6b5d",
+    "mtime": 1785450085.6170416,
+    "ast_hash": "121636883977ca39475a901253365d37",
     "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/pages/Technician.jsx": {
-    "mtime": 1785234587.6436293,
-    "ast_hash": "2b06049d1641f40aec8d3f6ee63daf2a",
+    "mtime": 1785450027.5612001,
+    "ast_hash": "7a95f4481c490c9cfacd6d42ba911f08",
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
@@ -1615,8 +1615,8 @@
     "semantic_hash": "9be176435a50e02f8b242f34c1fe3e93"
   },
   "src/pages/Kaizen.jsx": {
-    "mtime": 1785348136.293922,
-    "ast_hash": "5cf2fffd9cbc341e61848c0f34ab1eb1",
+    "mtime": 1785450063.462838,
+    "ast_hash": "48e78bd45f049be9aa2dd6f2a56bc469",
     "semantic_hash": ""
   },
   "supabase/migrations/20260724010000_create_kaizen_opportunities.sql": {
@@ -2435,8 +2435,8 @@
     "semantic_hash": ""
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785186296.0947282,
-    "ast_hash": "dd0cdfe15d7c7595f444a18cf3340006",
+    "mtime": 1785450054.2212005,
+    "ast_hash": "43305ae511916219fcd1130090c61e42",
     "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
@@ -2987,6 +2987,11 @@
   "src/components/machines/MachinePersonnelMatrixModal.jsx": {
     "mtime": 1785449737.9620438,
     "ast_hash": "a4b1622731d4d80570e658a42b83ed00",
+    "semantic_hash": ""
+  },
+  "src/components/ui/StitchVisualCharts.jsx": {
+    "mtime": 1785449995.4880106,
+    "ast_hash": "b751aab518e4e951e59f2e2c6faf30c5",
     "semantic_hash": ""
   }
 }
