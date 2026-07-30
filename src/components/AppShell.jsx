@@ -533,7 +533,7 @@ export default function AppShell({ children, active }) {
               <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 animate-ping" />
               <span><strong>Machine Limit Reached:</strong> Your company has onboarded <strong>{quotaInfo.used}</strong> of <strong>{quotaInfo.quota}</strong> permitted machines. Please contact your administrator to upgrade your plan.</span>
             </div>
-            <a href="mailto:admin@turbofix.co.in" className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-900 dark:text-amber-100 font-bold transition-colors flex-shrink-0">
+            <a href="mailto:turbofixsolution@gmail.com" className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-900 dark:text-amber-100 font-bold transition-colors flex-shrink-0">
               Upgrade Plan
             </a>
           </div>

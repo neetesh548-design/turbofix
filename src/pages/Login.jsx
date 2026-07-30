@@ -208,7 +208,7 @@ export default function Login() {
         },
       }).catch(() => {});
 
-      setSuccess('Registration submitted successfully! A TurboFix administrator will review and activate your workspace.');
+      setSuccess('Registration submitted successfully! Your workspace request has been received for approval. Please contact TurboFix support at turbofixsolution@gmail.com for fast activation.');
       setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');

@@ -42,7 +42,7 @@ export async function apiFetch(path, options = {}) {
     if (resp.status === 403) throw new Error('You do not have permission to perform this action.');
     if (resp.status === 404) throw new Error('Resource not found.');
     if (resp.status === 429) throw new Error('Too many requests. Please wait a moment and try again.');
-    if (resp.status >= 500) throw new Error('Server error. Please try again shortly or contact support@turbofix.co.in.');
+    if (resp.status >= 500) throw new Error('Server error. Please try again shortly or contact turbofixsolution@gmail.com.');
 
     return resp;
   } catch (err) {

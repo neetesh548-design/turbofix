@@ -97,12 +97,12 @@ export default function Support() {
 
   return <AppShell active="support"><div className="support-page">
     <div className="decision-heading"><div><span className="eyebrow eyebrow-light">Resolve together</span><h1>Support</h1><p>{roleContribution(user?.role)}</p></div><a className="btn btn-ghost btn-sm" href="assistant.html">Ask TurboFix</a></div>
-    <div className="support-principle"><HeartHandshake /><div><strong>Contact support</strong><span>Email: support@turbofix.co.in · Phone: +91 96374 38044 · Available: Mon-Fri, 9 AM - 6 PM IST</span></div></div>
+    <div className="support-principle"><HeartHandshake /><div><strong>Contact support</strong><span>Email: turbofixsolution@gmail.com · Phone: +91 96374 38044 · Available: Mon-Fri, 9 AM - 6 PM IST</span></div></div>
     {error && <div className="decision-alert">{error}</div>}{message && <div className="technician-alert success"><CheckCircle2 />{message}</div>}
 
     <div style={{ maxWidth: '600px', margin: '32px auto' }}>
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-        <a href="mailto:support@turbofix.co.in" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Email support</a>
+        <a href="mailto:turbofixsolution@gmail.com" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Email support</a>
         <a href="tel:+919637438044" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Call +91 96374 38044</a>
       </div>
       <button type="button" className="btn btn-ghost" onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ width: '100%' }}>More options</button>
