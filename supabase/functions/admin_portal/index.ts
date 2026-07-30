@@ -449,10 +449,168 @@ serve(async (req: Request) => {
       if (compErr) return reply(req, { detail: compErr.message }, 500)
       return reply(req, { status: 'success', company: comp })
     } catch {
+      return reply(req, { detail: 'Invalid JSON body' }, 400)
+    }
+  }
+
+  // API Route: Update Company Quota
+  const quotaMatch = pathname.match(/^\/companies\/([^/]+)\/quota$/)
+  if (req.method === 'POST' && quotaMatch) {
+    try {
+      const companyCode = quotaMatch[1]
+      const body = await req.json()
+      const quota = Number(body.quota) || 5
+      const { error } = await supabase
+        .from('companies')
+        .update({ machine_quota: quota })
+        .eq('domain', companyCode)
+
+      if (error) return reply(req, { detail: error.message }, 500)
+      return reply(req, { status: 'success', message: `Quota updated to ${quota}` })
+    } catch {
       return reply(req, { detail: 'Invalid payload' }, 400)
     }
   }
 
-  // Fallback 404
+  // API Route: List All Factory Fleet Machines
+  if (req.method === 'GET' && pathname === '/machines') {
+    const { data: machines, error: mErr } = await supabase
+      .from('machines')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (mErr) return reply(req, { detail: mErr.message }, 500)
+
+    const { data: factories } = await supabase.from('factories').select('id, name, company_id')
+    const { data: companies } = await supabase.from('companies').select('id, domain, name')
+
+    const factoryMap: Record<string, { name: string; company_id: string }> = {}
+    factories?.forEach(f => {
+      factoryMap[f.id] = { name: f.name || f.id, company_id: f.company_id }
+    })
+
+    const companyMap: Record<string, string> = {}
+    companies?.forEach(c => {
+      companyMap[c.id] = c.domain || c.name || c.id
+    })
+
+    const result = (machines || []).map(m => {
+      const fact = factoryMap[m.factory_id || '']
+      const compCode = m.company_code || companyMap[m.company_id || ''] || companyMap[fact?.company_id || ''] || 'GENERAL'
+      return {
+        id: m.id,
+        machine_id: m.id,
+        name: m.name || m.machine_name || 'Unnamed Machine',
+        code: m.code || m.machine_code || m.id.slice(0, 8),
+        serial_number: m.serial_number || 'N/A',
+        status: m.status || 'running',
+        health_score: m.health_score || 95,
+        factory_id: m.factory_id || '',
+        factory_name: fact?.name || 'Main Factory',
+        company_code: compCode,
+        created_at: m.created_at || new Date().toISOString(),
+      }
+    })
+
+    return reply(req, { machines: result })
+  }
+
+  // API Route: Update Machine Status (Reset breakdown / Maintenance toggle)
+  if (req.method === 'POST' && pathname === '/machines/status') {
+    try {
+      const body = await req.json()
+      const machineId = String(body.machine_id || body.id || '')
+      const newStatus = String(body.status || 'running')
+
+      if (!machineId) return reply(req, { detail: 'machine_id is required' }, 400)
+
+      const { error } = await supabase
+        .from('machines')
+        .update({ status: newStatus })
+        .eq('id', machineId)
+
+      if (error) return reply(req, { detail: error.message }, 500)
+      return reply(req, { status: 'success', message: `Machine status updated to ${newStatus}` })
+    } catch {
+      return reply(req, { detail: 'Invalid payload' }, 400)
+    }
+  }
+
+  // API Route: Provision New Factory Machine
+  if (req.method === 'POST' && pathname === '/machines/provision') {
+    try {
+      const body = await req.json()
+      const name = String(body.name || body.machine_name || '').trim()
+      const code = String(body.code || body.machine_code || '').trim().toUpperCase()
+      const companyCode = String(body.company_code || 'TFDEMO').trim().toUpperCase()
+      const serialNumber = String(body.serial_number || '').trim()
+      const factoryId = String(body.factory_id || '').trim()
+
+      if (!name || !code) return reply(req, { detail: 'name and code are required' }, 400)
+
+      // Find company_id
+      const { data: comp } = await supabase.from('companies').select('id').eq('domain', companyCode).maybeSingle()
+      const companyId = comp?.id || null
+
+      const { data: newMachine, error: mErr } = await supabase
+        .from('machines')
+        .insert({
+          id: crypto.randomUUID(),
+          name,
+          code,
+          company_code: companyCode,
+          company_id: companyId,
+          factory_id: factoryId || null,
+          serial_number: serialNumber || `SN-${Date.now().toString().slice(-6)}`,
+          status: 'running',
+          health_score: 100,
+        })
+        .select()
+        .single()
+
+      if (mErr) return reply(req, { detail: mErr.message }, 500)
+      return reply(req, { status: 'success', machine: newMachine })
+    } catch {
+      return reply(req, { detail: 'Invalid request' }, 400)
+    }
+  }
+
+  // API Route: Delete Machine
+  const deleteMachineMatch = pathname.match(/^\/machines\/([^/]+)$/)
+  if (req.method === 'DELETE' && deleteMachineMatch) {
+    const machineId = deleteMachineMatch[1]
+    const { error } = await supabase.from('machines').delete().eq('id', machineId)
+
+    if (error) return reply(req, { detail: error.message }, 500)
+    return reply(req, { status: 'success', message: `Machine ${machineId} deleted` })
+  }
+
+  // API Route: List All Active Breakdown Tickets
+  if (req.method === 'GET' && pathname === '/tickets') {
+    const { data: tickets, error: tErr } = await supabase
+      .from('tickets')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (tErr) return reply(req, { detail: tErr.message }, 500)
+    return reply(req, { tickets: tickets || [] })
+  }
+
+  // API Route: Force Resolve Ticket
+  const resolveTicketMatch = pathname.match(/^\/tickets\/([^/]+)\/resolve$/)
+  if (req.method === 'POST' && resolveTicketMatch) {
+    const ticketId = resolveTicketMatch[1]
+    const { error } = await supabase
+      .from('tickets')
+      .update({ status: 'resolved', resolved_at: new Date().toISOString() })
+      .eq('id', ticketId)
+
+    if (error) return reply(req, { detail: error.message }, 500)
+    return reply(req, { status: 'success', message: `Ticket ${ticketId} resolved` })
+  }
+
   return reply(req, { detail: 'Endpoint not found' }, 404)
 })
+
+Deno.serve(handler)

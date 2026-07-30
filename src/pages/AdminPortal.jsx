@@ -1,5 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Shield, Building2, Cpu, Ticket, CheckCircle2, Trash2, LogOut, Lock } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Shield,
+  Building2,
+  Cpu,
+  Ticket,
+  CheckCircle2,
+  Trash2,
+  LogOut,
+  Lock,
+  Plus,
+  RefreshCw,
+  Search,
+  Wrench,
+  AlertTriangle,
+  Activity,
+  Filter,
+  Check,
+  Edit3,
+  Sliders,
+} from 'lucide-react';
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
 const TOKEN_KEY = 'tf_supabase_admin_token';
@@ -10,23 +29,47 @@ export default function AdminPortal() {
   const [loginErr, setLoginErr] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
+  // Active Tab: 'companies' | 'machines' | 'tickets'
+  const [activeTab, setActiveTab] = useState('companies');
+
+  // Data States
   const [companies, setCompanies] = useState([]);
+  const [machines, setMachines] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Notifications
   const [actionErr, setActionErr] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
 
-  // Provision modal form state
-  const [showProvision, setShowProvision] = useState(false);
+  // Search & Filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Provision Company Modal State
+  const [showProvComp, setShowProvComp] = useState(false);
   const [provCode, setProvCode] = useState('');
   const [provName, setProvName] = useState('');
   const [provPhone, setProvPhone] = useState('');
   const [provQuota, setProvQuota] = useState(5);
-  const [provisioning, setProvisioning] = useState(false);
+  const [provCompSubmitting, setProvCompSubmitting] = useState(false);
+
+  // Edit Quota Modal State
+  const [quotaModalComp, setQuotaModalComp] = useState(null);
+  const [newQuotaValue, setNewQuotaValue] = useState(5);
+
+  // Provision Machine Modal State
+  const [showProvMachine, setShowProvMachine] = useState(false);
+  const [machineName, setMachineName] = useState('');
+  const [machineCode, setMachineCode] = useState('');
+  const [machineCompCode, setMachineCompCode] = useState('TFDEMO');
+  const [machineSerial, setMachineSerial] = useState('');
+  const [provMachineSubmitting, setProvMachineSubmitting] = useState(false);
 
   useEffect(() => {
-    document.title = 'TurboFix | Platform Operations Control Room';
+    document.title = 'TurboFix | Pro Platform Control Room';
     if (token) {
-      fetchCompanies(token);
+      loadAllData(token);
     }
   }, [token]);
 
@@ -57,22 +100,38 @@ export default function AdminPortal() {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken('');
     setCompanies([]);
+    setMachines([]);
+    setTickets([]);
   };
 
-  const fetchCompanies = async (authToken) => {
+  const loadAllData = async (authToken = token) => {
     setLoading(true);
     setActionErr('');
     try {
-      const res = await fetch(`${ADMIN_EDGE_URL}/companies`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (res.status === 401) {
+      const headers = { Authorization: `Bearer ${authToken}` };
+      const [compRes, machRes, tickRes] = await Promise.all([
+        fetch(`${ADMIN_EDGE_URL}/companies`, { headers }),
+        fetch(`${ADMIN_EDGE_URL}/machines`, { headers }),
+        fetch(`${ADMIN_EDGE_URL}/tickets`, { headers }),
+      ]);
+
+      if (compRes.status === 401 || machRes.status === 401) {
         handleLogout();
         throw new Error('Session expired. Please sign in again.');
       }
-      if (!res.ok) throw new Error('Failed to load company records');
-      const data = await res.json();
-      setCompanies(data.companies || []);
+
+      if (compRes.ok) {
+        const compData = await compRes.json();
+        setCompanies(compData.companies || []);
+      }
+      if (machRes.ok) {
+        const machData = await machRes.json();
+        setMachines(machData.machines || []);
+      }
+      if (tickRes.ok) {
+        const tickData = await tickRes.json();
+        setTickets(tickData.tickets || []);
+      }
     } catch (err) {
       setActionErr(err.message);
     } finally {
@@ -80,7 +139,8 @@ export default function AdminPortal() {
     }
   };
 
-  const handleApprove = async (code) => {
+  // Company Actions
+  const handleApproveCompany = async (code) => {
     setActionErr('');
     setActionSuccess('');
     try {
@@ -90,14 +150,14 @@ export default function AdminPortal() {
       });
       if (!res.ok) throw new Error('Failed to approve company workspace');
       setActionSuccess(`Company ${code} approved successfully`);
-      fetchCompanies(token);
+      loadAllData();
     } catch (err) {
       setActionErr(err.message);
     }
   };
 
-  const handleDelete = async (code) => {
-    if (!window.confirm(`Are you sure you want to delete workspace ${code}? This cannot be undone.`)) return;
+  const handleDeleteCompany = async (code) => {
+    if (!window.confirm(`Are you sure you want to delete workspace ${code}? This will remove all factory records.`)) return;
     setActionErr('');
     setActionSuccess('');
     try {
@@ -107,15 +167,38 @@ export default function AdminPortal() {
       });
       if (!res.ok) throw new Error('Failed to delete company workspace');
       setActionSuccess(`Company ${code} deleted successfully`);
-      fetchCompanies(token);
+      loadAllData();
     } catch (err) {
       setActionErr(err.message);
     }
   };
 
-  const handleProvisionSubmit = async (e) => {
+  const handleUpdateQuotaSubmit = async (e) => {
     e.preventDefault();
-    setProvisioning(true);
+    if (!quotaModalComp) return;
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/companies/${quotaModalComp.company_code}/quota`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quota: Number(newQuotaValue) }),
+      });
+      if (!res.ok) throw new Error('Failed to update company machine quota');
+      setActionSuccess(`Machine quota for ${quotaModalComp.company_code} updated to ${newQuotaValue}`);
+      setQuotaModalComp(null);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  const handleProvisionCompanySubmit = async (e) => {
+    e.preventDefault();
+    setProvCompSubmitting(true);
     setActionErr('');
     setActionSuccess('');
     try {
@@ -137,17 +220,152 @@ export default function AdminPortal() {
         throw new Error(errData.detail || 'Provisioning failed');
       }
       setActionSuccess(`Workspace ${provCode.toUpperCase()} provisioned successfully`);
-      setShowProvision(false);
+      setShowProvComp(false);
       setProvCode('');
       setProvName('');
       setProvPhone('');
-      fetchCompanies(token);
+      loadAllData();
     } catch (err) {
       setActionErr(err.message);
     } finally {
-      setProvisioning(false);
+      setProvCompSubmitting(false);
     }
   };
+
+  // Machine Actions
+  const handleUpdateMachineStatus = async (machineId, newStatus) => {
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/machines/status`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ machine_id: machineId, status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed to update machine status');
+      setActionSuccess(`Machine status set to ${newStatus.toUpperCase()}`);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  const handleDeleteMachine = async (machineId, machineName) => {
+    if (!window.confirm(`Decommission machine "${machineName}" (${machineId.slice(0, 8)})?`)) return;
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/machines/${machineId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to decommission machine');
+      setActionSuccess(`Machine "${machineName}" decommissioned successfully`);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  const handleProvisionMachineSubmit = async (e) => {
+    e.preventDefault();
+    setProvMachineSubmitting(true);
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/machines/provision`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: machineName,
+          code: machineCode,
+          company_code: machineCompCode,
+          serial_number: machineSerial,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Machine creation failed');
+      }
+      setActionSuccess(`Machine ${machineCode.toUpperCase()} provisioned successfully`);
+      setShowProvMachine(false);
+      setMachineName('');
+      setMachineCode('');
+      setMachineSerial('');
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    } finally {
+      setProvMachineSubmitting(false);
+    }
+  };
+
+  // Ticket Actions
+  const handleResolveTicket = async (ticketId) => {
+    setActionErr('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${ADMIN_EDGE_URL}/tickets/${ticketId}/resolve`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to resolve breakdown ticket');
+      setActionSuccess(`Ticket ${ticketId.slice(0, 8)} resolved`);
+      loadAllData();
+    } catch (err) {
+      setActionErr(err.message);
+    }
+  };
+
+  // Filtered Computed Lists
+  const filteredCompanies = useMemo(() => {
+    return companies.filter((c) => {
+      const matchesSearch =
+        c.company_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.company_name && c.company_name.toLowerCase().includes(searchQuery.toLowerCase()));
+      if (statusFilter === 'active') return matchesSearch && c.approved === 'yes';
+      if (statusFilter === 'pending') return matchesSearch && c.approved !== 'yes';
+      return matchesSearch;
+    });
+  }, [companies, searchQuery, statusFilter]);
+
+  const filteredMachines = useMemo(() => {
+    return machines.filter((m) => {
+      const matchesSearch =
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.company_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.serial_number.toLowerCase().includes(searchQuery.toLowerCase());
+      if (statusFilter === 'running') return matchesSearch && m.status === 'running';
+      if (statusFilter === 'breakdown') return matchesSearch && (m.status === 'breakdown' || m.status === 'down');
+      if (statusFilter === 'maintenance') return matchesSearch && m.status === 'maintenance';
+      return matchesSearch;
+    });
+  }, [machines, searchQuery, statusFilter]);
+
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      const matchesSearch =
+        (t.id && t.id.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (t.machine_code && t.machine_code.toLowerCase().includes(searchQuery.toLowerCase()));
+      if (statusFilter === 'open') return matchesSearch && t.status === 'open';
+      if (statusFilter === 'resolved') return matchesSearch && t.status === 'resolved';
+      return matchesSearch;
+    });
+  }, [tickets, searchQuery, statusFilter]);
+
+  // Overall Health Metrics
+  const healthyCount = machines.filter((m) => m.status === 'running' || m.status === 'healthy').length;
+  const breakdownCount = machines.filter((m) => m.status === 'breakdown' || m.status === 'down').length;
+  const maintenanceCount = machines.filter((m) => m.status === 'maintenance').length;
+  const totalFleetMachines = machines.length;
 
   if (!token) {
     return (
@@ -160,7 +378,7 @@ export default function AdminPortal() {
             <div>
               <h1 className="text-xl font-bold tracking-tight">TurboFix Control Room</h1>
               <p className="text-xs text-amber-500 font-semibold tracking-wider uppercase">
-                Supabase Edge Platform Gateway
+                Pro Platform Gateway & Machine Operations
               </p>
             </div>
           </div>
@@ -202,28 +420,43 @@ export default function AdminPortal() {
     );
   }
 
-  const totalMachines = companies.reduce((acc, c) => acc + (c.machines_count || 0), 0);
-  const totalOpenTickets = companies.reduce((acc, c) => acc + (c.open_tickets_count || 0), 0);
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      {/* Top Pro Operations Header */}
+      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg">
+          <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-lg shadow-amber-500/20">
             ϟ
           </div>
-          <span className="font-extrabold tracking-wide text-slate-100">
-            TURBOFIX PLATFORM CONTROL <span className="text-amber-500 text-xs ml-2 uppercase font-semibold">Supabase Edge</span>
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold tracking-wide text-slate-100 text-base">
+                TURBOFIX PLATFORM CONTROL
+              </span>
+              <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold uppercase">
+                Pro Operations
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">Direct Cloud Gateway & Fleet Machine Management</p>
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-sm text-slate-400">
-          <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => loadAllData()}
+            title="Refresh Live Telemetry"
+            className="p-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+          </button>
+
+          <span className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
             <Shield className="w-3.5 h-3.5" /> Direct Cloud Gateway Active
           </span>
+
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition-colors"
           >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
@@ -232,193 +465,642 @@ export default function AdminPortal() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
-        {/* Banner / Flash Alerts */}
+        {/* Banner Alerts */}
         {actionSuccess && (
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm font-semibold flex items-center justify-between">
-            <span>{actionSuccess}</span>
-            <button onClick={() => setActionSuccess('')} className="text-emerald-400 hover:text-emerald-200">×</button>
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm font-semibold flex items-center justify-between shadow-lg">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> {actionSuccess}
+            </span>
+            <button onClick={() => setActionSuccess('')} className="text-emerald-400 hover:text-emerald-200 text-lg">
+              ×
+            </button>
           </div>
         )}
         {actionErr && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-semibold flex items-center justify-between">
-            <span>{actionErr}</span>
-            <button onClick={() => setActionErr('')} className="text-red-400 hover:text-red-200">×</button>
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-semibold flex items-center justify-between shadow-lg">
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> {actionErr}
+            </span>
+            <button onClick={() => setActionErr('')} className="text-red-400 hover:text-red-200 text-lg">
+              ×
+            </button>
           </div>
         )}
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl">
+        {/* Global Operational Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Workspaces</p>
+              <p className="text-3xl font-black text-slate-100 mt-1">{companies.length}</p>
+              <p className="text-[11px] text-emerald-400 font-semibold mt-1">
+                {companies.filter((c) => c.approved === 'yes').length} Active Organizations
+              </p>
+            </div>
+            <div className="p-3.5 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20">
               <Building2 className="w-6 h-6" />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Workspaces</p>
-              <p className="text-3xl font-extrabold text-slate-100">{companies.length}</p>
-            </div>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Fleet Machines</p>
+              <p className="text-3xl font-black text-slate-100 mt-1">{totalFleetMachines}</p>
+              <p className="text-[11px] text-slate-400 font-semibold mt-1">Across all registered plants</p>
+            </div>
+            <div className="p-3.5 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
               <Cpu className="w-6 h-6" />
             </div>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Fleet Machines</p>
-              <p className="text-3xl font-extrabold text-slate-100">{totalMachines}</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fleet Health Index</p>
+              <p className="text-3xl font-black text-emerald-400 mt-1">{healthyCount}</p>
+              <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                {breakdownCount > 0 ? `${breakdownCount} Breakdown Alerts` : 'Zero Active Failures'}
+              </p>
+            </div>
+            <div className="p-3.5 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+              <Activity className="w-6 h-6" />
             </div>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Breakdown Tickets</p>
+              <p className="text-3xl font-black text-rose-400 mt-1">{tickets.length}</p>
+              <p className="text-[11px] text-rose-400 font-semibold mt-1">Requires Operator Verification</p>
+            </div>
+            <div className="p-3.5 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20">
               <Ticket className="w-6 h-6" />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Open Breakdown Tickets</p>
-              <p className="text-3xl font-extrabold text-slate-100">{totalOpenTickets}</p>
-            </div>
           </div>
         </div>
 
-        {/* Action Header */}
-        <div className="flex items-center justify-between pt-4">
-          <h2 className="text-xl font-bold text-slate-100">Onboarded Plant Organizations</h2>
-          <button
-            onClick={() => setShowProvision(true)}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition-colors text-sm"
-          >
-            + Provision New Workspace
-          </button>
+        {/* Navigation Tabs & Global Search Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+            <button
+              onClick={() => {
+                setActiveTab('companies');
+                setStatusFilter('all');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'companies'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Building2 className="w-4 h-4" /> Workspaces & Organizations ({companies.length})
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('machines');
+                setStatusFilter('all');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'machines'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Cpu className="w-4 h-4" /> Factory Machine Fleet ({totalFleetMachines})
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('tickets');
+                setStatusFilter('all');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'tickets'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Ticket className="w-4 h-4" /> Breakdown Queue ({tickets.length})
+            </button>
+          </div>
+
+          {/* Search & Actions */}
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 md:w-64">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Search ${activeTab}...`}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            {activeTab === 'companies' && (
+              <button
+                onClick={() => setShowProvComp(true)}
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10"
+              >
+                <Plus className="w-4 h-4" /> Provision Workspace
+              </button>
+            )}
+
+            {activeTab === 'machines' && (
+              <button
+                onClick={() => setShowProvMachine(true)}
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10"
+              >
+                <Plus className="w-4 h-4" /> Provision Machine
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Provision Modal */}
-        {showProvision && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-100">Provision Organization Workspace</h3>
-              <form onSubmit={handleProvisionSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Company Domain Code</label>
-                  <input
-                    type="text"
-                    value={provCode}
-                    onChange={(e) => setProvCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. ACME"
-                    required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Company Full Name</label>
-                  <input
-                    type="text"
-                    value={provName}
-                    onChange={(e) => setProvName(e.target.value)}
-                    placeholder="e.g. Acme Manufacturing Ltd."
-                    required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Admin Contact Phone</label>
-                  <input
-                    type="text"
-                    value={provPhone}
-                    onChange={(e) => setProvPhone(e.target.value)}
-                    placeholder="e.g. +919876543210"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
-                  <input
-                    type="number"
-                    value={provQuota}
-                    onChange={(e) => setProvQuota(e.target.value)}
-                    min="1"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowProvision(false)}
-                    className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-sm font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={provisioning}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-sm transition-colors disabled:opacity-50"
-                  >
-                    {provisioning ? 'Provisioning...' : 'Confirm Provisioning'}
-                  </button>
-                </div>
-              </form>
+        {/* TAB 1: WORKSPACES & ORGANIZATIONS */}
+        {activeTab === 'companies' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Showing {filteredCompanies.length} of {companies.length} Plant Workspaces
+              </span>
+              <div className="flex items-center gap-2 text-xs">
+                <Filter className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-slate-500">Filter:</span>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'all' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setStatusFilter('active')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400'
+                  }`}
+                >
+                  Active
+                </button>
+                <button
+                  onClick={() => setStatusFilter('pending')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400'
+                  }`}
+                >
+                  Pending
+                </button>
+              </div>
             </div>
+
+            {loading ? (
+              <div className="p-12 text-center text-slate-500 text-sm">Querying Supabase Edge Gateway...</div>
+            ) : filteredCompanies.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-sm">No plant workspaces match your search</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Domain Code</th>
+                      <th className="p-4">Organization Name</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Fleet Machines (Used / Quota)</th>
+                      <th className="p-4">Users</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {filteredCompanies.map((c) => (
+                      <tr key={c.company_code} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="p-4 font-bold text-slate-100 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                          {c.company_code}
+                        </td>
+                        <td className="p-4 text-slate-300 font-medium">{c.company_name || c.company_code}</td>
+                        <td className="p-4">
+                          {c.approved === 'yes' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                              <Check className="w-3 h-3" /> Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                              Pending Approval
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-slate-300">
+                          <div className="flex items-center gap-2">
+                            <span>
+                              {c.machines_count || 0} / {c.machine_quota || 5}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setQuotaModalComp(c);
+                                setNewQuotaValue(c.machine_quota || 5);
+                              }}
+                              title="Edit Machine Quota"
+                              className="p-1 text-slate-500 hover:text-amber-400 hover:bg-slate-800 rounded transition-colors"
+                            >
+                              <Sliders className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="p-4 text-slate-300">{c.users_count || 0}</td>
+                        <td className="p-4 text-right space-x-2">
+                          {c.approved !== 'yes' && (
+                            <button
+                              onClick={() => handleApproveCompany(c.company_code)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteCompany(c.company_code)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-          {loading ? (
-            <div className="p-8 text-center text-slate-500 text-sm">Querying Supabase Edge Gateway...</div>
-          ) : companies.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-sm">No companies registered yet</div>
-          ) : (
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="p-4">Company Code</th>
-                  <th className="p-4">Organization Name</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Machines (Used / Quota)</th>
-                  <th className="p-4">Users</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {companies.map((c) => (
-                  <tr key={c.company_code} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-4 font-bold text-slate-100">{c.company_code}</td>
-                    <td className="p-4 text-slate-300">{c.company_name || c.company_code}</td>
-                    <td className="p-4">
-                      {c.approved === 'yes' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                          Pending Approval
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-slate-300">
-                      {c.machines_count || 0} / {c.machine_quota || 5}
-                    </td>
-                    <td className="p-4 text-slate-300">{c.users_count || 0}</td>
-                    <td className="p-4 text-right space-x-2">
-                      {c.approved !== 'yes' && (
-                        <button
-                          onClick={() => handleApprove(c.company_code)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Approve
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(c.company_code)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* TAB 2: FACTORY MACHINE FLEET */}
+        {activeTab === 'machines' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Showing {filteredMachines.length} of {machines.length} Fleet Machines
+              </span>
+              <div className="flex items-center gap-2 text-xs">
+                <Filter className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-slate-500">Status:</span>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'all' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setStatusFilter('running')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'running' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400'
+                  }`}
+                >
+                  Running
+                </button>
+                <button
+                  onClick={() => setStatusFilter('breakdown')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'breakdown' ? 'bg-rose-500/20 text-rose-400' : 'text-slate-400'
+                  }`}
+                >
+                  Breakdown
+                </button>
+                <button
+                  onClick={() => setStatusFilter('maintenance')}
+                  className={`px-2.5 py-1 rounded-lg font-semibold ${
+                    statusFilter === 'maintenance' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-400'
+                  }`}
+                >
+                  Maintenance
+                </button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="p-12 text-center text-slate-500 text-sm">Loading Factory Machinery...</div>
+            ) : filteredMachines.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-sm">No machines found matching query</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Machine Name / Code</th>
+                      <th className="p-4">Company / Factory</th>
+                      <th className="p-4">Serial Number</th>
+                      <th className="p-4">Operational Status</th>
+                      <th className="p-4">Health Index</th>
+                      <th className="p-4 text-right">Machine Controls</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {filteredMachines.map((m) => (
+                      <tr key={m.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="p-4">
+                          <p className="font-bold text-slate-100">{m.name}</p>
+                          <p className="text-xs text-amber-500 font-mono">{m.code}</p>
+                        </td>
+                        <td className="p-4">
+                          <p className="font-semibold text-slate-200">{m.company_code}</p>
+                          <p className="text-xs text-slate-400">{m.factory_name}</p>
+                        </td>
+                        <td className="p-4 text-slate-400 font-mono text-xs">{m.serial_number}</td>
+                        <td className="p-4">
+                          {m.status === 'running' || m.status === 'healthy' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                              <Check className="w-3 h-3" /> Running
+                            </span>
+                          ) : m.status === 'breakdown' || m.status === 'down' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                              <AlertTriangle className="w-3 h-3" /> Breakdown
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                              <Wrench className="w-3 h-3" /> Maintenance
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-slate-300 font-bold">{m.health_score}%</td>
+                        <td className="p-4 text-right space-x-2">
+                          {m.status !== 'running' && (
+                            <button
+                              onClick={() => handleUpdateMachineStatus(m.id, 'running')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            >
+                              Reset to Healthy
+                            </button>
+                          )}
+
+                          {m.status !== 'maintenance' && (
+                            <button
+                              onClick={() => handleUpdateMachineStatus(m.id, 'maintenance')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            >
+                              Set Maintenance
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => handleDeleteMachine(m.id, m.name)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Decommission
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: BREAKDOWN QUEUE */}
+        {activeTab === 'tickets' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Showing {filteredTickets.length} Breakdown Tickets
+              </span>
+            </div>
+
+            {loading ? (
+              <div className="p-12 text-center text-slate-500 text-sm">Fetching Breakdown Tickets...</div>
+            ) : filteredTickets.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-sm">No active breakdown tickets found</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Ticket ID</th>
+                      <th className="p-4">Issue Description</th>
+                      <th className="p-4">Reported At</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {filteredTickets.map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="p-4 font-mono font-bold text-amber-500 text-xs">{t.id.slice(0, 8)}</td>
+                        <td className="p-4 text-slate-200 max-w-md">{t.description || t.issue_text || 'Breakdown issue reported'}</td>
+                        <td className="p-4 text-slate-400 text-xs">{new Date(t.created_at || Date.now()).toLocaleString()}</td>
+                        <td className="p-4">
+                          {t.status === 'resolved' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                              Resolved
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                              Open Breakdown
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          {t.status !== 'resolved' && (
+                            <button
+                              onClick={() => handleResolveTicket(t.id)}
+                              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs transition-colors"
+                            >
+                              Force Resolve
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </main>
+
+      {/* MODAL: Provision Company */}
+      {showProvComp && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-100">Provision Organization Workspace</h3>
+            <form onSubmit={handleProvisionCompanySubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Company Code / Domain</label>
+                <input
+                  type="text"
+                  value={provCode}
+                  onChange={(e) => setProvCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. ACME"
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Company Full Name</label>
+                <input
+                  type="text"
+                  value={provName}
+                  onChange={(e) => setProvName(e.target.value)}
+                  placeholder="e.g. Acme Manufacturing Ltd."
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Admin Phone</label>
+                <input
+                  type="text"
+                  value={provPhone}
+                  onChange={(e) => setProvPhone(e.target.value)}
+                  placeholder="e.g. +919876543210"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Quota</label>
+                <input
+                  type="number"
+                  value={provQuota}
+                  onChange={(e) => setProvQuota(e.target.value)}
+                  min="1"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProvComp(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={provCompSubmitting}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors disabled:opacity-50"
+                >
+                  {provCompSubmitting ? 'Provisioning...' : 'Confirm Provisioning'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Edit Quota */}
+      {quotaModalComp && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-100">
+              Edit Machine Quota: <span className="text-amber-400">{quotaModalComp.company_code}</span>
+            </h3>
+            <form onSubmit={handleUpdateQuotaSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Allowed Machine Capacity</label>
+                <input
+                  type="number"
+                  value={newQuotaValue}
+                  onChange={(e) => setNewQuotaValue(e.target.value)}
+                  min="1"
+                  max="500"
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setQuotaModalComp(null)}
+                  className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors"
+                >
+                  Save Quota
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Provision Machine */}
+      {showProvMachine && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-100">Provision New Factory Machine</h3>
+            <form onSubmit={handleProvisionMachineSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Target Company Code</label>
+                <select
+                  value={machineCompCode}
+                  onChange={(e) => setMachineCompCode(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                >
+                  {companies.map((c) => (
+                    <option key={c.company_code} value={c.company_code}>
+                      {c.company_code} &mdash; {c.company_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Name</label>
+                <input
+                  type="text"
+                  value={machineName}
+                  onChange={(e) => setMachineName(e.target.value)}
+                  placeholder="e.g. High Precision CNC Milling Center"
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Machine Code</label>
+                <input
+                  type="text"
+                  value={machineCode}
+                  onChange={(e) => setMachineCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. CNC-09"
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Serial Number (Optional)</label>
+                <input
+                  type="text"
+                  value={machineSerial}
+                  onChange={(e) => setMachineSerial(e.target.value)}
+                  placeholder="e.g. SN-884920"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProvMachine(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={provMachineSubmitting}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors disabled:opacity-50"
+                >
+                  {provMachineSubmitting ? 'Provisioning...' : 'Provision Machine'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

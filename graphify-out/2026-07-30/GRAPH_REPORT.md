@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-30)
 
 ## Corpus Check
-- 552 files · ~655,489 words
+- 553 files · ~659,401 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4321 nodes · 8135 edges · 390 communities (242 shown, 148 thin omitted)
+- 4322 nodes · 8135 edges · 391 communities (243 shown, 148 thin omitted)
 - Extraction: 95% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 365 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `da0b5284`
+- Built from commit: `0f2ae6ed`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -391,7 +391,7 @@
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 - **Smart Modules Configuration Options** — settings_screenshot_iot_predictive_power_signature, settings_screenshot_visual_spare_part_deduction, settings_screenshot_dynamic_supply_chain_sync, settings_screenshot_opportunistic_mesh_syncing, settings_screenshot_location_handshake_verification [EXTRACTED 1.00]
 
-## Communities (390 total, 148 thin omitted)
+## Communities (391 total, 148 thin omitted)
 
 ### Community 0 - "UserRepository"
 Cohesion: 0.07
@@ -1176,7 +1176,7 @@ Nodes (7): test_backup_contains_originals_structured_data_csv_and_machine_data()
   public/icons.svg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **794 isolated node(s):** `Home`, `WhyTurboFix`, `Platform`, `RecordsPlatform`, `Workflow` (+789 more)
+- **794 isolated node(s):** `allowedOrigins`, `Home`, `WhyTurboFix`, `Platform`, `RecordsPlatform` (+789 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **148 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1191,9 +1191,9 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.051) - this node is a cross-community bridge._
 - **Why does `CurrentUser` connect `BaseModel` to `RoleForm.jsx`, `sw-strategies.js`, `conftest.py`, `gemini.py`, `.get`, `OfflineQueue`, `SupabaseTicketRepository`, `devDependencies`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **Why does `MachineRepository` connect `devDependencies` to `UserRepository`, `whatsapp_webhook/index.ts`, `DocumentRepository`, `.insert`, `conftest.py`, `BaseModel`, `dependencies.py`, `SupabaseTicketRepository`, `useI18n`, `SupervisorKaizen.jsx`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 22 inferred relationships involving `CurrentUser` (e.g. with `AddSupervisorRequest` and `ForgotPasswordRequest`) actually correct?**
   _`CurrentUser` has 22 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 15 inferred relationships involving `MachineRepository` (e.g. with `SheetsEventRepository` and `SheetsMachineRepository`) actually correct?**
   _`MachineRepository` has 15 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `allowedOrigins`, `Home`, `WhyTurboFix` to the rest of the system?**
+  _794 weakly-connected nodes found - possible documentation gaps or missing edges._

@@ -545,8 +545,8 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785239294.961071,
-    "ast_hash": "b6cab0db7711a8b99ce82a0c10a578ff",
+    "mtime": 1785434940.1082575,
+    "ast_hash": "41cb3d61d812784dbef3b7631e774496",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785433684.8957205,
-    "ast_hash": "5c55982a8d174a5b676f8ef5ff5369f6",
+    "mtime": 1785434472.1900384,
+    "ast_hash": "cb4c13309e4c855b1826809c16884c7d",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -2915,13 +2915,23 @@
     "semantic_hash": ""
   },
   "supabase/functions/admin_portal/index.ts": {
-    "mtime": 1785433608.783384,
-    "ast_hash": "3427928a1c2ba8f728fd33d1394dc4ff",
+    "mtime": 1785434250.8052337,
+    "ast_hash": "f361c26413a71820b88eb647a76ce0bc",
     "semantic_hash": ""
   },
   "src/pages/AdminPortal.jsx": {
-    "mtime": 1785433677.7412214,
-    "ast_hash": "12476b1f457faa617746e3176d615aae",
+    "mtime": 1785434369.428495,
+    "ast_hash": "4c56c0021301d0de7deba059df201b88",
+    "semantic_hash": ""
+  },
+  "tests/admin-portal.spec.js": {
+    "mtime": 1785435006.1543314,
+    "ast_hash": "77cf173bcb0fcc36024be08927ebbe79",
+    "semantic_hash": ""
+  },
+  "admin-portal-playwright.png": {
+    "mtime": 1785435044.1312745,
+    "ast_hash": "6c76355f0b52f5fc1feb203ff5109397",
     "semantic_hash": ""
   }
 }

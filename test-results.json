@@ -4,8 +4,9 @@
       "/opt/homebrew/Cellar/node/26.5.0/bin/node",
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
-      "tests/settings-role-boundary.spec.js",
-      "--project=chromium"
+      "tests/admin-portal-prod.spec.js",
+      "--project=chromium",
+      "--project=mobile-chrome"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.config.ts",
     "rootDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -18,14 +19,18 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 2
+    },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 2
+        },
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -39,7 +44,9 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 2
+        },
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -53,7 +60,9 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 2
+        },
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -67,7 +76,9 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 2
+        },
         "id": "mobile-chrome",
         "name": "mobile-chrome",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -81,7 +92,9 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 2
+        },
         "id": "mobile-safari",
         "name": "mobile-safari",
         "testDir": "/Users/nkumarsoni/TurboFix/tests",
@@ -134,17 +147,115 @@
       "timeout": 120000
     }
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
-      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
+      "title": "admin-portal-prod.spec.js",
+      "file": "admin-portal-prod.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4570,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
+                    },
+                    {
+                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
+                    },
+                    {
+                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
+                    },
+                    {
+                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-30T18:12:03.162Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "26b8cc031e585e249615-18b47c26415ab2c2b2f3",
+          "file": "admin-portal-prod.spec.js",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Verify Production TurboFix Admin Control Room login & Supabase Edge Function integration",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-chrome",
+              "projectName": "mobile-chrome",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4939,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...\n"
+                    },
+                    {
+                      "text": "Waiting for Supabase Edge Control Gateway live production data...\n"
+                    },
+                    {
+                      "text": "Found 7 registered plant company workspaces in Production Control Room.\n"
+                    },
+                    {
+                      "text": "Saved screenshot to admin-portal-prod-playwright.png\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-30T18:12:03.159Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "26b8cc031e585e249615-aef4ae0c691b7d199223",
+          "file": "admin-portal-prod.spec.js",
+          "line": 3,
+          "column": 1
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2026-07-29T19:46:39.585Z",
-    "duration": 6808.858,
-    "expected": 0,
+    "startTime": "2026-07-30T18:11:58.872Z",
+    "duration": 9641.745,
+    "expected": 2,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
