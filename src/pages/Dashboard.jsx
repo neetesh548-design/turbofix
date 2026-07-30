@@ -250,76 +250,92 @@ export default function Dashboard() {
         </header>
 
         {/* Stitch Obsidian Executive Summary Strip — Instant Important Info */}
-        <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="at-a-glance-summary">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(80,255,171,0.25)]">
-                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+        {loading ? (
+          <div className="stitch-glass-tile p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl animate-pulse">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-slate-800" />
+              <div className="space-y-2">
+                <div className="w-48 h-4 bg-slate-800 rounded" />
+                <div className="w-80 h-3 bg-slate-800/60 rounded" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Plant Operational Status</h2>
-                  <span className="stitch-neon-pill">AT-A-GLANCE</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-16 bg-slate-900/80 rounded-xl border border-slate-800/60 p-3 flex flex-col justify-between">
+                  <div className="w-20 h-3 bg-slate-800 rounded" />
+                  <div className="w-12 h-5 bg-slate-700 rounded mt-1" />
                 </div>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  Welcome, <strong className="text-emerald-400 font-semibold">{user?.name || 'Staff'}</strong> ({role ? role.replace('_', ' ') : 'User'}).
-                  Key plant metrics are summarized below. Select any section to dig deep.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              <a href="tickets.html" className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all flex items-center gap-1.5">
-                <span>View Tickets ({sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
-              </a>
-              <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all flex items-center gap-1.5">
-                <span>Machine Register ({sources.machines?.length || 0})</span>
-              </a>
+              ))}
             </div>
           </div>
+        ) : (
+          <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="at-a-glance-summary">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(80,255,171,0.25)]">
+                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Plant Operational Status</h2>
+                    <span className="stitch-neon-pill">AT-A-GLANCE</span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Welcome, <strong className="text-emerald-400 font-semibold">{user?.name || 'Staff'}</strong> ({role ? role.replace('_', ' ') : 'User'}).
+                    Key plant metrics are summarized below. Select any section to dig deep.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                <a href="tickets.html" className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all flex items-center gap-1.5">
+                  <span>View Tickets ({sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
+                </a>
+                <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all flex items-center gap-1.5">
+                  <span>Machine Register ({sources.machines?.length || 0})</span>
+                </a>
+              </div>
+            </div>
 
-          {/* Quick Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
-            <a href="machines.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Fleet Machines</span>
-              <div className="text-xl font-extrabold text-white mt-1 flex items-center justify-between">
-                <span>{sources.machines?.length || 0}</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
-              </div>
-            </a>
-            <a href="tickets.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all group">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Open Tickets</span>
-              <div className="text-xl font-extrabold text-amber-400 mt-1 flex items-center justify-between">
-                <span>{sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-              </div>
-            </a>
-            <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
-              <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
-                <span>{sources.tickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171]" />
-              </div>
-            </a>
-            <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">SLA Health</span>
-              <div className="text-xl font-extrabold text-emerald-400 mt-1 flex items-center justify-between">
-                <span>{metrics?.sla?.complianceRate ? `${Math.round(metrics.sla.complianceRate)}%` : '98.5%'}</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
-              </div>
-            </a>
+            {/* Quick Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
+              <a href="machines.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Fleet Machines</span>
+                <div className="text-xl font-extrabold text-white mt-1 flex items-center justify-between">
+                  <span>{sources.machines?.length || 0}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
+                </div>
+              </a>
+              <a href="tickets.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all group">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Open Tickets</span>
+                <div className="text-xl font-extrabold text-amber-400 mt-1 flex items-center justify-between">
+                  <span>{sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                </div>
+              </a>
+              <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
+                <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
+                  <span>{sources.tickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171]" />
+                </div>
+              </a>
+              <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">SLA Health</span>
+                <div className="text-xl font-extrabold text-emerald-400 mt-1 flex items-center justify-between">
+                  <span>{metrics?.sla?.complianceRate ? `${Math.round(metrics.sla.complianceRate)}%` : '98.5%'}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
+                </div>
+              </a>
+            </div>
           </div>
-        </div>
+        )}
 
         {error && (
           <div className="decision-alert">
             {error}. Showing a safe empty-state until the API is available.
           </div>
         )}
-
-        {/* The board always renders something (demo or cached), so this reads as
-            "more is coming", not "nothing is here yet". */}
-        {loading && <p className="rd-loading" role="status">Refreshing live data…</p>}
 
         {!loading && demoSession && (
           <p className="rd-demo-banner" data-testid="dashboard-demo-banner">
@@ -333,37 +349,51 @@ export default function Dashboard() {
           </p>
         )}
 
-        {specialistRole && (
-          <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
-        )}
-
-        {!specialistRole && role === DASHBOARD_ROLES.OWNER && (
-          <OwnerDashboard metrics={metrics} loading={loading} />
-        )}
-
-        {!specialistRole && role === DASHBOARD_ROLES.TECHNICIAN && (
-          <TechnicianDashboard
-            metrics={metrics}
-            user={user}
-            loading={loading}
-            onQuickReport={openQuickReport}
-          />
-        )}
-
-        {!specialistRole && role === DASHBOARD_ROLES.SUPERVISOR && (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-44 bg-slate-900/60 rounded-2xl border border-slate-800/80 p-5 animate-pulse flex flex-col justify-between">
+                <div className="w-28 h-4 bg-slate-800 rounded" />
+                <div className="w-20 h-8 bg-slate-700 rounded" />
+                <div className="w-40 h-3 bg-slate-800/60 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : (
           <>
-            <SupervisorDashboard metrics={metrics} loading={loading} isDemoData={usingDemoTeam && !noFleetData} />
-            <ClosedLoopControlCard
-              openWorkCount={legacyData.open_work_count || 0}
-              loopGapCount={legacyData.loop_gap_count || 0}
-              loopGaps={legacyData.loop_gaps || []}
-              onTakeAction={() => { window.location.href = 'tickets.html'; }}
-            />
-          </>
-        )}
+            {specialistRole && (
+              <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
+            )}
 
-        {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
-          <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
+            {!specialistRole && role === DASHBOARD_ROLES.OWNER && (
+              <OwnerDashboard metrics={metrics} loading={loading} />
+            )}
+
+            {!specialistRole && role === DASHBOARD_ROLES.TECHNICIAN && (
+              <TechnicianDashboard
+                metrics={metrics}
+                user={user}
+                loading={loading}
+                onQuickReport={openQuickReport}
+              />
+            )}
+
+            {!specialistRole && role === DASHBOARD_ROLES.SUPERVISOR && (
+              <>
+                <SupervisorDashboard metrics={metrics} loading={loading} isDemoData={usingDemoTeam && !noFleetData} />
+                <ClosedLoopControlCard
+                  openWorkCount={legacyData.open_work_count || 0}
+                  loopGapCount={legacyData.loop_gap_count || 0}
+                  loopGaps={legacyData.loop_gaps || []}
+                  onTakeAction={() => { window.location.href = 'tickets.html'; }}
+                />
+              </>
+            )}
+
+            {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
+              <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
+            )}
+          </>
         )}
 
         <QuickReportDialog
