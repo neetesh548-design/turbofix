@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="8.363436000000002">
-<testsuite name="admin-portal-prod.spec.js" timestamp="2026-07-30T18:58:52.811Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.073" errors="0">
-<testcase name="Verify Production TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal-prod.spec.js" time="4.073">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="8.901703">
+<testsuite name="admin-portal-prod.spec.js" timestamp="2026-07-30T19:06:21.300Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.485" errors="0">
+<testcase name="Verify Production TurboFix Admin Control Room login &amp; Supabase Edge Function integration" classname="admin-portal-prod.spec.js" time="4.485">
 <system-out>
 <![CDATA[Navigating to live production Admin Portal: https://turbofix.co.in/admin.html ...
 Waiting for Supabase Edge Control Gateway live production data...
