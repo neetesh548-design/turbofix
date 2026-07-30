@@ -36,13 +36,24 @@ export default function ResetPassword() {
     const urlType = params.get('type') || hashParams.get('type') || '';
     if (urlType === 'invite' || urlType === 'signup') setIsInvite(true);
 
+    const errorDescription = params.get('error_description') || hashParams.get('error_description') || '';
+    const errorMsg = errorDescription
+      ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+      : (params.get('error') || hashParams.get('error')) ? 'This link is invalid or has expired.' : '';
+
+    if (errorMsg) {
+      setRequestError(errorMsg);
+    }
+
     const hasRecoveryPayload =
-      params.has('code') ||
-      params.has('token') ||
-      hashParams.has('access_token') ||
-      hashParams.get('type') === 'recovery' ||
-      urlType === 'invite' ||
-      urlType === 'signup';
+      !errorMsg && (
+        params.has('code') ||
+        params.has('token') ||
+        hashParams.has('access_token') ||
+        hashParams.get('type') === 'recovery' ||
+        urlType === 'invite' ||
+        urlType === 'signup'
+      );
 
     // Track whether we have already resolved the step so two async paths
     // (onAuthStateChange + initialise) don't fight each other.
