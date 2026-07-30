@@ -1,5 +1,5 @@
-const SESSION_DAYS = 30
-const IDLE_DAYS = 7
+const SESSION_DAYS = 90
+const IDLE_DAYS = 30
 
 export const normalizePhone = (value: unknown) => String(value ?? '').replace(/\D/g, '').slice(-10)
 

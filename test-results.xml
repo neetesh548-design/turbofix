@@ -1,28 +1,8 @@
-<testsuites id="" name="" tests="9" failures="0" skipped="0" errors="0" time="38.220995">
-<testsuite name="homepage-audit.spec.js" timestamp="2026-07-30T23:38:30.935Z" hostname="chromium" tests="4" failures="0" skipped="0" time="31.883" errors="0">
-<testcase name="TurboFix Homepage E2E Audit › 1. Verify homepage title, hero heading, and primary CTAs" classname="homepage-audit.spec.js" time="7.734">
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="15.868976000000002">
+<testsuite name="qr-session-30day.spec.js" timestamp="2026-07-30T23:43:32.518Z" hostname="chromium" tests="2" failures="0" skipped="0" time="19.675" errors="0">
+<testcase name="QR Gateway 30-Day Rolling Session Token Test › Verify active 30-day session token skips OTP screen and auto-renews" classname="qr-session-30day.spec.js" time="10.07">
 </testcase>
-<testcase name="TurboFix Homepage E2E Audit › 2. Verify Executive Connection Cards &amp; custom persona portraits" classname="homepage-audit.spec.js" time="8.055">
-</testcase>
-<testcase name="TurboFix Homepage E2E Audit › 3. Verify Theme Toggle switches between Dark and Light Mode" classname="homepage-audit.spec.js" time="8.685">
-</testcase>
-<testcase name="TurboFix Homepage E2E Audit › 4. Verify Navbar brand and navigation links" classname="homepage-audit.spec.js" time="7.409">
-</testcase>
-</testsuite>
-<testsuite name="machines-page-check.spec.js" timestamp="2026-07-30T23:38:30.935Z" hostname="chromium" tests="2" failures="0" skipped="0" time="47.258" errors="0">
-<testcase name="Machines Page Diagnostics › Check if /machines.html opens cleanly for signed-in user" classname="machines-page-check.spec.js" time="23.754">
-</testcase>
-<testcase name="Machines Page Diagnostics › Check if /machines route redirects to /machines.html and loads" classname="machines-page-check.spec.js" time="23.504">
-</testcase>
-</testsuite>
-<testsuite name="qr-gateway-tickets.spec.js" timestamp="2026-07-30T23:38:30.935Z" hostname="chromium" tests="1" failures="0" skipped="0" time="26.959" errors="0">
-<testcase name="QR Gateway to Tickets Integration Test › Verify tickets submitted via QR Gateway appear immediately on Tickets page" classname="qr-gateway-tickets.spec.js" time="26.959">
-</testcase>
-</testsuite>
-<testsuite name="settings-records-audit.spec.js" timestamp="2026-07-30T23:38:30.935Z" hostname="chromium" tests="2" failures="0" skipped="0" time="25.705" errors="0">
-<testcase name="Settings and Work Records UI Audit › Check Settings page for UI issues and errors" classname="settings-records-audit.spec.js" time="18.984">
-</testcase>
-<testcase name="Settings and Work Records UI Audit › Check Records page for UI issues and errors" classname="settings-records-audit.spec.js" time="6.721">
+<testcase name="QR Gateway 30-Day Rolling Session Token Test › Verify session expires after 30 days of inactivity" classname="qr-session-30day.spec.js" time="9.605">
 </testcase>
 </testsuite>
 </testsuites>

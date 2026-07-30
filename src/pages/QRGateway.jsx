@@ -353,20 +353,43 @@ export default function QRGateway() {
   useEffect(() => {
     const token = localStorage.getItem(QR_SESSION_KEY);
     if (!token) return;
+
+    const expiryStr = localStorage.getItem('tf_qr_session_expiry');
+    const expiryTime = expiryStr ? Number(expiryStr) : (Date.now() + 30 * 86400000);
+
+    // If user has been inactive for > 30 days without opening app or logging complaints, session expires
+    if (Date.now() > expiryTime) {
+      localStorage.removeItem(QR_SESSION_KEY);
+      localStorage.removeItem('tf_qr_session_expiry');
+      setOtpVerified(false);
+      setPhoneGate(true);
+      return;
+    }
+
+    // App opened within 30 days! Renew rolling 30-day session window immediately
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    localStorage.setItem('tf_qr_session_expiry', String(Date.now() + THIRTY_DAYS_MS));
+    setOtpVerified(true);
+    setPhoneGate(false);
+
+    // Perform background sync with Edge Function without blocking user workflow
     invokeOtp({ action: 'session', session_token: token }, 'Could not restore your login')
       .then(({ session }) => {
-        setReporterPhone(session.phone);
-        setPhoneInput(session.phone);
-        if (session.reporter_name) setReporterName(session.reporter_name);
-        localStorage.setItem('tf_reporter_phone', session.phone);
-        setOtpVerified(true);
-        setPhoneGate(false);
+        if (session?.phone) {
+          setReporterPhone(session.phone);
+          setPhoneInput(session.phone);
+          if (session.reporter_name) setReporterName(session.reporter_name);
+          localStorage.setItem('tf_reporter_phone', session.phone);
+        }
       })
-      .catch(() => {
-        localStorage.removeItem(QR_SESSION_KEY);
-        sessionStorage.removeItem('tf_otp_verified');
-        setOtpVerified(false);
-        setPhoneGate(true);
+      .catch((err) => {
+        console.warn('Session verification notice (retaining active 30-day token):', err);
+        if (err.message && err.message.toLowerCase().includes('expired')) {
+          localStorage.removeItem(QR_SESSION_KEY);
+          localStorage.removeItem('tf_qr_session_expiry');
+          setOtpVerified(false);
+          setPhoneGate(true);
+        }
       });
   }, []);
 
@@ -1378,7 +1401,9 @@ export default function QRGateway() {
         'OTP verification failed',
       );
 
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
       localStorage.setItem(QR_SESSION_KEY, result.session_token);
+      localStorage.setItem('tf_qr_session_expiry', String(Date.now() + THIRTY_DAYS_MS));
       sessionStorage.removeItem('tf_otp_verified');
       localStorage.setItem('tf_reporter_phone', phoneInput.trim());
       if (reporterName.trim()) localStorage.setItem('tf_reporter_name', reporterName.trim());
@@ -1386,7 +1411,6 @@ export default function QRGateway() {
       setOtpVerified(true);
       setPhoneGate(false);
       setWorkflowStage('capture');
-
 
       setTimeout(() => {
         greetUser();
@@ -1401,6 +1425,7 @@ export default function QRGateway() {
   const handleQrLogout = async () => {
     const sessionToken = localStorage.getItem(QR_SESSION_KEY);
     localStorage.removeItem(QR_SESSION_KEY);
+    localStorage.removeItem('tf_qr_session_expiry');
     sessionStorage.removeItem('tf_otp_verified');
     setOtpVerified(false);
     setPhoneGate(true);
