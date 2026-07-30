@@ -429,29 +429,29 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar sticky top-0 z-40 flex items-center gap-3 px-4 py-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+        <header className="app-topbar sticky top-0 z-40 flex items-center gap-3 px-4 py-2.5 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 shadow-md">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
-              className="ms-waffle-btn p-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="ms-waffle-btn p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800/80 transition-colors cursor-pointer"
               onClick={() => setAppLauncherOpen(true)}
               aria-label="Open Microsoft-style App Launcher"
-              title="TurboFix Workspace Apps (Microsoft Waffle Menu)"
+              title="TurboFix Workspace Apps (Waffle Menu)"
             >
               <Grid className="w-5 h-5" />
             </button>
 
             <a href={BASE} className="app-topbar-brand flex items-center gap-2 flex-shrink-0" aria-label="TurboFix home">
               <span className="app-logo">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#50ffab" /></svg>
               </span>
-              <span className="app-brand-name font-bold tracking-tight"><b>TURBO</b>FIX</span>
+              <span className="app-brand-name font-bold tracking-tight text-white"><b>TURBO</b><span className="text-emerald-400">FIX</span></span>
             </a>
 
             {/* Current Active Workspace Indicator Pill */}
             {active && (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 rounded-full text-xs font-medium border border-teal-500/20 flex-shrink-0">
-                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 rounded-full text-xs font-medium border border-emerald-500/30 flex-shrink-0">
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="capitalize">{active.replace('-', ' ')}</span>
               </div>
             )}
@@ -461,49 +461,35 @@ export default function AppShell({ children, active }) {
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex items-center gap-2 flex-1 max-w-sm mx-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs hover:border-teal-400/60 dark:hover:border-teal-500/50 hover:text-slate-500 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-2 flex-1 max-w-sm mx-2 px-3 py-1.5 rounded-lg border border-slate-700/70 bg-slate-900/80 text-slate-400 text-xs hover:border-emerald-500/50 hover:text-slate-200 transition-colors cursor-pointer"
             aria-label="Search the workspace"
           >
-            <Search size={15} className="flex-shrink-0" />
+            <Search size={15} className="flex-shrink-0 text-emerald-400" />
             <span className="truncate">Search machines, tickets, pages…</span>
-            <kbd className="ml-auto flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-400">/</kbd>
+            <kbd className="ml-auto flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-700 bg-slate-950 text-slate-400">/</kbd>
           </button>
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="sm:hidden p-2 rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto"
+            className="sm:hidden p-2 rounded-xl text-slate-300 hover:text-emerald-400 hover:bg-slate-800 transition-colors cursor-pointer ml-auto"
             aria-label="Search the workspace"
           >
             <Search size={18} />
           </button>
 
-          <div className="app-company hidden lg:flex items-center gap-2 flex-shrink-0">
-            <span className="app-company-name text-xs text-slate-500 dark:text-slate-400 font-medium">{company}</span>
-            <span className="app-live text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-1">
-              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              {user?.inventory_mode === 'demo' ? 'Demo' : 'Live'}
+          <div className="app-company hidden xl:flex items-center gap-2 flex-shrink-0">
+            <span className="app-company-name text-xs text-slate-300 font-semibold">{company}</span>
+            <span className="app-live text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-600/40 flex items-center gap-1.5">
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
+              {user?.inventory_mode === 'demo' ? 'Demo' : 'Live Workspace'}
             </span>
           </div>
 
           <div className="app-topbar-right flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <a
               href={REPORT_BREAKDOWN_URL}
-              className="app-quick-report-btn"
+              className="app-quick-report-btn inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-md shadow-emerald-950/40"
               title="Report Breakdown / Ticket"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: 'var(--primary)',
-                color: 'var(--primary-foreground)',
-                fontWeight: 700,
-                fontSize: '0.82rem',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
             >
               <Plus size={16} />
               <span>Report Issue</span>
@@ -511,13 +497,13 @@ export default function AppShell({ children, active }) {
             <ThemeToggle />
             {roleLabel && <span className="app-role-badge" title={roleContribution(user?.role)}>{roleLabel}</span>}
             <div className="app-user flex items-center gap-2" title={user?.name || ''}>
-              <span className="app-avatar">{initial}</span>
-              <span className="app-user-name hidden xl:inline text-xs font-semibold">{user?.name || 'Staff'}</span>
+              <span className="app-avatar bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">{initial}</span>
+              <span className="app-user-name hidden xl:inline text-xs font-semibold text-slate-200">{user?.name || 'Staff'}</span>
             </div>
             <button
               type="button"
               onClick={logout}
-              className="p-2 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-colors cursor-pointer"
               title="Log out"
               aria-label="Log out"
             >
@@ -525,6 +511,28 @@ export default function AppShell({ children, active }) {
             </button>
           </div>
         </header>
+
+        {/* Seamless Stitch Obsidian Module Tabbar */}
+        <nav className="bg-[#0e121a]/95 border-b border-slate-800/80 px-4 py-1.5 overflow-x-auto flex items-center gap-1.5 scrollbar-none text-xs font-medium backdrop-blur-md sticky top-[53px] z-30 shadow-md">
+          {visibleAppNavItems(user?.role).map((item) => {
+            const Icon = item.Icon;
+            const isActive = active === item.id;
+            return (
+              <a
+                key={item.id}
+                href={item.href}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/40 shadow-sm shadow-emerald-950/50'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                }`}
+              >
+                <Icon size={14} className={isActive ? 'text-emerald-400' : 'text-slate-400'} />
+                <span>{item.label}</span>
+              </a>
+            );
+          })}
+        </nav>
 
 
         {quotaInfo && quotaInfo.used >= quotaInfo.quota && (
