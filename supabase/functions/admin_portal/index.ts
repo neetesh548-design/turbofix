@@ -318,22 +318,23 @@ serve(async (req: Request) => {
 
   if (req.method === 'GET' && pathname === '/app') {
     if (!verifyToken(authHeader)) {
-      return htmlReply(req, ADMIN_LOGIN_HTML, 401)
+      return reply(req, { detail: 'Unauthorized' }, 401)
     }
     return htmlReply(req, ADMIN_APP_HTML)
   }
 
-  // API Route: Login
-  if (req.method === 'POST' && pathname === '/login') {
+  // API Route: Login (handles both /login and POST / with password payload)
+  if (req.method === 'POST' && (pathname === '/login' || pathname === '/')) {
     try {
       const body = await req.json()
-      if (body.password === ADMIN_PASSWORD || body.password === 'TurboFixAdmin2026!') {
+      const providedPw = String(body.password || body.admin_password || '').trim()
+      if (providedPw && (providedPw === ADMIN_PASSWORD || providedPw === 'TurboFixAdmin2026!')) {
         const token = createAdminToken()
-        return reply(req, { access_token: token, token_type: 'bearer' })
+        return reply(req, { access_token: token, token_type: 'bearer', status: 'success' })
       }
       return reply(req, { detail: 'Invalid password' }, 401)
     } catch {
-      return reply(req, { detail: 'Bad request' }, 400)
+      return reply(req, { detail: 'Bad request payload' }, 400)
     }
   }
 
