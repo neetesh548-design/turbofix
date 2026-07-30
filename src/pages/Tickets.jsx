@@ -113,7 +113,43 @@ export default function Tickets() {
   const fetchTickets = useCallback(async () => {
     setError('');
     if (signedInUser?.inventory_mode === 'demo') {
-      setTickets(DEMO_TICKETS);
+      let localTickets = [];
+      try {
+        const localQrTickets = JSON.parse(localStorage.getItem('tf_qr_tickets') || '[]');
+        const localOfflineTickets = JSON.parse(localStorage.getItem('tf_offline_tickets') || '[]');
+        const localDemoTickets = JSON.parse(localStorage.getItem('tf_demo_tickets') || '[]');
+        const localBreakdowns = JSON.parse(localStorage.getItem('tf_breakdown_reports') || '[]');
+        const allLocal = [...localQrTickets, ...localOfflineTickets, ...localDemoTickets, ...localBreakdowns];
+        const existingIds = new Set(DEMO_TICKETS.map((t) => String(t.id || t.ticket_id || t.wo_number)));
+
+        allLocal.forEach((t) => {
+          if (!t) return;
+          const tid = String(t.id || t.ticket_id || t.wo_number || '');
+          if (tid && !existingIds.has(tid)) {
+            existingIds.add(tid);
+            localTickets.push({
+              ticket_id: tid,
+              wo_number: t.wo_number || (t.id ? String(t.id).slice(0, 8) : 'WO-QR'),
+              machine_id: t.machine_id || 'MCH-001',
+              machine_name: t.machine_name || 'Machine Tag',
+              status: t.status || 'open',
+              issue_text: t.issue_text || t.description || 'QR Breakdown reported',
+              description: t.issue_text || t.description,
+              ai_summary: t.ai_summary || 'Submitted via QR Gateway',
+              urgency: (t.urgency ? t.urgency.charAt(0).toUpperCase() + t.urgency.slice(1) : 'Medium'),
+              created_at: t.created_at || new Date().toISOString(),
+              reported_at: t.created_at || new Date().toISOString(),
+              reporter_phone: t.reporter_phone,
+              lifecycle_stage: t.lifecycle_stage || 'open',
+              technician_name: t.technician_name || 'Unassigned',
+            });
+          }
+        });
+      } catch (e) {
+        console.warn('Notice loading local demo tickets:', e);
+      }
+
+      setTickets([...localTickets, ...DEMO_TICKETS]);
       setMachinesList(DEMO_TICKETS.map(({ machine_id: id, machine_name: name }) => ({ id, name })));
       setTechniciansList([]);
       setLoading(false);
@@ -144,6 +180,32 @@ export default function Tickets() {
       let rawMachines = (machinesRes.data || []).map((m) => ({ ...m, company_code: signedInUser?.company_code, company_id: companyId }));
       let rawTickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || signedInUser?.company_code }));
 
+      // Merge local & QR Gateway submitted tickets
+      try {
+        const localQrTickets = JSON.parse(localStorage.getItem('tf_qr_tickets') || '[]');
+        const localOfflineTickets = JSON.parse(localStorage.getItem('tf_offline_tickets') || '[]');
+        const localDemoTickets = JSON.parse(localStorage.getItem('tf_demo_tickets') || '[]');
+        const localBreakdowns = JSON.parse(localStorage.getItem('tf_breakdown_reports') || '[]');
+
+        const allLocal = [...localQrTickets, ...localOfflineTickets, ...localDemoTickets, ...localBreakdowns];
+        const existingIds = new Set(rawTickets.map((t) => String(t.id || t.ticket_id || t.wo_number)));
+
+        allLocal.forEach((t) => {
+          if (!t) return;
+          const tid = String(t.id || t.ticket_id || t.wo_number || '');
+          if (tid && !existingIds.has(tid)) {
+            existingIds.add(tid);
+            rawTickets.unshift({
+              ...t,
+              id: tid,
+              company_code: t.company_code || signedInUser?.company_code || 'EXIDE',
+            });
+          }
+        });
+      } catch (e) {
+        console.warn('Notice reading local ticket queues:', e);
+      }
+
       rawMachines = filterRowsForUserCompany(rawMachines, signedInUser);
       rawTickets = filterRowsForUserCompany(rawTickets, signedInUser);
 
@@ -173,6 +235,8 @@ export default function Tickets() {
 
       const mList = visibleMachines.map((machine) => {
         machineMap[machine.id] = machine.name;
+        if (machine.machine_id) machineMap[machine.machine_id] = machine.name;
+        if (machine.name) machineMap[machine.name] = machine.name;
         const techId = machine.technician_user_id;
         machineTechMap[machine.id] = techId || null;
         machineTechNameMap[machine.id] = techId ? teamMap[techId] || 'Unassigned' : 'Unassigned';
@@ -186,23 +250,23 @@ export default function Tickets() {
         const raw = String(
           t.urgency || (typeof t.ai_summary === 'object' ? t.ai_summary?.urgency : '') || ''
         ).toLowerCase();
-        return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : '';
+        return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Medium';
       };
 
       const data = visibleTickets.map((t) => ({
-        ticket_id: t.id,
+        ticket_id: t.id || t.ticket_id || t.wo_number,
         machine_id: t.machine_id,
-        machine_name: machineMap[t.machine_id] || 'Unknown',
-        status: t.status,
-        issue_text: t.issue_text,
+        machine_name: machineMap[t.machine_id] || t.machine_name || 'Machine ' + (t.machine_id || 'Tag'),
+        status: t.status || 'open',
+        issue_text: t.issue_text || t.description || 'Breakdown reported',
         ai_summary: t.ai_summary,
         urgency: normUrgency(t),
-        description: t.issue_text,
-        created_at: t.created_at,
-        reported_at: t.created_at,
+        description: t.issue_text || t.description,
+        created_at: t.created_at || new Date().toISOString(),
+        reported_at: t.created_at || new Date().toISOString(),
         reporter_phone: t.reporter_phone,
-        wo_number: t.wo_number,
-        lifecycle_stage: t.lifecycle_stage,
+        wo_number: t.wo_number || (t.id ? String(t.id).slice(0, 8) : 'WO-QR'),
+        lifecycle_stage: t.lifecycle_stage || 'open',
         root_cause: t.root_cause,
         repair_action: t.repair_action,
         parts_used: t.parts_used,
@@ -214,13 +278,19 @@ export default function Tickets() {
         closure_approved_by: t.closure_approved_by,
         repeat_failure_flag: t.repeat_failure_flag,
         repeat_failure_count: t.repeat_failure_count,
-        technician_id: machineTechMap[t.machine_id] || null,
-        technician_name: machineTechNameMap[t.machine_id] || 'Unassigned',
+        technician_id: t.technician_id || machineTechMap[t.machine_id] || null,
+        technician_name: t.technician_name || machineTechNameMap[t.machine_id] || 'Unassigned',
       }));
 
-      // Demo data belongs only to demo sessions. Empty real factories stay empty.
+      // Demo data belongs only to demo sessions. Combine new QR tickets with DEMO_TICKETS so newly submitted issues appear at the top.
       const demoSession = signedInUser?.inventory_mode === 'demo' || signedInUser?.company_code === 'TFDEMO';
-      setTickets(data.length > 0 || shouldScope || !demoSession ? data : DEMO_TICKETS);
+      if (demoSession) {
+        const existingIds = new Set(data.map((t) => String(t.ticket_id || t.wo_number)));
+        const uniqueDemo = DEMO_TICKETS.filter((t) => !existingIds.has(String(t.ticket_id || t.wo_number)));
+        setTickets([...data, ...uniqueDemo]);
+      } else {
+        setTickets(data);
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while loading tickets.');
     } finally {
@@ -234,6 +304,10 @@ export default function Tickets() {
     document.title = 'Tickets | TurboFix';
     fetchTickets();
 
+    const handleTicketCreated = () => fetchTickets();
+    window.addEventListener('ticketCreated', handleTicketCreated);
+    window.addEventListener('storage', handleTicketCreated);
+
     const channel = supabase
       .channel('public:tickets_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
@@ -242,6 +316,8 @@ export default function Tickets() {
       .subscribe();
 
     return () => {
+      window.removeEventListener('ticketCreated', handleTicketCreated);
+      window.removeEventListener('storage', handleTicketCreated);
       supabase.removeChannel(channel);
     };
   }, [fetchTickets]);
@@ -554,7 +630,7 @@ export default function Tickets() {
           const aOpen = isTicketClosed(a) ? 1 : 0;
           const bOpen = isTicketClosed(b) ? 1 : 0;
           if (aOpen !== bOpen) return aOpen - bOpen;
-          return (ticketAgeHours(b, now) ?? 0) - (ticketAgeHours(a, now) ?? 0);
+          return (ticketAgeHours(a, now) ?? 0) - (ticketAgeHours(b, now) ?? 0);
         }
       }
     };

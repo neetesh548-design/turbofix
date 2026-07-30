@@ -395,27 +395,46 @@ export default function ReportBreakdown() {
     setReports((current) => [record, ...current]);
     setReceipt({ record, routing });
 
+    const companyCode = effectiveUser?.company_code || 'EXIDE';
+    const companyId = effectiveUser?.company_id || null;
+
     const ticketRecord = {
+      id: record.id || ('brk-' + Date.now()),
       machine_id: record.machine_id,
       issue_text: record.issue_text,
       description: record.issue_text,
-      urgency: record.urgency,
+      urgency: record.urgency || 'medium',
       status: 'open',
       lifecycle_stage: 'reported',
       wo_number: record.wo_number,
       photo_url: record.photo_url,
       reported_by: record.reported_by,
       assigned_to: record.assigned_to,
-      created_at: record.created_at,
+      company_code: companyCode,
+      company_id: companyId,
+      created_at: record.created_at || new Date().toISOString(),
     };
 
     try {
+      const breakdownReports = JSON.parse(localStorage.getItem('tf_breakdown_reports') || '[]');
+      breakdownReports.unshift(ticketRecord);
+      localStorage.setItem('tf_breakdown_reports', JSON.stringify(breakdownReports));
+
+      const offlineQueue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+      offlineQueue.unshift(ticketRecord);
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(offlineQueue));
+
+      window.dispatchEvent(new Event('ticketCreated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.warn('Could not store breakdown report locally:', e);
+    }
+
+    try {
       const { error: insertError } = await supabase.from('tickets').insert(ticketRecord);
-      if (insertError) throw insertError;
+      if (insertError) console.warn('Supabase insert notice (handled locally):', insertError.message);
     } catch {
-      const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-      queue.push(ticketRecord);
-      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+      // Local copy already saved above
     } finally {
       setSubmitting(false);
     }

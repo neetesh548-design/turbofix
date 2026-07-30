@@ -1,8 +1,6 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="6.705081">
-<testsuite name="settings-records-audit.spec.js" timestamp="2026-07-30T23:27:46.798Z" hostname="chromium" tests="2" failures="0" skipped="0" time="8.825" errors="0">
-<testcase name="Settings and Work Records UI Audit › Check Settings page for UI issues and errors" classname="settings-records-audit.spec.js" time="4.302">
-</testcase>
-<testcase name="Settings and Work Records UI Audit › Check Records page for UI issues and errors" classname="settings-records-audit.spec.js" time="4.523">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="6.724955999999999">
+<testsuite name="qr-gateway-tickets.spec.js" timestamp="2026-07-30T23:33:18.237Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.871" errors="0">
+<testcase name="QR Gateway to Tickets Integration Test › Verify tickets submitted via QR Gateway appear immediately on Tickets page" classname="qr-gateway-tickets.spec.js" time="4.871">
 </testcase>
 </testsuite>
 </testsuites>

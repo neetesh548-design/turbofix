@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785451914.4977627,
-    "ast_hash": "c4c8da2499961336d4fb195577ec3ede",
+    "mtime": 1785453116.553444,
+    "ast_hash": "5d82d1333a7d4d6ea70b116856eb76be",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785449773.1857874,
-    "ast_hash": "30eef5f4c11cbd414a1167047be8e427",
+    "mtime": 1785453108.2126307,
+    "ast_hash": "f3c936583b659527c9fec27486a51e2d",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -3052,6 +3052,11 @@
   "public/assets/technician_field_repair.jpg": {
     "mtime": 1785452327.2031674,
     "ast_hash": "62ccd2dbc6106cb721193ece26050166",
+    "semantic_hash": ""
+  },
+  "tests/machines-page-check.spec.js": {
+    "mtime": 1785453435.037024,
+    "ast_hash": "ba40bc5d7e18cf30cb11448652c266d4",
     "semantic_hash": ""
   }
 }

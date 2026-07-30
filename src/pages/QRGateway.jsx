@@ -949,16 +949,27 @@ export default function QRGateway() {
   const buildTicketPayload = ({ uploadedUrl = null, verified = false, offline = false } = {}) => {
     const reporter = reporterPhone.match(/^\d+$/) ? reporterPhone : null;
     const cleanReporterName = reporterName.trim() || null;
+    let storedUser = null;
+    try { storedUser = JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch {}
+    const companyCode = storedUser?.company_code || 'EXIDE';
+    const companyId = storedUser?.company_id || machine?.company_id || null;
+
     return {
+      id: 'qr-' + Date.now(),
       machine_id: machine.id,
+      machine_name: machine.name,
       status: 'open',
       issue_text: extractedInfo.issue,
-      urgency: extractedInfo.urgency,
+      urgency: extractedInfo.urgency || 'medium',
       type: 'breakdown',
       reporter_phone: reporter,
+      reporter_name: cleanReporterName,
+      company_code: companyCode,
+      company_id: companyId,
       factory_id: machine.factory_id,
       lifecycle_stage: verified ? 'open' : 'unverified',
       voice_language: voiceArtifacts?.language_code || lang,
+      created_at: new Date().toISOString(),
       ai_summary: {
         voice_reported: !showTextFallback,
         extracted_condition: extractedInfo.condition,
@@ -971,6 +982,23 @@ export default function QRGateway() {
       ...buildSnapshots({ uploadedUrl, includeTechnician: !offline }),
       voice_artifacts: voiceArtifacts
     };
+  };
+
+  const saveTicketLocallyAndNotify = (ticket) => {
+    try {
+      const qrTickets = JSON.parse(localStorage.getItem('tf_qr_tickets') || '[]');
+      qrTickets.unshift(ticket);
+      localStorage.setItem('tf_qr_tickets', JSON.stringify(qrTickets));
+
+      const offlineQueue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+      offlineQueue.unshift(ticket);
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(offlineQueue));
+
+      window.dispatchEvent(new Event('ticketCreated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.warn('Could not store QR ticket locally:', e);
+    }
   };
 
   const resetForm = () => {
@@ -1205,6 +1233,8 @@ export default function QRGateway() {
       const payload = buildTicketPayload({ uploadedUrl, verified });
 
       let insertedTicket = null;
+      saveTicketLocallyAndNotify(payload);
+
       try {
         const { data, error: fnError } = await invokeWithRetry('ticket_gateway', {
           body: { action: 'log_ticket', payload }
@@ -1212,16 +1242,8 @@ export default function QRGateway() {
         if (fnError || !data || data.error) throw new Error(data?.error || fnError?.message || 'Could not log ticket.');
         insertedTicket = data.data;
       } catch (edgeErr) {
-        console.warn('Secure ticket gateway unavailable; storing ticket in offline queue:', edgeErr);
-        const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-        queue.push(payload);
-        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-        insertedTicket = {
-          id: 'offline-' + Date.now(),
-          machine_id: payload.machine_id,
-          created_at: new Date().toISOString(),
-          offline: true
-        };
+        console.warn('Secure ticket gateway unavailable; stored ticket in local queue:', edgeErr);
+        insertedTicket = payload;
       }
 
       setSubmittedTicketInfo(insertedTicket);
@@ -1420,7 +1442,7 @@ export default function QRGateway() {
   };
 
   return (
-    <main className="qr-gateway-page" style={{
+    <main className="qr-gateway-page" data-testid="qr-gateway-page" style={{
       height: '100dvh',
       maxHeight: '100vh',
       display: 'flex',

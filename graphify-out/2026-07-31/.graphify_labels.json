@@ -380,6 +380,16 @@
   "378": "MicrosoftAppLauncher.jsx",
   "379": "TicketDetailPanel.jsx",
   "380": "Home.jsx",
+  "381": ".append",
+  "382": ".get",
+  "383": ".attach_voice_note",
+  "384": ".update_ai_fields",
+  "385": ".get_company_tickets",
+  "386": ".attach_photo",
+  "387": ".update_language",
+  "388": ".close_ticket",
+  "389": ".find_by_id_prefix",
   "390": "admin-portal.spec.js",
-  "391": "admin-portal-prod.spec.js"
+  "391": "admin-portal-prod.spec.js",
+  "392": "machines-page-check.spec.js"
 }
