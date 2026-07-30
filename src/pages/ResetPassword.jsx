@@ -2,22 +2,26 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../supabaseClient';
-import { KeyRound, ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { KeyRound, ArrowLeft, CheckCircle, AlertCircle, Loader2, Smartphone, Mail, MessageSquare } from 'lucide-react';
 
 export default function ResetPassword() {
+  const [resetMode, setResetMode] = useState('phone'); // 'phone' or 'email'
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
   // Separate success/error for each step
   const [requestSuccess, setRequestSuccess] = useState('');
   const [requestError, setRequestError] = useState('');
   const [verifyError, setVerifyError] = useState('');
   const [resetMsg, setResetMsg] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [step, setStep] = useState('request');
+  const [step, setStep] = useState('request'); // 'request', 'verify', 'reset'
   const [checkingRecovery, setCheckingRecovery] = useState(true);
   const [isInvite, setIsInvite] = useState(false);
+
   // Loading states
   const [requestLoading, setRequestLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -28,7 +32,6 @@ export default function ResetPassword() {
     window.scrollTo(0, 0);
 
     let active = true;
-    // Read params BEFORE Supabase clears the hash (synchronous, runs first)
     const params = new URLSearchParams(window.location.search);
     const rawHash = window.location.hash;
     const hashParams = new URLSearchParams(rawHash.replace(/^#/, ''));
@@ -55,62 +58,34 @@ export default function ResetPassword() {
         urlType === 'signup'
       );
 
-    // Track whether we have already resolved the step so two async paths
-    // (onAuthStateChange + initialise) don't fight each other.
     let resolved = false;
     const resolve = (hasSession) => {
       if (!active || resolved) return;
       resolved = true;
-      setStep(hasSession || hasRecoveryPayload ? 'reset' : 'request');
+      if (hasSession || hasRecoveryPayload) {
+        setResetMode('email');
+        setStep('reset');
+      } else {
+        setStep('request');
+      }
       setCheckingRecovery(false);
     };
 
-    // onAuthStateChange fires FIRST with INITIAL_SESSION (synchronously in
-    // Supabase JS v2). If Supabase already processed the hash token before our
-    // useEffect ran, we get a valid session here immediately — no race.
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-
-      if (event === 'PASSWORD_RECOVERY') {
-        // Explicit recovery — go straight to set-password step
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setIsInvite(false);
-        if (!resolved) {
-          resolved = true;
-          setStep('reset');
-          setCheckingRecovery(false);
-        }
-      } else if (event === 'SIGNED_IN') {
-        // Covers invite links and magic-link sign-ins
-        if (!resolved) {
-          resolved = true;
-          setStep('reset');
-          setCheckingRecovery(false);
-        }
+        if (!resolved) resolve(true);
       } else if (event === 'INITIAL_SESSION') {
-        // Fires immediately on listener registration with the current session.
-        // If the Supabase client already consumed the URL hash and created a
-        // session, session will be non-null here — use it.
-        if (session) {
-          if (!resolved) {
-            resolved = true;
-            setStep('reset');
-            setCheckingRecovery(false);
-          }
-        }
-        // If session is null, let initialise() do the code exchange first.
+        if (session && !resolved) resolve(true);
       }
     });
 
     const initialise = async () => {
       try {
-        // PKCE code flow (most common for modern Supabase projects)
         if (params.get('code')) {
           const { error } = await supabase.auth.exchangeCodeForSession(params.get('code'));
-          if (error && !resolved) {
-            setResetMsg('This link is invalid or has expired. Request a new one.');
-          }
-          // onAuthStateChange will fire SIGNED_IN / PASSWORD_RECOVERY and call resolve()
-          // Fallback in case the event never fires:
+          if (error && !resolved) setResetMsg('This link is invalid or has expired.');
           if (!resolved) {
             const { data } = await supabase.auth.getSession();
             resolve(Boolean(data?.session));
@@ -118,17 +93,11 @@ export default function ResetPassword() {
           return;
         }
 
-        // Token flow in search params or hash params
         const rawToken = params.get('token') || hashParams.get('token');
         if (rawToken) {
           const tokenType = params.get('type') || hashParams.get('type') || 'recovery';
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: rawToken,
-            type: tokenType,
-          });
-          if (error && !resolved) {
-            setResetMsg('This link is invalid or has expired. Request a new one.');
-          }
+          const { error } = await supabase.auth.verifyOtp({ token_hash: rawToken, type: tokenType });
+          if (error && !resolved) setResetMsg('This link is invalid or has expired.');
           if (!resolved) {
             const { data } = await supabase.auth.getSession();
             resolve(Boolean(data?.session));
@@ -136,15 +105,11 @@ export default function ResetPassword() {
           return;
         }
 
-        // Implicit hash token payload: #access_token=...&refresh_token=...&type=recovery
         if (hashParams.has('access_token')) {
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           if (accessToken && refreshToken) {
-            const { error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
+            const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
             if (!error && !resolved) {
               resolve(true);
               return;
@@ -152,16 +117,13 @@ export default function ResetPassword() {
           }
         }
 
-        // No URL payload — check for an existing session (e.g. user refreshed)
         if (!resolved) {
           const { data } = await supabase.auth.getSession();
           resolve(Boolean(data?.session));
         }
       } catch {
         if (!resolved) {
-          if (hasRecoveryPayload) {
-            setResetMsg('This link is invalid or has expired. Request a new one.');
-          }
+          if (hasRecoveryPayload) setResetMsg('This link is invalid or has expired.');
           resolve(false);
         }
       }
@@ -173,73 +135,152 @@ export default function ResetPassword() {
       active = false;
       authListener?.subscription?.unsubscribe();
     };
-
   }, []);
 
-  const handleRequestLink = async () => {
+  const handleRequestOTP = async () => {
     setRequestError('');
     setRequestSuccess('');
-    if (!email) {
-      setRequestError('Please enter your email address.');
-      return;
-    }
-    setRequestLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
-      });
-      if (error) {
-        setRequestError(error.message);
-      } else {
-        setRequestSuccess('Verification code sent — check your inbox (and spam folder).');
-        setStep('verify');
+
+    if (resetMode === 'phone') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length !== 10) {
+        setRequestError('Please enter a valid 10-digit mobile number.');
+        return;
       }
-    } catch {
-      setRequestError('Failed to send verification code. Please try again.');
-    } finally {
-      setRequestLoading(false);
+      setRequestLoading(true);
+      try {
+        // Try Python backend first, fallback to Supabase Edge Function
+        let sentOk = false;
+        let msg = 'OTP sent via WhatsApp & SMS. Check your mobile number.';
+
+        try {
+          const resp = await fetch('/auth/otp/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: cleanPhone }),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            msg = data.message || msg;
+            sentOk = true;
+          }
+        } catch {
+          // Backend API call failed, try edge function
+        }
+
+        if (!sentOk) {
+          const { data, error } = await supabase.functions.invoke('otp_gateway', {
+            body: { action: 'send', phone: cleanPhone },
+          });
+          if (error) throw new Error(error.message || 'Failed to send OTP via WhatsApp/SMS.');
+          msg = data?.message || msg;
+        }
+
+        setRequestSuccess(msg);
+        setStep('verify');
+      } catch (err) {
+        setRequestError(err.message || 'Failed to send OTP code. Please try again.');
+      } finally {
+        setRequestLoading(false);
+      }
+    } else {
+      if (!email) {
+        setRequestError('Please enter your email address.');
+        return;
+      }
+      setRequestLoading(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/reset-password.html`
+        });
+        if (error) {
+          setRequestError(error.message);
+        } else {
+          setRequestSuccess('Verification code sent — check your inbox.');
+          setStep('verify');
+        }
+      } catch {
+        setRequestError('Failed to send verification email. Please try again.');
+      } finally {
+        setRequestLoading(false);
+      }
     }
   };
 
   const handleVerifyCode = async () => {
     setVerifyError('');
     const token = verificationCode.trim();
-    if (!email) {
-      setVerifyError('Please enter your email address first.');
-      setStep('request');
-      return;
-    }
-    if (!token) {
-      setVerifyError('Please enter the verification code from your email.');
-      return;
-    }
-    setVerifyLoading(true);
-    try {
-      // Try recovery OTP first, then invite OTP
-      const { error: recoveryError } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'recovery',
-      });
-      if (!recoveryError) {
-        setStep('reset');
+    if (resetMode === 'phone') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length !== 10) {
+        setVerifyError('Please enter a valid 10-digit mobile number.');
+        setStep('request');
         return;
       }
-
-      const { error: inviteError } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'invite',
-      });
-      if (inviteError) {
-        setVerifyError('Invalid or expired code. Please request a new one.');
-      } else {
-        setStep('reset');
+      if (!/^\d{6}$/.test(token)) {
+        setVerifyError('Please enter the 6-digit OTP code received via WhatsApp or SMS.');
+        return;
       }
-    } catch {
-      setVerifyError('Failed to verify code. Please try again.');
-    } finally {
-      setVerifyLoading(false);
+      setVerifyLoading(true);
+      try {
+        let verifiedOk = false;
+        try {
+          const resp = await fetch('/auth/otp/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: cleanPhone, otp: token }),
+          });
+          if (resp.ok) verifiedOk = true;
+        } catch {
+          // Backend API call error fallback to edge function
+        }
+
+        if (!verifiedOk) {
+          const { data, error } = await supabase.functions.invoke('otp_gateway', {
+            body: { action: 'verify', phone: cleanPhone, otp: token },
+          });
+          if (error) throw new Error(error.message || 'Incorrect OTP code.');
+          if (data?.verified) verifiedOk = true;
+        }
+
+        if (verifiedOk) {
+          setStep('reset');
+        } else {
+          setVerifyError('Incorrect OTP code. Please check your WhatsApp/SMS and try again.');
+        }
+      } catch (err) {
+        setVerifyError(err.message || 'Failed to verify code. Please try again.');
+      } finally {
+        setVerifyLoading(false);
+      }
+    } else {
+      if (!email) {
+        setVerifyError('Please enter your email address first.');
+        setStep('request');
+        return;
+      }
+      if (!token) {
+        setVerifyError('Please enter the verification code.');
+        return;
+      }
+      setVerifyLoading(true);
+      try {
+        const { error: recoveryError } = await supabase.auth.verifyOtp({ email, token, type: 'recovery' });
+        if (!recoveryError) {
+          setStep('reset');
+          return;
+        }
+        const { error: inviteError } = await supabase.auth.verifyOtp({ email, token, type: 'invite' });
+        if (inviteError) {
+          setVerifyError('Invalid or expired code. Please request a new one.');
+        } else {
+          setStep('reset');
+        }
+      } catch {
+        setVerifyError('Failed to verify code.');
+      } finally {
+        setVerifyLoading(false);
+      }
     }
   };
 
@@ -255,43 +296,97 @@ export default function ResetPassword() {
       return;
     }
     setResetLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        setResetMsg(error.message);
-      } else {
-        setResetSuccess(true);
-        setResetMsg(isInvite
-          ? 'Password set! Welcome to TurboFix. Redirecting to sign in…'
-          : 'Password updated successfully! Redirecting…');
-        setTimeout(() => {
-          window.location.href = `${import.meta.env.BASE_URL}login.html`;
-        }, 1800);
+
+    if (resetMode === 'phone') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const token = verificationCode.trim();
+      try {
+        let updated = false;
+        let msg = 'Password updated successfully! Redirecting…';
+
+        try {
+          const resp = await fetch('/auth/otp/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: cleanPhone, otp: token, new_password: newPassword }),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            msg = data.message || msg;
+            updated = true;
+          }
+        } catch {
+          // Fallback to edge function
+        }
+
+        if (!updated) {
+          const { data, error } = await supabase.functions.invoke('otp_gateway', {
+            body: { action: 'reset_password', phone: cleanPhone, otp: token, new_password: newPassword },
+          });
+          if (error) throw new Error(error.message || 'Failed to update password.');
+          if (data?.verified) {
+            msg = data.message || msg;
+            updated = true;
+          }
+        }
+
+        if (!updated) {
+          const { error } = await supabase.auth.updateUser({ password: newPassword });
+          if (!error) updated = true;
+        }
+
+        if (updated) {
+          setResetSuccess(true);
+          setResetMsg(msg);
+          setTimeout(() => {
+            window.location.href = `${import.meta.env.BASE_URL}login.html`;
+          }, 1800);
+        } else {
+          setResetMsg('Could not update password. Please try again.');
+        }
+      } catch (err) {
+        setResetMsg(err.message || 'Failed to reset password. Please try again.');
+      } finally {
+        setResetLoading(false);
       }
-    } catch {
-      setResetMsg('Failed to reset password. Please try again.');
-    } finally {
-      setResetLoading(false);
+    } else {
+      try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) {
+          setResetMsg(error.message);
+        } else {
+          setResetSuccess(true);
+          setResetMsg(isInvite
+            ? 'Password set! Welcome to TurboFix. Redirecting to sign in…'
+            : 'Password updated successfully! Redirecting…');
+          setTimeout(() => {
+            window.location.href = `${import.meta.env.BASE_URL}login.html`;
+          }, 1800);
+        }
+      } catch {
+        setResetMsg('Failed to reset password. Please try again.');
+      } finally {
+        setResetLoading(false);
+      }
     }
   };
 
-  // Derive page heading and subtext based on step and invite context
   const headings = {
     request: {
       title: isInvite ? 'Activate your account' : 'Reset your password',
-      sub: isInvite
-        ? "Enter your email to receive an activation code."
+      sub: resetMode === 'phone'
+        ? 'We will send a 6-digit OTP to your mobile via WhatsApp & SMS.'
         : "We'll email you a code to get back in.",
     },
     verify: {
       title: 'Enter verification code',
-      sub: 'Use the 6-digit code sent to your account email.',
+      sub: resetMode === 'phone'
+        ? `Enter the 6-digit OTP code sent via WhatsApp & Fast2SMS to +91 ${phone.replace(/\D/g, '')}`
+        : `Use the 6-digit code sent to ${email}`,
     },
     reset: {
       title: isInvite ? 'Choose your password' : 'Choose a new password',
-      sub: isInvite
-        ? 'Set a password for your new TurboFix account.'
-        : 'Set a new password for your TurboFix account.',
+      sub: 'Set a new secure password for your TurboFix account.',
     },
   };
   const { title, sub } = headings[step] || headings.request;
@@ -316,26 +411,76 @@ export default function ResetPassword() {
               </div>
             ) : step === 'request' ? (
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Account email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    placeholder="you@company.com"
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); setRequestError(''); }}
-                    autoComplete="email"
-                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
-                  />
+                {/* Method selector tabs */}
+                <div className="grid grid-cols-2 p-1 bg-slate-900/90 rounded-xl border border-slate-800 text-xs font-medium mb-4">
+                  <button
+                    type="button"
+                    onClick={() => { setResetMode('phone'); setRequestError(''); setRequestSuccess(''); }}
+                    className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                      resetMode === 'phone'
+                        ? 'bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Smartphone size={14} /> Mobile OTP (WhatsApp & SMS)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setResetMode('email'); setRequestError(''); setRequestSuccess(''); }}
+                    className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                      resetMode === 'email'
+                        ? 'bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Mail size={14} /> Account Email
+                  </button>
                 </div>
+
+                {resetMode === 'phone' ? (
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-1">
+                      10-digit Mobile Number
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">+91</span>
+                      <input
+                        type="tel"
+                        id="phone"
+                        placeholder="9876543210"
+                        maxLength={10}
+                        value={phone}
+                        onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setRequestError(''); }}
+                        className="w-full pl-14 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-slate-400 flex items-center gap-1">
+                      <MessageSquare size={12} className="text-emerald-400 shrink-0" />
+                      Identical OTP sent via WhatsApp & Fast2SMS SMS
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Account Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      placeholder="you@company.com"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setRequestError(''); }}
+                      autoComplete="email"
+                      className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
+                    />
+                  </div>
+                )}
 
                 <button
                   id="requestBtn"
-                  onClick={handleRequestLink}
+                  onClick={handleRequestOTP}
                   disabled={requestLoading}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  {requestLoading ? <><Loader2 size={16} className="animate-spin" /> Sending…</> : 'Send verification code'}
+                  {requestLoading ? <><Loader2 size={16} className="animate-spin" /> Sending OTP…</> : 'Send OTP via WhatsApp & SMS'}
                 </button>
 
                 {requestError && (
@@ -360,18 +505,23 @@ export default function ResetPassword() {
             ) : step === 'verify' ? (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="verificationCode" className="block text-sm font-medium text-slate-300 mb-1">Verification code</label>
+                  <label htmlFor="verificationCode" className="block text-sm font-medium text-slate-300 mb-1">
+                    6-Digit Verification Code
+                  </label>
                   <input
                     type="text"
                     id="verificationCode"
-                    placeholder="6-digit code"
+                    placeholder="123456"
+                    maxLength={6}
                     value={verificationCode}
-                    onChange={(e) => { setVerificationCode(e.target.value); setVerifyError(''); }}
+                    onChange={(e) => { setVerificationCode(e.target.value.replace(/\D/g, '')); setVerifyError(''); }}
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all tracking-[0.2em] text-center text-lg font-semibold"
+                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all tracking-[0.25em] text-center text-lg font-semibold"
                   />
-                  <p className="mt-1.5 text-xs text-slate-500 text-center">Sent to {email}</p>
+                  <p className="mt-1.5 text-xs text-slate-400 text-center">
+                    {resetMode === 'phone' ? `Sent via WhatsApp & SMS to +91 ${phone}` : `Sent to ${email}`}
+                  </p>
                 </div>
 
                 <button
@@ -380,7 +530,7 @@ export default function ResetPassword() {
                   disabled={verifyLoading}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
-                  {verifyLoading ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : 'Verify code'}
+                  {verifyLoading ? <><Loader2 size={16} className="animate-spin" /> Verifying OTP…</> : 'Verify OTP Code'}
                 </button>
 
                 {verifyError && (
@@ -391,11 +541,11 @@ export default function ResetPassword() {
                 )}
 
                 <div className="flex items-center justify-center gap-4 pt-2 text-sm">
-                  <button type="button" onClick={handleRequestLink} disabled={requestLoading} className="text-emerald-400 hover:underline disabled:opacity-50">
-                    {requestLoading ? 'Sending…' : 'Resend code'}
+                  <button type="button" onClick={handleRequestOTP} disabled={requestLoading} className="text-emerald-400 hover:underline disabled:opacity-50">
+                    {requestLoading ? 'Sending…' : 'Resend OTP'}
                   </button>
                   <button type="button" onClick={() => { setStep('request'); setVerifyError(''); }} className="text-slate-400 hover:text-slate-200 transition-colors">
-                    Change email
+                    Change mobile/email
                   </button>
                 </div>
               </div>
@@ -404,12 +554,12 @@ export default function ResetPassword() {
                 {isInvite && (
                   <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 rounded-xl text-sm flex items-start gap-2">
                     <CheckCircle size={16} className="shrink-0 mt-0.5 text-emerald-400" />
-                    <span>Your invitation was verified. Choose a password to activate your account.</span>
+                    <span>Your account invitation was verified. Choose a password to activate your account.</span>
                   </div>
                 )}
                 <div>
                   <label htmlFor="newPassword" className="block text-sm font-medium text-slate-300 mb-1">
-                    {isInvite ? 'Create password' : 'New password'}
+                    {isInvite ? 'Create Password' : 'New Password'}
                   </label>
                   <input
                     type="password"
@@ -422,11 +572,11 @@ export default function ResetPassword() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-1">Confirm password</label>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
                   <input
                     type="password"
                     id="confirmPassword"
-                    placeholder="repeat it"
+                    placeholder="repeat password"
                     value={confirmPassword}
                     onChange={(e) => { setConfirmPassword(e.target.value); setResetMsg(''); setResetSuccess(false); }}
                     autoComplete="new-password"
@@ -441,8 +591,8 @@ export default function ResetPassword() {
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 text-sm active:scale-[0.99] disabled:opacity-70"
                 >
                   {resetLoading
-                    ? <><Loader2 size={16} className="animate-spin" /> Saving…</>
-                    : isInvite ? 'Activate account' : 'Set new password'}
+                    ? <><Loader2 size={16} className="animate-spin" /> Saving password…</>
+                    : isInvite ? 'Activate account' : 'Set New Password'}
                 </button>
 
                 {resetMsg && (

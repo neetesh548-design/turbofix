@@ -36,6 +36,10 @@ WHATSAPP_BRIDGE_URL = os.getenv("WHATSAPP_BRIDGE_URL", "")
 # The Cloud API "from" number fan-out sends as (Meta phone_number_id, not the raw number).
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
 
+# Fast2SMS Configuration (https://docs.fast2sms.com/reference/authorization)
+FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY", "")
+FAST2SMS_ROUTE = os.getenv("FAST2SMS_ROUTE", "otp")  # "otp" or "q" (quick SMS)
+
 
 # The human-dialable TurboFix WhatsApp number (no "+", no spaces, e.g. "919900012345") -
 # distinct from WHATSAPP_PHONE_NUMBER_ID above. Used to build the wa.me QR link returned

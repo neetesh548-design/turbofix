@@ -306,7 +306,7 @@ def reset_password(request: Request, body: ResetPasswordRequest, users: UserRepo
 
 
 # ---------------------------------------------------------------------------
-# WhatsApp OTP Authentication for QR Scan Breakdown Reports
+# WhatsApp & Fast2SMS Dual OTP Authentication & Email-Free Password Reset
 # ---------------------------------------------------------------------------
 
 import random
@@ -326,14 +326,33 @@ class VerifyOTPRequest(BaseModel):
     otp: str
 
 
+class OTPForgotPasswordRequest(BaseModel):
+    phone: str
+
+
+class OTPResetPasswordRequest(BaseModel):
+    phone: str
+    otp: str
+    new_password: str
+
+
+def _extract_10_digit_phone(phone_raw: str) -> str:
+    phone = phone_raw.strip()
+    if phone.startswith("+91"):
+        phone = phone[3:]
+    elif phone.startswith("+"):
+        phone = phone[1:]
+    digits = "".join(c for c in phone if c.isdigit())
+    if len(digits) != 10:
+        raise HTTPException(status_code=400, detail="Please enter a valid 10-digit mobile number.")
+    return digits
+
+
 @router.post("/otp/send")
 @limiter.limit("5/minute")
 async def send_otp(request: Request, body: SendOTPRequest):
-    """Generate 6-digit OTP code and send via active WhatsApp channel."""
-    phone_raw = body.phone.strip()
-    phone_clean = "".join(c for c in phone_raw if c.isdigit())
-    if len(phone_clean) != 10:
-        raise HTTPException(status_code=400, detail="Please enter a valid 10-digit mobile number.")
+    """Generate 6-digit OTP code and send via both WhatsApp & Fast2SMS channels (same OTP)."""
+    phone_clean = _extract_10_digit_phone(body.phone)
 
     now_ts = datetime.now(timezone.utc).timestamp()
     existing = _OTP_STORE.get(phone_clean)
@@ -345,12 +364,7 @@ async def send_otp(request: Request, body: SendOTPRequest):
             headers={"Retry-After": str(retry_after)},
         )
 
-    if not phone_clean.startswith("91") and len(phone_clean) == 10:
-        phone_formatted = f"+91{phone_clean}"
-    elif not phone_clean.startswith("+"):
-        phone_formatted = f"+{phone_clean}"
-    else:
-        phone_formatted = phone_clean
+    phone_formatted = f"+91{phone_clean}"
 
     otp_code = f"{random.randint(100000, 999999)}"
     _OTP_STORE[phone_clean] = {
@@ -362,30 +376,40 @@ async def send_otp(request: Request, body: SendOTPRequest):
 
     message = (
         f"🔐 *TURBOFIX VERIFICATION CODE*\n\n"
-        f"Your 6-digit OTP to log your breakdown report is: *{otp_code}*\n\n"
+        f"Your 6-digit OTP is: *{otp_code}*\n\n"
         f"Valid for 5 minutes. Do not share this code with anyone."
     )
 
+    # 1. Dispatch via WhatsApp
     try:
         from app.infrastructure import whatsapp
         await whatsapp.send_text_message(phone_formatted, message)
-        log.info("auth.otp_sent", phone=phone_clean)
+        log.info("auth.otp_sent_whatsapp", phone=phone_clean)
     except Exception as exc:
-        log.warning("auth.otp_send_failed", phone=phone_clean, error=str(exc))
+        log.warning("auth.whatsapp_otp_send_failed", phone=phone_clean, error=str(exc))
+
+    # 2. Dispatch via Fast2SMS SMS (exact same OTP code)
+    try:
+        from app.infrastructure import fast2sms
+        await fast2sms.send_sms_message(phone_clean, message, otp_code=otp_code)
+        log.info("auth.otp_sent_fast2sms", phone=phone_clean)
+    except Exception as exc:
+        log.warning("auth.fast2sms_otp_send_failed", phone=phone_clean, error=str(exc))
 
     has_wa = bool(getattr(config, "WHATSAPP_ACCESS_TOKEN", "") or getattr(config, "WHATSAPP_BRIDGE_URL", ""))
+    has_sms = bool(getattr(config, "FAST2SMS_API_KEY", ""))
     return {
         "status": "sent",
-        "message": f"OTP sent to {phone_formatted} via WhatsApp.",
-        "otp_debug": otp_code if getattr(config, "TESTING", False) or not has_wa else None,
+        "message": f"OTP sent to {phone_formatted} via WhatsApp & SMS.",
+        "otp_debug": otp_code if getattr(config, "TESTING", False) or (not has_wa and not has_sms) else None,
     }
 
 
 @router.post("/otp/verify")
 @limiter.limit("10/minute")
 def verify_otp(request: Request, body: VerifyOTPRequest):
-    """Verify 6-digit WhatsApp OTP code."""
-    phone_clean = "".join(c for c in body.phone if c.isdigit())
+    """Verify 6-digit WhatsApp/SMS OTP code."""
+    phone_clean = _extract_10_digit_phone(body.phone)
     otp_input = body.otp.strip()
 
     if getattr(config, "TESTING", False) and otp_input == "123456":
@@ -406,8 +430,140 @@ def verify_otp(request: Request, body: VerifyOTPRequest):
         if record["attempts"] >= _OTP_MAX_ATTEMPTS:
             _OTP_STORE.pop(phone_clean, None)
             raise HTTPException(status_code=400, detail="Too many incorrect OTP attempts. Please request a new code.")
-        raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp and try again.")
+        raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp/SMS and try again.")
 
     _OTP_STORE.pop(phone_clean, None)
     log.info("auth.otp_verified", phone=phone_clean)
     return {"verified": True, "phone": phone_clean}
+
+
+@router.post("/otp/forgot-password")
+@limiter.limit("5/minute")
+async def otp_forgot_password(
+    request: Request,
+    body: OTPForgotPasswordRequest,
+    users: UserRepository = Depends(get_users),
+):
+    """Send password reset OTP via WhatsApp & Fast2SMS (email not required)."""
+    phone_clean = _extract_10_digit_phone(body.phone)
+
+    # Check if user exists with this phone or formatted phone
+    user = users.get_by_identifier(phone_clean) or users.get_by_identifier(f"+91{phone_clean}")
+    if user is None:
+        # Search all users to see if any user has this phone number
+        for u in users.list_users():
+            u_phone = "".join(c for c in u.get("phone", "") if c.isdigit())
+            if u_phone.endswith(phone_clean):
+                user = u
+                break
+
+    if not user:
+        # Return generic message to prevent account enumeration
+        return {
+            "status": "sent",
+            "message": "If an account with that phone number exists, an OTP code has been sent via WhatsApp & SMS.",
+        }
+
+    now_ts = datetime.now(timezone.utc).timestamp()
+    existing = _OTP_STORE.get(phone_clean)
+    if existing and now_ts < existing.get("resend_at", 0):
+        retry_after = max(1, int(existing["resend_at"] - now_ts))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Please wait {retry_after} seconds before requesting another OTP.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    otp_code = f"{random.randint(100000, 999999)}"
+    _OTP_STORE[phone_clean] = {
+        "otp": otp_code,
+        "expires_at": now_ts + 300,
+        "resend_at": now_ts + _OTP_RESEND_SECONDS,
+        "attempts": 0,
+        "user_id": user["user_id"],
+    }
+
+    message = (
+        f"🔐 *TURBOFIX PASSWORD RESET*\n\n"
+        f"Your 6-digit password reset OTP code is: *{otp_code}*\n\n"
+        f"Valid for 5 minutes. Do not share this code with anyone."
+    )
+
+    phone_formatted = f"+91{phone_clean}"
+    try:
+        from app.infrastructure import whatsapp
+        await whatsapp.send_text_message(phone_formatted, message)
+    except Exception as exc:
+        log.warning("auth.password_reset_wa_failed", phone=phone_clean, error=str(exc))
+
+    try:
+        from app.infrastructure import fast2sms
+        await fast2sms.send_sms_message(phone_clean, message, otp_code=otp_code)
+    except Exception as exc:
+        log.warning("auth.password_reset_sms_failed", phone=phone_clean, error=str(exc))
+
+    has_wa = bool(getattr(config, "WHATSAPP_ACCESS_TOKEN", "") or getattr(config, "WHATSAPP_BRIDGE_URL", ""))
+    has_sms = bool(getattr(config, "FAST2SMS_API_KEY", ""))
+    return {
+        "status": "sent",
+        "message": "If an account with that phone number exists, an OTP code has been sent via WhatsApp & SMS.",
+        "otp_debug": otp_code if getattr(config, "TESTING", False) or (not has_wa and not has_sms) else None,
+    }
+
+
+@router.post("/otp/reset-password")
+@limiter.limit("5/minute")
+def otp_reset_password(
+    request: Request,
+    body: OTPResetPasswordRequest,
+    users: UserRepository = Depends(get_users),
+):
+    """Reset user password using 6-digit mobile OTP (no email required)."""
+    pw_err = validate_password_strength(body.new_password)
+    if pw_err:
+        raise HTTPException(status_code=400, detail=pw_err)
+
+    phone_clean = _extract_10_digit_phone(body.phone)
+
+
+    otp_input = body.otp.strip()
+
+    is_test_override = getattr(config, "TESTING", False) and otp_input == "123456"
+
+    record = _OTP_STORE.get(phone_clean)
+    now_ts = datetime.now(timezone.utc).timestamp()
+
+    if not is_test_override:
+        if not record:
+            raise HTTPException(status_code=400, detail="No active password reset OTP found. Please request a new OTP code.")
+
+        if now_ts > record["expires_at"]:
+            _OTP_STORE.pop(phone_clean, None)
+            raise HTTPException(status_code=400, detail="OTP code has expired. Please request a new code.")
+
+        if not secrets.compare_digest(record["otp"], otp_input):
+            record["attempts"] += 1
+            if record["attempts"] >= _OTP_MAX_ATTEMPTS:
+                _OTP_STORE.pop(phone_clean, None)
+                raise HTTPException(status_code=400, detail="Too many incorrect OTP attempts. Please request a new code.")
+            raise HTTPException(status_code=400, detail="Incorrect OTP code. Please check your WhatsApp/SMS and try again.")
+
+    user_id = record.get("user_id") if record else None
+    user = users.get_by_id(user_id) if user_id else None
+
+    if not user:
+        user = users.get_by_identifier(phone_clean) or users.get_by_identifier(f"+91{phone_clean}")
+        if not user:
+            for u in users.list_users():
+                u_phone = "".join(c for c in u.get("phone", "") if c.isdigit())
+                if u_phone.endswith(phone_clean):
+                    user = u
+                    break
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found for this mobile number.")
+
+    users.update_password(user["user_id"], hash_password(body.new_password))
+    _OTP_STORE.pop(phone_clean, None)
+    log.info("auth.otp_password_reset_success", user_id=user["user_id"], phone=phone_clean)
+    return {"message": "Your password has been reset successfully. You can now sign in with your new password."}
