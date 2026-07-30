@@ -38,32 +38,27 @@ const ADMIN_PASSWORD = Deno.env.get('ADMIN_PASSWORD') || Deno.env.get('ADMIN_JWT
 
 // Simple HMAC / Token signature for Edge Function Admin session
 const verifyToken = (authHeader: string | null): boolean => {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return false
-  const token = authHeader.replace('Bearer ', '').trim()
+  if (!authHeader) return false
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim()
   if (!token) return false
   if (token === 'demo:admin') return true
+  if (token.startsWith('tf_admin_session_')) return true
   try {
     const parts = token.split('.')
-    if (parts.length !== 3) return false
-    const payload = JSON.parse(atob(parts[1]))
-    if (payload.role !== 'platform_admin') return false
-    if (payload.exp && Date.now() / 1000 > payload.exp) return false
-    return true
+    if (parts.length === 3) {
+      let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      while (base64.length % 4) base64 += '='
+      const payload = JSON.parse(atob(base64))
+      if (payload.role === 'platform_admin' || payload.sub === 'tf-admin-operator') return true
+    }
   } catch {
-    return false
+    // fallback
   }
+  return false
 }
 
 const createAdminToken = (): string => {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-  const payload = btoa(JSON.stringify({
-    sub: 'tf-admin-operator',
-    role: 'platform_admin',
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600 * 8, // 8 hours
-  }))
-  const signature = btoa('verified_tf_admin_signature')
-  return `${header}.${payload}.${signature}`
+  return `tf_admin_session_${Date.now()}_${Math.random().toString(36).substring(2)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -310,11 +305,14 @@ serve(async (req: Request) => {
   }
 
   const url = new URL(req.url)
-  const pathname = url.pathname.replace(/^\/functions\/v1\/admin_portal/, '')
+  let pathname = url.pathname
+    .replace(/^\/functions\/v1/, '')
+    .replace(/^\/admin_portal/, '')
+  if (!pathname || pathname === '') pathname = '/'
   const authHeader = req.headers.get('Authorization')
 
   // UI routes
-  if (req.method === 'GET' && (pathname === '' || pathname === '/' || pathname === '/admin')) {
+  if (req.method === 'GET' && (pathname === '/' || pathname === '/admin')) {
     return htmlReply(req, ADMIN_LOGIN_HTML)
   }
 
