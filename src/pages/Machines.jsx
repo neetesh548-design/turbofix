@@ -308,15 +308,34 @@ export default function Machines() {
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
+
+      let rawMachines = machinesRes.data || [];
+      let rawTickets = ticketsRes.data || [];
+
+      const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
+      if (userComp && userComp !== 'TFDEMO') {
+        rawMachines = rawMachines.filter(m => {
+          const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
+          const mid = String(m.id || m.machine_id || '');
+          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+        });
+        rawTickets = rawTickets.filter(t => {
+          const code = (t.company_code || '').trim().toUpperCase();
+          const mid = String(t.machine_id || '');
+          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+        });
+      }
+
       const directoryUnavailable = Boolean(directoryRes.error || directoryRes.data?.error);
       const directoryMembers = directoryUnavailable ? [] : (directoryRes.data?.members || []);
       const machineAssignments = directoryUnavailable ? {} : (directoryRes.data?.machine_assignments || {});
 
       const trackRecordByMachine = {};
       const recentCutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
-      (ticketsRes.data || []).forEach(t => {
+      rawTickets.forEach(t => {
         const record = trackRecordByMachine[t.machine_id] || {
           total: 0, open: 0, resolved: 0, recent: 0, last_issue: '', last_issue_at: '',
+
           // The health board reads these two lists directly, so the drawer can
           // show what is open and what was recently done without another query.
           open_list: [], recent_closed: [],
@@ -372,7 +391,8 @@ export default function Machines() {
         has_phone: member.has_phone,
         can_reveal_contact: member.can_reveal_contact !== false,
       }]));
-      const shiftedMachines = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+      const shiftedMachines = applyCurrentShiftAssignments(rawMachines || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+
       const mData = shiftedMachines.map(m => {
         const resolvedAssignments = machineAssignments[m.id] || {};
         const technicianUserId = m.technician_user_id || resolvedAssignments.technician_user_id || null;

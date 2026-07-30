@@ -130,6 +130,23 @@ export default function Tickets() {
       if (ticketsRes.error) throw new Error(ticketsRes.error.message);
       if (machinesRes.error) throw new Error(machinesRes.error.message);
 
+      let rawMachines = machinesRes.data || [];
+      let rawTickets = ticketsRes.data || [];
+
+      const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
+      if (userComp && userComp !== 'TFDEMO') {
+        rawMachines = rawMachines.filter(m => {
+          const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
+          const mid = String(m.id || m.machine_id || '');
+          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+        });
+        rawTickets = rawTickets.filter(t => {
+          const code = (t.company_code || '').trim().toUpperCase();
+          const mid = String(t.machine_id || '');
+          return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+        });
+      }
+
       const directoryMembers = directoryRes.data?.members || [];
       const teamMap = {};
       const techsOnly = [];
@@ -148,11 +165,12 @@ export default function Tickets() {
       const machineMap = {};
       const machineTechMap = {};
       const machineTechNameMap = {};
-      const currentMachines = applyCurrentShiftAssignments(machinesRes.data || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
+      const currentMachines = applyCurrentShiftAssignments(rawMachines || [], shiftRosterRes.data || [], shiftAssignmentRes.data || []);
       const shouldScope = isShiftScopedRole(signedInUser?.role);
       const visibleMachines = visibleMachinesForUser(currentMachines, signedInUser);
       const visibleMachineIds = visibleMachineIdSet(currentMachines, signedInUser);
-      const visibleTickets = shouldScope ? filterRowsToVisibleMachines(ticketsRes.data || [], visibleMachineIds) : (ticketsRes.data || []);
+      const visibleTickets = shouldScope ? filterRowsToVisibleMachines(rawTickets || [], visibleMachineIds) : (rawTickets || []);
+
       const mList = visibleMachines.map((machine) => {
         machineMap[machine.id] = machine.name;
         const techId = machine.technician_user_id;

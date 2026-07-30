@@ -534,13 +534,33 @@ export async function fetchDashboardData() {
     fetchWithTimeout(supabase.from('audit_log').select('id,action,actor,details,created_at,machine_id').order('created_at', { ascending: false }).limit(12)),
   ]);
 
-  const machines = machinesRes.data || [];
-  const tickets = ticketsRes.data || [];
+  let signedInUser = null;
+  try { signedInUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
+  const userComp = (signedInUser?.company_code || '').trim().toUpperCase();
+
+  let machines = machinesRes.data || [];
+  let tickets = ticketsRes.data || [];
+
+  // Tenant Isolation: filter out TFDEMO seed data if signed in user belongs to a custom company (e.g. NKS)
+  if (userComp && userComp !== 'TFDEMO') {
+    machines = machines.filter(m => {
+      const code = (m.company_code || m.company_domain || m.domain || '').trim().toUpperCase();
+      const mid = String(m.id || m.machine_id || '');
+      return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+    });
+    tickets = tickets.filter(t => {
+      const code = (t.company_code || '').trim().toUpperCase();
+      const mid = String(t.machine_id || '');
+      return code !== 'TFDEMO' && !mid.startsWith('bb100000-') && !mid.startsWith('d3234567-');
+    });
+  }
+
   const workOrderParts = wopRes.data || [];
   const auditLog = auditRes.data || [];
-  const companyName = factoryRes.data?.[0]?.name || 'TurboFix';
+  const companyName = factoryRes.data?.[0]?.name || (userComp && userComp !== 'TFDEMO' ? userComp : 'TurboFix');
   const pmLogs = pmLogsRes.data || [];
   const pmSchedules = pmSchedulesRes.data || [];
+
   const pmCompliancePct = pmLogs.length
     ? Math.round((pmLogs.filter((log) => log.on_time).length / pmLogs.length) * 100)
     : null;
