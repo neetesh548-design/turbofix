@@ -33,7 +33,7 @@ const Inventory = lazy(() => import('./pages/Inventory'));
 const Kaizen = lazy(() => import('./pages/Kaizen'));
 const ReportBreakdown = lazy(() => import('./pages/ReportBreakdown'));
 const RCA = lazy(() => import('./pages/RCA'));
-const AdminPortal = lazy(() => import('./pages/AdminPortal'));
+import AdminPortal from './pages/AdminPortal';
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function SearchMetadata() {
@@ -43,6 +43,14 @@ function SearchMetadata() {
     '/': {
       title: 'TurboFix | AI Maintenance Management Software for Manufacturing',
       description: 'TurboFix helps manufacturing plants control breakdowns, preventive maintenance, machine history, spare parts, and technician work in one verified system.',
+    },
+    '/admin.html': {
+      title: 'TurboFix | Platform Operations Control Room',
+      description: 'TurboFix Platform Operations Control Room & Factory Machine Fleet Management',
+    },
+    '/admin': {
+      title: 'TurboFix | Platform Operations Control Room',
+      description: 'TurboFix Platform Operations Control Room & Factory Machine Fleet Management',
     },
     '/why-turbofix.html': {
       title: 'Why TurboFix | Maintenance Software Built for Manufacturing Plants',
