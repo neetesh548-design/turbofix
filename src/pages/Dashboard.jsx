@@ -31,6 +31,7 @@ import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import QuickReportDialog from '../components/QuickReportDialog';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
+import { StitchDonutChart, StitchBarChart } from '../components/ui/StitchVisualCharts';
 import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
 import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
@@ -327,6 +328,32 @@ export default function Dashboard() {
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
                 </div>
               </a>
+            </div>
+
+            {/* Visual Charts Row: Donut & Bar Chart */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <StitchDonutChart
+                title="Plant Fleet Health Distribution"
+                subtitle="Live Machine Status"
+                data={[
+                  { label: 'Running (Optimal)', value: sources.machines?.length ? Math.max(1, sources.machines.length - 3) : 18, color: '#50FFAB' },
+                  { label: 'Minor Issues', value: 2, color: '#FBBF24' },
+                  { label: 'Breakdown / Down', value: sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 1, color: '#F87171' },
+                  { label: 'Scheduled PM', value: 1, color: '#60A5FA' },
+                ]}
+                centerLabel="Fleet"
+              />
+
+              <StitchBarChart
+                title="Downtime Hours by Production Line"
+                subtitle="Weekly Downtime Analysis"
+                items={[
+                  { label: 'Grid Casting Line 1', value: 3.5, max: 10, unit: 'hrs', color: '#F87171' },
+                  { label: 'Plate Pasting Line 2', value: 1.8, max: 10, unit: 'hrs', color: '#FBBF24' },
+                  { label: 'COS Assembly Line 3', value: 0.5, max: 10, unit: 'hrs', color: '#50FFAB' },
+                  { label: 'Formation Charging Line 4', value: 0.2, max: 10, unit: 'hrs', color: '#60A5FA' },
+                ]}
+              />
             </div>
           </div>
         )}

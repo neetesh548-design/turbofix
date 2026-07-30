@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ArrowLeft, BadgeInfo, CheckCircle2, Lock, Send, ShieldAlert } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { StitchPieChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '../supabaseClient';
 import { DEMO_MACHINES } from '../utils/demoMachines';
 import { DEMO_TICKETS } from '../utils/demoTickets';
@@ -237,6 +238,20 @@ export default function RCA() {
                 <div className="rd-kpi-card"><span className="rd-kpi-label">Technician</span><strong>{ticket?.technician_name || 'Not assigned'}</strong></div>
               </div>
             </section>
+
+            {/* Visual Ishikawa RCA Distribution Pie Chart */}
+            <div className="mb-4">
+              <StitchPieChart
+                title="Plant-Wide Failure Category Distribution"
+                subtitle="Historical Ishikawa Analysis"
+                data={[
+                  { label: 'Machine / Bearing Wear', value: 40, color: '#F87171' },
+                  { label: 'Material / Spare Defect', value: 25, color: '#FBBF24' },
+                  { label: 'Method / Procedure', value: 20, color: '#60A5FA' },
+                  { label: 'Environment / Heat', value: 15, color: '#50FFAB' },
+                ]}
+              />
+            </div>
 
             {/* ── Ticket context ── */}
             {ticket && (

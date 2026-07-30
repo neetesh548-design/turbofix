@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785402745.49075,
-    "ast_hash": "969d44832166b69ecce0d9c11602282a",
+    "mtime": 1785449773.1857874,
+    "ast_hash": "30eef5f4c11cbd414a1167047be8e427",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -2185,8 +2185,8 @@
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
-    "mtime": 1785330182.2256489,
-    "ast_hash": "c2109f9af81c567a60ab79cb9980bd3c",
+    "mtime": 1785449750.8308861,
+    "ast_hash": "67c1fece59a7206fee02728839769819",
     "semantic_hash": ""
   },
   "src/components/machines/MachineFilterBar.jsx": {
@@ -2977,6 +2977,16 @@
   "scripts/deploy_exide_battery_factory.js": {
     "mtime": 1785448328.523533,
     "ast_hash": "b65aab7eae3df7d0d506eb2c5979c823",
+    "semantic_hash": ""
+  },
+  "src/components/machines/CapexEscalationModal.jsx": {
+    "mtime": 1785449742.4068956,
+    "ast_hash": "30e61abc860c0b2737633dd48718ccef",
+    "semantic_hash": ""
+  },
+  "src/components/machines/MachinePersonnelMatrixModal.jsx": {
+    "mtime": 1785449737.9620438,
+    "ast_hash": "a4b1622731d4d80570e658a42b83ed00",
     "semantic_hash": ""
   }
 }

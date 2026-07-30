@@ -375,14 +375,7 @@
   "373": ".append",
   "374": "pwa.js",
   "375": ".get",
-  "376": ".attach_voice_note",
   "377": "translations.js",
-  "378": ".update_ai_fields",
-  "379": ".get_company_tickets",
-  "380": ".attach_photo",
-  "381": ".update_language",
-  "382": ".close_ticket",
-  "383": ".find_by_id_prefix",
   "390": "admin-portal.spec.js",
   "391": "admin-portal-prod.spec.js"
 }

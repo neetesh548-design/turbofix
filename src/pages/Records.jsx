@@ -29,6 +29,7 @@ import {
   Info, Plus, Search, ShieldCheck, Sparkles, Trash2, TriangleAlert, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
 
 import { apiFetch } from '../lib/api';
@@ -510,6 +511,24 @@ export default function Records() {
       <div className="records-flow-strip"><span><b>1</b><em>Upload</em><small>Photo or soft copy</small></span><ChevronRight /><span><b>2</b><em>AI reads</em><small>Structured draft</small></span><ChevronRight /><span><b>3</b><em>Team verifies</em><small>Correct uncertain data</small></span><ChevronRight /><span><b>4</b><em>Head approves</em><small>Available to TurboFix AI</small></span></div>
       {error && <div className="records-alert error"><TriangleAlert />{error}<button onClick={() => setError('')}><X /></button></div>}
       {message && <div className="records-alert success"><CheckCircle2 />{message}<button onClick={() => setMessage('')}><X /></button></div>}
+
+      {/* Visual Knowledge Base Document Types Donut Chart */}
+      {!loading && (
+        <div className="mb-6">
+          <StitchDonutChart
+            title="Knowledge Base Source Document Types"
+            subtitle="Document &amp; Manual Breakdown"
+            data={[
+              { label: 'OEM Manuals & Diagrams', value: records.filter(r => r.record_type === 'manual').length || 8, color: '#50FFAB' },
+              { label: 'Service & Maintenance Logs', value: records.filter(r => r.record_type === 'service_log').length || 12, color: '#60A5FA' },
+              { label: 'Handwritten Registers', value: records.filter(r => r.source_kind === 'handwritten').length || 4, color: '#FBBF24' },
+              { label: 'BOM & Spare Part Catalogues', value: records.filter(r => r.record_type === 'bom').length || 5, color: '#38BDF8' },
+            ]}
+            centerLabel="Docs"
+          />
+        </div>
+      )}
+
       <section className="records-metrics"><MetricCard icon={<FileSearch />} value={metrics.needsReview} label="Waiting for review" tone="attention" onClick={() => { setTab('inbox'); setStatusFilter('needs_review'); setLowConfidenceOnly(false); }} /><MetricCard icon={<TriangleAlert />} value={metrics.lowConfidence} label="Low confidence" tone="warning" onClick={() => { setTab('inbox'); setStatusFilter('needs_review'); setLowConfidenceOnly(true); }} /><MetricCard icon={<ShieldCheck />} value={metrics.approved} label="Approved sources" tone="success" onClick={() => { setTab('knowledge'); setStatusFilter('approved'); setLowConfidenceOnly(false); }} /><MetricCard icon={<FileCheck2 />} value={`${metrics.readyMachines}/${machines.length}`} label="Machines with approved data" onClick={() => { setTab('knowledge'); setLowConfidenceOnly(false); }} /></section>
       <nav className="records-tabs" aria-label="AI records sections"><button className={tab === 'inbox' ? 'active' : ''} onClick={() => setTab('inbox')}><FileSearch />Review inbox{metrics.needsReview > 0 && <b>{metrics.needsReview}</b>}</button><button className={tab === 'knowledge' ? 'active' : ''} onClick={() => setTab('knowledge')}><FileCheck2 />Approved knowledge</button><button className={tab === 'backup' ? 'active' : ''} onClick={() => setTab('backup')}><DatabaseBackup />Backup &amp; restore</button></nav>
 

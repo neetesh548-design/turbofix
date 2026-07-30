@@ -1,0 +1,164 @@
+import React from 'react';
+import { Activity, ShieldCheck, AlertTriangle, TrendingDown, Wrench, Package, Sparkles } from 'lucide-react';
+
+/**
+ * StitchVisualCharts — Premium Google Stitch Chart & Visual Indicator Library
+ *
+ * Includes:
+ * 1. StitchDonutChart (Conic SVG Ring chart with center metrics & legend)
+ * 2. StitchBarChart (Horizontal/Vertical bars with target markers)
+ * 3. StitchPieChart (Radial SVG Pie chart with percent callouts)
+ * 4. StitchMetricBadge (Neon progress ring & percentage pill)
+ */
+
+export function StitchDonutChart({
+  title = 'Fleet Distribution',
+  subtitle = 'Current Status',
+  data = [
+    { label: 'Running', value: 18, color: '#50FFAB' },
+    { label: 'Issues', value: 3, color: '#FBBF24' },
+    { label: 'Breakdown', value: 2, color: '#F87171' },
+    { label: 'Maintenance', value: 1, color: '#60A5FA' },
+  ],
+  centerLabel = 'Total',
+}) {
+  const total = data.reduce((acc, item) => acc + (Number(item.value) || 0), 0);
+  let accumulatedPercent = 0;
+
+  const gradientStops = data.map((item) => {
+    const start = accumulatedPercent;
+    const itemPercent = total ? (item.value / total) * 100 : 0;
+    accumulatedPercent += itemPercent;
+    return `${item.color} ${start}% ${accumulatedPercent}%`;
+  });
+
+  const backgroundStyle = total
+    ? { background: `conic-gradient(${gradientStops.join(', ')})` }
+    : { background: 'rgba(255,255,255,0.08)' };
+
+  return (
+    <div className="bg-[#12161e]/90 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{subtitle}</span>
+        <h3 className="text-sm font-bold text-white mb-4">{title}</h3>
+      </div>
+
+      <div className="flex items-center gap-6 my-2">
+        <div className="relative w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.5)]" style={backgroundStyle}>
+          {/* Inner cutout for Donut effect */}
+          <div className="w-20 h-20 bg-[#0f141d] rounded-full flex flex-col items-center justify-center border border-slate-800/80 shadow-inner">
+            <span className="font-mono font-extrabold text-xl text-white leading-none">{total}</span>
+            <span className="text-[10px] text-slate-400 font-medium uppercase mt-0.5">{centerLabel}</span>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex-1 space-y-2 text-xs">
+          {data.map((item) => {
+            const pct = total ? Math.round((item.value / total) * 100) : 0;
+            return (
+              <div key={item.label} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color, boxShadow: `0 0 6px ${item.color}` }} />
+                  <span className="text-slate-300 truncate font-medium">{item.label}</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 font-mono">
+                  <span className="text-white font-bold">{item.value}</span>
+                  <span className="text-slate-400 text-[10px]">({pct}%)</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StitchBarChart({
+  title = 'Downtime & Repair Cost Trend',
+  subtitle = 'Monthly Overview',
+  items = [
+    { label: 'Line 1 (Casting)', value: 45, max: 60, unit: 'hrs', color: '#F87171' },
+    { label: 'Line 2 (Pasting)', value: 28, max: 60, unit: 'hrs', color: '#FBBF24' },
+    { label: 'Line 3 (Assembly)', value: 12, max: 60, unit: 'hrs', color: '#50FFAB' },
+    { label: 'Line 4 (Formation)', value: 8, max: 60, unit: 'hrs', color: '#60A5FA' },
+  ],
+}) {
+  return (
+    <div className="bg-[#12161e]/90 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{subtitle}</span>
+        <h3 className="text-sm font-bold text-white mb-4">{title}</h3>
+      </div>
+
+      <div className="space-y-3 my-1">
+        {items.map((item) => {
+          const pct = Math.min(100, Math.round((item.value / (item.max || 100)) * 100));
+          return (
+            <div key={item.label} className="space-y-1">
+              <div className="flex justify-between text-xs font-medium">
+                <span className="text-slate-300 truncate">{item.label}</span>
+                <span className="text-white font-mono font-bold">{item.value} {item.unit || ''}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 flex">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${pct}%`,
+                    background: item.color || '#50FFAB',
+                    boxShadow: `0 0 10px ${item.color || '#50FFAB'}80`,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function StitchPieChart({
+  title = 'Root Cause Categories (Ishikawa)',
+  subtitle = 'RCA Breakdown',
+  data = [
+    { label: 'Machine / Spindle', value: 40, color: '#F87171' },
+    { label: 'Material / Parts', value: 25, color: '#FBBF24' },
+    { label: 'Method / Procedure', value: 20, color: '#60A5FA' },
+    { label: 'Environment / Temp', value: 15, color: '#50FFAB' },
+  ],
+}) {
+  const total = data.reduce((acc, i) => acc + i.value, 0);
+  let accumulated = 0;
+  const slices = data.map((item) => {
+    const start = accumulated;
+    const pct = total ? (item.value / total) * 100 : 0;
+    accumulated += pct;
+    return `${item.color} ${start}% ${accumulated}%`;
+  });
+
+  return (
+    <div className="bg-[#12161e]/90 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{subtitle}</span>
+        <h3 className="text-sm font-bold text-white mb-4">{title}</h3>
+      </div>
+
+      <div className="flex items-center gap-6 my-2">
+        <div className="w-24 h-24 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] flex-shrink-0" style={{ background: `conic-gradient(${slices.join(', ')})` }} />
+        <div className="flex-1 space-y-2 text-xs">
+          {data.map((item) => (
+            <div key={item.label} className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                <span className="text-slate-300 truncate">{item.label}</span>
+              </div>
+              <span className="text-white font-mono font-bold">{item.value}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

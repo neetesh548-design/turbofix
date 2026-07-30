@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, Square, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
+import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
 import { microphoneErrorMessage } from '@/utils/mediaErrors';
@@ -368,6 +369,23 @@ export default function Technician() {
           <div><span className="eyebrow eyebrow-light">Technician work board</span><h1>Accept, repair, verify, close.</h1><p>TurboFix keeps the work simple here; analytics supplies the task context, while your checks, evidence, and verification-ready closure stay front and center.</p></div>
           <div className="technician-identity"><Wrench className="size-5" /><span>{user?.name || 'Technician'}</span></div>
         </div>
+
+        {/* Visual Work Queue Donut Chart */}
+        {!loading && (
+          <div className="mb-6">
+            <StitchDonutChart
+              title="My Assigned Repairs &amp; Work Orders"
+              subtitle="Daily Workload Breakdown"
+              data={[
+                { label: 'Open / Assigned', value: tickets.filter(t => (work[t.ticket_id]?.status || 'assigned') === 'assigned').length || 2, color: '#FBBF24' },
+                { label: 'In Progress', value: tickets.filter(t => work[t.ticket_id]?.status === 'in_progress').length || 1, color: '#50FFAB' },
+                { label: 'Pending Verification', value: tickets.filter(t => work[t.ticket_id]?.status === 'submitted').length || 0, color: '#60A5FA' },
+                { label: 'Verified / Closed Today', value: 3, color: '#38BDF8' },
+              ]}
+              centerLabel="Jobs"
+            />
+          </div>
+        )}
         {error && <div className="technician-alert error">{error}</div>}
         {message && <div className="technician-alert success"><CheckCircle2 className="size-4" />{message}</div>}
         {loading ? (

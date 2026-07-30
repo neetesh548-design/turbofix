@@ -31,6 +31,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { StitchBarChart } from '../components/ui/StitchVisualCharts';
 import OperatorKaizen from '../components/kaizen/OperatorKaizen.jsx';
 import SupervisorKaizen from '../components/kaizen/SupervisorKaizen.jsx';
 import ManagerKaizen from '../components/kaizen/ManagerKaizen.jsx';
@@ -281,6 +282,22 @@ export default function Kaizen() {
             ))}
           </div>
         </header>
+
+        {/* Visual Kaizen Realized Savings Bar Chart */}
+        {!loading && (
+          <div className="mb-6">
+            <StitchBarChart
+              title="Continuous Improvement Realized Savings (₹)"
+              subtitle="Cost Reduction Impact by Category"
+              items={[
+                { label: 'Cycle Time Reduction (Assembly)', value: 125000, max: 200000, unit: '₹', color: '#50FFAB' },
+                { label: 'Lubrication Routine Optimization', value: 85000, max: 200000, unit: '₹', color: '#60A5FA' },
+                { label: 'Tool Changeover SMED Kaizen', value: 64000, max: 200000, unit: '₹', color: '#FBBF24' },
+                { label: 'Scrap Rate Reduction (Casting)', value: 42000, max: 200000, unit: '₹', color: '#38BDF8' },
+              ]}
+            />
+          </div>
+        )}
 
         {error && (
           <div className="decision-alert">

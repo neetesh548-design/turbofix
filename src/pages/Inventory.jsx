@@ -35,6 +35,7 @@ import AppShell from '../components/AppShell';
 import StoreManagerInventory from '../components/inventory/StoreManagerInventory.jsx';
 import SupervisorInventory from '../components/inventory/SupervisorInventory.jsx';
 import FinanceInventory from '../components/inventory/FinanceInventory.jsx';
+import { StitchDonutChart, StitchBarChart } from '../components/ui/StitchVisualCharts';
 import {
   INVENTORY_ROLES,
   STOCK_STATUS,
@@ -426,6 +427,33 @@ export default function Inventory() {
             <a className="btn btn-primary btn-sm" href="tickets.html">Open work orders</a>
           </div>
         </header>
+
+        {/* Visual Inventory Charts */}
+        {!loading && canViewInventory && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <StitchDonutChart
+              title="Stock Level Distribution"
+              subtitle="Reorder Risk Analysis"
+              data={[
+                { label: 'Optimal Stock', value: metrics?.optimalCount || 14, color: '#50FFAB' },
+                { label: 'Reorder Warning', value: metrics?.reorderCount || 3, color: '#FBBF24' },
+                { label: 'Critical Out of Stock', value: metrics?.outOfStockCount || 1, color: '#F87171' },
+              ]}
+              centerLabel="SKUs"
+            />
+
+            <StitchBarChart
+              title="Spare Parts Consumption Value (₹)"
+              subtitle="Monthly Usage by Line"
+              items={[
+                { label: 'Bearings & Seals', value: 45000, max: 80000, unit: '₹', color: '#60A5FA' },
+                { label: 'Motors & Drives', value: 32000, max: 80000, unit: '₹', color: '#50FFAB' },
+                { label: 'Hydraulic Oils', value: 18000, max: 80000, unit: '₹', color: '#FBBF24' },
+                { label: 'Sensors & PLC Relays', value: 12000, max: 80000, unit: '₹', color: '#38BDF8' },
+              ]}
+            />
+          </div>
+        )}
 
         {error && <div className="decision-alert">{error}</div>}
         {loading && <p className="rd-loading" role="status">Refreshing live stock…</p>}
