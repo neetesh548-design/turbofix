@@ -28,70 +28,124 @@ export default function ResetPassword() {
     window.scrollTo(0, 0);
 
     let active = true;
+    // Read params BEFORE Supabase clears the hash (synchronous, runs first)
     const params = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const rawHash = window.location.hash;
+    const hashParams = new URLSearchParams(rawHash.replace(/^#/, ''));
 
-    // Detect invite vs recovery context for UI messaging
     const urlType = params.get('type') || hashParams.get('type') || '';
-    const inviteContext = urlType === 'invite' || urlType === 'signup';
-    if (inviteContext) setIsInvite(true);
+    if (urlType === 'invite' || urlType === 'signup') setIsInvite(true);
 
-    const hasRecoveryPayload = params.has('code')
-      || params.has('token')
-      || hashParams.has('access_token')
-      || hashParams.get('type') === 'recovery'
-      || urlType === 'invite'
-      || urlType === 'signup';
+    const hasRecoveryPayload =
+      params.has('code') ||
+      params.has('token') ||
+      hashParams.has('access_token') ||
+      hashParams.get('type') === 'recovery' ||
+      urlType === 'invite' ||
+      urlType === 'signup';
 
-    const finishCheck = (hasSession) => {
-      if (!active) return;
+    // Track whether we have already resolved the step so two async paths
+    // (onAuthStateChange + initialise) don't fight each other.
+    let resolved = false;
+    const resolve = (hasSession) => {
+      if (!active || resolved) return;
+      resolved = true;
       setStep(hasSession || hasRecoveryPayload ? 'reset' : 'request');
       setCheckingRecovery(false);
     };
 
+    // onAuthStateChange fires FIRST with INITIAL_SESSION (synchronously in
+    // Supabase JS v2). If Supabase already processed the hash token before our
+    // useEffect ran, we get a valid session here immediately — no race.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+
+      if (event === 'PASSWORD_RECOVERY') {
+        // Explicit recovery — go straight to set-password step
+        setIsInvite(false);
+        if (!resolved) {
+          resolved = true;
+          setStep('reset');
+          setCheckingRecovery(false);
+        }
+      } else if (event === 'SIGNED_IN') {
+        // Covers invite links and magic-link sign-ins
+        if (!resolved) {
+          resolved = true;
+          setStep('reset');
+          setCheckingRecovery(false);
+        }
+      } else if (event === 'INITIAL_SESSION') {
+        // Fires immediately on listener registration with the current session.
+        // If the Supabase client already consumed the URL hash and created a
+        // session, session will be non-null here — use it.
+        if (session) {
+          if (!resolved) {
+            resolved = true;
+            setStep('reset');
+            setCheckingRecovery(false);
+          }
+        }
+        // If session is null, let initialise() do the code exchange first.
+      }
+    });
+
     const initialise = async () => {
       try {
-        // PKCE flow: Supabase returns ?code=... for both recovery and invite
+        // PKCE code flow (most common for modern Supabase projects)
         if (params.get('code')) {
           const { error } = await supabase.auth.exchangeCodeForSession(params.get('code'));
-          if (error) setResetMsg('This link is invalid or has expired. Request a new one.');
+          if (error && !resolved) {
+            setResetMsg('This link is invalid or has expired. Request a new one.');
+          }
+          // onAuthStateChange will fire SIGNED_IN / PASSWORD_RECOVERY and call resolve()
+          // Fallback in case the event never fires:
+          if (!resolved) {
+            const { data } = await supabase.auth.getSession();
+            resolve(Boolean(data?.session));
+          }
+          return;
         }
 
         // Legacy token flow: ?token=xxx&type=invite or ?token=xxx&type=recovery
-        // Uses token_hash (no email needed) — fixes invited users landing on step 1
-        if (params.get('token') && !params.get('code')) {
-          const tokenType = (params.get('type') || 'recovery');
+        if (params.get('token')) {
+          const tokenType = params.get('type') || 'recovery';
           const { error } = await supabase.auth.verifyOtp({
             token_hash: params.get('token'),
             type: tokenType,
           });
-          if (error) setResetMsg('This link is invalid or has expired. Request a new one.');
+          if (error && !resolved) {
+            setResetMsg('This link is invalid or has expired. Request a new one.');
+          }
+          if (!resolved) {
+            const { data } = await supabase.auth.getSession();
+            resolve(Boolean(data?.session));
+          }
+          return;
         }
 
-        const { data } = await supabase.auth.getSession();
-        finishCheck(Boolean(data?.session));
+        // No URL payload — check for an existing session (e.g. user refreshed)
+        if (!resolved) {
+          const { data } = await supabase.auth.getSession();
+          resolve(Boolean(data?.session));
+        }
       } catch {
-        finishCheck(false);
-        if (hasRecoveryPayload) setResetMsg('This link is invalid or has expired. Request a new one.');
+        if (!resolved) {
+          if (hasRecoveryPayload) {
+            setResetMsg('This link is invalid or has expired. Request a new one.');
+          }
+          resolve(false);
+        }
       }
     };
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        if (session?.user?.app_metadata?.provider === 'email' &&
-            !session?.user?.email_confirmed_at &&
-            session?.user?.invited_at) {
-          setIsInvite(true);
-        }
-        finishCheck(Boolean(session));
-      }
-    });
     initialise();
 
     return () => {
       active = false;
       authListener?.subscription?.unsubscribe();
     };
+
   }, []);
 
   const handleRequestLink = async () => {
