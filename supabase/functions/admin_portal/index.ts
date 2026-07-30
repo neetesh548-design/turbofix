@@ -69,7 +69,7 @@ const ADMIN_LOGIN_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TurboFix — Platform Control (Supabase Cloud)</title>
+<title>TurboFix &mdash; Platform Control (Supabase Cloud)</title>
 <style>
   :root { color-scheme: dark; --ink:#f5f7fb; --muted:#aab6c8; --canvas:#0d121a; --surface:#151d28; --line:#2c394b; --accent:#ff7a1a; --blue:#80b7ff; --shadow:0 18px 50px rgba(0,0,0,.24); }
   * { box-sizing: border-box; }
@@ -99,18 +99,18 @@ const ADMIN_LOGIN_HTML = `<!DOCTYPE html>
 <body>
 <main class="login-layout">
   <section class="login-intro" aria-label="TurboFix platform administration">
-    <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX</div>
+    <div class="brand"><span class="brand-mark">&#9889;</span> TURBOFIX</div>
     <p class="eyebrow">Supabase Edge Platform Operations</p>
     <h1>Keep every customer workspace moving forward.</h1>
     <p class="lead">Approve new companies, monitor capacity and operational risk, and support the teams building reliable factories.</p>
     <ul class="value-list">
-      <li><b>●</b> Review onboarding requests quickly</li>
-      <li><b>●</b> Spot quota and ticket pressure early</li>
-      <li><b>●</b> Direct Supabase Edge Cloud Backend</li>
+      <li><b>&bull;</b> Review onboarding requests quickly</li>
+      <li><b>&bull;</b> Spot quota and ticket pressure early</li>
+      <li><b>&bull;</b> Direct Supabase Edge Cloud Backend</li>
     </ul>
   </section>
   <section class="login-card">
-    <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX</div>
+    <div class="brand"><span class="brand-mark">&#9889;</span> TURBOFIX</div>
     <h2>Platform sign in</h2>
     <p>For TurboFix operations staff only. Session hosted on Supabase Edge Network.</p>
     <div class="field">
@@ -123,7 +123,7 @@ const ADMIN_LOGIN_HTML = `<!DOCTYPE html>
 </main>
 <script>
 const tokenKey = "tfAdminToken";
-const baseUrl = window.location.pathname.replace(/\/+$/, '');
+const baseUrl = window.location.pathname.replace(new RegExp('/+$'), '');
 const $ = (id) => document.getElementById(id);
 async function openApp(token) {
   const response = await fetch(baseUrl + "/app", { headers: {"Authorization": "Bearer " + token} });
@@ -141,7 +141,7 @@ async function login() {
   $("loginErr").textContent = "";
   const button = $("loginBtn");
   button.disabled = true;
-  button.textContent = "Opening control room…";
+  button.textContent = "Opening control room...";
   try {
     const response = await fetch(baseUrl + "/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:$("pw").value}) });
     if (!response.ok) throw new Error("That password was not accepted. Please try again.");
@@ -169,7 +169,7 @@ const ADMIN_APP_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TurboFix — Platform Control Room (Supabase Cloud)</title>
+<title>TurboFix &mdash; Platform Control Room (Supabase Cloud)</title>
 <style>
   :root { color-scheme: dark; --ink:#f5f7fb; --muted:#aab6c8; --canvas:#0d121a; --surface:#151d28; --line:#2c394b; --accent:#ff7a1a; --blue:#80b7ff; --green:#33d17a; --red:#ff6b6b; }
   * { box-sizing: border-box; }
@@ -199,7 +199,7 @@ const ADMIN_APP_HTML = `<!DOCTYPE html>
 </head>
 <body>
 <header>
-  <div class="brand"><span class="brand-mark">ϟ</span> TURBOFIX CONTROL ROOM (SUPABASE)</div>
+  <div class="brand"><span class="brand-mark">&#9889;</span> TURBOFIX CONTROL ROOM (SUPABASE)</div>
   <div class="user-info">
     <span>Operator: Platform Admin</span>
     <button class="btn-sm" id="logoutBtn">Sign Out</button>
