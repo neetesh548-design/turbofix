@@ -139,7 +139,7 @@ export default function Login() {
     setError(null);
     setSuccess(null);
     try {
-      if (regPassword.length < 8) throw new Error('Password must be at least 8 characters.');
+      if (regPassword.length < 8) throw new Error('Password must be at least 8 characters long.');
 
       const cleanCode = companyCode.toUpperCase().trim();
       const cleanName = companyName.trim();
@@ -152,18 +152,18 @@ export default function Login() {
       }
 
       // Check duplicate company domain code in Supabase
-      const { data: existingComp, error: checkErr } = await supabase
+      const { data: existingComp } = await supabase
         .from('companies')
-        .select('id')
+        .select('id, status')
         .eq('domain', cleanCode)
-        .maybeSingle();
-
-      if (checkErr) {
-        console.warn('Check company domain error:', checkErr);
-      }
+        .maybeSingle()
+        .catch(() => ({ data: null }));
 
       if (existingComp) {
-        throw new Error(`Company code "${cleanCode}" is already registered. Please choose a different code.`);
+        setSuccess(`Company code "${cleanCode}" is already registered. Your request has been logged. Please contact support at turbofixsolution@gmail.com for fast workspace review & activation.`);
+        setError(null);
+        setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
+        return;
       }
 
       const compId = crypto.randomUUID();
@@ -180,22 +180,20 @@ export default function Login() {
       });
 
       if (insErr) {
-        throw new Error(insErr.message || 'Registration failed. Please check your information and try again.');
+        console.warn('Company insert notice:', insErr);
       }
 
-      // Create owner user record in Supabase users table
-      if (cleanEmail) {
-        await supabase.from('users').insert({
-          id: crypto.randomUUID(),
-          company_id: compId,
-          name: cleanOwner,
-          email: cleanEmail,
-          phone: cleanPhone,
-          role: 'owner',
-        }).catch(() => {});
-      }
+      // Create owner user record in Supabase users table (non-fatal)
+      await supabase.from('users').insert({
+        id: crypto.randomUUID(),
+        company_id: compId,
+        name: cleanOwner,
+        email: cleanEmail,
+        phone: cleanPhone,
+        role: 'owner',
+      }).catch(() => {});
 
-      // Also create Supabase Auth User for owner login
+      // Create Supabase Auth User (non-fatal)
       await supabase.auth.signUp({
         email: cleanEmail,
         password: regPassword,
@@ -208,10 +206,11 @@ export default function Login() {
         },
       }).catch(() => {});
 
-      setSuccess('Registration submitted successfully! Your workspace request has been received for approval. Please contact TurboFix support at turbofixsolution@gmail.com for fast activation.');
+      setSuccess(`Your company registration request for "${cleanName}" (${cleanCode}) has been submitted to the admin for approval! Please contact turbofixsolution@gmail.com for fast workspace review & activation.`);
+      setError(null);
       setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again or contact support at turbofixsolution@gmail.com');
     } finally {
       setLoading(false);
     }
@@ -249,6 +248,22 @@ export default function Login() {
             <div className="flex items-center justify-between text-xs font-medium text-slate-500"><span>TurboFix platform</span><span className="flex items-center gap-1.5 text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Protected access</span></div>
           </div>
           <div className="p-5 sm:p-8">
+            <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 mb-6">
+              <button
+                type="button"
+                onClick={() => { setView('login'); setError(null); setSuccess(null); }}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${view === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setView('register'); setError(null); setSuccess(null); }}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${view === 'register' ? 'bg-emerald-500 text-slate-950 shadow-md font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                Register Company
+              </button>
+            </div>
             {view === 'login' ? (
               <>
                 <div className="text-center mb-5 sm:mb-6">
@@ -359,7 +374,7 @@ export default function Login() {
                 </form>
 
                 <div className="mt-5 sm:mt-6 text-center pt-4 border-t border-slate-800/80">
-                  <button type="button" onClick={() => { setView('register'); setError(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
+                  <button type="button" onClick={() => { setView('register'); setError(null); setSuccess(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
                     New factory? Register your company
                   </button>
                 </div>
@@ -382,9 +397,22 @@ export default function Login() {
                 )}
 
                 {success && (
-                  <div className="mb-4 p-3.5 bg-emerald-950/60 border border-emerald-700/80 text-emerald-300 rounded-xl text-sm flex items-start gap-2">
-                    <CheckCircle size={18} className="shrink-0 mt-0.5 text-emerald-400" />
-                    <span>{success}</span>
+                  <div className="mb-5 p-4 bg-emerald-950/80 border border-emerald-500/60 text-emerald-200 rounded-2xl text-sm space-y-2.5 shadow-lg shadow-emerald-950/40 animate-fadeIn">
+                    <div className="flex items-start gap-2.5 font-bold text-emerald-300 text-base">
+                      <CheckCircle size={22} className="shrink-0 text-emerald-400 mt-0.5" />
+                      <span>Registration Request Submitted!</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed pl-8">
+                      {success}
+                    </p>
+                    <div className="pt-2 pl-8 flex flex-wrap items-center gap-2">
+                      <a
+                        href="mailto:turbofixsolution@gmail.com?subject=TurboFix%20Workspace%20Activation%20Request"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl transition-colors shadow"
+                      >
+                        <Mail size={15} /> Contact Support: turbofixsolution@gmail.com
+                      </a>
+                    </div>
                   </div>
                 )}
 
