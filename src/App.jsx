@@ -169,6 +169,11 @@ function App() {
                 <Route path="/report-breakdown" element={<Navigate to="/report-breakdown.html" replace />} />
                 <Route path="/admin.html" element={<AdminPortal />} />
                 <Route path="/admin" element={<Navigate to="/admin.html" replace />} />
+                <Route path="/admin_portal.html" element={<AdminPortal />} />
+                <Route path="/admin_portal" element={<Navigate to="/admin.html" replace />} />
+                <Route path="/superadmin.html" element={<AdminPortal />} />
+                <Route path="/superadmin" element={<Navigate to="/admin.html" replace />} />
+                <Route path="/control-room" element={<Navigate to="/admin.html" replace />} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
