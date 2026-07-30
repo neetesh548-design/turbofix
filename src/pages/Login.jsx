@@ -147,82 +147,71 @@ export default function Login() {
       const cleanOwner = ownerName.trim();
       const cleanEmail = email.trim();
 
-      let registered = false;
+      if (!cleanCode || !cleanName || !cleanOwner || !cleanEmail || !cleanPhone) {
+        throw new Error('All registration fields are required.');
+      }
 
-      // 1. Try Primary Backend Endpoint
-      try {
-        const regResp = await apiFetch('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify({
+      // Check duplicate company domain code in Supabase
+      const { data: existingComp, error: checkErr } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('domain', cleanCode)
+        .maybeSingle();
+
+      if (checkErr) {
+        console.warn('Check company domain error:', checkErr);
+      }
+
+      if (existingComp) {
+        throw new Error(`Company code "${cleanCode}" is already registered. Please choose a different code.`);
+      }
+
+      const compId = crypto.randomUUID();
+      const { error: insErr } = await supabase.from('companies').insert({
+        id: compId,
+        domain: cleanCode,
+        name: cleanName,
+        owner_name: cleanOwner,
+        owner_email: cleanEmail,
+        admin_contact_phone: cleanPhone,
+        machine_quota: 5,
+        user_quota: 10,
+        status: 'pending',
+      });
+
+      if (insErr) {
+        throw new Error(insErr.message || 'Registration failed. Please check your information and try again.');
+      }
+
+      // Create owner user record in Supabase users table
+      if (cleanEmail) {
+        await supabase.from('users').insert({
+          id: crypto.randomUUID(),
+          company_id: compId,
+          name: cleanOwner,
+          email: cleanEmail,
+          phone: cleanPhone,
+          role: 'owner',
+        }).catch(() => {});
+      }
+
+      // Also create Supabase Auth User for owner login
+      await supabase.auth.signUp({
+        email: cleanEmail,
+        password: regPassword,
+        options: {
+          data: {
             company_code: cleanCode,
-            company_name: cleanName,
-            admin_contact_phone: cleanPhone,
-            owner_name: cleanOwner,
-            owner_email: cleanEmail,
-            owner_password: regPassword,
-          }),
-        });
-
-        if (regResp.ok) {
-          registered = true;
-        } else {
-          const errData = await regResp.json().catch(() => ({}));
-          if (errData.detail) throw new Error(errData.detail);
-        }
-      } catch (backendErr) {
-        // If backend returned explicit HTTP business validation error (e.g. code exists), rethrow
-        if (backendErr.message && !backendErr.message.includes('fetch') && !backendErr.message.includes('timed out') && !backendErr.message.includes('Server error')) {
-          throw backendErr;
-        }
-      }
-
-      // 2. Direct Supabase Fallback Path (if primary backend is sleeping/unreachable)
-      if (!registered) {
-        // Check duplicate company code
-        const { data: existingComp } = await supabase
-          .from('companies')
-          .select('id')
-          .eq('domain', cleanCode)
-          .maybeSingle();
-
-        if (existingComp) {
-          throw new Error('Company code already exists. Please choose a different code.');
-        }
-
-        const compId = crypto.randomUUID();
-        const { error: insErr } = await supabase.from('companies').insert({
-          id: compId,
-          domain: cleanCode,
-          name: cleanName,
-          owner_name: cleanOwner,
-          owner_email: cleanEmail,
-          admin_contact_phone: cleanPhone,
-          machine_quota: 5,
-          user_quota: 10,
-          status: 'pending',
-        });
-
-        if (insErr) {
-          throw new Error(insErr.message || 'Registration failed. Please verify your details.');
-        }
-
-        // Register owner user profile in Supabase
-        if (cleanEmail) {
-          await supabase.from('users').insert({
-            id: crypto.randomUUID(),
-            company_id: compId,
             name: cleanOwner,
-            email: cleanEmail,
-            phone: cleanPhone,
             role: 'owner',
-          }).catch(() => {});
-        }
-      }
+          },
+        },
+      }).catch(() => {});
 
       setSuccess('Registration submitted successfully! A TurboFix administrator will review and activate your workspace.');
       setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {
-      setError(err.message || 'Registration failed. Check your network or try again.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
