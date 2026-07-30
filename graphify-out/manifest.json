@@ -805,8 +805,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785350614.286587,
-    "ast_hash": "0f870fbe50f0caf563200b802bb3d4ad",
+    "mtime": 1785389927.7947156,
+    "ast_hash": "938de1e1d1a5268e14f8f10776111b05",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -1305,7 +1305,7 @@
     "semantic_hash": ""
   },
   "tests/machine-card.spec.js": {
-    "mtime": 1785328848.892209,
+    "mtime": 1785389713.9207578,
     "ast_hash": "8493468dcbcac33f6488d2b96e2715e2",
     "semantic_hash": ""
   },
@@ -1395,13 +1395,13 @@
     "semantic_hash": "f497ab4932e94fd9620d25ca8efe0249"
   },
   ".github/workflows/backend-ci.yml": {
-    "mtime": 1784053619.8206625,
-    "ast_hash": "c980d5ca2872797d96e293f9ba4af123",
-    "semantic_hash": "c980d5ca2872797d96e293f9ba4af123"
+    "mtime": 1785387903.8488126,
+    "ast_hash": "d82308de7c2b2d1170c82fecc786b234",
+    "semantic_hash": ""
   },
   ".github/workflows/deploy.yml": {
-    "mtime": 1785315782.7748544,
-    "ast_hash": "41f386bc6636f4fcc9ab6f8f2b14ef3f",
+    "mtime": 1785387919.748666,
+    "ast_hash": "cadd478571332ecbafbac217f2c45eff",
     "semantic_hash": ""
   },
   ".github/workflows/e2e-tests.yml": {
@@ -1410,8 +1410,8 @@
     "semantic_hash": "703619a0367deabab63f0ce54f63adee"
   },
   ".github/workflows/pages.yml": {
-    "mtime": 1785314929.9545987,
-    "ast_hash": "6934eb09533bb15ed6e0997f9ba8858a",
+    "mtime": 1785387910.2637897,
+    "ast_hash": "5472c522d0c41c7225867dad75ec2725",
     "semantic_hash": ""
   },
   "AUDIT_REPORT.md": {
@@ -1975,8 +1975,8 @@
     "semantic_hash": ""
   },
   "src/__tests__/CounterWidget.test.jsx": {
-    "mtime": 1785002708.2044902,
-    "ast_hash": "8f01743c89aff15cfb44852736b4ada8",
+    "mtime": 1785388309.9384255,
+    "ast_hash": "8e6659532d4ba808c387922b83c7db0a",
     "semantic_hash": ""
   },
   "src/components/Counter/CounterWidget.jsx": {
@@ -2175,13 +2175,13 @@
     "semantic_hash": ""
   },
   "src/__tests__/machineHealth.test.js": {
-    "mtime": 1785334480.8891268,
+    "mtime": 1785389988.0118806,
     "ast_hash": "4418e9d621f1f50c01ae97a6b43ddc28",
     "semantic_hash": ""
   },
   "src/components/machines/MachineCard.jsx": {
-    "mtime": 1785350612.8658867,
-    "ast_hash": "02768bc910261bd8b6226924d60e60c9",
+    "mtime": 1785389917.841913,
+    "ast_hash": "4ee6a6fe5fb2edf8a280c1ec0b5f78e0",
     "semantic_hash": ""
   },
   "src/components/machines/MachineDetailDrawer.jsx": {
@@ -2205,7 +2205,7 @@
     "semantic_hash": ""
   },
   "src/utils/machineHealth.js": {
-    "mtime": 1785334480.6269262,
+    "mtime": 1785389984.650004,
     "ast_hash": "13b7354118ca1905618274d8a478456e",
     "semantic_hash": ""
   },
@@ -2640,8 +2640,8 @@
     "semantic_hash": ""
   },
   "src/utils/shiftAssignments.js": {
-    "mtime": 1785234550.4267917,
-    "ast_hash": "53fe8d375e4cf5da14ccef563404449f",
+    "mtime": 1785388294.182305,
+    "ast_hash": "d5df7b12c19ab1ed7815c22c705cf2ff",
     "semantic_hash": ""
   },
   "supabase/migrations/20260728000100_shift_rosters.sql": {
