@@ -25,12 +25,13 @@ export default function Login() {
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  // Quick demo logins use the app's existing demo-data mode. They must not
-  // depend on remote accounts being provisioned.
+  // Quick demo logins for 5 Real Factory Agent Personas (Apex Precision Auto Components Ltd)
   const demoAccounts = [
-    { role: 'Plant Owner', email: 'owner@turbofix.co.in', name: 'Demo Owner', company: 'ACME3', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'Maintenance Lead', email: 'lead@turbofix.co.in', name: 'Demo Lead', company: 'ACME3', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'Technician', email: 'tech@turbofix.co.in', name: 'Demo Tech', company: 'ACME3', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
+    { role: 'Plant Owner', email: 'owner@apexauto.in', name: 'Rajesh Sharma (MD)', company: 'apexauto', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
+    { role: 'Operations Supervisor', email: 'supervisor@apexauto.in', name: 'Vikram Singh', company: 'apexauto', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
+    { role: 'Reliability Engineer', email: 'engineer@apexauto.in', name: 'Amit Verma', company: 'apexauto', icon: ShieldCheck, color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20' },
+    { role: 'Lead Technician', email: 'technician@apexauto.in', name: 'Suresh Kumar', company: 'apexauto', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
+    { role: 'Safety Inspector', email: 'safety@apexauto.in', name: 'Priya Nair', company: 'apexauto', icon: CheckCircle, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20' },
   ];
 
   const performPostLoginRedirect = () => {
@@ -48,13 +49,20 @@ export default function Login() {
   const handleDemoLogin = (demo) => {
     setLoading(true);
     setError(null);
-    const role = demo.role.includes('Owner') ? 'owner' : demo.role.includes('Lead') ? 'supervisor' : 'maintenance_technician';
+    let role = 'owner';
+    if (demo.role.includes('Supervisor')) role = 'supervisor';
+    else if (demo.role.includes('Engineer')) role = 'maintenance_engineer';
+    else if (demo.role.includes('Technician')) role = 'technician';
+    else if (demo.role.includes('Safety') || demo.role.includes('Inspector')) role = 'quality_inspector';
+    else if (demo.role.includes('Owner')) role = 'owner';
+
     localStorage.setItem('tf_token', `demo:${role}`);
     localStorage.setItem('tf_user', JSON.stringify({
       user_id: `demo-${role}`,
       name: demo.name,
       role,
       company_code: demo.company,
+      company_name: 'Apex Precision Auto Components Ltd',
       inventory_mode: 'demo',
       email: demo.email,
     }));

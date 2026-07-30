@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785437896.3824935,
-    "ast_hash": "e8a1bc92e0995df28e190658c282b71b",
+    "mtime": 1785438350.972558,
+    "ast_hash": "376a6cb1bb01bbfb6089c59d80eca922",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -605,8 +605,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785323665.0460012,
-    "ast_hash": "f150dea58e3c59820cca53ea3bc38cdc",
+    "mtime": 1785447784.5632343,
+    "ast_hash": "5f56717a2f1f083b3a7e91e4f6be62f6",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -740,8 +740,8 @@
     "semantic_hash": "cef436808aae8fd6a9b1520d23e6e875"
   },
   "src/lib/api.js": {
-    "mtime": 1785186271.970937,
-    "ast_hash": "803cb12e27473f34aea959dcb4dead76",
+    "mtime": 1785444132.3892443,
+    "ast_hash": "6bf7f5dfb04278189e29d947d50a547a",
     "semantic_hash": ""
   },
   "src/lib/dashboardLayout.js": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785422915.86812,
-    "ast_hash": "fe1f606d35f987b55b24125a33861e4d",
+    "mtime": 1785444817.6241627,
+    "ast_hash": "b95c6b778c632b57a8f5881a3c3b764b",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "src/pages/Support.jsx": {
-    "mtime": 1785186281.5952804,
-    "ast_hash": "b40ac9f5708a04495051f184d3767c9d",
+    "mtime": 1785444127.738893,
+    "ast_hash": "554290db04363b4db48844ecb596d446",
     "semantic_hash": ""
   },
   "src/pages/Team.jsx": {
@@ -860,13 +860,13 @@
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
-    "mtime": 1785421601.559023,
-    "ast_hash": "ebcde8566d27a9c423c3c91a4ac94be9",
+    "mtime": 1785443053.2182662,
+    "ast_hash": "c2763da86c86c1a41fa2ad3236671b55",
     "semantic_hash": ""
   },
   "src/sw.js": {
-    "mtime": 1785187835.5410616,
-    "ast_hash": "45e92d7b84be3416099f7364800de17a",
+    "mtime": 1785439330.0503402,
+    "ast_hash": "9117e4a5e73d52a1a866b221af689a37",
     "semantic_hash": ""
   },
   "src/translations.js": {
@@ -1335,8 +1335,8 @@
     "semantic_hash": "94f2b6814f55abb5c407013ebd815639"
   },
   "vite.config.js": {
-    "mtime": 1785437715.9310617,
-    "ast_hash": "f444c7a647c7a0d923d166f36613492e",
+    "mtime": 1785439339.5698,
+    "ast_hash": "be3d25444c6e3544e2f347b847404ff1",
     "semantic_hash": ""
   },
   "vitest.config.js": {
@@ -2915,13 +2915,13 @@
     "semantic_hash": ""
   },
   "supabase/functions/admin_portal/index.ts": {
-    "mtime": 1785437359.2641218,
-    "ast_hash": "11540a599196ee280b3d17252c9d5dea",
+    "mtime": 1785444470.2624266,
+    "ast_hash": "8148046cc3536475a4874c8bef6f13bf",
     "semantic_hash": ""
   },
   "src/pages/AdminPortal.jsx": {
-    "mtime": 1785437463.0596504,
-    "ast_hash": "21221bb1236ecaf81f1eba39b7de7886",
+    "mtime": 1785444493.7555387,
+    "ast_hash": "111a014e39ae5f27561ab88950b9bed3",
     "semantic_hash": ""
   },
   "tests/admin-portal.spec.js": {
@@ -2940,18 +2940,33 @@
     "semantic_hash": ""
   },
   "admin-portal-prod-playwright.png": {
-    "mtime": 1785437747.6360245,
+    "mtime": 1785439660.8165314,
     "ast_hash": "f8a12d1b7428a7e7e6bde5efc10a6b57",
     "semantic_hash": ""
   },
-  "admin.html": {
-    "mtime": 1785437705.1007476,
-    "ast_hash": "65381c242f222ed1b789e152f7a31624",
+  "templates/confirmation.html": {
+    "mtime": 1785442462.81549,
+    "ast_hash": "05fd1a0f0f0fcf16e4aefd7e05817315",
     "semantic_hash": ""
   },
-  "admin_portal.html": {
-    "mtime": 1785437708.3267608,
-    "ast_hash": "65381c242f222ed1b789e152f7a31624",
+  "templates/email_change.html": {
+    "mtime": 1785442462.815686,
+    "ast_hash": "05fd1a0f0f0fcf16e4aefd7e05817315",
+    "semantic_hash": ""
+  },
+  "templates/invite.html": {
+    "mtime": 1785442462.815157,
+    "ast_hash": "05fd1a0f0f0fcf16e4aefd7e05817315",
+    "semantic_hash": ""
+  },
+  "templates/magic_link.html": {
+    "mtime": 1785442462.8157942,
+    "ast_hash": "05fd1a0f0f0fcf16e4aefd7e05817315",
+    "semantic_hash": ""
+  },
+  "templates/recovery.html": {
+    "mtime": 1785442462.8148842,
+    "ast_hash": "05fd1a0f0f0fcf16e4aefd7e05817315",
     "semantic_hash": ""
   }
 }
