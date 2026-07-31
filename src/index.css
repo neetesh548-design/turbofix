@@ -2549,6 +2549,60 @@ textarea:focus-visible {
   letter-spacing: -0.5px;
 }
 
+/* The dark-theme default (see @layer base, src/index.css:~440) paints glyphs
+   via a light background-clip: text gradient, not the `color` property, so
+   the `color` override above is a no-op for actual rendering — it only
+   fixes headings whose background never goes light in the first place (the
+   public marketing site's sections keep a hardcoded dark background
+   regardless of this toggle; see .marketing-home). Where a surface DOES
+   flip to a light/white background in light theme (stitch-glass-tile and
+   the other card types below), the gradient must flip too, or the heading
+   renders as a near-white gradient on a white card — i.e. invisible. */
+[data-theme="light"] .stitch-glass-tile h1,
+[data-theme="light"] .stitch-glass-tile h2,
+[data-theme="light"] .stitch-glass-tile h3,
+[data-theme="light"] .stitch-glass-tile h4,
+[data-theme="light"] .marketing-pricing-card h1,
+[data-theme="light"] .marketing-pricing-card h2,
+[data-theme="light"] .marketing-pricing-card h3,
+[data-theme="light"] .marketing-pricing-card h4,
+[data-theme="light"] .marketing-calculator-box h1,
+[data-theme="light"] .marketing-calculator-box h2,
+[data-theme="light"] .marketing-calculator-box h3,
+[data-theme="light"] .marketing-calculator-box h4,
+[data-theme="light"] .rd-chart-card h1,
+[data-theme="light"] .rd-chart-card h2,
+[data-theme="light"] .rd-chart-card h3,
+[data-theme="light"] .rd-chart-card h4 {
+  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Same problem, different properties: body copy (text-slate-300), CTA links
+   (.marketing-text-link's own #86efac), and icon glyphs (text-emerald-400)
+   inside these same light-flipped cards were all still tuned for a dark
+   card background — each is a direct declaration on its own element, which
+   always beats the tile's inherited `color`, light theme or not. */
+[data-theme="light"] .stitch-glass-tile p,
+[data-theme="light"] .marketing-pricing-card p,
+[data-theme="light"] .marketing-calculator-box p,
+[data-theme="light"] .rd-chart-card p {
+  color: #334155;
+}
+
+[data-theme="light"] .stitch-glass-tile .marketing-text-link,
+[data-theme="light"] .marketing-pricing-card .marketing-text-link,
+[data-theme="light"] .marketing-calculator-box .marketing-text-link,
+[data-theme="light"] .rd-chart-card .marketing-text-link,
+[data-theme="light"] .stitch-glass-tile .text-emerald-400,
+[data-theme="light"] .marketing-pricing-card .text-emerald-400,
+[data-theme="light"] .marketing-calculator-box .text-emerald-400,
+[data-theme="light"] .rd-chart-card .text-emerald-400 {
+  color: #047857;
+}
+
 [data-theme="light"] .modal-overlay {
   background: rgba(15, 23, 42, 0.4);
 }

@@ -790,8 +790,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785488469.8047562,
-    "ast_hash": "6be416c98b9741f7cd4e95735e21f70e",
+    "mtime": 1785499841.399286,
+    "ast_hash": "9f084bd69c8d9b2cea2fcd54fdab1eb2",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -1585,9 +1585,9 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1785351382.8549044,
-    "ast_hash": "616011c36859290c1a6d16cc28858916",
-    "semantic_hash": "616011c36859290c1a6d16cc28858916"
+    "mtime": 1785493700.4488454,
+    "ast_hash": "0cd4a2bd3354f29dbc370094d1363995",
+    "semantic_hash": ""
   },
   "public/llms.txt": {
     "mtime": 1785192836.0437093,
@@ -2690,13 +2690,13 @@
     "semantic_hash": "89f0dd0c0d308c99c647696433168076"
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785484449.0509765,
-    "ast_hash": "dbe1f5f51ee13b46e377ead6217b2c63",
+    "mtime": 1785495288.2763748,
+    "ast_hash": "718d881ce55244a792291382c95a8b39",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
-    "mtime": 1785488477.3263931,
-    "ast_hash": "37c532bad8c82e74e575326332e391c9",
+    "mtime": 1785499841.399887,
+    "ast_hash": "3d48136ba9b1e689b48a6a0439917ca7",
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
@@ -2710,8 +2710,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/WhyTurboFix.jsx": {
-    "mtime": 1785488486.288591,
-    "ast_hash": "7ee012b100865c0b32563f877f421314",
+    "mtime": 1785499841.400441,
+    "ast_hash": "7c6d8d25b59467fe4acc365be79adcb8",
     "semantic_hash": ""
   },
   "src/pages/marketing/Workflow.jsx": {
@@ -3087,6 +3087,31 @@
   ".stitch-project.json": {
     "mtime": 1785483327.4613855,
     "ast_hash": "d647e22fbf8873e9b8c2388b5671464e",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/DeviceViewportSwitcher.jsx": {
+    "mtime": 1785497793.2455528,
+    "ast_hash": "3da9dc5ca748e46d12cfb1b48934512e",
+    "semantic_hash": ""
+  },
+  "tests/platform-audit.spec.js": {
+    "mtime": 1785498452.244605,
+    "ast_hash": "ae98bc52c0b4bfbeb438699733eb9ad6",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/FeatureCard.jsx": {
+    "mtime": 1785499019.7776058,
+    "ast_hash": "8ebc6b11dcfd59e97292fbb3a1fba390",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/feature-card-consistency.spec.ts": {
+    "mtime": 1785499096.8246305,
+    "ast_hash": "5627b8e77a34b58d23af573365cdfac6",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/feature-card-consistency.spec.ts-snapshots/home-feature-card-grid-chromium-darwin.png": {
+    "mtime": 1785499697.1921103,
+    "ast_hash": "83661bf1418d1361549ed1b60ed131b8",
     "semantic_hash": ""
   }
 }

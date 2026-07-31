@@ -7,6 +7,7 @@ import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
 import DeviceViewportSwitcher from '../../components/marketing/DeviceViewportSwitcher';
+import FeatureCard from '../../components/marketing/FeatureCard';
 import { contentByLanguage, platformFeatures, roleCards } from '../../data/marketingContent';
 
 export default function Platform() {
@@ -105,18 +106,8 @@ export default function Platform() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {platformFeatures.map(({ icon: Icon, title, body }, index) => (
-                <article
-                  className="stitch-glass-tile relative p-8 rounded-2xl transition-all hover:-translate-y-1"
-                  key={title}
-                >
-                  <span className="absolute top-6 right-8 text-xs font-bold text-slate-500">0{index + 1}</span>
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
-                    <Icon size={22} />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">{body}</p>
-                </article>
+              {platformFeatures.map(({ icon, title, body }, index) => (
+                <FeatureCard key={title} icon={icon} title={title} body={body} badge={`0${index + 1}`} />
               ))}
             </div>
           </div>

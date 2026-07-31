@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BrainCircuit, ClipboardCheck, Gauge, Layers3, Route as RouteIcon, Wrench } from 'lucide-react';
+import { BrainCircuit, ClipboardCheck, Gauge, Layers3, Route as RouteIcon, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
+import FeatureCard from '../../components/marketing/FeatureCard';
 import { contentByLanguage } from '../../data/marketingContent';
 
 export default function WhyTurboFix() {
@@ -80,30 +81,20 @@ export default function WhyTurboFix() {
               <p>This page is about why plants switch. The mechanics live on their own pages.</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Link
-                className="stitch-glass-tile p-8 rounded-2xl transition-all hover:-translate-y-1"
+              <FeatureCard
+                icon={Wrench}
+                title="Explore the full platform"
+                body="Every tool from breakdown dispatch to executive control room, in one connected system."
                 to="/platform.html"
-                style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
-                  <Wrench size={22} />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Explore the full platform</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">Every tool from breakdown dispatch to executive control room, in one connected system.</p>
-                <span className="marketing-text-link">See the platform <ArrowRight size={14} /></span>
-              </Link>
-              <Link
-                className="stitch-glass-tile p-8 rounded-2xl transition-all hover:-translate-y-1"
+                ctaLabel="See the platform"
+              />
+              <FeatureCard
+                icon={RouteIcon}
+                title="See how it works"
+                body="The verified loop from operator QR scan to Maintenance Head sign-off, step by step."
                 to="/workflow.html"
-                style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
-                  <RouteIcon size={22} />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">See how it works</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">The verified loop from operator QR scan to Maintenance Head sign-off, step by step.</p>
-                <span className="marketing-text-link">See the workflow <ArrowRight size={14} /></span>
-              </Link>
+                ctaLabel="See the workflow"
+              />
             </div>
           </div>
         </section>

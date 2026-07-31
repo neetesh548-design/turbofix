@@ -790,8 +790,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785488469.8047562,
-    "ast_hash": "6be416c98b9741f7cd4e95735e21f70e",
+    "mtime": 1785499841.399286,
+    "ast_hash": "9f084bd69c8d9b2cea2fcd54fdab1eb2",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -2695,8 +2695,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
-    "mtime": 1785488477.3263931,
-    "ast_hash": "37c532bad8c82e74e575326332e391c9",
+    "mtime": 1785499841.399887,
+    "ast_hash": "3d48136ba9b1e689b48a6a0439917ca7",
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
@@ -2710,8 +2710,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/WhyTurboFix.jsx": {
-    "mtime": 1785488486.288591,
-    "ast_hash": "7ee012b100865c0b32563f877f421314",
+    "mtime": 1785499841.400441,
+    "ast_hash": "7c6d8d25b59467fe4acc365be79adcb8",
     "semantic_hash": ""
   },
   "src/pages/marketing/Workflow.jsx": {
@@ -3087,6 +3087,31 @@
   ".stitch-project.json": {
     "mtime": 1785483327.4613855,
     "ast_hash": "d647e22fbf8873e9b8c2388b5671464e",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/DeviceViewportSwitcher.jsx": {
+    "mtime": 1785497793.2455528,
+    "ast_hash": "3da9dc5ca748e46d12cfb1b48934512e",
+    "semantic_hash": ""
+  },
+  "tests/platform-audit.spec.js": {
+    "mtime": 1785498452.244605,
+    "ast_hash": "ae98bc52c0b4bfbeb438699733eb9ad6",
+    "semantic_hash": ""
+  },
+  "src/components/marketing/FeatureCard.jsx": {
+    "mtime": 1785500072.4478133,
+    "ast_hash": "9284f55c137e064c265cf8cb5fb83305",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/feature-card-consistency.spec.ts": {
+    "mtime": 1785500186.0169764,
+    "ast_hash": "880f87f09cdb8bb52a4ec6c00cecbf77",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/feature-card-consistency.spec.ts-snapshots/home-feature-card-grid-chromium-darwin.png": {
+    "mtime": 1785500211.018038,
+    "ast_hash": "375114b700e027e222a4fddf34b07949",
     "semantic_hash": ""
   }
 }
