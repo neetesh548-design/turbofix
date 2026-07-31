@@ -106,8 +106,7 @@ class _SupabaseClient:
                     "postgrest.select_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-                # TEMP diagnostic (round 3). TODO(remove-after-diagnosis).
-                raise RuntimeError(f"PostgREST select {table!r} failed: {r.status_code} {r.text}")
+            r.raise_for_status()
             return r.json()
 
     def select_one(self, table: str, params: dict) -> dict | None:
@@ -123,8 +122,7 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-                # TEMP diagnostic (round 3). TODO(remove-after-diagnosis).
-                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
+            r.raise_for_status()
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -227,13 +225,17 @@ def _factory_id_for_code(code: str) -> str | None:
             return "f1000000-0000-0000-0000-000000000099"
         return None
 
-    # The live "factories" table has no company_id column (it was recreated,
-    # without one, after an earlier migration renamed the original factories
-    # table to "organizations" — see supabase/migrations/20260721120000_
-    # enterprise_schema_phase1.sql and 20260722173000_tfdemo_annual_
-    # breakdown_seed.sql), so a factory can only be found via an existing
-    # machine's factory_id, or by matching the company's name — never by a
-    # direct company_id filter.
+    # machines.factory_id's real FK target is "organizations", NOT
+    # "factories" — an earlier migration renamed the original factories
+    # table to "organizations" (supabase/migrations/20260721120000_
+    # enterprise_schema_phase1.sql), and a later one then recreated a
+    # table literally named "factories" from scratch, disconnected from
+    # the FK and from any company (20260722173000_tfdemo_annual_
+    # breakdown_seed.sql) — it has no company_id column and isn't what
+    # machines actually reference. A factory can only be found via an
+    # existing machine's factory_id, or by matching the company's name in
+    # "organizations" — never by a direct company_id filter (neither
+    # table has one linking back to companies).
 
     # 1. Machines link to both company_id and factory_id; find a machine to get factory_id
     machine = _client.select_one("machines", {
@@ -243,13 +245,27 @@ def _factory_id_for_code(code: str) -> str | None:
     if machine and machine.get("factory_id"):
         return machine["factory_id"]
 
-    # 2. Fallback: look up factories by name match (add_company() creates a
-    # factories row with the same name for every new company)
+    # 2. Fallback: look up organizations by name match (add_company() creates
+    # an organizations row with the same name for every new company)
     company = _client.select_one("companies", {"id": f"eq.{company_id}"})
     if company:
-        factory = _client.select_one("factories", {"name": f"eq.{company['name']}"})
+        factory = _client.select_one("organizations", {"name": f"eq.{company['name']}"})
         if factory and factory.get("id"):
             return factory["id"]
+
+        # 3. Self-heal: companies created before this linkage existed (or
+        # where add_company()'s organizations insert failed) have no
+        # matching row anywhere above — create one now rather than leaving
+        # every future machine/ticket/part insert for this company broken.
+        try:
+            created = _client.insert("organizations", {"name": company["name"]})
+            if created and created.get("id"):
+                return created["id"]
+        except Exception as exc:
+            log.error(
+                "supabase._factory_id_for_code self-heal insert failed",
+                extra={"company_code": code, "error": str(exc)},
+            )
 
     if str(code or "").strip().upper() == "TFDEMO":
         return "f1000000-0000-0000-0000-000000000099"
@@ -261,8 +277,8 @@ def _company_code_for_factory_id(factory_id: str) -> str:
     if not factory_id:
         return ""
 
-    # 1. Query factories table directly for company_id
-    factory = _client.select_one("factories", {"id": f"eq.{factory_id}"})
+    # 1. Query organizations table directly for company_id
+    factory = _client.select_one("organizations", {"id": f"eq.{factory_id}"})
     if factory and factory.get("company_id"):
         code = _company_code_for_id(factory["company_id"])
         if code:
@@ -301,8 +317,9 @@ def _build_factory_to_code_map() -> dict:
         id_to_code = {c["id"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("id")}
         name_to_code = {c["name"]: (c.get("domain") or c.get("company_code") or "") for c in companies if c.get("name")}
 
-        # 1. Bulk mapping from factories table directly
-        factories = _client.select("factories")
+        # 1. Bulk mapping from organizations table directly (the real FK
+        # target for machines.factory_id — see _factory_id_for_code)
+        factories = _client.select("organizations")
         for f in factories:
             fid = f.get("id")
             fcid = f.get("company_id")
@@ -587,15 +604,17 @@ class SupabaseUserRepository(UserRepository):
             data.pop("admin_contact_phone", None)
             _client.insert("companies", data)
 
-        # machines.factory_id has a real FK to factories(id), and the
-        # "factories" table has no company_id column to link back to this
-        # company (see _factory_id_for_code) — so every company needs a
-        # same-named factories row for that name-match lookup to find,
-        # otherwise the very first machine a new company adds fails the FK.
+        # machines.factory_id has a real FK to organizations(id) — not to
+        # "factories", which is a same-named but unrelated table left over
+        # from a later migration (see _factory_id_for_code) — and neither
+        # table has a company_id column linking back to this company, so
+        # every company needs a same-named organizations row for the
+        # name-match lookup to find, otherwise the first machine a new
+        # company adds fails the FK.
         try:
-            _client.insert("factories", {"name": company_name})
+            _client.insert("organizations", {"name": company_name})
         except Exception as exc:
-            log.error("supabase.add_company factories row failed", extra={"error": str(exc)})
+            log.error("supabase.add_company organizations row failed", extra={"error": str(exc)})
 
     def delete_company(self, company_code: str) -> bool:
         self._COMPANY_QUOTA_OVERRIDES.pop(company_code, None)
@@ -664,25 +683,22 @@ class SupabaseMachineRepository(MachineRepository):
         return self._row_to_dict(row)
 
     def create(self, row: dict) -> None:
-        # TEMP diagnostic (round 3): surface any failure via 502.
-        # TODO(remove-after-diagnosis).
-        try:
-            company_id = _company_id_for_code(row.get("company_code", ""))
-            factory_id = _factory_id_for_code(row.get("company_code", ""))
-            new_id = str(uuid.uuid4())
-            _client.insert("machines", {
-                "id": new_id,
-                "company_id": company_id,
-                "factory_id": factory_id,
-                "name": row.get("machine_name", ""),
-                "location": row.get("location", ""),
-                "assigned_technician_phone": row.get("assigned_technician_phone", ""),
-                "informed_phone_1": row.get("informed_phone_1", ""),
-                "status": "active",
-            })
-        except Exception as exc:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=502, detail=f"machine create diag3: company_id={company_id!r} factory_id={factory_id!r} new_id={new_id!r} :: {type(exc).__name__}: {exc}") from exc
+        company_id = _company_id_for_code(row.get("company_code", ""))
+        factory_id = _factory_id_for_code(row.get("company_code", ""))
+        # machines.id is a native uuid primary key, but callers pass the
+        # legacy human-readable "TF-{code}-Mnnn" id (used by the file/sheets
+        # backends) as row["machine_id"] — that string isn't valid uuid
+        # syntax, so it can't be reused as the Supabase row's id.
+        _client.insert("machines", {
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "factory_id": factory_id,
+            "name": row.get("machine_name", ""),
+            "location": row.get("location", ""),
+            "assigned_technician_phone": row.get("assigned_technician_phone", ""),
+            "informed_phone_1": row.get("informed_phone_1", ""),
+            "status": "active",
+        })
         self.invalidate_cache()
 
     def invalidate_cache(self) -> None:
