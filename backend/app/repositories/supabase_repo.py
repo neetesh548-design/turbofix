@@ -385,19 +385,24 @@ class SupabaseUserRepository(UserRepository):
         # Without a password (offline/no-portal-access staff), keep the
         # existing behaviour: a directory-only row with no auth identity.
         if email and password:
+            # TEMP diagnostic: surface ANY failure in this block (not just a
+            # clean GoTrueError) so we can see WHY registration is failing in
+            # prod without log access — no exception-detail leak path exists
+            # in this app otherwise.
+            # TODO(remove-after-diagnosis): revert to a generic message.
             try:
                 auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+                if auth_user is None:
+                    # GoTrue already has this email (e.g. a retried registration
+                    # after a previous partial failure) — reuse that identity
+                    # instead of silently creating a passwordless orphan row.
+                    auth_user = _client.auth_get_user_by_email(email)
             except GoTrueError as exc:
-                # TEMP diagnostic: surface upstream GoTrue error text so we can
-                # see WHY registration is failing in prod without log access.
-                # TODO(remove-after-diagnosis): revert to a generic message.
                 from fastapi import HTTPException
                 raise HTTPException(status_code=502, detail=f"GoTrue diag: {exc.status_code} {exc.body}") from exc
-            if auth_user is None:
-                # GoTrue already has this email (e.g. a retried registration
-                # after a previous partial failure) — reuse that identity
-                # instead of silently creating a passwordless orphan row.
-                auth_user = _client.auth_get_user_by_email(email)
+            except Exception as exc:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=502, detail=f"GoTrue diag: {type(exc).__name__}: {exc}") from exc
             if auth_user and auth_user.get("id"):
                 user_id = auth_user["id"]
             else:
