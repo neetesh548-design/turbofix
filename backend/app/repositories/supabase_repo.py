@@ -106,7 +106,8 @@ class _SupabaseClient:
                     "postgrest.select_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-            r.raise_for_status()
+                # TEMP diagnostic (round 3). TODO(remove-after-diagnosis).
+                raise RuntimeError(f"PostgREST select {table!r} failed: {r.status_code} {r.text}")
             return r.json()
 
     def select_one(self, table: str, params: dict) -> dict | None:
@@ -122,7 +123,8 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-            r.raise_for_status()
+                # TEMP diagnostic (round 3). TODO(remove-after-diagnosis).
+                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -662,22 +664,25 @@ class SupabaseMachineRepository(MachineRepository):
         return self._row_to_dict(row)
 
     def create(self, row: dict) -> None:
-        company_id = _company_id_for_code(row.get("company_code", ""))
-        factory_id = _factory_id_for_code(row.get("company_code", ""))
-        # machines.id is a native uuid primary key, but callers pass the
-        # legacy human-readable "TF-{code}-Mnnn" id (used by the file/sheets
-        # backends) as row["machine_id"] — that string isn't valid uuid
-        # syntax, so it can't be reused as the Supabase row's id.
-        _client.insert("machines", {
-            "id": str(uuid.uuid4()),
-            "company_id": company_id,
-            "factory_id": factory_id,
-            "name": row.get("machine_name", ""),
-            "location": row.get("location", ""),
-            "assigned_technician_phone": row.get("assigned_technician_phone", ""),
-            "informed_phone_1": row.get("informed_phone_1", ""),
-            "status": "active",
-        })
+        # TEMP diagnostic (round 3): surface any failure via 502.
+        # TODO(remove-after-diagnosis).
+        try:
+            company_id = _company_id_for_code(row.get("company_code", ""))
+            factory_id = _factory_id_for_code(row.get("company_code", ""))
+            new_id = str(uuid.uuid4())
+            _client.insert("machines", {
+                "id": new_id,
+                "company_id": company_id,
+                "factory_id": factory_id,
+                "name": row.get("machine_name", ""),
+                "location": row.get("location", ""),
+                "assigned_technician_phone": row.get("assigned_technician_phone", ""),
+                "informed_phone_1": row.get("informed_phone_1", ""),
+                "status": "active",
+            })
+        except Exception as exc:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=502, detail=f"machine create diag3: company_id={company_id!r} factory_id={factory_id!r} new_id={new_id!r} :: {type(exc).__name__}: {exc}") from exc
         self.invalidate_cache()
 
     def invalidate_cache(self) -> None:
