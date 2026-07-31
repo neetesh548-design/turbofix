@@ -505,9 +505,19 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 }
 
 .container {
-  max-width: var(--container);
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .container {
+    padding: 0 24px;
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    padding: 0 32px;
+  }
 }
 
 /* Glassmorphism Unified Helper */
@@ -527,7 +537,22 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 }
 
 /* AI maintenance decision center */
-.decision-page, .assistant-page, .planner-page { max-width: 1240px; margin: 0 auto; padding: 42px 34px 80px; }
+.decision-page, .assistant-page, .planner-page {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+@media (min-width: 768px) {
+  .decision-page, .assistant-page, .planner-page {
+    padding: 32px 24px 80px;
+  }
+}
+@media (min-width: 1280px) {
+  .decision-page, .assistant-page, .planner-page {
+    padding: 42px 32px 80px;
+  }
+}
+
 .support-page,
 .records-page,
 .technician-page,
@@ -543,7 +568,7 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 .technician-page,
 .inventory-page,
 .settings-page {
-  max-width: 1460px;
+  max-width: 1600px;
 }
 .decision-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; }
 .decision-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 8px 0 10px; font-weight: 800; }

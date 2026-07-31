@@ -2490,9 +2490,9 @@
     "semantic_hash": "c2394ce0bd385b497f9619281c55ecc7"
   },
   "src/utils/auth.js": {
-    "mtime": 1785449425.7629564,
-    "ast_hash": "39e5e42fbb24a864e8383c55e40b0fb4",
-    "semantic_hash": "39e5e42fbb24a864e8383c55e40b0fb4"
+    "mtime": 1785493545.0511456,
+    "ast_hash": "ebe38971f6f1fb4bc87d81da3ef57089",
+    "semantic_hash": ""
   },
   "SUPABASE_GUIDE.md": {
     "mtime": 1785150222.4517543,
