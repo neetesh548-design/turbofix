@@ -1,0 +1,319 @@
+{
+  "timestamp": "2026-07-31T15:10:25.813Z",
+  "mobileAudits": [
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Owner Dashboard",
+      "screenshot": "dashboard-owner-dashboard-iphone-15-pro.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Technician Dashboard",
+      "screenshot": "dashboard-technician-dashboard-iphone-15-pro.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Supervisor Dashboard",
+      "screenshot": "dashboard-supervisor-dashboard-iphone-15-pro.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Engineer Dashboard",
+      "screenshot": "dashboard-engineer-dashboard-iphone-15-pro.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Owner Dashboard",
+      "screenshot": "dashboard-owner-dashboard-iphone-se.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Technician Dashboard",
+      "screenshot": "dashboard-technician-dashboard-iphone-se.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Supervisor Dashboard",
+      "screenshot": "dashboard-supervisor-dashboard-iphone-se.png",
+      "defectCount": 2
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Engineer Dashboard",
+      "screenshot": "dashboard-engineer-dashboard-iphone-se.png",
+      "defectCount": 2
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Owner Dashboard",
+      "screenshot": "dashboard-owner-dashboard-pixel-7.png",
+      "defectCount": 2
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Technician Dashboard",
+      "screenshot": "dashboard-technician-dashboard-pixel-7.png",
+      "defectCount": 2
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Supervisor Dashboard",
+      "screenshot": "dashboard-supervisor-dashboard-pixel-7.png",
+      "defectCount": 2
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Engineer Dashboard",
+      "screenshot": "dashboard-engineer-dashboard-pixel-7.png",
+      "defectCount": 2
+    }
+  ],
+  "defects": [
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Owner Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Technician Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Supervisor Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone 15 Pro",
+      "role": "Engineer Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Owner Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Technician Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Supervisor Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "iPhone SE",
+      "role": "Engineer Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Owner Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Technician Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Supervisor Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "device": "Pixel 7",
+      "role": "Engineer Dashboard",
+      "defects": [
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 34,
+          "height": 44
+        },
+        {
+          "type": "Small Touch Target",
+          "element": "button",
+          "text": "",
+          "width": 35,
+          "height": 44
+        }
+      ]
+    }
+  ]
+}
