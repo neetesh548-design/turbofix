@@ -205,6 +205,16 @@ if not _running_tests:
         raise RuntimeError(
             "WHATSAPP_APP_SECRET is required in production when WhatsApp delivery is enabled."
         )
+    if is_prod and WACRM_API_KEY and not WACRM_WEBHOOK_SECRET:
+        raise RuntimeError(
+            "WACRM_WEBHOOK_SECRET is required in production when WaCRM delivery is enabled."
+        )
+    if is_prod and ADMIN_JWT_SECRET_KEY == JWT_SECRET_KEY:
+        _log.getLogger("turbofix.config").warning(
+            "ADMIN_JWT_SECRET_KEY is not set, so admin tokens are signed with the same "
+            "secret as regular user tokens — set a distinct ADMIN_JWT_SECRET_KEY to keep "
+            "a leaked JWT_SECRET_KEY from also compromising the admin panel."
+        )
     if is_prod and RESET_LINK_BASE.startswith(("http://localhost", "http://127.0.0.1")):
         raise RuntimeError("RESET_LINK_BASE must point to the deployed frontend in production.")
     if is_prod and EMAIL_PROVIDER == "console":

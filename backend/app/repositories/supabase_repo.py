@@ -1427,12 +1427,18 @@ class SupabasePartsRepository(PartsRepository):
         row = _client.select_one(self._table(kind), {"id": f"eq.{item_id}"})
         if not row:
             return None
-        items = self.list_items(kind, "", item_id)  # single lookup
-        # Re-do as direct
+        # company_code must be the item's REAL owning company — callers
+        # (see vault_router.py's update/delete spare-part & consumable
+        # endpoints) gate access with user.assert_same_company(item[
+        # "company_code"]), which only rejects cross-tenant access if this
+        # is populated correctly. Leaving it "" made that check reject
+        # everyone unconditionally (a functional break, not a leak, since
+        # it fails closed) rather than actually enforcing the boundary.
+        company_code = _company_code_for_factory_id(row.get("factory_id", ""))
         if kind == "consumables":
             return {
                 "consumable_id": row.get("id", ""),
-                "company_code": "",
+                "company_code": company_code,
                 "machine_id": row.get("machine_id", ""),
                 "name": row.get("name", ""),
                 "quantity_on_hand": row.get("stock_qty", 0),
@@ -1442,7 +1448,7 @@ class SupabasePartsRepository(PartsRepository):
             }
         return {
             "part_id": row.get("id", ""),
-            "company_code": "",
+            "company_code": company_code,
             "machine_id": row.get("machine_id", ""),
             "part_name": row.get("part_name", ""),
             "part_number": row.get("part_number", ""),

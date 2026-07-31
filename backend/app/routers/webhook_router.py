@@ -28,6 +28,12 @@ router = APIRouter()
 def _verify_webhook_signature(body: bytes, signature_header: str) -> bool:
     """Verify the X-Hub-Signature-256 HMAC from Meta."""
     if not config.WHATSAPP_APP_SECRET:
+        if config.ENVIRONMENT == "production":
+            # Failing open here would let anyone POST forged WhatsApp
+            # messages (close tickets, submit fake breakdowns, etc.) —
+            # an unconfigured secret in production must reject, not skip.
+            log.error("webhook.signature_secret_missing_in_production")
+            return False
         log.warning("webhook.signature_skip", reason="WHATSAPP_APP_SECRET not set")
         return True
     if not signature_header:
@@ -166,6 +172,11 @@ async def receive_webhook(
 def _verify_wacrm_signature(body: bytes, signature_header: str) -> bool:
     """Verify X-Wacrm-Signature: t=unix,v1=hmac-sha256."""
     if not config.WACRM_WEBHOOK_SECRET:
+        if config.ENVIRONMENT == "production":
+            # Same reasoning as _verify_webhook_signature: an unconfigured
+            # secret in production must reject forged webhooks, not accept them.
+            log.error("wacrm_webhook.signature_secret_missing_in_production")
+            return False
         log.warning("wacrm_webhook.signature_skip", reason="WACRM_WEBHOOK_SECRET not set")
         return True
     if not signature_header:
