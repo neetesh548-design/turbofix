@@ -11650,3 +11650,63 @@ a:focus-visible,
   }
 }
 } /* end @layer components: home page audit enhancements */
+
+/* ===========================================================
+   Mobile Touch & Gesture Responsiveness Optimizations
+   =========================================================== */
+
+@media (max-width: 768px) {
+  button,
+  .btn,
+  select,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  .public-nav-link,
+  .public-nav-toggle,
+  .lang-switch,
+  .tab-item,
+  .filter-pill,
+  .records-button,
+  .records-icon-button,
+  .records-tabs button,
+  .records-metric,
+  .machine-action {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Prevent text selection flicker during rapid touch taps */
+  button,
+  .btn,
+  .public-nav-link,
+  .filter-pill,
+  .tab-item,
+  .records-button,
+  .records-tabs button,
+  .records-metric {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth momentum scrolling for mobile overflow containers */
+  .public-nav-menu,
+  .records-tabs,
+  .records-flow-strip,
+  .records-machine-checks,
+  .records-editor,
+  .dashboard-widget-scroll,
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* Safe-area inset spacing for mobile home indicators */
+  .records-review-footer,
+  .records-dialog-actions,
+  .public-nav-menu {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
