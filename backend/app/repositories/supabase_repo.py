@@ -57,6 +57,15 @@ from app.repositories.base import (
 
 log = logging.getLogger("turbofix.supabase_repo")
 
+
+class GoTrueError(Exception):
+    """A non-2xx response from Supabase Auth (GoTrue) admin API."""
+
+    def __init__(self, status_code: int, body: str):
+        self.status_code = status_code
+        self.body = body
+        super().__init__(f"GoTrue {status_code}: {body}")
+
 # ---------------------------------------------------------------------------
 # Shared PostgREST client
 # ---------------------------------------------------------------------------
@@ -142,7 +151,8 @@ class _SupabaseClient:
             r = c.post(url, headers=self._auth_headers, json=payload)
             if r.status_code in (400, 422) and "already been registered" in r.text.lower():
                 return None
-            r.raise_for_status()
+            if r.status_code >= 400:
+                raise GoTrueError(r.status_code, r.text)
             return r.json()
 
     def auth_get_user_by_email(self, email: str) -> Optional[dict]:
@@ -375,7 +385,14 @@ class SupabaseUserRepository(UserRepository):
         # Without a password (offline/no-portal-access staff), keep the
         # existing behaviour: a directory-only row with no auth identity.
         if email and password:
-            auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+            try:
+                auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+            except GoTrueError as exc:
+                # TEMP diagnostic: surface upstream GoTrue error text so we can
+                # see WHY registration is failing in prod without log access.
+                # TODO(remove-after-diagnosis): revert to a generic message.
+                from fastapi import HTTPException
+                raise HTTPException(status_code=502, detail=f"GoTrue diag: {exc.status_code} {exc.body}") from exc
             if auth_user is None:
                 # GoTrue already has this email (e.g. a retried registration
                 # after a previous partial failure) — reuse that identity
