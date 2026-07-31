@@ -31,6 +31,7 @@
     "test:ux:headed": "playwright test tests/ux-audit --headed",
     "test:ux:debug": "playwright test tests/ux-audit --debug",
     "agent:redesign": "node scripts/redesign-page-agent.js",
+    "visual:stitch-audit": "node scripts/capture-light-theme-visuals.js && node scripts/stitch-visual-bridge.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
