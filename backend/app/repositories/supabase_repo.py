@@ -1039,19 +1039,25 @@ class SupabaseDocumentRepository(DocumentRepository):
         return str(uuid.uuid4())
 
     def list(self, company_code: str, machine_id: Optional[str] = None) -> List[dict]:
+        # Get all machines for this company first, then scope documents to
+        # that set — a bare {"machine_id": ...} filter with no company check
+        # let any caller pass another company's machine_id and read their
+        # document metadata (titles, storage paths).
+        company_id = _company_id_for_code(company_code)
+        if not company_id:
+            return []
+        machines = _client.select("machines", {
+            "company_id": f"eq.{company_id}",
+            "select": "id",
+        })
+        if not machines:
+            return []
+        machine_ids = {m["id"] for m in machines}
         if machine_id:
+            if machine_id not in machine_ids:
+                return []
             rows = _client.select("documents", {"machine_id": f"eq.{machine_id}"})
         else:
-            # Get all machines for this company, then get documents for each
-            company_id = _company_id_for_code(company_code)
-            if not company_id:
-                return []
-            machines = _client.select("machines", {
-                "company_id": f"eq.{company_id}",
-                "select": "id",
-            })
-            if not machines:
-                return []
             rows = []
             for m in machines:
                 rows.extend(_client.select("documents", {"machine_id": f"eq.{m['id']}"}))
@@ -1182,13 +1188,16 @@ class SupabasePartsRepository(PartsRepository):
 
     def list_items(self, kind: str, company_code: str, machine_id: Optional[str] = None) -> List[dict]:
         table = self._table(kind)
+        factory_id = _factory_id_for_code(company_code) or _company_id_for_code(company_code)
+        if not factory_id:
+            return []
+        # machine_id must narrow the tenant-scoped query, never replace it — a
+        # bare {"machine_id": ...} filter with no factory_id predicate let any
+        # caller pass another company's machine_id and read their inventory.
+        params = {"factory_id": f"eq.{factory_id}"}
         if machine_id:
-            rows = _client.select(table, {"machine_id": f"eq.{machine_id}"})
-        else:
-            factory_id = _factory_id_for_code(company_code) or _company_id_for_code(company_code)
-            if not factory_id:
-                return []
-            rows = _client.select(table, {"factory_id": f"eq.{factory_id}"})
+            params["machine_id"] = f"eq.{machine_id}"
+        rows = _client.select(table, params)
         result = []
         for r in rows:
             if kind == "consumables":
