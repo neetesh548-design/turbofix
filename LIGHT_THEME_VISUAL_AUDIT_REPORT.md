@@ -1,6 +1,6 @@
 # Stitch Visual Remediation Audit & Design System Bridge
 
-*Generated: 2026-07-31T14:24:11.330Z*
+*Generated: 2026-07-31T14:26:04.595Z*
 
 This report details full-page light-theme screenshot artifacts captured across application routes, visual defect analyses, and actionable Stitch MCP prompt specifications to visually rectify light mode UI styling.
 
@@ -8,14 +8,22 @@ This report details full-page light-theme screenshot artifacts captured across a
 
 | Page Route | Screenshot File | Visual Defects Found |
 | :--- | :--- | :--- |
-| **Dashboard** (`/`) | [dashboard-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/dashboard-light.png) | ✅ Clean |
-| **Tickets** (`/tickets`) | [tickets-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/tickets-light.png) | ✅ Clean |
-| **Technician** (`/technician`) | [technician-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/technician-light.png) | ✅ Clean |
-| **Machines** (`/machines`) | [machines-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/machines-light.png) | ✅ Clean |
-| **Inventory** (`/inventory`) | [inventory-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/inventory-light.png) | ✅ Clean |
-| **Settings** (`/settings`) | [settings-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/settings-light.png) | ✅ Clean |
-| **Kaizen** (`/kaizen`) | [kaizen-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/kaizen-light.png) | ✅ Clean |
-| **Report Breakdown** (`/report-breakdown`) | [report-breakdown-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/report-breakdown-light.png) | ✅ Clean |
+| **Dashboard** (`/dashboard.html`) | [dashboard-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/dashboard-light.png) | ✅ Clean |
+| **Tickets** (`/tickets.html`) | [tickets-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/tickets-light.png) | ✅ Clean |
+| **Technician** (`/technician.html`) | [technician-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/technician-light.png) | ✅ Clean |
+| **Machines** (`/machines.html`) | [machines-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/machines-light.png) | ✅ Clean |
+| **Inventory** (`/inventory.html`) | [inventory-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/inventory-light.png) | ✅ Clean |
+| **Settings** (`/settings.html`) | [settings-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/settings-light.png) | ✅ Clean |
+| **Kaizen** (`/kaizen.html`) | [kaizen-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/kaizen-light.png) | ✅ Clean |
+| **Report Breakdown** (`/report-breakdown.html`) | [report-breakdown-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/report-breakdown-light.png) | ✅ Clean |
+| **Records** (`/records.html`) | [records-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/records-light.png) | ✅ Clean |
+| **RCA** (`/rca.html`) | [rca-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/rca-light.png) | ✅ Clean |
+| **Shutdown Planner** (`/shutdown-planner.html`) | [shutdown-planner-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/shutdown-planner-light.png) | ✅ Clean |
+| **Team** (`/team.html`) | [team-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/team-light.png) | ✅ Clean |
+| **Support** (`/support.html`) | [support-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/support-light.png) | ✅ Clean |
+| **Pricing** (`/pricing.html`) | [pricing-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/pricing-light.png) | ✅ Clean |
+| **Why TurboFix** (`/why-turbofix.html`) | [why-turbofix-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/why-turbofix-light.png) | ✅ Clean |
+| **Platform** (`/platform.html`) | [platform-light.png](file:////Users/nkumarsoni/TurboFix/artifacts/visual-audit/light-theme/platform-light.png) | ✅ Clean |
 
 ## 🎨 Stitch MCP Design System & Screen Rectiation Prompts
 

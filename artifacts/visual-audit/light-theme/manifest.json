@@ -1,52 +1,100 @@
 {
-  "timestamp": "2026-07-31T14:24:11.330Z",
+  "timestamp": "2026-07-31T14:26:04.595Z",
   "pagesAudited": [
     {
       "name": "Dashboard",
-      "path": "/",
+      "path": "/dashboard.html",
       "screenshot": "dashboard-light.png",
       "defectCount": 0
     },
     {
       "name": "Tickets",
-      "path": "/tickets",
+      "path": "/tickets.html",
       "screenshot": "tickets-light.png",
       "defectCount": 0
     },
     {
       "name": "Technician",
-      "path": "/technician",
+      "path": "/technician.html",
       "screenshot": "technician-light.png",
       "defectCount": 0
     },
     {
       "name": "Machines",
-      "path": "/machines",
+      "path": "/machines.html",
       "screenshot": "machines-light.png",
       "defectCount": 0
     },
     {
       "name": "Inventory",
-      "path": "/inventory",
+      "path": "/inventory.html",
       "screenshot": "inventory-light.png",
       "defectCount": 0
     },
     {
       "name": "Settings",
-      "path": "/settings",
+      "path": "/settings.html",
       "screenshot": "settings-light.png",
       "defectCount": 0
     },
     {
       "name": "Kaizen",
-      "path": "/kaizen",
+      "path": "/kaizen.html",
       "screenshot": "kaizen-light.png",
       "defectCount": 0
     },
     {
       "name": "Report Breakdown",
-      "path": "/report-breakdown",
+      "path": "/report-breakdown.html",
       "screenshot": "report-breakdown-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Records",
+      "path": "/records.html",
+      "screenshot": "records-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "RCA",
+      "path": "/rca.html",
+      "screenshot": "rca-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Shutdown Planner",
+      "path": "/shutdown-planner.html",
+      "screenshot": "shutdown-planner-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Team",
+      "path": "/team.html",
+      "screenshot": "team-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Support",
+      "path": "/support.html",
+      "screenshot": "support-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Pricing",
+      "path": "/pricing.html",
+      "screenshot": "pricing-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Why TurboFix",
+      "path": "/why-turbofix.html",
+      "screenshot": "why-turbofix-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Platform",
+      "path": "/platform.html",
+      "screenshot": "platform-light.png",
       "defectCount": 0
     }
   ],

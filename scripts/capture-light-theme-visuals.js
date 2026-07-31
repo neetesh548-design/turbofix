@@ -20,14 +20,22 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 }
 
 const PAGES = [
-  { name: 'Dashboard', path: '/' },
-  { name: 'Tickets', path: '/tickets' },
-  { name: 'Technician', path: '/technician' },
-  { name: 'Machines', path: '/machines' },
-  { name: 'Inventory', path: '/inventory' },
-  { name: 'Settings', path: '/settings' },
-  { name: 'Kaizen', path: '/kaizen' },
-  { name: 'Report Breakdown', path: '/report-breakdown' }
+  { name: 'Dashboard', path: '/dashboard.html' },
+  { name: 'Tickets', path: '/tickets.html' },
+  { name: 'Technician', path: '/technician.html' },
+  { name: 'Machines', path: '/machines.html' },
+  { name: 'Inventory', path: '/inventory.html' },
+  { name: 'Settings', path: '/settings.html' },
+  { name: 'Kaizen', path: '/kaizen.html' },
+  { name: 'Report Breakdown', path: '/report-breakdown.html' },
+  { name: 'Records', path: '/records.html' },
+  { name: 'RCA', path: '/rca.html' },
+  { name: 'Shutdown Planner', path: '/shutdown-planner.html' },
+  { name: 'Team', path: '/team.html' },
+  { name: 'Support', path: '/support.html' },
+  { name: 'Pricing', path: '/pricing.html' },
+  { name: 'Why TurboFix', path: '/why-turbofix.html' },
+  { name: 'Platform', path: '/platform.html' }
 ];
 
 async function runVisualCapture() {
