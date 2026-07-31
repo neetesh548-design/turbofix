@@ -76,6 +76,51 @@ def test_supabase_machine_record_repository_is_tenant_scoped_and_expands_json(mo
     assert client.calls[-1][2]["status"] == "eq.approved"
 
 
+def test_supabase_parts_get_item_resolves_real_company_code(monkeypatch):
+    # Regression test: get_item() used to hardcode company_code="" for every
+    # item, which made vault_router's user.assert_same_company(item[
+    # "company_code"]) reject every caller unconditionally — including the
+    # item's own owning company. It must resolve the real company via the
+    # row's factory_id, not leave it blank.
+    client = FakePostgrestClient()
+    monkeypatch.setattr(supabase_repo, "_client", client)
+    monkeypatch.setattr(
+        supabase_repo, "_company_code_for_factory_id",
+        lambda factory_id: "ACME" if factory_id == "factory-1" else "",
+    )
+    repository = supabase_repo.SupabasePartsRepository()
+
+    client.rows = [{
+        "id": "part-1",
+        "factory_id": "factory-1",
+        "machine_id": "machine-1",
+        "part_name": "Bearing",
+        "part_number": "BR-100",
+        "stock_qty": 5,
+        "unit": "pcs",
+        "reorder_level": 2,
+        "supplier": "Acme Supplies",
+    }]
+
+    item = repository.get_item("spare_parts", "part-1")
+    assert item["company_code"] == "ACME"
+    assert item["part_id"] == "part-1"
+    assert item["machine_id"] == "machine-1"
+
+    client.rows = [{
+        "id": "consumable-1",
+        "factory_id": "factory-1",
+        "machine_id": "machine-1",
+        "name": "Coolant",
+        "stock_qty": 10,
+        "unit": "L",
+        "reorder_level": 3,
+    }]
+    consumable = repository.get_item("consumables", "consumable-1")
+    assert consumable["company_code"] == "ACME"
+    assert consumable["consumable_id"] == "consumable-1"
+
+
 class FakeResponse:
     def __init__(self, status_code=200, payload=None, content=b""):
         self.status_code = status_code

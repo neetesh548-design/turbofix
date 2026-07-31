@@ -1463,9 +1463,14 @@ class SupabasePartsRepository(PartsRepository):
         table = self._table(kind)
         company_code = row.get("company_code", "")
         factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
+        # parts.id/consumables.id are native uuid primary keys, but callers
+        # pass the legacy human-readable "SP-.../CON-..." id (row["part_id"]/
+        # row["consumable_id"], used by the file/sheets backends) — that
+        # string isn't valid uuid syntax, so it can't be reused here (same
+        # issue already fixed for machines.id in SupabaseMachineRepository).
         if kind == "consumables":
             _client.insert(table, {
-                "id": row.get("consumable_id", str(uuid.uuid4())),
+                "id": str(uuid.uuid4()),
                 "machine_id": row.get("machine_id") or None,
                 "factory_id": factory_id,
                 "name": row.get("name", ""),
@@ -1475,7 +1480,7 @@ class SupabasePartsRepository(PartsRepository):
             })
         else:
             _client.insert(table, {
-                "id": row.get("part_id", str(uuid.uuid4())),
+                "id": str(uuid.uuid4()),
                 "machine_id": row.get("machine_id") or None,
                 "factory_id": factory_id,
                 "part_name": row.get("part_name", ""),
