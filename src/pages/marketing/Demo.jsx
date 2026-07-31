@@ -63,6 +63,8 @@ export default function Demo() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Operator QR Scanner Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -76,6 +78,8 @@ export default function Demo() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Technician Field Repair Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -89,6 +93,8 @@ export default function Demo() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Control Room Executive Dashboard Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

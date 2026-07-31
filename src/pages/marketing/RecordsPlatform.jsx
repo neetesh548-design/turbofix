@@ -78,6 +78,8 @@ export default function RecordsPlatform() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/records_ocr_digitization.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Paper Logbook & Handwritten OCR Scanning"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -91,6 +93,8 @@ export default function RecordsPlatform() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/shutdown_overhaul_team.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Shutdown & Heavy Overhaul Logbook Digitization"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -104,6 +108,8 @@ export default function RecordsPlatform() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/plant_settings_security.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Approved Document Vault & Security"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

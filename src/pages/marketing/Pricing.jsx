@@ -45,6 +45,8 @@ export default function Pricing() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Plant Owner Executive Dashboard"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -58,6 +60,8 @@ export default function Pricing() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/inventory_warehouse_spares.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Warehouse Spare Parts & Inventory"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -71,6 +75,8 @@ export default function Pricing() {
                 <div className="relative h-48 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/kaizen_innovation_shopfloor.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Kaizen & Continuous Improvement"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

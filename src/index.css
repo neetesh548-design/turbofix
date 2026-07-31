@@ -437,23 +437,28 @@ body {
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 ul { margin: 0; padding: 0; list-style: none; }
-h1, h2, h3, h4 {
-  margin: 0;
-  line-height: 1.2;
-  font-weight: 800;
-  font-family: 'Outfit', -apple-system, sans-serif;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Layered so explicit Tailwind text-size/margin utilities (e.g. text-lg, mb-2) on
+   headings can win. Unlayered CSS always beats Tailwind's @layer utilities
+   regardless of specificity, so this must live in @layer base to be overridable. */
+@layer base {
+  h1, h2, h3, h4 {
+    margin: 0;
+    line-height: 1.2;
+    font-weight: 800;
+    font-family: 'Outfit', -apple-system, sans-serif;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 2rem; margin-bottom: 0.4rem; }
+  h3 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  h4 { font-size: 1.2rem; margin-bottom: 0.2rem; }
+  p { margin: 0; line-height: 1.7; }
 }
-h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-h2 { font-size: 2rem; margin-bottom: 0.4rem; }
-h3 { font-size: 1.5rem; margin-bottom: 0.3rem; }
-h4 { font-size: 1.2rem; margin-bottom: 0.2rem; }
-p { margin: 0; line-height: 1.7; }
 
 .tf-login-page .tf-login-title {
   background: none;
@@ -7523,7 +7528,11 @@ details.faq-item p {
 
 /* ===========================================================
    Public marketing website — product-led conversion experience
+   Layered so explicit Tailwind utility classes in JSX (e.g. text-2xl, mb-2)
+   can override these shared defaults — unlayered CSS always beats
+   Tailwind's @layer utilities regardless of specificity.
    =========================================================== */
+@layer components {
 .nav .brand-logo,
 .marketing-footer .brand-logo { width: 42px; height: 42px; flex: 0 0 auto; }
 .nav .brand-name,
@@ -8224,6 +8233,7 @@ details.faq-item p {
   .marketing-footer-trust span { min-height: 48px; border-top: 1px solid #202c38; border-left: 0; }
   .marketing-footer-trust span:first-child { border-top: 0; }
 }
+} /* end @layer components: public marketing website */
 
 /* ===========================================================
    Public website navigation — clear desktop hierarchy + mobile panel
@@ -10994,6 +11004,8 @@ a:focus-visible,
 }
 
 /* ── Home Page Audit Enhancements & Layout Polish ── */
+/* Layered (see note above) so Tailwind utility classes in JSX can override these. */
+@layer components {
 
 /* Hero Scenario Switcher Tabs */
 .marketing-scenario-tabs {
@@ -11444,3 +11456,4 @@ a:focus-visible,
     border-radius: 10px;
   }
 }
+} /* end @layer components: home page audit enhancements */

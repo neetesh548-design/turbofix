@@ -43,6 +43,8 @@ export default function Workflow() {
                 <div className="relative h-44 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Step 1: Operator 10-sec QR Breakdown Scan"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -56,6 +58,8 @@ export default function Workflow() {
                 <div className="relative h-44 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Step 2: Technician AI Diagnosis & Field Repair"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -69,6 +73,8 @@ export default function Workflow() {
                 <div className="relative h-44 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/rca_team_collaboration.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Step 3: Team Collaboration & Spares Verification"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -82,6 +88,8 @@ export default function Workflow() {
                 <div className="relative h-44 overflow-hidden rounded-xl mb-4">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Step 4: Maintenance Head Sign-off & Audit Closure"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

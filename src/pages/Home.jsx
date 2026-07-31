@@ -133,11 +133,13 @@ export default function Home() {
               </div>
               <p>Bring in old machine history, verify what is trustworthy, and then run daily maintenance from the same system instead of switching between records and execution.</p>
             </div>
-            <div className="marketing-outcomes-grid">
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
                 <div className="relative h-48 overflow-hidden rounded-t-xl">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Plant Director & Factory Owner"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -160,10 +162,12 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
                 <div className="relative h-48 overflow-hidden rounded-t-xl">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Maintenance Head & Reliability Lead"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -186,10 +190,12 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group">
+              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
                 <div className="relative h-48 overflow-hidden rounded-t-xl">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/technician_shift_lead.jpg`}
+                    loading="lazy"
+                    decoding="async"
                     alt="Shift Supervisor & Lead Technician"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
