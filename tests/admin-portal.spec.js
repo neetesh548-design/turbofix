@@ -33,6 +33,6 @@ test('Verify TurboFix Admin Control Room login & Supabase Edge Function integrat
   expect(companyCount).toBeGreaterThan(0);
 
   // Take screenshot of live Control Room
-  await page.screenshot({ path: 'admin-portal-playwright.png', fullPage: true });
-  console.log('Saved screenshot to admin-portal-playwright.png');
+  await page.screenshot({ path: 'test-results/admin-portal-playwright.png', fullPage: true });
+  console.log('Saved screenshot to test-results/admin-portal-playwright.png');
 });

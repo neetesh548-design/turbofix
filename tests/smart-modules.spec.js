@@ -67,6 +67,6 @@ test.describe('Settings - Smart Modules (Poka-Yoke Config)', () => {
     await expect(selectTriggers.nth(0)).toHaveText('Enabled');
 
     // Take a screenshot to show the user
-    await page.screenshot({ path: 'settings-screenshot.png', fullPage: true });
+    await page.screenshot({ path: 'test-results/settings-screenshot.png', fullPage: true });
   });
 });

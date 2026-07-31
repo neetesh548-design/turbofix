@@ -55,7 +55,7 @@ test('Audit live admin dashboard data and layout', async ({ page }) => {
   console.log(JSON.stringify(companyRows, null, 2));
 
   // Screenshot the live admin app
-  await page.screenshot({ path: 'admin-live-audit.png', fullPage: true });
+  await page.screenshot({ path: 'test-results/admin-live-audit.png', fullPage: true });
 
   // Test drawer details for the first company
   const firstManageBtn = page.locator('.quiet-link').first();
@@ -66,6 +66,6 @@ test('Audit live admin dashboard data and layout', async ({ page }) => {
     const drawerText = await page.textContent('#companyDrawerContent');
     console.log('=== DRAWER DETAILS (FIRST COMPANY) ===');
     console.log(drawerText);
-    await page.screenshot({ path: 'admin-drawer-audit.png' });
+    await page.screenshot({ path: 'test-results/admin-drawer-audit.png' });
   }
 });

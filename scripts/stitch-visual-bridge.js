@@ -13,7 +13,7 @@ import path from 'path';
 
 const AUDIT_DIR = path.join(process.cwd(), 'artifacts', 'visual-audit', 'light-theme');
 const MANIFEST_PATH = path.join(AUDIT_DIR, 'manifest.json');
-const REPORT_PATH = path.join(process.cwd(), 'LIGHT_THEME_VISUAL_AUDIT_REPORT.md');
+const REPORT_PATH = path.join(process.cwd(), 'docs', 'archive', 'LIGHT_THEME_VISUAL_AUDIT_REPORT.md');
 
 function runStitchBridge() {
   console.log('================================================================');
