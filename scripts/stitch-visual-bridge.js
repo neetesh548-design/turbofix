@@ -43,10 +43,17 @@ function runStitchBridge() {
   markdown += `\n## 🎨 Stitch MCP Design System & Screen Rectiation Prompts\n\n`;
   markdown += `Use the following structured prompts with Stitch MCP tools (\`edit_screens\`, \`generate_screen_from_text\`, \`create_design_system\`) to update and harmonize light theme visuals:\n\n`;
 
-  markdown += `### 1. Light Theme Design System Tokens (\`create_design_system\` / \`update_design_system\`)\n`;
+  markdown += `### 1. Stitch MCP Active Project & Design System Tokens (\`create_design_system\` / \`update_design_system\`)\n`;
+  markdown += `* **Stitch Project ID**: \`6322273605992702600\` (*TurboFix Modern UI*)\n`;
+  markdown += `* **Design System Asset ID**: \`assets/14391586239197748477\` (*Daylight Industrial Light System*)\n`;
+  markdown += `* **Generated Daylight Screens**:\n`;
+  markdown += `  - \`projects/6322273605992702600/screens/0676ea6a08f248759eb19f3ee34c93af\` (*TurboFix Control Board - Daylight Scenario*)\n`;
+  markdown += `  - \`projects/6322273605992702600/screens/18ce35aa11584105bc5346a8b1bfb5be\` (*TurboFix Fleet & Maintenance Dashboard - Daylight*)\n\n`;
   markdown += `\`\`\`json\n`;
   markdown += JSON.stringify({
-    name: "TurboFix Light Mode Theme",
+    name: "Daylight Industrial Light System",
+    projectId: "6322273605992702600",
+    assetId: "assets/14391586239197748477",
     tokens: {
       colors: {
         background: "#F8FAFC",
@@ -54,20 +61,22 @@ function runStitchBridge() {
         primaryHeading: "#0F172A",
         secondaryText: "#334155",
         accentLink: "#047857",
+        activeHealthBadge: "#059669",
         borderSubtle: "rgba(15, 23, 42, 0.12)",
         cardShadow: "0 4px 20px rgba(0, 0, 0, 0.05)"
       },
       typography: {
-        headingFont: "Outfit, sans-serif",
-        bodyFont: "Inter, sans-serif"
+        headingFont: "Inter, sans-serif",
+        bodyFont: "Inter, sans-serif",
+        dataFont: "JetBrains Mono, monospace"
       }
     }
   }, null, 2);
   markdown += `\n\`\`\`\n\n`;
 
-  markdown += `### 2. Stitch MCP Screen Edit Instructions (\`edit_screens\`)\n`;
+  markdown += `### 2. Stitch MCP Screen Edit & Generation Instructions (\`edit_screens\` / \`generate_screen_from_text\`)\n`;
   markdown += `> **Instruction Prompt for Stitch Creator Subagent**:\n`;
-  markdown += `> "Refactor the light theme UI components so that all glass tiles (\`.stitch-glass-tile\`), cards (\`.marketing-pricing-card\`, \`.rd-chart-card\`), and navigation bars use high-contrast dark headings (\`#0f172a\`), dark slate body text (\`#334155\`), and deep emerald CTA links (\`#047857\`). Ensure non-themed always-dark sections maintain white text against dark slate backgrounds."\n\n`;
+  markdown += `> "Refactor the light theme UI components so that all glass tiles (\`.stitch-glass-tile\`), cards (\`.marketing-pricing-card\`, \`.rd-chart-card\`), and navigation bars use high-contrast dark headings (\`#0f172a\`), dark slate body text (\`#334155\`), and deep emerald CTA links (\`#047857\`). Ensure JetBrains Mono is applied to MTBF/MTTR data metrics and non-themed always-dark sections maintain white text against dark slate backgrounds."\n\n`;
 
   markdown += `## 🔍 Detailed Visual Defect Breakdown\n\n`;
 
