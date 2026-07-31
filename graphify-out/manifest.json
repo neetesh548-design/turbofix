@@ -1585,9 +1585,9 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1785351382.8549044,
-    "ast_hash": "616011c36859290c1a6d16cc28858916",
-    "semantic_hash": "616011c36859290c1a6d16cc28858916"
+    "mtime": 1785493700.4488454,
+    "ast_hash": "0cd4a2bd3354f29dbc370094d1363995",
+    "semantic_hash": ""
   },
   "public/llms.txt": {
     "mtime": 1785192836.0437093,
@@ -2690,8 +2690,8 @@
     "semantic_hash": "89f0dd0c0d308c99c647696433168076"
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785484449.0509765,
-    "ast_hash": "dbe1f5f51ee13b46e377ead6217b2c63",
+    "mtime": 1785495288.2763748,
+    "ast_hash": "718d881ce55244a792291382c95a8b39",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
