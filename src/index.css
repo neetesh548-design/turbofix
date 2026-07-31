@@ -515,7 +515,7 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 }
 
 .container {
-  max-width: 1600px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -546,9 +546,9 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
   transform: translateY(-2px);
 }
 
-/* AI maintenance decision center */
+/* AI maintenance decision center & workspace pages */
 .decision-page, .assistant-page, .planner-page {
-  max-width: 1600px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 24px 16px 80px;
 }
@@ -578,7 +578,7 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 .technician-page,
 .inventory-page,
 .settings-page {
-  max-width: 1600px;
+  max-width: 1240px;
 }
 .decision-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; }
 .decision-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 8px 0 10px; font-weight: 800; }
@@ -7812,7 +7812,10 @@ details.faq-item p {
   background-size: 64px 64px;
   mask-image: linear-gradient(to bottom, #000, transparent 92%);
 }
-.marketing-hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(440px, .95fr); align-items: center; gap: 70px; }
+.marketing-hero-grid { position: relative; display: grid; grid-template-columns: 1fr; align-items: center; gap: 36px; }
+@media (min-width: 992px) {
+  .marketing-hero-grid { grid-template-columns: 1.05fr 0.95fr; gap: 48px; }
+}
 .marketing-hero-copy { max-width: 690px; }
 .marketing-eyebrow,
 .marketing-section-heading > span,
@@ -10996,7 +10999,7 @@ a:focus-visible,
 /* Mobile-1st & Multi-Display Responsive Container (Mobile, Laptop, Ultra-Wide PC) */
 .app-content {
   width: 100%;
-  max-width: 1600px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 16px 16px 40px 16px;
   box-sizing: border-box;
