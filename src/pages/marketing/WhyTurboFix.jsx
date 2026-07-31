@@ -79,17 +79,29 @@ export default function WhyTurboFix() {
               <h2>See the platform and the workflow that make this possible.</h2>
               <p>This page is about why plants switch. The mechanics live on their own pages.</p>
             </div>
-            <div className="marketing-feature-grid">
-              <Link className="marketing-feature-card" to="/platform.html" style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
-                <div className="marketing-feature-icon"><Wrench /></div>
-                <h3>Explore the full platform</h3>
-                <p>Every tool from breakdown dispatch to executive control room, in one connected system.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Link
+                className="stitch-glass-tile p-8 rounded-2xl transition-all hover:-translate-y-1"
+                to="/platform.html"
+                style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
+              >
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+                  <Wrench size={22} />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Explore the full platform</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">Every tool from breakdown dispatch to executive control room, in one connected system.</p>
                 <span className="marketing-text-link">See the platform <ArrowRight size={14} /></span>
               </Link>
-              <Link className="marketing-feature-card" to="/workflow.html" style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
-                <div className="marketing-feature-icon"><RouteIcon /></div>
-                <h3>See how it works</h3>
-                <p>The verified loop from operator QR scan to Maintenance Head sign-off, step by step.</p>
+              <Link
+                className="stitch-glass-tile p-8 rounded-2xl transition-all hover:-translate-y-1"
+                to="/workflow.html"
+                style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
+              >
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+                  <RouteIcon size={22} />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">See how it works</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">The verified loop from operator QR scan to Maintenance Head sign-off, step by step.</p>
                 <span className="marketing-text-link">See the workflow <ArrowRight size={14} /></span>
               </Link>
             </div>

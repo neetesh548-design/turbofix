@@ -233,6 +233,9 @@ export default function Dashboard() {
   };
   const heading = specialistHeadings[specialistRole] || ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
+  const activeBreakdownCount = metrics?.displayTickets?.filter(
+    (t) => ['critical', 'high'].includes(String(t.urgency || '').toLowerCase()),
+  ).length || 0;
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
 
   // Global Cmd/Ctrl+N shortcut (see accessibility.js) dispatches this instead
@@ -352,8 +355,8 @@ export default function Dashboard() {
               <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
                 <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
-                  <span>{metrics?.displayTickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171]" />
+                  <span>{activeBreakdownCount}</span>
+                  <span className={`w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171] ${activeBreakdownCount > 0 ? 'animate-pulse' : ''}`} />
                 </div>
               </a>
               <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">

@@ -101,13 +101,18 @@ export default function Platform() {
               </div>
             </div>
 
-            <div className="marketing-feature-grid">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {platformFeatures.map(({ icon: Icon, title, body }, index) => (
-                <article className="marketing-feature-card" key={title}>
-                  <div className="marketing-feature-icon"><Icon /></div>
-                  <span>0{index + 1}</span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
+                <article
+                  className="stitch-glass-tile relative p-8 rounded-2xl transition-all hover:-translate-y-1"
+                  key={title}
+                >
+                  <span className="absolute top-6 right-8 text-xs font-bold text-slate-500">0{index + 1}</span>
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+                    <Icon size={22} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">{body}</p>
                 </article>
               ))}
             </div>

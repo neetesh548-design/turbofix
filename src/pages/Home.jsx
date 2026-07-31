@@ -234,12 +234,19 @@ export default function Home() {
               <h2>See how each part of the system works.</h2>
               <p>Dig into the platform, legacy records, workflow, live demo, pricing, or book a walkthrough.</p>
             </div>
-            <div className="marketing-feature-grid">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {EXPLORE_LINKS.map(({ icon: Icon, title, body, to }) => (
-                <Link className="marketing-feature-card" to={to} key={title} style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
-                  <div className="marketing-feature-icon"><Icon /></div>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
+                <Link
+                  className="stitch-glass-tile group block p-8 rounded-2xl transition-all hover:-translate-y-1"
+                  to={to}
+                  key={title}
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 transition-colors group-hover:bg-emerald-500/20">
+                    <Icon size={22} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">{body}</p>
                 </Link>
               ))}
             </div>

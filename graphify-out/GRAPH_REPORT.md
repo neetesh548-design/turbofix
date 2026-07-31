@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-31)
 
 ## Corpus Check
-- 566 files · ~750,693 words
+- 566 files · ~750,819 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4301 nodes · 9166 edges · 320 communities (230 shown, 90 thin omitted)
+- 4301 nodes · 9166 edges · 319 communities (229 shown, 90 thin omitted)
 - Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 692 edges (avg confidence: 0.58)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0d36bd75`
+- Built from commit: `7a2f54b7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -230,7 +230,6 @@
 - deploy_exide_battery_factory.js
 - redesign-page-agent.js
 - ticketLifecycle.test.js
-- LanguageContext.jsx
 - inbound_email_receiver/index.ts
 - qr-gateway.fixture.ts
 - tfdemo-dashboard-machines-consistency.spec.js
@@ -313,7 +312,7 @@
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 - **Smart Modules Configuration Options** — settings_screenshot_iot_predictive_power_signature, settings_screenshot_visual_spare_part_deduction, settings_screenshot_dynamic_supply_chain_sync, settings_screenshot_opportunistic_mesh_syncing, settings_screenshot_location_handshake_verification [EXTRACTED 1.00]
 
-## Communities (320 total, 90 thin omitted)
+## Communities (319 total, 90 thin omitted)
 
 ### Community 0 - "Machine Health & Core State"
 Cohesion: 0.07
@@ -464,8 +463,8 @@ Cohesion: 0.05
 Nodes (39): App(), Assistant, Dashboard, DemoLogin, Home, Inventory, Kaizen, Login (+31 more)
 
 ### Community 37 - "Navbar.jsx"
-Cohesion: 0.14
-Nodes (16): AuditLog(), MOCK_LOGS, iconBg, MicrosoftAppLauncher(), Navbar(), apiFetch(), getApiBase(), startKeepalive() (+8 more)
+Cohesion: 0.10
+Nodes (21): AuditLog(), MOCK_LOGS, iconBg, MicrosoftAppLauncher(), Navbar(), ThemeToggle(), readInitialTheme(), ThemeContext (+13 more)
 
 ### Community 38 - "AppShell.jsx"
 Cohesion: 0.09
@@ -804,16 +803,16 @@ Cohesion: 0.25
 Nodes (4): Validate a Supabase access token and resolve authorization from public.users., _resolve_supabase_user(), FakeAuthClient, test_supabase_auth_uses_trusted_directory_link_not_user_metadata()
 
 ### Community 142 - "dynamicChecklist.js"
-Cohesion: 0.50
-Nodes (4): Prerequisites, Repository Setup, Required Accounts & Access, Required Tools
+Cohesion: 0.25
+Nodes (8): maintenance_assistant(), AI Assistant scoped to machine maintenance context., Test AI assistant is scoped to machine-specific context., Test that assistant cannot access other company's machine data., Test rejection of out-of-scope questions., test_maintenance_assistant_prevents_cross_tenant_info_leak(), test_maintenance_assistant_rejects_invalid_questions(), test_maintenance_assistant_scoped_to_machine()
 
 ### Community 144 - "check_inventory"
 Cohesion: 0.25
 Nodes (8): check_inventory(), Check stock level and return depletion status alert., Test no alert when spare parts stock is sufficient., Test alert triggered when stock falls below safety threshold., Test inventory check predicts if stock will be depleted in N days., test_check_inventory_low_stock_alert(), test_check_inventory_predicts_future_need(), test_check_inventory_sufficient_stock()
 
 ### Community 145 - "maintenance_assistant"
-Cohesion: 0.25
-Nodes (8): maintenance_assistant(), AI Assistant scoped to machine maintenance context., Test AI assistant is scoped to machine-specific context., Test that assistant cannot access other company's machine data., Test rejection of out-of-scope questions., test_maintenance_assistant_prevents_cross_tenant_info_leak(), test_maintenance_assistant_rejects_invalid_questions(), test_maintenance_assistant_scoped_to_machine()
+Cohesion: 0.38
+Nodes (3): DriveFileStorage, Stores files in a Google Drive folder using the Drive API.      Files are organi, Build a Drive API service (lazy import — not needed in local mode).
 
 ### Community 146 - "test_admin_onboarding.py"
 Cohesion: 0.36
@@ -832,8 +831,8 @@ Cohesion: 0.25
 Nodes (7): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema, oxc, warn
 
 ### Community 151 - "useTheme.jsx"
-Cohesion: 0.43
-Nodes (5): ThemeToggle(), readInitialTheme(), ThemeContext, ThemeProvider(), useTheme()
+Cohesion: 0.50
+Nodes (4): Prerequisites, Repository Setup, Required Accounts & Access, Required Tools
 
 ### Community 155 - "demoInventory.js"
 Cohesion: 0.25
@@ -846,10 +845,6 @@ Nodes (4): MediaRecorderMock, MOCK_MACHINE, MOCK_TICKET, MOCK_USER
 ### Community 158 - "TurboFix Official Social Media Accounts Creation & Setup Guide"
 Cohesion: 0.25
 Nodes (7): 1. 💼 LinkedIn Company Page, 2. 📺 YouTube Channel, 3. 𝕏 X (Twitter) Business Profile, 4. 📸 Instagram Business Account, 5. 📘 Facebook Business Page, 🎨 Recommended Profile Graphic Assets, TurboFix Official Social Media Accounts Creation & Setup Guide
-
-### Community 159 - "DriveFileStorage"
-Cohesion: 0.38
-Nodes (3): DriveFileStorage, Stores files in a Google Drive folder using the Drive API.      Files are organi, Build a Drive API service (lazy import — not needed in local mode).
 
 ### Community 161 - "RUN_TEST.sh"
 Cohesion: 0.52
@@ -1029,7 +1024,7 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `react` connect `react` to `ShutdownPlanner.jsx`, `AI Records & Vault Management`, `QRGateway.jsx`, `table.jsx`, `kaizenMetrics.js`, `useLanguage`, `formatInr`, `.oxlintrc.json`, `useTheme.jsx`, `card.jsx`, `._user_to_dict`, `get_technician_load`, `ErrorBoundary`, `App.jsx`, `Navbar.jsx`, `AppShell.jsx`, `react`, `Machines.jsx`, `Tickets`, `tabs.jsx`, `machine_record_service.py`, `Inventory.jsx`, `SessionStore`, `useI18n`, `Kaizen.jsx`, `alert.jsx`, `Records.jsx`, `RCA.jsx`, `Settings.jsx`, `i18n.js`, `Dashboard.jsx`, `AntDNavigationLayout.jsx`, `AntDProvider.jsx`, `AdvancedAnalyticsBoard.jsx`, `MainLayout.jsx`, `OperatorKaizen.jsx`, `AntDModalsAndFeedback.jsx`, `._user_to_dict`?**
+- **Why does `react` connect `react` to `ShutdownPlanner.jsx`, `AI Records & Vault Management`, `QRGateway.jsx`, `table.jsx`, `kaizenMetrics.js`, `useLanguage`, `formatInr`, `.oxlintrc.json`, `card.jsx`, `._user_to_dict`, `DriveFileStorage`, `ErrorBoundary`, `App.jsx`, `Navbar.jsx`, `AppShell.jsx`, `react`, `Machines.jsx`, `Tickets`, `tabs.jsx`, `machine_record_service.py`, `Inventory.jsx`, `SessionStore`, `useI18n`, `Kaizen.jsx`, `alert.jsx`, `Records.jsx`, `RCA.jsx`, `Settings.jsx`, `i18n.js`, `Dashboard.jsx`, `AntDNavigationLayout.jsx`, `AntDProvider.jsx`, `AdvancedAnalyticsBoard.jsx`, `MainLayout.jsx`, `OperatorKaizen.jsx`, `AntDModalsAndFeedback.jsx`, `._user_to_dict`?**
   _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Why does `MachineRepository` connect `UserRepository` to `Machine Health & Core State`, `Ticket & Breakdown Routing`, `Authentication & Session Token`, `Marketing Landing & Presentation`, `base.py`, `FakeAsyncClient`, `get_worksheet`, `LocalTicketRepository`, `SheetsTicketRepository`, `ticket_service.py`, `Dashboard`, `datetime`, `SupabaseTicketRepository`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
