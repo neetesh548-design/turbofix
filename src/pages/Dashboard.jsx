@@ -28,6 +28,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppShell from '../components/AppShell';
 import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
+import DreamzCMMSFeatureSuite from '../components/cmms/DreamzCMMSFeatureSuite';
 import QuickReportDialog from '../components/QuickReportDialog';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
@@ -458,6 +459,8 @@ export default function Dashboard() {
             {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
               <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
             )}
+
+            <DreamzCMMSFeatureSuite />
           </>
         )}
 
