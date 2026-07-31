@@ -117,12 +117,7 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-                # TEMP diagnostic: embed the PostgREST response body directly
-                # in the exception message (raise_for_status()'s default
-                # message omits it) so it surfaces through add()'s diagnostic
-                # wrapper without needing log access.
-                # TODO(remove-after-diagnosis): back to plain r.raise_for_status().
-                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
+            r.raise_for_status()
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -384,20 +379,6 @@ class SupabaseUserRepository(UserRepository):
         return [self._user_to_dict(r) for r in rows]
 
     def add(self, row: dict) -> None:
-        # TEMP diagnostic: wrap the WHOLE method so any failure anywhere in
-        # it (not just the GoTrue calls) surfaces via a 502 instead of a
-        # bare 500 — two narrower diagnostics upstream of this one never
-        # changed observed behaviour, so the real failure point is unknown.
-        # TODO(remove-after-diagnosis): revert to normal (unwrapped) flow.
-        try:
-            self._add_impl(row)
-        except Exception as exc:
-            from fastapi import HTTPException
-            import traceback
-            tb = traceback.format_exc().replace("\n", " | ")[-1200:]
-            raise HTTPException(status_code=502, detail=f"add() diag: {type(exc).__name__}: {exc} :: {tb}") from exc
-
-    def _add_impl(self, row: dict) -> None:
         company_id = _company_id_for_code(row.get("company_code", ""))
         email = (row.get("email") or "").strip()
         password = row.get("password") or ""
@@ -409,12 +390,19 @@ class SupabaseUserRepository(UserRepository):
         # Without a password (offline/no-portal-access staff), keep the
         # existing behaviour: a directory-only row with no auth identity.
         if email and password:
-            auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
-            if auth_user is None:
-                # GoTrue already has this email (e.g. a retried registration
-                # after a previous partial failure) — reuse that identity
-                # instead of silently creating a passwordless orphan row.
-                auth_user = _client.auth_get_user_by_email(email)
+            try:
+                auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+                if auth_user is None:
+                    # GoTrue already has this email (e.g. a retried registration
+                    # after a previous partial failure) — reuse that identity
+                    # instead of silently creating a passwordless orphan row.
+                    auth_user = _client.auth_get_user_by_email(email)
+            except GoTrueError as exc:
+                log.error(
+                    "supabase.add_user gotrue call failed",
+                    extra={"email": email, "status": exc.status_code, "body": exc.body},
+                )
+                raise
             if auth_user and auth_user.get("id"):
                 user_id = auth_user["id"]
             else:
@@ -424,7 +412,10 @@ class SupabaseUserRepository(UserRepository):
                     extra={"email": email},
                 )
 
-        now_str = datetime.now(timezone.utc).isoformat()
+        # public.users has no updated_at column (see
+        # supabase/migrations/20260711131850_init_schema.sql) — created_at
+        # has a DB default, so it's fine to omit too, but setting it
+        # explicitly keeps this repo's timestamp in sync with GoTrue's.
         _client.insert("users", {
             "id": user_id,
             "company_id": company_id,
@@ -432,8 +423,7 @@ class SupabaseUserRepository(UserRepository):
             "phone": row.get("phone", ""),
             "email": email,
             "role": row.get("role", ""),
-            "created_at": row.get("created_at") or now_str,
-            "updated_at": row.get("updated_at") or now_str,
+            "created_at": row.get("created_at") or datetime.now(timezone.utc).isoformat(),
         })
 
     def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
