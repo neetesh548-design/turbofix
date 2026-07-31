@@ -58,6 +58,46 @@ export default function Demo() {
                 <Link className="marketing-btn marketing-btn-primary" to="/login.html">{copy.demoLogin}<ArrowRight /></Link>
               </aside>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
+                    alt="Operator QR Scanner Demo"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Operator View</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">10-sec QR Reporting</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Operators report machine issues by scanning QR codes on mobile browsers without app downloads.</p>
+              </div>
+
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`}
+                    alt="Technician Field Repair Demo"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Technician View</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Technician WhatsApp AI</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Receive instant WhatsApp breakdown alerts with 5-Why diagnostic guidance and spare part recommendations.</p>
+              </div>
+
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`}
+                    alt="Control Room Executive Dashboard Demo"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Executive View</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Plant Owner Control Room</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Monitor plant-wide MTBF, MTTR, SLA compliance, and open breakdown work order queues in real time.</p>
+              </div>
+            </div>
           </div>
         </section>
       </div>

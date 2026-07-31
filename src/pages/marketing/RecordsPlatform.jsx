@@ -73,6 +73,46 @@ export default function RecordsPlatform() {
               })}
               <Link className="marketing-record-cta" to="/login.html">{copy.recordsCta}<ArrowRight /></Link>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/records_ocr_digitization.jpg`}
+                    alt="Paper Logbook & Handwritten OCR Scanning"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">OCR Engine</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Paper Logbook OCR</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Turn handwritten register pages, PDF manuals, and vendor service invoices into searchable digital records.</p>
+              </div>
+
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/shutdown_overhaul_team.jpg`}
+                    alt="Shutdown & Heavy Overhaul Logbook Digitization"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Overhaul Vault</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Overhaul History Preservation</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Preserve historical annual overhaul reports, sensor calibration certificates, and major component replacements.</p>
+              </div>
+
+              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/plant_settings_security.jpg`}
+                    alt="Approved Document Vault & Security"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Plant Security</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Human Approval Gate</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">Maintenance Head reviews and approves extracted machine context before AI uses it in live breakdown assistance.</p>
+              </div>
+            </div>
           </div>
         </section>
 
