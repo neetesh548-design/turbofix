@@ -384,6 +384,7 @@
   "382": ".get",
   "383": ".attach_voice_note",
   "384": ".update_ai_fields",
+  "385": "qr-session-30day.spec.js",
   "390": "admin-portal.spec.js",
   "391": "admin-portal-prod.spec.js",
   "392": "machines-page-check.spec.js"

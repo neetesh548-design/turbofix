@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-07-31)
 
 ## Corpus Check
-- 563 files · ~1,024,259 words
+- 564 files · ~1,024,624 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4341 nodes · 8018 edges · 388 communities (253 shown, 135 thin omitted)
+- 4342 nodes · 8018 edges · 389 communities (254 shown, 135 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 355 edges (avg confidence: 0.63)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8079c497`
+- Built from commit: `2aa49658`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -381,7 +381,7 @@
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 - **Smart Modules Configuration Options** — settings_screenshot_iot_predictive_power_signature, settings_screenshot_visual_spare_part_deduction, settings_screenshot_dynamic_supply_chain_sync, settings_screenshot_opportunistic_mesh_syncing, settings_screenshot_location_handshake_verification [EXTRACTED 1.00]
 
-## Communities (388 total, 135 thin omitted)
+## Communities (389 total, 135 thin omitted)
 
 ### Community 0 - "UserRepository"
 Cohesion: 0.09
@@ -1190,11 +1190,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **Why does `react` connect `wacrm_client.py` to `machine_record_service.py`, `auth.test.js`, `Support.jsx`, `FakeAuthClient`, `LocalTicketRepository`, `email_client.py`, `MachineRepository`, `machineIdOf`, `kpi_router.py`, `config.py`, `Top Navigation Bar`, `get_technician_load`, `test_vault_auth.py`, `ShutdownPlanner.jsx`, `Inventory.jsx`, `ticketQueues.js`, `intelligence_service.py`, `SupabaseCustomKpiRepository`, `conftest.py`, `gemini.py`, `health`, `test_report_router.py`, `PerformanceMonitor`, `dynamicChecklist.js`, `SheetsCustomKpiRepository`, `machine_data_service.py`, `RCA.jsx`, `test_report_router.py`, `LocalTechnicianWorkRepository`, `Dashboard.jsx`, `Kaizen.jsx`, `FakeAsyncClient`, `.oxlintrc.json`, `StitchVisualCharts.jsx`, `Kaizen.jsx`, `MachineDetailDrawer.jsx`, `.list_data`, `handle_approve_command`, `tabs.jsx`, `roles.js`, `.next_ticket_id`, `Technician.jsx`, `Dashboard.jsx`, `Navbar.jsx`, `MachinesRefactored.jsx`, `TicketDetailPanel.jsx`, `Home.jsx`, `.append`, `.get`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `SupabaseTicketRepository` connect `LocalUserRepository` to `test_supabase_machine_records.py`, `MachinesRefactored.jsx`, `SheetsPartsRepository`, `.select`, `SupervisorKaizen.jsx`, `ticket_gateway/index.ts`, `useI18n`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `TicketRepository` connect `fanout_service.py` to `SupabaseCustomKpiRepository`, `whatsapp_webhook/index.ts`, `DocumentRepository`, `webhook_router.py`, `SheetsTechnicianWorkRepository`, `MicrosoftAppLauncher.jsx`, `BaseModel`, `MachinesRefactored.jsx`, `SupabaseTicketRepository`, `useI18n`, `SupervisorKaizen.jsx`, `devDependencies`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `react` connect `LocalTicketRepository` to `Kaizen.jsx`, `SupabaseCustomKpiRepository`, `MachinesRefactored.jsx`, `config.py`, `AppShell.jsx`, `wacrm_client.py`, `LocalTechnicianWorkRepository`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Are the 22 inferred relationships involving `CurrentUser` (e.g. with `AddSupervisorRequest` and `ForgotPasswordRequest`) actually correct?**
   _`CurrentUser` has 22 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 15 inferred relationships involving `MachineRepository` (e.g. with `SheetsEventRepository` and `SheetsMachineRepository`) actually correct?**
