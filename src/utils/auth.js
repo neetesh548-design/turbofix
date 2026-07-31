@@ -8,11 +8,23 @@
  * Demo tokens are UX-only. Server-side auth/RLS must still enforce real access.
  */
 
+const VALID_DEMO_ROLES = new Set([
+  'operator',
+  'owner',
+  'supervisor',
+  'technician',
+  'maintenance_technician',
+  'maintenance_engineer',
+  'quality_inspector',
+  'maintenance_head',
+  'safety_officer',
+]);
+
 export function isTokenExpired(token, now = Date.now()) {
   if (!token) return true;
   if (token.startsWith('demo:')) {
     const role = token.slice(5).trim();
-    return !role;
+    return !VALID_DEMO_ROLES.has(role);
   }
   try {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
