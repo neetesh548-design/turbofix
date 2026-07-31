@@ -622,40 +622,8 @@ export default function QRGateway() {
     };
   }, [lang, phoneGate]);
 
-  const speak = (text) => {
-    if (!speakFeedback || !window.speechSynthesis) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        let best = null;
-        const langPrefix = lang.split('-')[0];
-        const preferredKeywords = lang === 'en-US'
-          ? ['google us', 'samantha', 'karen', 'daniel', 'google uk', 'rishi', 'moira', 'aaron']
-          : lang === 'hi-IN'
-          ? ['google हिन्दी', 'google hindi', 'lekha']
-          : ['google मराठी', 'google marathi'];
-        for (const v of voices) {
-          const vName = v.name.toLowerCase();
-          if (preferredKeywords.some(k => vName.includes(k))) {
-            best = v;
-            break;
-          }
-        }
-        if (!best) {
-          best = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(langPrefix));
-        }
-        if (best) utterance.voice = best;
-      }
-      utterance.rate = lang === 'en-US' ? 0.85 : 0.9;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn('Speech synthesis notice:', e);
-    }
-  };
+  // Audio completely removed from QR Gateway per user request
+  const speak = () => {};
 
   useEffect(() => {
     const loadVoices = () => window.speechSynthesis?.getVoices();
@@ -1503,16 +1471,7 @@ export default function QRGateway() {
                 Log out
               </button>
             )}
-            <button 
-              type="button" 
-              onClick={() => setSpeakFeedback(!speakFeedback)} 
-              style={{ width: '44px', height: '44px', display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', color: speakFeedback ? 'var(--brand)' : 'var(--muted-foreground)', cursor: 'pointer', padding: 0 }}
-              title="Toggle Voice Feedback"
-              aria-label={`${speakFeedback ? 'Turn off' : 'Turn on'} voice feedback`}
-              aria-pressed={speakFeedback}
-            >
-              {speakFeedback ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            </button>
+
             <button
               type="button"
               onClick={greetUser}
