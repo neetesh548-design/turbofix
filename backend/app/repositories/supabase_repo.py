@@ -102,9 +102,11 @@ class _SupabaseClient:
         with httpx.Client(timeout=15) as c:
             r = c.get(url, headers=self._headers, params=params or {})
             if r.status_code >= 400:
-                # TEMP diagnostic: embed body so failures surface with real
-                # detail. TODO(remove-after-diagnosis): back to raise_for_status().
-                raise RuntimeError(f"PostgREST select {table!r} failed: {r.status_code} {r.text}")
+                log.error(
+                    "postgrest.select_failed",
+                    extra={"table": table, "status": r.status_code, "body": r.text},
+                )
+            r.raise_for_status()
             return r.json()
 
     def select_one(self, table: str, params: dict) -> dict | None:
@@ -120,9 +122,7 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-                # TEMP diagnostic: embed body so failures surface with real
-                # detail. TODO(remove-after-diagnosis): back to raise_for_status().
-                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
+            r.raise_for_status()
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -225,12 +225,15 @@ def _factory_id_for_code(code: str) -> str | None:
             return "f1000000-0000-0000-0000-000000000099"
         return None
 
-    # 1. Query factories table directly by company_id
-    factory = _client.select_one("factories", {"company_id": f"eq.{company_id}"})
-    if factory and factory.get("id"):
-        return factory["id"]
+    # The live "factories" table has no company_id column (it was recreated,
+    # without one, after an earlier migration renamed the original factories
+    # table to "organizations" — see supabase/migrations/20260721120000_
+    # enterprise_schema_phase1.sql and 20260722173000_tfdemo_annual_
+    # breakdown_seed.sql), so a factory can only be found via an existing
+    # machine's factory_id, or by matching the company's name — never by a
+    # direct company_id filter.
 
-    # 2. Machines link to both company_id and factory_id; find a machine to get factory_id
+    # 1. Machines link to both company_id and factory_id; find a machine to get factory_id
     machine = _client.select_one("machines", {
         "company_id": f"eq.{company_id}",
         "select": "factory_id",
@@ -238,7 +241,8 @@ def _factory_id_for_code(code: str) -> str | None:
     if machine and machine.get("factory_id"):
         return machine["factory_id"]
 
-    # 3. Fallback: look up factories by name match
+    # 2. Fallback: look up factories by name match (add_company() creates a
+    # factories row with the same name for every new company)
     company = _client.select_one("companies", {"id": f"eq.{company_id}"})
     if company:
         factory = _client.select_one("factories", {"name": f"eq.{company['name']}"})
@@ -581,6 +585,16 @@ class SupabaseUserRepository(UserRepository):
             data.pop("admin_contact_phone", None)
             _client.insert("companies", data)
 
+        # machines.factory_id has a real FK to factories(id), and the
+        # "factories" table has no company_id column to link back to this
+        # company (see _factory_id_for_code) — so every company needs a
+        # same-named factories row for that name-match lookup to find,
+        # otherwise the very first machine a new company adds fails the FK.
+        try:
+            _client.insert("factories", {"name": company_name})
+        except Exception as exc:
+            log.error("supabase.add_company factories row failed", extra={"error": str(exc)})
+
     def delete_company(self, company_code: str) -> bool:
         self._COMPANY_QUOTA_OVERRIDES.pop(company_code, None)
         self._COMPANY_PHONE_OVERRIDES.pop(company_code, None)
@@ -648,25 +662,24 @@ class SupabaseMachineRepository(MachineRepository):
         return self._row_to_dict(row)
 
     def create(self, row: dict) -> None:
-        # TEMP diagnostic: surface any failure here via 502 instead of a bare
-        # 500 — no Render log access, no exception-detail leak path exists
-        # otherwise. TODO(remove-after-diagnosis).
-        try:
-            company_id = _company_id_for_code(row.get("company_code", ""))
-            factory_id = _factory_id_for_code(row.get("company_code", "")) or company_id
-            _client.insert("machines", {
-                "id": row.get("machine_id", str(uuid.uuid4())),
-                "company_id": company_id,
-                "factory_id": factory_id,
-                "name": row.get("machine_name", ""),
-                "location": row.get("location", ""),
-                "assigned_technician_phone": row.get("assigned_technician_phone", ""),
-                "informed_phone_1": row.get("informed_phone_1", ""),
-                "status": "active",
-            })
-        except Exception as exc:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=502, detail=f"machine create diag: {type(exc).__name__}: {exc}") from exc
+        company_id = _company_id_for_code(row.get("company_code", ""))
+        # machines.factory_id has a real FK to factories(id) — unlike
+        # company_id, it can't be faked with a companies-table UUID when no
+        # factory is found (that violates the FK); leave it null instead
+        # (the column is nullable). add_company() creates a same-named
+        # factories row for every new company, so this should normally
+        # resolve for anything but pre-existing companies from before that.
+        factory_id = _factory_id_for_code(row.get("company_code", ""))
+        _client.insert("machines", {
+            "id": row.get("machine_id", str(uuid.uuid4())),
+            "company_id": company_id,
+            "factory_id": factory_id,
+            "name": row.get("machine_name", ""),
+            "location": row.get("location", ""),
+            "assigned_technician_phone": row.get("assigned_technician_phone", ""),
+            "informed_phone_1": row.get("informed_phone_1", ""),
+            "status": "active",
+        })
         self.invalidate_cache()
 
     def invalidate_cache(self) -> None:
