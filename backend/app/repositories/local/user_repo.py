@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import openpyxl
 
+from app.auth import verify_password
 from app.repositories.base import (
     COMPANIES_HEADER,
     USERS_HEADER,
@@ -88,7 +89,13 @@ class LocalUserRepository(UserRepository):
             ws.append([row.get(col, "") for col in existing_header])
             wb.save(self._path)
 
-    def update_password(self, user_id: str, new_password_hash: str) -> bool:
+    def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
+        user = self.get_by_identifier(identifier)
+        if user and verify_password(password, user.get("password_hash", "")):
+            return user
+        return None
+
+    def update_password(self, user_id: str, new_password_hash: str, new_password: str = "") -> bool:
         with self._lock:
             wb = openpyxl.load_workbook(self._path)
             if "Users" not in wb.sheetnames:

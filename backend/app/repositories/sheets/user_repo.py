@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 
+from app.auth import verify_password
 from app.repositories.base import (
     COMPANIES_HEADER,
     USERS_HEADER,
@@ -54,7 +55,13 @@ class SheetsUserRepository(UserRepository):
         headers = ensure_headers(ws, USERS_HEADER)
         ws.append_row([row.get(col, "") for col in headers], value_input_option="RAW")
 
-    def update_password(self, user_id: str, new_password_hash: str) -> bool:
+    def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
+        user = self.get_by_identifier(identifier)
+        if user and verify_password(password, user.get("password_hash", "")):
+            return user
+        return None
+
+    def update_password(self, user_id: str, new_password_hash: str, new_password: str = "") -> bool:
         ws = self._ws("Users")
         cell = ws.find(user_id, in_column=1)
         if cell is None:

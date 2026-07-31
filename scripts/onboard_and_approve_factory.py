@@ -50,6 +50,7 @@ def onboard_and_approve_factory():
             "phone": admin_contact_phone,
             "role": "owner",
             "password_hash": hashed_pw,
+            "password": owner_password,
             "plant_location": "Main Manufacturing Bay - Unit 1",
             "department": "Plant Management"
         })

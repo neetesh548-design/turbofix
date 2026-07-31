@@ -46,6 +46,7 @@ def main() -> None:
         "email": args.email,
         "role": args.role,
         "password_hash": hash_password(password),
+        "password": password,
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     })
     print(f"Created {args.role} user {user_id} ({args.name}, {args.company_code})")

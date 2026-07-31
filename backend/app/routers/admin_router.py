@@ -536,7 +536,7 @@ def admin_reset_user_password(
     password_error = validate_password_strength(body.new_password)
     if password_error:
         raise HTTPException(status_code=400, detail=password_error)
-    users.update_password(user_id, hash_password(body.new_password))
+    users.update_password(user_id, hash_password(body.new_password), body.new_password)
     log.info(
         "admin.user_password_reset",
         user_id=user_id,
@@ -644,6 +644,7 @@ def admin_onboard_company(
             "email": body.owner_email.strip(),
             "role": Role.OWNER.value,
             "password_hash": hash_password(body.owner_password),
+            "password": body.owner_password,
             "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         })
     except Exception as exc:

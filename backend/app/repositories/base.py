@@ -285,11 +285,36 @@ class UserRepository(ABC):
 
     @abstractmethod
     def add(self, row: dict) -> None:
-        """Append a new user row. Keys must match USERS_HEADER."""
+        """Append a new user row. Keys must match USERS_HEADER.
+
+        Backends that need the raw password to create their own auth
+        identity (e.g. Supabase GoTrue, which does its own hashing and
+        cannot accept a pre-computed hash) should also accept an optional
+        `password` key alongside `password_hash`. Callers should always set
+        both — file-backed implementations use `password_hash` and ignore
+        `password`; Supabase uses `password` and ignores `password_hash`.
+        """
 
     @abstractmethod
-    def update_password(self, user_id: str, new_password_hash: str) -> bool:
-        """Overwrite password_hash for one user. Returns True if found."""
+    def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
+        """Verify identifier (phone or email) + password. Return the user dict if valid, else None.
+
+        Each backend owns its own credential check because the storage
+        mechanism differs: file-backed repositories compare against a
+        stored password_hash; SupabaseUserRepository has no usable
+        password_hash locally and must verify against Supabase Auth
+        (GoTrue) instead. Callers must never compare password_hash
+        themselves — always go through this method.
+        """
+
+    @abstractmethod
+    def update_password(self, user_id: str, new_password_hash: str, new_password: str = "") -> bool:
+        """Overwrite the password for one user. Returns True if found.
+
+        Same dual-field pattern as `add()`: file-backed implementations use
+        new_password_hash; SupabaseUserRepository needs the raw new_password
+        to hand to GoTrue's admin update-user API and ignores the hash.
+        """
 
     @abstractmethod
     def get_company(self, company_code: str) -> Optional[dict]:

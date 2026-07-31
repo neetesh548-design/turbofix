@@ -48,8 +48,8 @@ class LoginRequest(BaseModel):
 @router.post("/login")
 @limiter.limit("5/minute")
 def login(request: Request, body: LoginRequest, users: UserRepository = Depends(get_users)):
-    user = users.get_by_identifier(body.identifier)
-    if user is None or not verify_password(body.password, user.get("password_hash", "")):
+    user = users.verify_credentials(body.identifier, body.password)
+    if user is None:
         raise HTTPException(status_code=401, detail="invalid credentials")
 
     company = users.get_company(user["company_code"])
@@ -130,6 +130,7 @@ def register_company(request: Request, body: RegisterRequest, users: UserReposit
         "email": body.owner_email.strip(),
         "role": Role.OWNER.value,
         "password_hash": hash_password(body.owner_password),
+        "password": body.owner_password,
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     })
 
@@ -235,6 +236,7 @@ def add_supervisor(
         "email": email,
         "role": body.role,
         "password_hash": hash_password(body.password) if body.portal_access else "",
+        "password": body.password if body.portal_access else "",
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "manager_user_id": manager_user_id,
         "department": body.department.strip(),
@@ -305,7 +307,7 @@ def reset_password(request: Request, body: ResetPasswordRequest, users: UserRepo
     if user is None or not reset_token_matches(payload, user.get("password_hash", "")):
         raise HTTPException(status_code=400, detail="this reset link is invalid or has expired")
 
-    users.update_password(user["user_id"], hash_password(body.new_password))
+    users.update_password(user["user_id"], hash_password(body.new_password), body.new_password)
     log.info("auth.password_reset", user_id=user["user_id"])
     return {"message": "Your password has been reset. You can now sign in with it."}
 
@@ -557,7 +559,7 @@ def otp_reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User account not found for this mobile number.")
 
-    users.update_password(user["user_id"], hash_password(body.new_password))
+    users.update_password(user["user_id"], hash_password(body.new_password), body.new_password)
     _OTP_STORE.pop(phone_clean, None)
     log.info("auth.otp_password_reset_success", user_id=user["user_id"], phone=phone_clean)
     return {"message": "Your password has been reset successfully. You can now sign in with your new password."}

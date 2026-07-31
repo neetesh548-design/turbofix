@@ -65,13 +65,21 @@ class _SupabaseClient:
     """Thin wrapper around httpx for PostgREST calls."""
 
     def __init__(self):
-        self._base = config.SUPABASE_URL.rstrip("/") + "/rest/v1"
+        root = config.SUPABASE_URL.rstrip("/")
+        self._base = root + "/rest/v1"
+        self._auth_base = root + "/auth/v1"
         key = config.SUPABASE_SERVICE_ROLE_KEY or "dummy-key"
         self._headers = {
             "apikey": key,
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
             "Prefer": "return=representation",
+        }
+        # GoTrue endpoints want just apikey + Content-Type — no return=representation.
+        self._auth_headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
         }
 
     def _url(self, table: str) -> str:
@@ -114,6 +122,60 @@ class _SupabaseClient:
             r.raise_for_status()
             data = r.json()
             return len(data) > 0 if isinstance(data, list) else True
+
+    # -- GoTrue (Supabase Auth) --------------------------------------------
+    # Real credential storage/verification lives here, not in our own
+    # password_hash column — see SupabaseUserRepository docstring.
+
+    def auth_admin_create_user(self, email: str, password: str, phone: str = "") -> Optional[dict]:
+        """Create a real Supabase Auth identity for a new user. Returns the
+        auth user object (with its `id`) on success, or None if GoTrue
+        already has an identity for this email (e.g. a retried/duplicate
+        registration) — the caller should fall back to looking that user up
+        rather than treating it as a hard failure.
+        """
+        url = f"{self._auth_base}/admin/users"
+        payload = {"email": email, "password": password, "email_confirm": True}
+        if phone:
+            payload["phone"] = phone
+        with httpx.Client(timeout=15) as c:
+            r = c.post(url, headers=self._auth_headers, json=payload)
+            if r.status_code in (400, 422) and "already been registered" in r.text.lower():
+                return None
+            r.raise_for_status()
+            return r.json()
+
+    def auth_get_user_by_email(self, email: str) -> Optional[dict]:
+        """Look up an existing GoTrue identity by email (admin API)."""
+        url = f"{self._auth_base}/admin/users"
+        with httpx.Client(timeout=15) as c:
+            r = c.get(url, headers=self._auth_headers, params={"email": email})
+            r.raise_for_status()
+            body = r.json()
+            users = body.get("users", body) if isinstance(body, dict) else body
+            for u in users or []:
+                if str(u.get("email", "")).strip().lower() == email.strip().lower():
+                    return u
+            return None
+
+    def auth_admin_update_password(self, auth_user_id: str, new_password: str) -> bool:
+        """Overwrite a GoTrue identity's password via the admin API."""
+        url = f"{self._auth_base}/admin/users/{auth_user_id}"
+        with httpx.Client(timeout=15) as c:
+            r = c.put(url, headers=self._auth_headers, json={"password": new_password})
+            return r.status_code == 200
+
+    def auth_verify_password(self, email: str, password: str) -> bool:
+        """Verify email+password against GoTrue. True only on a genuine match."""
+        url = f"{self._auth_base}/token"
+        with httpx.Client(timeout=15) as c:
+            r = c.post(
+                url,
+                headers=self._auth_headers,
+                params={"grant_type": "password"},
+                json={"email": email, "password": password},
+            )
+            return r.status_code == 200
 
 
 _client = _SupabaseClient()
@@ -289,25 +351,67 @@ class SupabaseUserRepository(UserRepository):
 
     def add(self, row: dict) -> None:
         company_id = _company_id_for_code(row.get("company_code", ""))
+        email = (row.get("email") or "").strip()
+        password = row.get("password") or ""
+        user_id = row.get("user_id") or str(uuid.uuid4())
+
+        # A raw password means this account needs to be able to log in —
+        # create (or reuse) a real GoTrue identity and use ITS id as the
+        # public.users.id, matching the schema's auth.users(id) linkage.
+        # Without a password (offline/no-portal-access staff), keep the
+        # existing behaviour: a directory-only row with no auth identity.
+        if email and password:
+            auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+            if auth_user is None:
+                # GoTrue already has this email (e.g. a retried registration
+                # after a previous partial failure) — reuse that identity
+                # instead of silently creating a passwordless orphan row.
+                auth_user = _client.auth_get_user_by_email(email)
+            if auth_user and auth_user.get("id"):
+                user_id = auth_user["id"]
+            else:
+                log.warning(
+                    "supabase.add_user could not create or find a GoTrue identity; "
+                    "this account will not be able to log in",
+                    extra={"email": email},
+                )
+
         _client.insert("users", {
-            "id": row.get("user_id", str(uuid.uuid4())),
+            "id": user_id,
             "company_id": company_id,
             "name": row.get("name", ""),
             "phone": row.get("phone", ""),
-            "email": row.get("email", ""),
+            "email": email,
             "role": row.get("role", ""),
         })
 
-    def update_password(self, user_id: str, new_password_hash: str) -> bool:
-        # In Supabase, passwords are managed via GoTrue (auth.users).
-        # For the Python backend admin password-reset, we cannot update
-        # auth.users.encrypted_password via PostgREST.  Log a warning.
-        log.warning(
-            "update_password called on Supabase repo — password changes "
-            "should go through Supabase Auth admin API instead.",
-            extra={"user_id": user_id},
-        )
-        return True
+    def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
+        user = self.get_by_identifier(identifier)
+        if not user or not user.get("email"):
+            return None
+        if _client.auth_verify_password(user["email"], password):
+            return user
+        return None
+
+    def update_password(self, user_id: str, new_password_hash: str, new_password: str = "") -> bool:
+        # public.users.id == auth.users.id for any account created with a
+        # password (see add() above), so user_id doubles as the GoTrue id.
+        if not new_password:
+            log.warning(
+                "SupabaseUserRepository.update_password called without a raw "
+                "new_password — nothing was changed. Pass new_password, not "
+                "just new_password_hash; GoTrue owns the real credential.",
+                extra={"user_id": user_id},
+            )
+            return False
+        try:
+            return _client.auth_admin_update_password(user_id, new_password)
+        except httpx.HTTPStatusError as exc:
+            log.warning(
+                "supabase.update_password failed",
+                extra={"user_id": user_id, "error": str(exc)},
+            )
+            return False
 
     # -- Company CRUD ----------------------------------------------------------
 
