@@ -515,18 +515,23 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 }
 
 .container {
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 24px;
 }
 @media (min-width: 768px) {
   .container {
-    padding: 0 24px;
+    padding: 0 40px;
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 48px;
   }
 }
 @media (min-width: 1280px) {
   .container {
-    padding: 0 32px;
+    padding: 0 64px;
   }
 }
 
@@ -548,18 +553,23 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 
 /* AI maintenance decision center & workspace pages */
 .decision-page, .assistant-page, .planner-page {
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 24px 24px 80px;
 }
 @media (min-width: 768px) {
   .decision-page, .assistant-page, .planner-page {
-    padding: 32px 24px 80px;
+    padding: 32px 40px 80px;
+  }
+}
+@media (min-width: 1024px) {
+  .decision-page, .assistant-page, .planner-page {
+    padding: 40px 48px 80px;
   }
 }
 @media (min-width: 1280px) {
   .decision-page, .assistant-page, .planner-page {
-    padding: 42px 32px 80px;
+    padding: 48px 64px 80px;
   }
 }
 
@@ -578,7 +588,7 @@ input:not([class*="ant-"])::placeholder, textarea:not([class*="ant-"])::placehol
 .technician-page,
 .inventory-page,
 .settings-page {
-  max-width: 1240px;
+  max-width: 1180px;
 }
 .decision-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; }
 .decision-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 8px 0 10px; font-weight: 800; }
@@ -10999,21 +11009,27 @@ a:focus-visible,
 /* Mobile-1st & Multi-Display Responsive Container (Mobile, Laptop, Ultra-Wide PC) */
 .app-content {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 16px 16px 40px 16px;
+  padding: 16px 24px 40px 24px;
   box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
   .app-content {
-    padding: 24px 24px 48px 24px;
+    padding: 24px 40px 48px 40px;
   }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1024px) {
   .app-content {
-    padding: 32px 32px 60px 32px;
+    padding: 32px 48px 56px 48px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .app-content {
+    padding: 40px 64px 64px 64px;
   }
 }
 
