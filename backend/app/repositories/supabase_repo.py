@@ -122,7 +122,8 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-            r.raise_for_status()
+                # TEMP diagnostic. TODO(remove-after-diagnosis).
+                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -662,24 +663,23 @@ class SupabaseMachineRepository(MachineRepository):
         return self._row_to_dict(row)
 
     def create(self, row: dict) -> None:
-        company_id = _company_id_for_code(row.get("company_code", ""))
-        # machines.factory_id has a real FK to factories(id) — unlike
-        # company_id, it can't be faked with a companies-table UUID when no
-        # factory is found (that violates the FK); leave it null instead
-        # (the column is nullable). add_company() creates a same-named
-        # factories row for every new company, so this should normally
-        # resolve for anything but pre-existing companies from before that.
-        factory_id = _factory_id_for_code(row.get("company_code", ""))
-        _client.insert("machines", {
-            "id": row.get("machine_id", str(uuid.uuid4())),
-            "company_id": company_id,
-            "factory_id": factory_id,
-            "name": row.get("machine_name", ""),
-            "location": row.get("location", ""),
-            "assigned_technician_phone": row.get("assigned_technician_phone", ""),
-            "informed_phone_1": row.get("informed_phone_1", ""),
-            "status": "active",
-        })
+        # TEMP diagnostic: surface any failure via 502. TODO(remove-after-diagnosis).
+        try:
+            company_id = _company_id_for_code(row.get("company_code", ""))
+            factory_id = _factory_id_for_code(row.get("company_code", ""))
+            _client.insert("machines", {
+                "id": row.get("machine_id", str(uuid.uuid4())),
+                "company_id": company_id,
+                "factory_id": factory_id,
+                "name": row.get("machine_name", ""),
+                "location": row.get("location", ""),
+                "assigned_technician_phone": row.get("assigned_technician_phone", ""),
+                "informed_phone_1": row.get("informed_phone_1", ""),
+                "status": "active",
+            })
+        except Exception as exc:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=502, detail=f"machine create diag2: company_id={company_id!r} factory_id={factory_id!r} :: {type(exc).__name__}: {exc}") from exc
         self.invalidate_cache()
 
     def invalidate_cache(self) -> None:
