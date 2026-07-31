@@ -112,7 +112,17 @@ class _SupabaseClient:
         url = self._url(table)
         with httpx.Client(timeout=15) as c:
             r = c.post(url, headers=self._headers, json=row)
-            r.raise_for_status()
+            if r.status_code >= 400:
+                log.error(
+                    "postgrest.insert_failed",
+                    extra={"table": table, "status": r.status_code, "body": r.text},
+                )
+                # TEMP diagnostic: embed the PostgREST response body directly
+                # in the exception message (raise_for_status()'s default
+                # message omits it) so it surfaces through add()'s diagnostic
+                # wrapper without needing log access.
+                # TODO(remove-after-diagnosis): back to plain r.raise_for_status().
+                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
