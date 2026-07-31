@@ -214,7 +214,16 @@ export default function Dashboard() {
       user?.user_id || user?.email || 'anon',
     ].join(':');
 
-    return cacheRef.current.resolve(key, () => buildRoleMetrics(role, input));
+    return cacheRef.current.resolve(key, () => ({
+      ...buildRoleMetrics(role, input),
+      // The KPI strip/donut above render outside the per-role dashboards but
+      // still need to agree with them — reuse the same demo-normalized
+      // machines/tickets `buildRoleMetrics` was built from instead of the
+      // raw (non-demo-aware) `sources`, which used to show a different
+      // machine count and an absurd ticket-count-as-machine-count donut.
+      displayMachines: input.machines,
+      displayTickets: input.tickets,
+    }));
   }, [role, sources, user, isDemo, noFleetData, demoSession]);
 
   const specialistHeadings = {
@@ -316,10 +325,10 @@ export default function Dashboard() {
               
               <div className="flex items-center gap-2 flex-wrap">
                 <a href="tickets.html" className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all flex items-center gap-1.5">
-                  <span>View Tickets ({sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
+                  <span>View Tickets ({metrics?.displayTickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
                 </a>
                 <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all flex items-center gap-1.5">
-                  <span>Machine Register ({sources.machines?.length || 0})</span>
+                  <span>Machine Register ({metrics?.fleetHealth?.total || 0})</span>
                 </a>
               </div>
             </div>
@@ -329,28 +338,28 @@ export default function Dashboard() {
               <a href="machines.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Fleet Machines</span>
                 <div className="text-xl font-extrabold text-white mt-1 flex items-center justify-between">
-                  <span>{sources.machines?.length || 0}</span>
+                  <span>{metrics?.fleetHealth?.total || 0}</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
                 </div>
               </a>
               <a href="tickets.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all group">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Open Tickets</span>
                 <div className="text-xl font-extrabold text-amber-400 mt-1 flex items-center justify-between">
-                  <span>{sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
+                  <span>{metrics?.displayTickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                 </div>
               </a>
               <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
                 <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
-                  <span>{sources.tickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
+                  <span>{metrics?.displayTickets?.filter(t => String(t.urgency || '').toLowerCase() === 'critical' || String(t.urgency || '').toLowerCase() === 'high').length || 0}</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171]" />
                 </div>
               </a>
               <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">SLA Health</span>
                 <div className="text-xl font-extrabold text-emerald-400 mt-1 flex items-center justify-between">
-                  <span>{metrics?.sla?.complianceRate ? `${Math.round(metrics.sla.complianceRate)}%` : '98.5%'}</span>
+                  <span>{metrics?.sla?.pct != null ? `${metrics.sla.pct}%` : '—'}</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
                 </div>
               </a>
@@ -362,10 +371,10 @@ export default function Dashboard() {
                 title="Plant Fleet Health Distribution"
                 subtitle="Live Machine Status"
                 data={[
-                  { label: 'Running (Optimal)', value: sources.machines?.length ? Math.max(1, sources.machines.length - 3) : 18, color: '#50FFAB' },
-                  { label: 'Minor Issues', value: 2, color: '#FBBF24' },
-                  { label: 'Breakdown / Down', value: sources.tickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 1, color: '#F87171' },
-                  { label: 'Scheduled PM', value: 1, color: '#60A5FA' },
+                  { label: 'Running (Optimal)', value: metrics?.fleetHealth?.byStatus?.running || 0, color: '#50FFAB' },
+                  { label: 'Minor Issues', value: metrics?.fleetHealth?.byStatus?.issues || 0, color: '#FBBF24' },
+                  { label: 'Breakdown / Down', value: metrics?.fleetHealth?.byStatus?.down || 0, color: '#F87171' },
+                  { label: 'Scheduled PM', value: metrics?.fleetHealth?.byStatus?.maintenance || 0, color: '#60A5FA' },
                 ]}
                 centerLabel="Fleet"
               />

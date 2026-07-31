@@ -790,9 +790,9 @@
     "semantic_hash": "15c19ed42049b1852476de656095392d"
   },
   "src/pages/Home.jsx": {
-    "mtime": 1785451389.6703749,
-    "ast_hash": "7afaa36f5b53a64f2e6ff105f94cb664",
-    "semantic_hash": "7afaa36f5b53a64f2e6ff105f94cb664"
+    "mtime": 1785484449.0293522,
+    "ast_hash": "87e0f6f74b68756f4ea97890c1fed307",
+    "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
     "mtime": 1785452596.076874,
@@ -2690,24 +2690,24 @@
     "semantic_hash": "89f0dd0c0d308c99c647696433168076"
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785478808.6869495,
-    "ast_hash": "a8346559bb128abed920b0e9f28a879c",
-    "semantic_hash": "a8346559bb128abed920b0e9f28a879c"
+    "mtime": 1785484449.0509765,
+    "ast_hash": "dbe1f5f51ee13b46e377ead6217b2c63",
+    "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
-    "mtime": 1785480912.8687327,
-    "ast_hash": "f5999093e678971649b20970bc52abc0",
+    "mtime": 1785484449.0368524,
+    "ast_hash": "8034f3512587a7905c6c722dd43418f1",
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
-    "mtime": 1785456495.2402818,
-    "ast_hash": "0973b0f8b8f6edbbd1373fb84fe4ea6a",
-    "semantic_hash": "0973b0f8b8f6edbbd1373fb84fe4ea6a"
+    "mtime": 1785484449.0442657,
+    "ast_hash": "7d0ac6c6d73f186ea3acbe9360c17a14",
+    "semantic_hash": ""
   },
   "src/pages/marketing/RecordsPlatform.jsx": {
-    "mtime": 1785456502.1106145,
-    "ast_hash": "f115e5398f312e5ade6c63757053d2b3",
-    "semantic_hash": "f115e5398f312e5ade6c63757053d2b3"
+    "mtime": 1785484449.064875,
+    "ast_hash": "2b4364cfb2e11438dc69ac9134871df3",
+    "semantic_hash": ""
   },
   "src/pages/marketing/WhyTurboFix.jsx": {
     "mtime": 1785480887.9757795,
@@ -2715,8 +2715,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Workflow.jsx": {
-    "mtime": 1785480925.5472658,
-    "ast_hash": "295a2c7dbc430f38dd9d8876de06c76b",
+    "mtime": 1785484449.0579946,
+    "ast_hash": "b0ed96a40f0e1e5f93a38a49ff1f992b",
     "semantic_hash": ""
   },
   "tests/admin-data-audit.spec.js": {
@@ -2995,18 +2995,18 @@
     "semantic_hash": "b751aab518e4e951e59f2e2c6faf30c5"
   },
   "public/assets/maintenance_head_lead.jpg": {
-    "mtime": 1785451378.8046374,
-    "ast_hash": "beac3f02c1f3a1729643940e610c72f3",
+    "mtime": 1785484411.9336512,
+    "ast_hash": "461e217572da036a5f25440c994b794a",
     "semantic_hash": ""
   },
   "public/assets/plant_owner_executive.jpg": {
-    "mtime": 1785451378.7998097,
-    "ast_hash": "17ba422803a0dfd50cc4641e7b180009",
+    "mtime": 1785484412.0235834,
+    "ast_hash": "52cc09865285df05f87687190942f07e",
     "semantic_hash": ""
   },
   "public/assets/technician_shift_lead.jpg": {
-    "mtime": 1785451378.8086746,
-    "ast_hash": "1e53516b75d88d70c2abfbf42eeb23c0",
+    "mtime": 1785484412.6748972,
+    "ast_hash": "3d7e56239d88b8b21d9012e3c0194ed4",
     "semantic_hash": ""
   },
   "tests/homepage-audit.spec.js": {
@@ -3015,43 +3015,43 @@
     "semantic_hash": "24efe8e2f04a14be6884149b37ebf3e4"
   },
   "public/assets/dashboard_executive_control.jpg": {
-    "mtime": 1785452327.1915574,
-    "ast_hash": "81fef46c67a4d8eef8be0fc319905520",
+    "mtime": 1785484411.6577513,
+    "ast_hash": "0bc64352d11d73d9fd5381a0bb8c903e",
     "semantic_hash": ""
   },
   "public/assets/inventory_warehouse_spares.jpg": {
-    "mtime": 1785452327.2156136,
-    "ast_hash": "b825dd05a5e7791ab59196d69b887e8a",
+    "mtime": 1785484411.7507713,
+    "ast_hash": "2c877b717aa062c3d6bc9d763cf0e6ea",
     "semantic_hash": ""
   },
   "public/assets/kaizen_innovation_shopfloor.jpg": {
-    "mtime": 1785452327.2112515,
-    "ast_hash": "5628ec90eb47586485e22dc1a9c676fb",
+    "mtime": 1785484411.8420198,
+    "ast_hash": "3bf98653748725d80dbd2591f5af4ed8",
     "semantic_hash": ""
   },
   "public/assets/qr_scanner_breakdown.jpg": {
-    "mtime": 1785452327.1980343,
-    "ast_hash": "6f936d93f72c2637974defd3bcc8b404",
+    "mtime": 1785484412.207533,
+    "ast_hash": "8ca5685c78476b3cafc671c25deae9ba",
     "semantic_hash": ""
   },
   "public/assets/rca_team_collaboration.jpg": {
-    "mtime": 1785452327.2072172,
-    "ast_hash": "df4fa140614bfc37f2e6614b56333492",
+    "mtime": 1785484412.2989438,
+    "ast_hash": "6c2ba5e135fb9383820e36eebbed0b3a",
     "semantic_hash": ""
   },
   "public/assets/records_ocr_digitization.jpg": {
-    "mtime": 1785452327.2193491,
-    "ast_hash": "e9deda243659350c884305c65d77a023",
+    "mtime": 1785484412.3907669,
+    "ast_hash": "966573356f02569049252c70672e103b",
     "semantic_hash": ""
   },
   "public/assets/shutdown_overhaul_team.jpg": {
-    "mtime": 1785452327.2225354,
-    "ast_hash": "ef3c1f1d53ff269848b85f4def304a83",
+    "mtime": 1785484412.490898,
+    "ast_hash": "99184092079bae8266fb8b089fbaa2a3",
     "semantic_hash": ""
   },
   "public/assets/technician_field_repair.jpg": {
-    "mtime": 1785452327.2031674,
-    "ast_hash": "62ccd2dbc6106cb721193ece26050166",
+    "mtime": 1785484412.5826905,
+    "ast_hash": "7bf25e0e9ea9b195f493341a42a654d1",
     "semantic_hash": ""
   },
   "tests/machines-page-check.spec.js": {
@@ -3065,8 +3065,8 @@
     "semantic_hash": "3b71e610f491ddf44d36580cf7566436"
   },
   "public/assets/plant_settings_security.jpg": {
-    "mtime": 1785454025.1292706,
-    "ast_hash": "bba141d8c20c59685efcb675c7148711",
+    "mtime": 1785484412.1156983,
+    "ast_hash": "45914b7aeb94ef5ea5f35b0250ebc4b3",
     "semantic_hash": ""
   },
   "tests/qr-gateway-tickets.spec.js": {
@@ -3083,5 +3083,10 @@
     "mtime": 1785478759.3399801,
     "ast_hash": "b82fb7970cc715a06b076a188fc4aff2",
     "semantic_hash": "b82fb7970cc715a06b076a188fc4aff2"
+  },
+  ".stitch-project.json": {
+    "mtime": 1785483327.4613855,
+    "ast_hash": "d647e22fbf8873e9b8c2388b5671464e",
+    "semantic_hash": ""
   }
 }
