@@ -257,7 +257,17 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --container: 1160px;
+  --container: 1600px;
+
+  /* Google Stitch Obsidian Industrial Tokens */
+  --stitch-surface: #131313;
+  --stitch-surface-low: #1c1b1b;
+  --stitch-surface-high: #2a2a2a;
+  --stitch-surface-highest: #353534;
+  --stitch-primary: #50ffab;
+  --stitch-primary-dim: #20e291;
+  --stitch-on-surface: #e5e2e1;
+  --stitch-outline: #859588;
 }
 
 /* ===========================================================
