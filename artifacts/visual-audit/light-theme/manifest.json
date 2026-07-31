@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-07-31T14:10:09.851Z",
+  "pagesAudited": [
+    {
+      "name": "Dashboard",
+      "path": "/",
+      "screenshot": "dashboard-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Tickets",
+      "path": "/tickets",
+      "screenshot": "tickets-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Technician",
+      "path": "/technician",
+      "screenshot": "technician-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Machines",
+      "path": "/machines",
+      "screenshot": "machines-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Inventory",
+      "path": "/inventory",
+      "screenshot": "inventory-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Settings",
+      "path": "/settings",
+      "screenshot": "settings-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Kaizen",
+      "path": "/kaizen",
+      "screenshot": "kaizen-light.png",
+      "defectCount": 0
+    },
+    {
+      "name": "Report Breakdown",
+      "path": "/report-breakdown",
+      "screenshot": "report-breakdown-light.png",
+      "defectCount": 0
+    }
+  ],
+  "visualDefects": []
+}
