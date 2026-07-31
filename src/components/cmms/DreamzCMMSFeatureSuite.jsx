@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import LockoutTagoutModule from './LockoutTagoutModule';
 import {
   Activity,
   AlertTriangle,
@@ -10,6 +10,7 @@ import {
   Database,
   Filter,
   Layers,
+  Lock,
   Package,
   Plus,
   RefreshCw,
@@ -19,7 +20,9 @@ import {
   User,
   Wrench,
   Zap,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldAlert,
+  Boxes
 } from 'lucide-react';
 
 const ASSET_HIERARCHY = [
@@ -86,6 +89,8 @@ export default function DreamzCMMSFeatureSuite() {
   const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'hierarchy', 'pm', 'spares'
   const [kanbanState, setKanbanState] = useState(INITIAL_KANBAN);
   const [selectedAsset, setSelectedAsset] = useState(ASSET_HIERARCHY[0].children[0].children[0]);
+  const [showLotoModal, setShowLotoModal] = useState(false);
+  const [reservedKits, setReservedKits] = useState({});
 
   return (
     <div className="dreamz-cmms-suite my-8 rounded-3xl border border-slate-800 bg-slate-950 p-6 md:p-8 shadow-2xl text-slate-100 overflow-hidden">
@@ -185,6 +190,13 @@ export default function DreamzCMMSFeatureSuite() {
                       </span>
                     </div>
                     <h4 className="text-xs font-bold text-white mb-2">{wo.title}</h4>
+                    <button
+                      type="button"
+                      onClick={() => setShowLotoModal(true)}
+                      className="w-full mb-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold hover:bg-rose-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Lock className="w-3 h-3 text-rose-400" /> Verify LOTO Safety Permit (PTW)
+                    </button>
                     <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800">
                       <span className="text-slate-400">Tech: <strong className="text-slate-200">{wo.tech}</strong></span>
                       <span className="text-[10px] font-bold text-slate-950 bg-red-400 px-2 py-0.5 rounded">{wo.machine}</span>
@@ -460,6 +472,28 @@ export default function DreamzCMMSFeatureSuite() {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* LOTO Safety Permit Modal Overlay */}
+      {showLotoModal && (
+        <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowLotoModal(false)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-900 text-slate-400 hover:text-white border border-slate-700"
+            >
+              ✕
+            </button>
+            <LockoutTagoutModule
+              machineName="PRESS-04"
+              ticketId="WO-8041"
+              onComplete={() => {
+                setTimeout(() => setShowLotoModal(false), 1500);
+              }}
+            />
           </div>
         </div>
       )}

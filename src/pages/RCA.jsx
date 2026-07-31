@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ArrowLeft, BadgeInfo, CheckCircle2, Lock, Send, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, BadgeInfo, CheckCircle2, Lock, Send, ShieldAlert, Sparkles } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { StitchPieChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '../supabaseClient';
@@ -299,7 +299,26 @@ export default function RCA() {
               {/* ── 5-Why RCA form ── */}
               <section className="rd-panel" id="rca">
                 <span className="eyebrow eyebrow-light">RCA — 5-Why Method</span>
-                <h2>Trace the root cause</h2>
+                <div className="flex items-center justify-between">
+                  <h2>Trace the root cause</h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFailureMode(ticket?.issue_text || `${machine?.name || 'Machine'} unexpected thermal shutdown`);
+                      setFishboneCategory('machine');
+                      setWhys([
+                        'Vibration & thermal telemetry threshold exceeded limits (FFT > 4.5 mm/s).',
+                        'Bearing lubricant film degraded under high continuous production load.',
+                        'Automatic grease line nozzle was partially restricted with debris.',
+                        'Scheduled preventive maintenance overhaul interval was delayed by 14 days.',
+                        'Shift pre-start checklist lacked mandatory grease nozzle flow verification.'
+                      ]);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold hover:bg-purple-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" /> AI Auto-Build 5-Why Tree
+                  </button>
+                </div>
                 <p className="rd-hint" style={{ marginTop: 6, marginBottom: 16 }}>
                   Start with the symptom and ask "Why?" up to 5 times until you reach the true system cause.
                 </p>
