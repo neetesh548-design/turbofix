@@ -8174,9 +8174,28 @@ details.faq-item p {
 .marketing-footer-brand > p { max-width: 440px; margin-top: 18px; color: #95a6b7; font-size: .86rem; line-height: 1.65; }
 .marketing-footer-note { display: flex; max-width: 520px; align-items: flex-start; gap: 8px; margin-top: 18px; color: #65778a; font-size: .67rem; line-height: 1.5; }
 .marketing-footer-note svg { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 2px; }
-.marketing-footer .footer-links h4 { text-transform: none; letter-spacing: 0; }
-.marketing-footer-contact .marketing-footer-whatsapp { display: inline-flex; align-items: center; gap: 7px; color: #86efac; font-weight: 800; }
-.marketing-footer-whatsapp svg { width: 16px; height: 16px; }
+.marketing-footer-contact .marketing-footer-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  color: #4ade80;
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+.marketing-footer-contact .marketing-footer-whatsapp:hover {
+  background: rgba(37, 211, 102, 0.22);
+  border-color: rgba(37, 211, 102, 0.6);
+  color: #25d366;
+  transform: translateY(-1px);
+}
+.marketing-footer-whatsapp svg { width: 18px; height: 18px; flex-shrink: 0; color: #25d366; }
 .marketing-footer-trust { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid #202c38; }
 .marketing-footer-trust span { display: flex; min-height: 58px; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid #202c38; color: #78899a; font-size: .7rem; text-align: center; }
 .marketing-footer-trust span:first-child { border-left: 0; }
