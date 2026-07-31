@@ -5,7 +5,7 @@ import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
-import { contentByLanguage, workflowSteps } from '../../data/marketingContent';
+import { contentByLanguage } from '../../data/marketingContent';
 
 export default function Workflow() {
   const { lang } = useLanguage();
@@ -92,22 +92,9 @@ export default function Workflow() {
               </div>
             </div>
 
-            <div className="marketing-workflow-grid">
-              <div className="marketing-workflow-intro">
-                <div className="marketing-workflow-callout">
-                  <Gauge />
-                  <div><strong>One visible next step</strong><small>Everyone knows what needs attention, who owns it, and what evidence closes it.</small></div>
-                </div>
-              </div>
-              <div className="marketing-workflow-list">
-                {workflowSteps.map(({ icon: Icon, number, title, body }) => (
-                  <article key={number}>
-                    <span>{number}</span>
-                    <div className="marketing-workflow-icon"><Icon /></div>
-                    <div><h3>{title}</h3><p>{body}</p></div>
-                  </article>
-                ))}
-              </div>
+            <div className="marketing-workflow-callout" style={{ marginTop: '2rem' }}>
+              <Gauge />
+              <div><strong>One visible next step</strong><small>Everyone knows what needs attention, who owns it, and what evidence closes it.</small></div>
             </div>
           </div>
         </section>

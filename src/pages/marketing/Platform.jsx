@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Database, FileSearch, LockKeyhole, Wrench } from 'lucide-react';
+import { ArrowRight, Database, FileSearch, LockKeyhole, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
@@ -122,8 +122,7 @@ export default function Platform() {
               <span>{copy.knowledgeEyebrow}</span>
               <h2>{copy.knowledgeTitle}</h2>
               <p>{copy.knowledgeBody}</p>
-              <ul>{copy.knowledgeItems.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
-              <Link to="/login.html" className="marketing-text-link">See machine workspace <ArrowRight /></Link>
+              <Link to="/records-platform.html" className="marketing-text-link">See the full records workflow <ArrowRight /></Link>
             </div>
           </div>
         </section>

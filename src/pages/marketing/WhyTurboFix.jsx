@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BrainCircuit, ClipboardCheck, Gauge, Layers3 } from 'lucide-react';
+import { ArrowRight, BrainCircuit, ClipboardCheck, Gauge, Layers3, Route as RouteIcon, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
-import FaqAccordion from '../../components/marketing/FaqAccordion';
-import { contentByLanguage, platformFeatures, workflowSteps, roleCards } from '../../data/marketingContent';
+import { contentByLanguage } from '../../data/marketingContent';
 
 export default function WhyTurboFix() {
   const { lang } = useLanguage();
@@ -73,63 +72,29 @@ export default function WhyTurboFix() {
           </div>
         </section>
 
-        <section className="marketing-section" id="platform">
+        <section className="marketing-section">
           <div className="container">
             <div className="marketing-section-heading">
-              <span>{copy.platformEyebrow}</span>
-              <h2>{copy.platformTitle}</h2>
-              <p>{copy.platformBody}</p>
+              <span>Go deeper</span>
+              <h2>See the platform and the workflow that make this possible.</h2>
+              <p>This page is about why plants switch. The mechanics live on their own pages.</p>
             </div>
             <div className="marketing-feature-grid">
-              {platformFeatures.map(({ icon: Icon, title, body }, index) => (
-                <article className="marketing-feature-card" key={title}>
-                  <div className="marketing-feature-icon"><Icon /></div>
-                  <span>0{index + 1}</span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                </article>
-              ))}
+              <Link className="marketing-feature-card" to="/platform.html" style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
+                <div className="marketing-feature-icon"><Wrench /></div>
+                <h3>Explore the full platform</h3>
+                <p>Every tool from breakdown dispatch to executive control room, in one connected system.</p>
+                <span className="marketing-text-link">See the platform <ArrowRight size={14} /></span>
+              </Link>
+              <Link className="marketing-feature-card" to="/workflow.html" style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
+                <div className="marketing-feature-icon"><RouteIcon /></div>
+                <h3>See how it works</h3>
+                <p>The verified loop from operator QR scan to Maintenance Head sign-off, step by step.</p>
+                <span className="marketing-text-link">See the workflow <ArrowRight size={14} /></span>
+              </Link>
             </div>
           </div>
         </section>
-
-        <section className="marketing-section marketing-workflow" id="how">
-          <div className="container marketing-workflow-grid">
-            <div className="marketing-workflow-intro">
-              <span>{copy.workflowEyebrow}</span>
-              <h2>{copy.workflowTitle}</h2>
-              <p>{copy.workflowBody}</p>
-              <div className="marketing-workflow-callout">
-                <Gauge />
-                <div><strong>One visible next step</strong><small>Everyone knows what needs attention, who owns it, and what evidence closes it.</small></div>
-              </div>
-            </div>
-            <div className="marketing-workflow-list">
-              {workflowSteps.map(({ icon: Icon, number, title, body }) => (
-                <article key={number}>
-                  <span>{number}</span>
-                  <div className="marketing-workflow-icon"><Icon /></div>
-                  <div><h3>{title}</h3><p>{body}</p></div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="marketing-section marketing-fit-section">
-          <div className="container">
-            <div className="marketing-section-heading">
-              <span>{copy.fitEyebrow}</span>
-              <h2>{copy.fitTitle}</h2>
-              <p>{copy.fitBody}</p>
-            </div>
-            <div className="marketing-role-grid">
-              {roleCards.map(({ icon: Icon, title, body }) => <article key={title}><Icon /><h3>{title}</h3><p>{body}</p></article>)}
-            </div>
-          </div>
-        </section>
-
-        <FaqAccordion title={copy.faqTitle} />
 
         <section className="marketing-section" style={{ textAlign: 'center' }}>
           <div className="container">

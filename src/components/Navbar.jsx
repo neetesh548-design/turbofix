@@ -197,15 +197,6 @@ export default function Navbar() {
           />
         )}
       </header>
-
-      {/* Secondary context bar */}
-      <div className="public-nav-subbar">
-        <div className="container public-nav-subbar-inner">
-          <span className="subbar-badge">⚡ WORKSPACE PORTAL</span>
-          <span className="subbar-divider" aria-hidden="true" />
-          <span className="subbar-label">Manage plant maintenance, tickets, and team handovers from the workspace.</span>
-        </div>
-      </div>
     </>
   );
 }
