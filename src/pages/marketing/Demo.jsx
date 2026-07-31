@@ -31,7 +31,7 @@ export default function Demo() {
           eyebrow={copy.demoEyebrow}
           title={copy.demoTitle}
           body={copy.demoBody}
-          primaryCta={{ label: copy.demoLogin, to: '/login.html' }}
+          primaryCta={{ label: 'Sign In to Platform', to: '/login.html' }}
           secondaryCta={{ label: copy.bookDemo, to: '/contact.html' }}
         />
 
@@ -55,7 +55,7 @@ export default function Demo() {
                 <span>What you can explore</span>
                 <h3>See how TurboFix works in practice</h3>
                 <ul>{copy.demoList.map((item) => <li key={item}><CheckCircle2 />{item}</li>)}</ul>
-                <Link className="marketing-btn marketing-btn-primary" to="/login.html">{copy.demoLogin}<ArrowRight /></Link>
+                <Link className="marketing-btn marketing-btn-primary" to="/contact.html">Book Plant Walkthrough <ArrowRight /></Link>
               </aside>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">

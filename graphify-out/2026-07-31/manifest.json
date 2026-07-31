@@ -2690,8 +2690,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785241256.895022,
-    "ast_hash": "41fa2964b0e3f23189b9c8e10464124f",
+    "mtime": 1785456508.8291538,
+    "ast_hash": "cc2c847cb70a88dd20be79d7dfa4d4d2",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
@@ -2700,13 +2700,13 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
-    "mtime": 1785241265.2394457,
-    "ast_hash": "7a2cf6cd6757c6e512b18e7548d8ca9e",
+    "mtime": 1785456495.2402818,
+    "ast_hash": "0973b0f8b8f6edbbd1373fb84fe4ea6a",
     "semantic_hash": ""
   },
   "src/pages/marketing/RecordsPlatform.jsx": {
-    "mtime": 1785241235.27122,
-    "ast_hash": "10917adc97fc6bc40b3b1441d9f9ad9b",
+    "mtime": 1785456502.1106145,
+    "ast_hash": "f115e5398f312e5ade6c63757053d2b3",
     "semantic_hash": ""
   },
   "src/pages/marketing/WhyTurboFix.jsx": {
@@ -2715,8 +2715,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Workflow.jsx": {
-    "mtime": 1785241246.3390934,
-    "ast_hash": "16a3bbc300258c6819f88052745668fe",
+    "mtime": 1785456488.6701388,
+    "ast_hash": "f2be896d601f77ebc4d78c3bfeafa1dd",
     "semantic_hash": ""
   },
   "tests/admin-data-audit.spec.js": {

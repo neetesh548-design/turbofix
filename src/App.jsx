@@ -17,6 +17,7 @@ const Pricing = lazy(() => import('./pages/marketing/Pricing'));
 const MarketingContact = lazy(() => import('./pages/marketing/Contact'));
 const QRGenerator = lazy(() => import('./pages/QRGenerator'));
 const Login = lazy(() => import('./pages/Login'));
+const DemoLogin = lazy(() => import('./pages/DemoLogin'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Machines = lazy(() => import('./pages/Machines'));
@@ -160,6 +161,8 @@ function App() {
                     <Route path="/qr-generator.html" element={<QRGenerator />} />
                     <Route path="/login.html" element={<Login />} />
                     <Route path="/login" element={<Navigate to="/login.html" replace />} />
+                    <Route path="/demo-login.html" element={<DemoLogin />} />
+                    <Route path="/demo-login" element={<Navigate to="/demo-login.html" replace />} />
                     <Route path="/dashboard.html" element={<Dashboard />} />
                     <Route path="/dashboard" element={<Navigate to="/dashboard.html" replace />} />
                     <Route path="/reset-password.html" element={<ResetPassword />} />

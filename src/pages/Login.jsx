@@ -289,33 +289,7 @@ export default function Login() {
                   <p className="text-slate-400 text-sm">Access your TurboFix enterprise portal.</p>
                 </div>
 
-                {/* Quick 1-Tap Demo Logins */}
-                <div className="mb-5 sm:mb-6">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 text-center">Quick Demo Access (1-Tap)</p>
-                  <div className="grid grid-cols-1 min-[390px]:grid-cols-3 gap-2">
-                    {demoAccounts.map((demo) => {
-                      const Icon = demo.icon;
-                      return (
-                        <button
-                          key={demo.role}
-                          type="button"
-                          onClick={() => handleDemoLogin(demo)}
-                          disabled={loading}
-                          className={`tf-demo-login-button flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all min-[390px]:min-h-[58px] min-[390px]:flex-col min-[390px]:gap-1 min-[390px]:px-1 min-[390px]:text-[11px] ${demo.color} disabled:opacity-50`}
-                          title={`Log in as ${demo.name} (${demo.role})`}
-                        >
-                          <Icon size={18} />
-                          <span className="w-full text-center leading-tight whitespace-normal">{demo.role}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
 
-                <div className="relative flex items-center justify-center mb-5 sm:mb-6">
-                  <div className="border-t border-slate-800 w-full"></div>
-                  <span className="bg-[#131922] px-3 text-xs text-slate-500 uppercase tracking-wider absolute">or credentials</span>
-                </div>
 
                 {error && (
                   <div className="mb-4 p-3 bg-red-950/60 border border-red-800/80 text-red-300 rounded-xl text-sm flex items-start gap-2 animate-fadeIn">
@@ -388,10 +362,13 @@ export default function Login() {
                   </button>
                 </form>
 
-                <div className="mt-5 sm:mt-6 text-center pt-4 border-t border-slate-800/80">
+                <div className="mt-5 sm:mt-6 text-center pt-4 border-t border-slate-800/80 flex flex-col gap-2">
                   <button type="button" onClick={() => { setView('register'); setError(null); setSuccess(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
                     New factory? Register your company
                   </button>
+                  <a href={`${import.meta.env.BASE_URL}demo-login.html`} className="text-xs text-amber-400/90 hover:text-amber-300 font-semibold transition-colors pt-1">
+                    Exploring TurboFix? Switch to Demo Login &rarr;
+                  </a>
                 </div>
               </>
             ) : (
