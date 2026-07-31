@@ -6,7 +6,6 @@ import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
-import DeviceViewportSwitcher from '../../components/marketing/DeviceViewportSwitcher';
 import FeatureCard from '../../components/marketing/FeatureCard';
 import { contentByLanguage, platformFeatures, roleCards } from '../../data/marketingContent';
 
@@ -35,8 +34,6 @@ export default function Platform() {
 
         <section className="marketing-section" id="platform">
           <div className="container">
-            <DeviceViewportSwitcher />
-
             <div className="marketing-section-heading text-center mb-10">
               <span className="text-emerald-400 font-extrabold uppercase text-xs tracking-wider">All-In-One Plant Operations Layer</span>
               <h2 className="text-2xl sm:text-3xl font-black text-white mt-2">Unified Tools for Every Plant Role</h2>
