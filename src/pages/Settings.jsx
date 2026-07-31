@@ -439,7 +439,6 @@ export default function Settings() {
                                 checked={preferences.autoRefresh}
                                 onChange={(val) => updatePreference('autoRefresh', val)}
                                 aria-label="Toggle auto refresh"
-                                className="min-h-11"
                               />
                             </div>
                             <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/50 text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1.5 font-medium">

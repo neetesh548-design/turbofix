@@ -11656,7 +11656,7 @@ a:focus-visible,
    =========================================================== */
 
 @media (max-width: 768px) {
-  button,
+  button:not(.ant-switch),
   .btn,
   select,
   input[type="button"],
@@ -11678,6 +11678,11 @@ a:focus-visible,
   .machine-action {
     min-height: 44px;
     touch-action: manipulation;
+  }
+
+  .ant-switch {
+    min-height: 22px !important;
+    height: 22px !important;
   }
 
   /* Prevent text selection flicker during rapid touch taps */
