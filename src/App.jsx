@@ -10,6 +10,7 @@ import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
 const Home = lazy(() => import('./pages/Home'));
 const WhyTurboFix = lazy(() => import('./pages/marketing/WhyTurboFix'));
 const Platform = lazy(() => import('./pages/marketing/Platform'));
+const PlatformExperience = lazy(() => import('./pages/PlatformExperience'));
 const RecordsPlatform = lazy(() => import('./pages/marketing/RecordsPlatform'));
 const Workflow = lazy(() => import('./pages/marketing/Workflow'));
 const MarketingDemo = lazy(() => import('./pages/marketing/Demo'));
@@ -153,6 +154,10 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
                     <Route path="/platform.html" element={<Platform />} />
+                    <Route path="/platform-experience.html" element={<PlatformExperience />} />
+                    <Route path="/platform-experience" element={<Navigate to="/platform-experience.html" replace />} />
+                    <Route path="/experience.html" element={<PlatformExperience />} />
+                    <Route path="/experience" element={<Navigate to="/experience.html" replace />} />
                     <Route path="/records-platform.html" element={<RecordsPlatform />} />
                     <Route path="/workflow.html" element={<Workflow />} />
                     <Route path="/demo.html" element={<MarketingDemo />} />
