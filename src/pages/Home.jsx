@@ -7,13 +7,16 @@ import {
   CalendarClock,
   CheckCircle2,
   ClipboardCheck,
+  Factory,
   Gauge,
   IndianRupee,
   PhoneCall,
   PlayCircle,
+  QrCode,
   Route as RouteIcon,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
   Wrench,
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
@@ -21,6 +24,8 @@ import MainLayout from '../layouts/MainLayout';
 import CapabilityStrip from '../components/marketing/CapabilityStrip';
 import ProofBanner from '../components/marketing/ProofBanner';
 import FeatureCard from '../components/marketing/FeatureCard';
+import RoiCalculator from '../components/marketing/RoiCalculator';
+import QrDemoPreview from '../components/marketing/QrDemoPreview';
 import { contentByLanguage, HERO_SCENARIOS } from '../data/marketingContent';
 
 const EXPLORE_LINKS = [
@@ -41,7 +46,7 @@ export default function Home() {
   const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
 
   useEffect(() => {
-    document.title = 'TurboFix — AI Maintenance Control & Breakdown Decision Platform for Manufacturing SMEs';
+    document.title = 'TurboFix — Zero Unplanned Downtime for Indian Manufacturing SMEs';
   }, []);
 
   useEffect(() => {
@@ -64,21 +69,38 @@ export default function Home() {
   return (
     <MainLayout>
       <div className="marketing-home">
+        {/* HERO SECTION */}
         <section className="marketing-hero">
           <div className="container marketing-hero-grid">
             <div className="marketing-hero-copy">
               <span className="marketing-eyebrow"><Sparkles />{copy.eyebrow}</span>
-              <h1>{copy.heroTitle}</h1>
-              <p>{copy.heroBody}</p>
+              <h1>Zero Unplanned Downtime for Indian Manufacturing.</h1>
+              <p>Control breakdowns, track technician SLAs, digitize paper registers, and calculate plant financial downtime loss in one verified system.</p>
+              
               <div className="marketing-actions">
-                <Link className="marketing-btn marketing-btn-primary" to="/contact.html">{copy.bookDemo}<ArrowRight /></Link>
-                <Link className="marketing-btn marketing-btn-secondary" to="/login.html">{copy.explore}</Link>
+                <Link className="marketing-btn marketing-btn-primary" to="/contact.html">
+                  {copy.bookDemo}<ArrowRight />
+                </Link>
+                <Link className="marketing-btn marketing-btn-secondary" to="/login.html">
+                  {copy.explore}
+                </Link>
               </div>
-              <div className="marketing-trust-row">
-                {copy.trust.map((item) => <span key={item}><CheckCircle2 />{item}</span>)}
+
+              {/* Manufacturing Hub Badges */}
+              <div className="marketing-trust-row flex-wrap gap-2 mt-4 pt-4 border-t border-slate-800">
+                <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
+                  <Factory size={13} className="text-emerald-400" />
+                  Trusted by Industrial Hubs:
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Pune Auto Cluster</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Surat Textiles</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Chennai OEMs</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Ludhiana Engineering</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Gujarat Pharma</span>
               </div>
             </div>
 
+            {/* PRODUCT PREVIEW SCENARIO WIDGET */}
             <div className="marketing-product-preview" aria-label="TurboFix AI recommendation preview">
               <div className="marketing-preview-top">
                 <span><span className="marketing-live-dot" />ACME3 LIVE</span>
@@ -123,16 +145,32 @@ export default function Home() {
         </section>
 
         <CapabilityStrip items={copy.strip} />
+
+        {/* INTERACTIVE ROI & FINANCIAL DOWNTIME CALCULATOR */}
+        <section className="marketing-section py-4">
+          <div className="container">
+            <RoiCalculator />
+          </div>
+        </section>
+
+        {/* 10-SECOND PUBLIC QR BREAKDOWN DEMO */}
+        <section className="marketing-section py-4">
+          <div className="container">
+            <QrDemoPreview />
+          </div>
+        </section>
+
         <ProofBanner />
 
+        {/* ROLE PERSONAS SECTION */}
         <section className="marketing-section marketing-outcomes" id="transformation">
           <div className="container">
             <div className="marketing-outcomes-heading">
               <div>
                 <span>One operating story</span>
-                <h2>From breakdown signal to verified closure—without the daily chase.</h2>
+                <h2>Tailored for Every Role on the Indian Shop Floor</h2>
               </div>
-              <p>Bring in old machine history, verify what is trustworthy, and then run daily maintenance from the same system instead of switching between records and execution.</p>
+              <p>Bring in old machine history, verify what is trustworthy, and run daily maintenance from the same system across Factory Owners, Maintenance Heads, Engineers, and Technicians.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
@@ -151,9 +189,9 @@ export default function Home() {
                 </div>
                 <div className="p-5 flex-grow flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-2">"I get real-time MTTR &amp; downtime cost clarity."</h3>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">"Real-time OEE &amp; downtime financial savings in ₹."</h3>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      "No more morning surprise breakdowns or hidden production losses. TurboFix gives me live executive control, CapEx replacement alerts, and plant-wide uptime confidence."
+                      "No more morning surprise breakdowns or hidden production losses. TurboFix gives me live executive control, multi-plant switching, and daily WhatsApp digest reports."
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-emerald-400">
@@ -202,18 +240,18 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
                   <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 backdrop-blur-md">
-                    For Shift Techs &amp; Supervisors
+                    For Shift Techs &amp; Workers
                   </span>
                 </div>
                 <div className="p-5 flex-grow flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-2">"10-second QR scan to start work &amp; log notes."</h3>
+                    <h3 className="text-lg font-bold text-slate-100 mb-2">"10-second QR scan &amp; voice-to-text logging."</h3>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      "Shift A, B, and C technicians log repairs right at the machine with voice notes, photo proof, and auto-guided checklists without paper hassle."
+                      "Operators log defects with voice notes in Hindi/English ('बोलकर दर्ज करें'), 1-tap QR scan, and step-by-step visual checklists built for rugged factory floor use."
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-amber-400">
-                    <span>Field Technician Work Queue</span>
+                    <span>Field Worker &amp; Tech Work Queue</span>
                     <ArrowRight size={13} />
                   </div>
                 </div>
@@ -221,13 +259,14 @@ export default function Home() {
             </div>
             <div className="marketing-executive-proof">
               <span><b>10 sec</b> QR breakdown reporting</span>
-              <span><b>4 steps</b> to verified closure</span>
+              <span><b>₹ Lakhs</b> calculated downtime savings</span>
               <span><b>5-Why</b> structured root-cause analysis</span>
               <span><b>100%</b> exportable plant data</span>
             </div>
           </div>
         </section>
 
+        {/* EXPLORE FEATURES GRID */}
         <section className="marketing-section">
           <div className="container">
             <div className="marketing-section-heading">
@@ -248,7 +287,7 @@ export default function Home() {
         <div className="marketing-mobile-sticky-bar">
           <div className="sticky-bar-copy">
             <strong>Protect Production Hours</strong>
-            <small>10-sec QR reporting & 5-Why RCA</small>
+            <small>10-sec QR reporting &amp; 5-Why RCA</small>
           </div>
           <div className="sticky-bar-actions">
             <Link to="/contact.html" className="marketing-btn marketing-btn-primary marketing-btn-sm">
