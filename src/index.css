@@ -10771,6 +10771,27 @@ a:focus-visible,
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
+/* Mobile-1st & Multi-Display Responsive Container (Mobile, Laptop, Ultra-Wide PC) */
+.app-content {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 16px 16px 40px 16px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .app-content {
+    padding: 24px 24px 48px 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-content {
+    padding: 32px 32px 60px 32px;
+  }
+}
+
 /* Mobile-only bottom tab bar. Hidden by default; the media query below is
    the only place that turns it on, so it never leaks into desktop as an
    unstyled block of links. */

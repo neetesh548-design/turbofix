@@ -810,8 +810,8 @@
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
-    "mtime": 1785454694.1355927,
-    "ast_hash": "8c4b4c8edf707ce17ac476a677efc87f",
+    "mtime": 1785455002.0201817,
+    "ast_hash": "d87df49cdb685e74e14f8bd080d3ffeb",
     "semantic_hash": ""
   },
   "src/pages/QRGenerator.jsx": {
@@ -2835,8 +2835,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/_shared/qrSession.ts": {
-    "mtime": 1785347177.9634442,
-    "ast_hash": "8afb9c0a4cc98c33eca361569d5bf483",
+    "mtime": 1785454989.2071943,
+    "ast_hash": "d52e88c4258a89a6a9c360d4e121c5f9",
     "semantic_hash": ""
   },
   "supabase/migrations/20260729120000_qr_gateway_remembered_sessions.sql": {
@@ -3072,6 +3072,11 @@
   "tests/qr-gateway-tickets.spec.js": {
     "mtime": 1785454231.3746169,
     "ast_hash": "f13e5579e3e1ec1b0835a46529c9458b",
+    "semantic_hash": ""
+  },
+  "tests/qr-session-30day.spec.js": {
+    "mtime": 1785455004.9625497,
+    "ast_hash": "63826c7ce407c45509cabd46459e348c",
     "semantic_hash": ""
   }
 }

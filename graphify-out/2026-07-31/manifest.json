@@ -810,8 +810,8 @@
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
-    "mtime": 1785347212.5988398,
-    "ast_hash": "98ccabd7ce474a2e7b37c9282c046b5e",
+    "mtime": 1785454694.1355927,
+    "ast_hash": "8c4b4c8edf707ce17ac476a677efc87f",
     "semantic_hash": ""
   },
   "src/pages/QRGenerator.jsx": {
@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1785402762.3917975,
-    "ast_hash": "af42c1e2a998fc24da55244b6787d5a7",
+    "mtime": 1785454393.4912648,
+    "ast_hash": "44cdbc5d6ccd5a1ea31f9d19d4dc497a",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -2350,8 +2350,8 @@
     "semantic_hash": ""
   },
   "src/pages/ReportBreakdown.jsx": {
-    "mtime": 1785452436.0366945,
-    "ast_hash": "5dcd4ac347c0d79a1777fc5b16551315",
+    "mtime": 1785454215.9885204,
+    "ast_hash": "bf22b3b90edcffd161ba4f488b8a43e6",
     "semantic_hash": ""
   },
   "src/utils/breakdownRouter.js": {
@@ -3067,6 +3067,11 @@
   "public/assets/plant_settings_security.jpg": {
     "mtime": 1785454025.1292706,
     "ast_hash": "bba141d8c20c59685efcb675c7148711",
+    "semantic_hash": ""
+  },
+  "tests/qr-gateway-tickets.spec.js": {
+    "mtime": 1785454231.3746169,
+    "ast_hash": "f13e5579e3e1ec1b0835a46529c9458b",
     "semantic_hash": ""
   }
 }
