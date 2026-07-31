@@ -305,20 +305,34 @@ def _build_factory_to_code_map() -> dict:
 
 class SupabaseUserRepository(UserRepository):
 
+    _USER_PASSWORD_VERSIONS: Dict[str, str] = {}
+
     def next_user_id(self, company_code: str) -> str:
         return new_user_id(company_code)
 
     def _user_to_dict(self, row: dict) -> dict:
         """Map Supabase users row → standard USERS_HEADER dict."""
         company_code = _company_code_for_id(row.get("company_id") or "")
+        user_id = row.get("id", "")
+        # Real credentials live in GoTrue, but password reset links require a
+        # fingerprintable token seed that updates whenever the user's password
+        # changes so that reset links self-invalidate upon password reset.
+        password_fingerprint_seed = (
+            self._USER_PASSWORD_VERSIONS.get(user_id)
+            or row.get("password_hash")
+            or row.get("password_updated_at")
+            or row.get("updated_at")
+            or row.get("created_at")
+            or user_id
+        )
         return {
-            "user_id": row.get("id", ""),
+            "user_id": user_id,
             "company_code": company_code,
             "name": row.get("name", ""),
             "phone": row.get("phone", ""),
             "email": row.get("email", ""),
             "role": row.get("role", ""),
-            "password_hash": "",  # auth handled by Supabase GoTrue
+            "password_hash": str(password_fingerprint_seed),
             "created_at": str(row.get("created_at", "")),
             "manager_user_id": "",
             "department": "",
@@ -376,6 +390,7 @@ class SupabaseUserRepository(UserRepository):
                     extra={"email": email},
                 )
 
+        now_str = datetime.now(timezone.utc).isoformat()
         _client.insert("users", {
             "id": user_id,
             "company_id": company_id,
@@ -383,6 +398,8 @@ class SupabaseUserRepository(UserRepository):
             "phone": row.get("phone", ""),
             "email": email,
             "role": row.get("role", ""),
+            "created_at": row.get("created_at") or now_str,
+            "updated_at": row.get("updated_at") or now_str,
         })
 
     def verify_credentials(self, identifier: str, password: str) -> Optional[dict]:
@@ -405,7 +422,15 @@ class SupabaseUserRepository(UserRepository):
             )
             return False
         try:
-            return _client.auth_admin_update_password(user_id, new_password)
+            success = _client.auth_admin_update_password(user_id, new_password)
+            if success:
+                now_str = datetime.now(timezone.utc).isoformat()
+                self._USER_PASSWORD_VERSIONS[user_id] = now_str
+                try:
+                    _client.update("users", {"id": f"eq.{user_id}"}, {"updated_at": now_str})
+                except Exception as e:
+                    log.debug("supabase.update_password could not update public.users updated_at: %s", e)
+            return success
         except httpx.HTTPStatusError as exc:
             log.warning(
                 "supabase.update_password failed",

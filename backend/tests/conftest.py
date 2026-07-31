@@ -51,6 +51,9 @@ def isolated_machine_data_store(tmp_path, monkeypatch):
     document_store = tmp_path / "isolated_document_store"
     document_store.mkdir()
     monkeypatch.setattr(config, "DOCUMENT_STORE_DIR", document_store)
+    from app.main import app
+    if hasattr(app.state, "limiter"):
+        app.state.limiter.enabled = False
 
 
 
