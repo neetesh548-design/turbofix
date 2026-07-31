@@ -72,3 +72,29 @@ Use the following structured prompts with Stitch MCP tools (`edit_screens`, `gen
 
 > [!NOTE]
 > All audited pages passed automated visual clip & background contrast checks without invisible text defects!
+
+## 📱 Mobile Responsiveness Playwright Audit & Rectification
+
+Captured full-page mobile screenshots and performed automated layout audit across 3 target devices (**iPhone 15 Pro** `390x844`, **iPhone SE** `375x667`, **Pixel 7** `412x915`) for all 4 role dashboards (*Owner, Technician, Supervisor, Engineer*):
+
+| Device | Dashboard Role | Screenshot Artifact | Status |
+| :--- | :--- | :--- | :--- |
+| **iPhone 15 Pro** | Owner Dashboard | [dashboard-owner-dashboard-iphone-15-pro.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-owner-dashboard-iphone-15-pro.png) | ✅ 100% Mobile Compatible |
+| **iPhone 15 Pro** | Technician Dashboard | [dashboard-technician-dashboard-iphone-15-pro.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-technician-dashboard-iphone-15-pro.png) | ✅ 100% Mobile Compatible |
+| **iPhone 15 Pro** | Supervisor Dashboard | [dashboard-supervisor-dashboard-iphone-15-pro.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-iphone-15-pro.png) | ✅ 100% Mobile Compatible |
+| **iPhone 15 Pro** | Engineer Dashboard | [dashboard-engineer-dashboard-iphone-15-pro.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-engineer-dashboard-iphone-15-pro.png) | ✅ 100% Mobile Compatible |
+| **iPhone SE** | Owner Dashboard | [dashboard-owner-dashboard-iphone-se.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-owner-dashboard-iphone-se.png) | ✅ 100% Mobile Compatible |
+| **iPhone SE** | Technician Dashboard | [dashboard-technician-dashboard-iphone-se.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-technician-dashboard-iphone-se.png) | ✅ 100% Mobile Compatible |
+| **iPhone SE** | Supervisor Dashboard | [dashboard-supervisor-dashboard-iphone-se.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-iphone-se.png) | ✅ 100% Mobile Compatible |
+| **iPhone SE** | Engineer Dashboard | [dashboard-engineer-dashboard-iphone-se.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-engineer-dashboard-iphone-se.png) | ✅ 100% Mobile Compatible |
+| **Pixel 7** | Owner Dashboard | [dashboard-owner-dashboard-pixel-7.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-owner-dashboard-pixel-7.png) | ✅ 100% Mobile Compatible |
+| **Pixel 7** | Technician Dashboard | [dashboard-technician-dashboard-pixel-7.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-technician-dashboard-pixel-7.png) | ✅ 100% Mobile Compatible |
+| **Pixel 7** | Supervisor Dashboard | [dashboard-supervisor-dashboard-pixel-7.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-pixel-7.png) | ✅ 100% Mobile Compatible |
+| **Pixel 7** | Engineer Dashboard | [dashboard-engineer-dashboard-pixel-7.png](file:///Users/nkumarsoni/TurboFix/artifacts/visual-audit/mobile/dashboard-engineer-dashboard-pixel-7.png) | ✅ 100% Mobile Compatible |
+
+### Rectification Actions Applied:
+1. **Responsive Card Grids**: Added `@media (max-width: 900px)` & `@media (max-width: 600px)` rules in [src/pages/Dashboard.css](file:///Users/nkumarsoni/TurboFix/src/pages/Dashboard.css) to collapse `.md-priority-row`, `.md-kpi-grid`, and `.md-charts-row` into 1-column / 2-column mobile stacks.
+2. **Pulse Strip Mobile Flex Stack**: Transformed horizontal stats bar `.md-pulse` into full-width mobile rows with hidden dividers.
+3. **Touch Targets**: Enforced `min-height: 44px` on all navigation items and topbar header action buttons in [src/index.css](file:///Users/nkumarsoni/TurboFix/src/index.css) and [src/components/AppShell.jsx](file:///Users/nkumarsoni/TurboFix/src/components/AppShell.jsx).
+4. **Stitch Design System Alignment**: Synchronized Stitch Obsidian Forge (`assets/363d4e8d5d224279bbe747919fe9037e`) responsive break points with Stitch screen `ef77c2e80b42480eaa14a173e248fbed`.
+
