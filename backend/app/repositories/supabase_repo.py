@@ -101,7 +101,10 @@ class _SupabaseClient:
         url = self._url(table)
         with httpx.Client(timeout=15) as c:
             r = c.get(url, headers=self._headers, params=params or {})
-            r.raise_for_status()
+            if r.status_code >= 400:
+                # TEMP diagnostic: embed body so failures surface with real
+                # detail. TODO(remove-after-diagnosis): back to raise_for_status().
+                raise RuntimeError(f"PostgREST select {table!r} failed: {r.status_code} {r.text}")
             return r.json()
 
     def select_one(self, table: str, params: dict) -> dict | None:
@@ -117,7 +120,9 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-            r.raise_for_status()
+                # TEMP diagnostic: embed body so failures surface with real
+                # detail. TODO(remove-after-diagnosis): back to raise_for_status().
+                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -643,18 +648,25 @@ class SupabaseMachineRepository(MachineRepository):
         return self._row_to_dict(row)
 
     def create(self, row: dict) -> None:
-        company_id = _company_id_for_code(row.get("company_code", ""))
-        factory_id = _factory_id_for_code(row.get("company_code", "")) or company_id
-        _client.insert("machines", {
-            "id": row.get("machine_id", str(uuid.uuid4())),
-            "company_id": company_id,
-            "factory_id": factory_id,
-            "name": row.get("machine_name", ""),
-            "location": row.get("location", ""),
-            "assigned_technician_phone": row.get("assigned_technician_phone", ""),
-            "informed_phone_1": row.get("informed_phone_1", ""),
-            "status": "active",
-        })
+        # TEMP diagnostic: surface any failure here via 502 instead of a bare
+        # 500 — no Render log access, no exception-detail leak path exists
+        # otherwise. TODO(remove-after-diagnosis).
+        try:
+            company_id = _company_id_for_code(row.get("company_code", ""))
+            factory_id = _factory_id_for_code(row.get("company_code", "")) or company_id
+            _client.insert("machines", {
+                "id": row.get("machine_id", str(uuid.uuid4())),
+                "company_id": company_id,
+                "factory_id": factory_id,
+                "name": row.get("machine_name", ""),
+                "location": row.get("location", ""),
+                "assigned_technician_phone": row.get("assigned_technician_phone", ""),
+                "informed_phone_1": row.get("informed_phone_1", ""),
+                "status": "active",
+            })
+        except Exception as exc:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=502, detail=f"machine create diag: {type(exc).__name__}: {exc}") from exc
         self.invalidate_cache()
 
     def invalidate_cache(self) -> None:
