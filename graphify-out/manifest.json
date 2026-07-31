@@ -565,8 +565,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1785453116.553444,
-    "ast_hash": "5d82d1333a7d4d6ea70b116856eb76be",
+    "mtime": 1785478800.8353055,
+    "ast_hash": "e9752954181de9bbfafb68dd3a214173",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785448341.2853842,
-    "ast_hash": "f70ce13ba281b49811bd67f2e2d2cd5b",
+    "mtime": 1785478781.655828,
+    "ast_hash": "069e861552c77285eb7472cd56982cc4",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
@@ -2690,8 +2690,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785456508.8291538,
-    "ast_hash": "cc2c847cb70a88dd20be79d7dfa4d4d2",
+    "mtime": 1785478808.6869495,
+    "ast_hash": "a8346559bb128abed920b0e9f28a879c",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
@@ -3077,6 +3077,11 @@
   "tests/qr-session-30day.spec.js": {
     "mtime": 1785455004.9625497,
     "ast_hash": "63826c7ce407c45509cabd46459e348c",
+    "semantic_hash": ""
+  },
+  "src/pages/DemoLogin.jsx": {
+    "mtime": 1785478759.3399801,
+    "ast_hash": "b82fb7970cc715a06b076a188fc4aff2",
     "semantic_hash": ""
   }
 }

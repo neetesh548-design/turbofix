@@ -393,9 +393,5 @@
   "391": "admin-portal-prod.spec.js",
   "392": "machines-page-check.spec.js",
   "393": ".update_ai_fields",
-  "394": ".get_company_tickets",
-  "395": ".attach_photo",
-  "396": ".update_language",
-  "397": ".close_ticket",
-  "398": ".find_by_id_prefix"
+  "394": ".get_company_tickets"
 }

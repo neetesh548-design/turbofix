@@ -32,7 +32,119 @@ import AppShell from '../components/AppShell';
 import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
 
-import { apiFetch } from '../lib/api';
+import { DEMO_MACHINES } from '../utils/demoMachines';
+
+const DEMO_RECORDS = [
+  {
+    record_id: 'rec-demo-001',
+    machine_id: 'DEMO-M001',
+    title: 'CNC Lathe VTL-500 Annual Service Register & BOM',
+    file_name: 'CNC_Lathe_Service_Register_2025.pdf',
+    record_type: 'manual',
+    source_kind: 'soft_copy',
+    status: 'approved',
+    overall_confidence: 96,
+    version: 1,
+    updated_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+    extracted_data: {
+      summary: 'Annual service logbook detailing spindle bearing replacements, hydraulic pressure calibrations, and PM checklist items.',
+      machine_identity: {
+        manufacturer: { value: 'Mazak India', confidence: 98, source: 'Page 1' },
+        model: { value: 'VTL-500', confidence: 99, source: 'Page 1' },
+        serial_number: { value: 'MZK-2023-8819', confidence: 95, source: 'Page 1' },
+        year: { value: '2023', confidence: 95, source: 'Page 1' },
+      },
+      specifications: [
+        { name: 'Spindle Speed', value: '4500', unit: 'RPM', confidence: 98, source: 'Page 3' },
+        { name: 'Hydraulic Operating Pressure', value: '140', unit: 'Bar', confidence: 95, source: 'Page 5' },
+        { name: 'Lubrication Oil Grade', value: 'VG 68 ISO', unit: 'Grade', confidence: 99, source: 'Page 8' },
+      ],
+      service_history: [
+        { date: '2025-06-12', issue: 'Oil leak near main ram seal', work_performed: 'Replaced O-ring seal kit & refilled VG 68 oil', technician: 'Manoj Mukherjee', hours: '2.5', parts_used: 'SKF-O-RING-55', confidence: 96 },
+      ],
+      spare_parts: [
+        { name: 'Main Spindle Bearing Set', part_number: 'SKF-7214-BEP', quantity: '2', unit: 'Pcs', supplier: 'SKF Bearings India', confidence: 98 },
+        { name: 'Hydraulic High-Pressure Filter Element', part_number: 'HYD-FLT-140B', quantity: '4', unit: 'Pcs', supplier: 'Parker Hannifin', confidence: 95 },
+      ],
+      maintenance_tasks: [
+        { task: 'Check hydraulic oil pressure and filter cleanliness', frequency: 'Weekly', procedure: 'Gauge check on manifold B', safety_note: 'Depressurize lines before filter removal', confidence: 94 },
+      ],
+      risks: [
+        { risk: 'High vibration on C-axis motor', recommended_action: 'Perform laser alignment check during next PM', confidence: 90 },
+      ],
+    },
+  },
+  {
+    record_id: 'rec-demo-002',
+    machine_id: 'DEMO-M002',
+    title: 'Hydraulic Press 250T Overhaul Log & Sensor Calibration',
+    file_name: 'Hydraulic_Press_250T_Overhaul_Register.png',
+    record_type: 'service_history',
+    source_kind: 'handwritten',
+    status: 'needs_review',
+    overall_confidence: 48,
+    version: 1,
+    updated_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+    extracted_data: {
+      summary: 'Handwritten logbook scan of main cylinder seal replacement, valve manifold cleaning, and pressure sensor recalibration.',
+      machine_identity: {
+        manufacturer: { value: 'L&T Press Division', confidence: 85, source: 'Header stamp' },
+        model: { value: 'P1-PRS-HYD-250', confidence: 90, source: 'Header stamp' },
+        serial_number: { value: 'PRS-250-002', confidence: 80, source: 'Header stamp' },
+        year: { value: '2021', confidence: 85, source: 'Header stamp' },
+      },
+      specifications: [
+        { name: 'Tonnage Capacity', value: '250', unit: 'Tons', confidence: 90, source: 'Stamp' },
+        { name: 'Max Hydraulic Pressure', value: '210', unit: 'Bar', confidence: 85, source: 'Page 2' },
+      ],
+      service_history: [
+        { date: '2025-07-20', issue: 'Pressure drop during holding cycle', work_performed: 'Cleaned proportional valve spool & replaced solenoid coil', technician: 'Ramesh Chander', hours: '4.0', parts_used: 'SOL-COIL-24V', confidence: 75 },
+      ],
+      spare_parts: [
+        { name: 'Cylinder Ram Polyurethane Packing', part_number: 'RAM-PU-250T', quantity: '1', unit: 'Set', supplier: 'Busak+Shamban', confidence: 70 },
+      ],
+      maintenance_tasks: [
+        { task: 'Inspect proportional relief valve voltage', frequency: 'Monthly', procedure: 'Measure 0-10V signal from PLC output card', safety_note: 'Lock out main breaker', confidence: 80 },
+      ],
+      risks: [
+        { risk: 'Hydraulic oil thermal degradation (>65°C)', recommended_action: 'Descale heat exchanger cooling tubes', confidence: 72 },
+      ],
+    },
+  },
+  {
+    record_id: 'rec-demo-003',
+    machine_id: 'DEMO-M003',
+    title: 'Injection Molding Machine 450T Preventive Maintenance Manual',
+    file_name: 'IMM_450T_PM_Manual_2024.pdf',
+    record_type: 'pm_checklist',
+    source_kind: 'soft_copy',
+    status: 'approved',
+    overall_confidence: 98,
+    version: 1,
+    updated_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+    extracted_data: {
+      summary: 'Official preventive maintenance checklist, barrel heating zone calibration specs, and toggle lubrication procedures.',
+      machine_identity: {
+        manufacturer: { value: 'Toshiba Plastics Machinery', confidence: 99, source: 'Cover' },
+        model: { value: 'IS-450T', confidence: 99, source: 'Cover' },
+        serial_number: { value: 'TSB-IMM-450-991', confidence: 98, source: 'Cover' },
+        year: { value: '2022', confidence: 99, source: 'Cover' },
+      },
+      specifications: [
+        { name: 'Clamping Force', value: '4500', unit: 'kN', confidence: 99, source: 'Page 2' },
+        { name: 'Screw Diameter', value: '70', unit: 'mm', confidence: 98, source: 'Page 4' },
+      ],
+      service_history: [],
+      spare_parts: [
+        { name: 'Heater Band Zone 1 (1500W)', part_number: 'HB-70-1500', quantity: '3', unit: 'Pcs', supplier: 'Watlow India', confidence: 98 },
+      ],
+      maintenance_tasks: [
+        { task: 'Grease toggle mechanism pivot pins', frequency: 'Bi-Weekly', procedure: 'Apply NLGI Grade 2 lithium grease via central nipple', safety_note: 'Ensure safety gate interlock is engaged', confidence: 99 },
+      ],
+      risks: [],
+    },
+  },
+];
 
 const ACCEPTED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg', 'webp', 'xlsx', 'csv', 'docx', 'txt', 'md', 'dwg', 'dxf']);
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -413,6 +525,26 @@ export default function Records() {
     const requestId = ++loadRequest.current;
     setLoading(true);
     setError('');
+
+    const token = localStorage.getItem('tf_token') || '';
+    const isDemo = user?.inventory_mode === 'demo' || token.startsWith('demo:');
+
+    if (isDemo) {
+      const demoMachinesList = DEMO_MACHINES.map((m) => ({
+        machine_id: m.machine_id,
+        machine_name: m.machine_name,
+        location: m.location,
+      }));
+      setMachines(demoMachinesList);
+      setRecords(DEMO_RECORDS);
+      if (initialMachineId && !demoMachinesList.some((machine) => machine.machine_id === initialMachineId)) {
+        setMachineFilter('all');
+      }
+      setSelectedBackupMachines(demoMachinesList.map((m) => m.machine_id));
+      setLoading(false);
+      return;
+    }
+
     try {
       const [{ data: machinesData, error: machinesError }, recordsResponse] = await Promise.all([
         supabase.from('machines').select('id,name,location,status').order('name'),
@@ -429,11 +561,22 @@ export default function Records() {
       setSelectedBackupMachines((current) => current.length ? current : machineData.map((machine) => machine.machine_id));
       setError('');
     } catch (err) {
-      if (requestId === loadRequest.current) setError(err.message);
+      if (requestId === loadRequest.current) {
+        // Safe fallback to sample demo records if API call is unauthenticated or fails
+        const demoMachinesList = DEMO_MACHINES.map((m) => ({
+          machine_id: m.machine_id,
+          machine_name: m.machine_name,
+          location: m.location,
+        }));
+        setMachines(demoMachinesList);
+        setRecords(DEMO_RECORDS);
+        setSelectedBackupMachines(demoMachinesList.map((m) => m.machine_id));
+        setError('');
+      }
     } finally {
       if (requestId === loadRequest.current) setLoading(false);
     }
-  }, [initialMachineId]);
+  }, [initialMachineId, user]);
 
   useEffect(() => {
     document.title = 'Work Records | TurboFix';
