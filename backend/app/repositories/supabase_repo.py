@@ -374,6 +374,20 @@ class SupabaseUserRepository(UserRepository):
         return [self._user_to_dict(r) for r in rows]
 
     def add(self, row: dict) -> None:
+        # TEMP diagnostic: wrap the WHOLE method so any failure anywhere in
+        # it (not just the GoTrue calls) surfaces via a 502 instead of a
+        # bare 500 — two narrower diagnostics upstream of this one never
+        # changed observed behaviour, so the real failure point is unknown.
+        # TODO(remove-after-diagnosis): revert to normal (unwrapped) flow.
+        try:
+            self._add_impl(row)
+        except Exception as exc:
+            from fastapi import HTTPException
+            import traceback
+            tb = traceback.format_exc().replace("\n", " | ")[-1200:]
+            raise HTTPException(status_code=502, detail=f"add() diag: {type(exc).__name__}: {exc} :: {tb}") from exc
+
+    def _add_impl(self, row: dict) -> None:
         company_id = _company_id_for_code(row.get("company_code", ""))
         email = (row.get("email") or "").strip()
         password = row.get("password") or ""
@@ -385,24 +399,12 @@ class SupabaseUserRepository(UserRepository):
         # Without a password (offline/no-portal-access staff), keep the
         # existing behaviour: a directory-only row with no auth identity.
         if email and password:
-            # TEMP diagnostic: surface ANY failure in this block (not just a
-            # clean GoTrueError) so we can see WHY registration is failing in
-            # prod without log access — no exception-detail leak path exists
-            # in this app otherwise.
-            # TODO(remove-after-diagnosis): revert to a generic message.
-            try:
-                auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
-                if auth_user is None:
-                    # GoTrue already has this email (e.g. a retried registration
-                    # after a previous partial failure) — reuse that identity
-                    # instead of silently creating a passwordless orphan row.
-                    auth_user = _client.auth_get_user_by_email(email)
-            except GoTrueError as exc:
-                from fastapi import HTTPException
-                raise HTTPException(status_code=502, detail=f"GoTrue diag: {exc.status_code} {exc.body}") from exc
-            except Exception as exc:
-                from fastapi import HTTPException
-                raise HTTPException(status_code=502, detail=f"GoTrue diag: {type(exc).__name__}: {exc}") from exc
+            auth_user = _client.auth_admin_create_user(email, password, row.get("phone", ""))
+            if auth_user is None:
+                # GoTrue already has this email (e.g. a retried registration
+                # after a previous partial failure) — reuse that identity
+                # instead of silently creating a passwordless orphan row.
+                auth_user = _client.auth_get_user_by_email(email)
             if auth_user and auth_user.get("id"):
                 user_id = auth_user["id"]
             else:
