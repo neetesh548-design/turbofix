@@ -8041,7 +8041,7 @@ details.faq-item p {
   .nav .login-link { display: none; }
   .nav-links { top: 66px; }
   .marketing-hero {
-    padding: 36px 0 46px;
+    padding: 96px 0 46px;
   }
   .marketing-hero-grid,
   .marketing-hero-copy,
@@ -11355,14 +11355,30 @@ a:focus-visible,
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
     padding: 12px 18px;
-    z-index: 99;
+    z-index: 999;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .marketing-mobile-sticky-bar .marketing-btn {
+    background: linear-gradient(135deg, #25D366 0%, #059669 100%) !important;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4) !important;
+    padding: 10px 18px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    opacity: 1 !important;
   }
 
   .marketing-records-section,
