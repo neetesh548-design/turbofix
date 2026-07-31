@@ -11710,3 +11710,82 @@ a:focus-visible,
   }
 }
 
+/* ===========================================================
+   Stitch MCP Obsidian Forge & Daylight Industrial Design System
+   =========================================================== */
+
+/* Glassmorphic Tiles & Elevated Containers */
+.stitch-glass-tile {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"] .stitch-glass-tile {
+  background: rgba(8, 20, 37, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+:root[data-theme="dark"] .stitch-glass-tile:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(16, 185, 129, 0.15);
+}
+
+:root[data-theme="light"] .stitch-glass-tile {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme="light"] .stitch-glass-tile:hover {
+  border-color: rgba(4, 120, 87, 0.4);
+  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.12);
+}
+
+/* High-Precision JetBrains Mono Data Metrics */
+.stitch-metric-data {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Glowing Status Ring Indicator */
+.stitch-status-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.stitch-status-ring-emerald {
+  border: 2px solid #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.stitch-status-ring-sapphire {
+  border: 2px solid #0284c7;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
+}
+
+.stitch-status-ring-amber {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.stitch-status-ring-red {
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Polished Card Hover Micro-Animations */
+.stitch-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.stitch-card-hover:hover {
+  transform: translateY(-2px);
+}
+
+

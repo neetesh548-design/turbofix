@@ -45,8 +45,11 @@ function runStitchBridge() {
 
   markdown += `### 1. Stitch MCP Active Project & Design System Tokens (\`create_design_system\` / \`update_design_system\`)\n`;
   markdown += `* **Stitch Project ID**: \`6322273605992702600\` (*TurboFix Modern UI*)\n`;
-  markdown += `* **Design System Asset ID**: \`assets/14391586239197748477\` (*Daylight Industrial Light System*)\n`;
-  markdown += `* **Generated Daylight Screens**:\n`;
+  markdown += `* **Design System Assets**:\n`;
+  markdown += `  - \`assets/14391586239197748477\` (*Daylight Industrial Light System*)\n`;
+  markdown += `  - \`assets/363d4e8d5d224279bbe747919fe9037e\` (*Obsidian Forge Dark System*)\n`;
+  markdown += `* **Generated Stitch Screens**:\n`;
+  markdown += `  - \`projects/6322273605992702600/screens/ef77c2e80b42480eaa14a173e248fbed\` (*TurboFix | Plant Operations Console*)\n`;
   markdown += `  - \`projects/6322273605992702600/screens/0676ea6a08f248759eb19f3ee34c93af\` (*TurboFix Control Board - Daylight Scenario*)\n`;
   markdown += `  - \`projects/6322273605992702600/screens/18ce35aa11584105bc5346a8b1bfb5be\` (*TurboFix Fleet & Maintenance Dashboard - Daylight*)\n\n`;
   markdown += `\`\`\`json\n`;

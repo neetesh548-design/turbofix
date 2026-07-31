@@ -1,6 +1,6 @@
 # Stitch Visual Remediation Audit & Design System Bridge
 
-*Generated: 2026-07-31T14:26:04.595Z*
+*Generated: 2026-07-31T15:00:32.026Z*
 
 This report details full-page light-theme screenshot artifacts captured across application routes, visual defect analyses, and actionable Stitch MCP prompt specifications to visually rectify light mode UI styling.
 
@@ -31,8 +31,11 @@ Use the following structured prompts with Stitch MCP tools (`edit_screens`, `gen
 
 ### 1. Stitch MCP Active Project & Design System Tokens (`create_design_system` / `update_design_system`)
 * **Stitch Project ID**: `6322273605992702600` (*TurboFix Modern UI*)
-* **Design System Asset ID**: `assets/14391586239197748477` (*Daylight Industrial Light System*)
-* **Generated Daylight Screens**:
+* **Design System Assets**:
+  - `assets/14391586239197748477` (*Daylight Industrial Light System*)
+  - `assets/363d4e8d5d224279bbe747919fe9037e` (*Obsidian Forge Dark System*)
+* **Generated Stitch Screens**:
+  - `projects/6322273605992702600/screens/ef77c2e80b42480eaa14a173e248fbed` (*TurboFix | Plant Operations Console*)
   - `projects/6322273605992702600/screens/0676ea6a08f248759eb19f3ee34c93af` (*TurboFix Control Board - Daylight Scenario*)
   - `projects/6322273605992702600/screens/18ce35aa11584105bc5346a8b1bfb5be` (*TurboFix Fleet & Maintenance Dashboard - Daylight*)
 
