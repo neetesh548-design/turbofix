@@ -122,7 +122,8 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-            r.raise_for_status()
+                # TEMP diagnostic. TODO(remove-after-diagnosis).
+                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -1460,36 +1461,41 @@ class SupabasePartsRepository(PartsRepository):
         }
 
     def add_item(self, kind: str, row: dict) -> None:
-        table = self._table(kind)
-        company_code = row.get("company_code", "")
-        factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
-        # parts.id/consumables.id are native uuid primary keys, but callers
-        # pass the legacy human-readable "SP-.../CON-..." id (row["part_id"]/
-        # row["consumable_id"], used by the file/sheets backends) — that
-        # string isn't valid uuid syntax, so it can't be reused here (same
-        # issue already fixed for machines.id in SupabaseMachineRepository).
-        if kind == "consumables":
-            _client.insert(table, {
-                "id": str(uuid.uuid4()),
-                "machine_id": row.get("machine_id") or None,
-                "factory_id": factory_id,
-                "name": row.get("name", ""),
-                "unit": row.get("unit", "pcs"),
-                "reorder_level": row.get("reorder_level", 0),
-                "stock_qty": row.get("quantity_on_hand", 0),
-            })
-        else:
-            _client.insert(table, {
-                "id": str(uuid.uuid4()),
-                "machine_id": row.get("machine_id") or None,
-                "factory_id": factory_id,
-                "part_name": row.get("part_name", ""),
-                "part_number": row.get("part_number", ""),
-                "unit": row.get("unit", "pcs"),
-                "reorder_level": row.get("reorder_level", 0),
-                "supplier": row.get("supplier", ""),
-                "stock_qty": row.get("quantity_on_hand", 0),
-            })
+        # TEMP diagnostic: surface any failure via 502. TODO(remove-after-diagnosis).
+        try:
+            table = self._table(kind)
+            company_code = row.get("company_code", "")
+            factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
+            # parts.id/consumables.id are native uuid primary keys, but callers
+            # pass the legacy human-readable "SP-.../CON-..." id (row["part_id"]/
+            # row["consumable_id"], used by the file/sheets backends) — that
+            # string isn't valid uuid syntax, so it can't be reused here (same
+            # issue already fixed for machines.id in SupabaseMachineRepository).
+            if kind == "consumables":
+                _client.insert(table, {
+                    "id": str(uuid.uuid4()),
+                    "machine_id": row.get("machine_id") or None,
+                    "factory_id": factory_id,
+                    "name": row.get("name", ""),
+                    "unit": row.get("unit", "pcs"),
+                    "reorder_level": row.get("reorder_level", 0),
+                    "stock_qty": row.get("quantity_on_hand", 0),
+                })
+            else:
+                _client.insert(table, {
+                    "id": str(uuid.uuid4()),
+                    "machine_id": row.get("machine_id") or None,
+                    "factory_id": factory_id,
+                    "part_name": row.get("part_name", ""),
+                    "part_number": row.get("part_number", ""),
+                    "unit": row.get("unit", "pcs"),
+                    "reorder_level": row.get("reorder_level", 0),
+                    "supplier": row.get("supplier", ""),
+                    "stock_qty": row.get("quantity_on_hand", 0),
+                })
+        except Exception as exc:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=502, detail=f"add_item diag: {type(exc).__name__}: {exc}") from exc
 
     def update_item(self, kind: str, item_id: str, updates: dict) -> bool:
         table = self._table(kind)
