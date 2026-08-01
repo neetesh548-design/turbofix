@@ -58,6 +58,17 @@ from app.repositories.base import (
 log = logging.getLogger("turbofix.supabase_repo")
 
 
+def _to_int(value) -> int:
+    """Coerce a request-layer float (e.g. reorder_level: float in
+    SparePartIn/ConsumableIn) into the integer Postgres columns
+    (parts.reorder_level, parts.stock_qty, etc.) actually expect —
+    PostgREST/Postgres reject a JSON float like 2.0 for an integer column."""
+    try:
+        return int(round(float(value or 0)))
+    except (TypeError, ValueError):
+        return 0
+
+
 class GoTrueError(Exception):
     """A non-2xx response from Supabase Auth (GoTrue) admin API."""
 
@@ -122,8 +133,7 @@ class _SupabaseClient:
                     "postgrest.insert_failed",
                     extra={"table": table, "status": r.status_code, "body": r.text},
                 )
-                # TEMP diagnostic. TODO(remove-after-diagnosis).
-                raise RuntimeError(f"PostgREST insert into {table!r} failed: {r.status_code} {r.text}")
+            r.raise_for_status()
             data = r.json()
             return data[0] if isinstance(data, list) else data
 
@@ -1461,41 +1471,36 @@ class SupabasePartsRepository(PartsRepository):
         }
 
     def add_item(self, kind: str, row: dict) -> None:
-        # TEMP diagnostic: surface any failure via 502. TODO(remove-after-diagnosis).
-        try:
-            table = self._table(kind)
-            company_code = row.get("company_code", "")
-            factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
-            # parts.id/consumables.id are native uuid primary keys, but callers
-            # pass the legacy human-readable "SP-.../CON-..." id (row["part_id"]/
-            # row["consumable_id"], used by the file/sheets backends) — that
-            # string isn't valid uuid syntax, so it can't be reused here (same
-            # issue already fixed for machines.id in SupabaseMachineRepository).
-            if kind == "consumables":
-                _client.insert(table, {
-                    "id": str(uuid.uuid4()),
-                    "machine_id": row.get("machine_id") or None,
-                    "factory_id": factory_id,
-                    "name": row.get("name", ""),
-                    "unit": row.get("unit", "pcs"),
-                    "reorder_level": row.get("reorder_level", 0),
-                    "stock_qty": row.get("quantity_on_hand", 0),
-                })
-            else:
-                _client.insert(table, {
-                    "id": str(uuid.uuid4()),
-                    "machine_id": row.get("machine_id") or None,
-                    "factory_id": factory_id,
-                    "part_name": row.get("part_name", ""),
-                    "part_number": row.get("part_number", ""),
-                    "unit": row.get("unit", "pcs"),
-                    "reorder_level": row.get("reorder_level", 0),
-                    "supplier": row.get("supplier", ""),
-                    "stock_qty": row.get("quantity_on_hand", 0),
-                })
-        except Exception as exc:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=502, detail=f"add_item diag: {type(exc).__name__}: {exc}") from exc
+        table = self._table(kind)
+        company_code = row.get("company_code", "")
+        factory_id = (_factory_id_for_code(company_code) or _company_id_for_code(company_code)) if company_code else None
+        # parts.id/consumables.id are native uuid primary keys, but callers
+        # pass the legacy human-readable "SP-.../CON-..." id (row["part_id"]/
+        # row["consumable_id"], used by the file/sheets backends) — that
+        # string isn't valid uuid syntax, so it can't be reused here (same
+        # issue already fixed for machines.id in SupabaseMachineRepository).
+        if kind == "consumables":
+            _client.insert(table, {
+                "id": str(uuid.uuid4()),
+                "machine_id": row.get("machine_id") or None,
+                "factory_id": factory_id,
+                "name": row.get("name", ""),
+                "unit": row.get("unit", "pcs"),
+                "reorder_level": _to_int(row.get("reorder_level", 0)),
+                "stock_qty": _to_int(row.get("quantity_on_hand", 0)),
+            })
+        else:
+            _client.insert(table, {
+                "id": str(uuid.uuid4()),
+                "machine_id": row.get("machine_id") or None,
+                "factory_id": factory_id,
+                "part_name": row.get("part_name", ""),
+                "part_number": row.get("part_number", ""),
+                "unit": row.get("unit", "pcs"),
+                "reorder_level": _to_int(row.get("reorder_level", 0)),
+                "supplier": row.get("supplier", ""),
+                "stock_qty": _to_int(row.get("quantity_on_hand", 0)),
+            })
 
     def update_item(self, kind: str, item_id: str, updates: dict) -> bool:
         table = self._table(kind)
@@ -1512,12 +1517,24 @@ class SupabasePartsRepository(PartsRepository):
                     patch[key] = updates[key]
             if "quantity_on_hand" in updates:
                 patch["stock_qty"] = updates["quantity_on_hand"]
+        # reorder_level and stock_qty are integer columns; the request
+        # schema types both as float (SparePartIn/ConsumableIn), so a whole
+        # number like 2.0 must be coerced before PostgREST sends it on —
+        # Postgres rejects "2.0" for an integer column (same class of bug
+        # already fixed in add_item()).
+        for int_key in ("reorder_level", "stock_qty"):
+            if int_key in patch:
+                patch[int_key] = _to_int(patch[int_key])
         if not patch:
             return True
         try:
             _client.update(table, {"id": f"eq.{item_id}"}, patch)
             return True
-        except Exception:
+        except Exception as exc:
+            log.error(
+                "supabase.update_item failed",
+                extra={"kind": kind, "item_id": item_id, "error": str(exc)},
+            )
             return False
 
     def delete_item(self, kind: str, item_id: str) -> bool:

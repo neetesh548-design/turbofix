@@ -121,6 +121,38 @@ def test_supabase_parts_get_item_resolves_real_company_code(monkeypatch):
     assert consumable["consumable_id"] == "consumable-1"
 
 
+def test_supabase_parts_add_and_update_item_coerce_quantities_to_int(monkeypatch):
+    # Regression test: reorder_level/quantity_on_hand are typed float at the
+    # request layer (SparePartIn/ConsumableIn), but parts.reorder_level and
+    # parts.stock_qty are integer columns in Postgres — PostgREST rejects a
+    # JSON float like 2.0 for an integer column (22P02 invalid input syntax).
+    client = FakePostgrestClient()
+    monkeypatch.setattr(supabase_repo, "_client", client)
+    monkeypatch.setattr(supabase_repo, "_factory_id_for_code", lambda code: "factory-1")
+    monkeypatch.setattr(supabase_repo, "_company_id_for_code", lambda code: "company-1")
+    repository = supabase_repo.SupabasePartsRepository()
+
+    repository.add_item("spare_parts", {
+        "part_id": "SP-legacy-id",
+        "company_code": "ACME",
+        "machine_id": "machine-1",
+        "part_name": "Bearing",
+        "quantity_on_hand": 5.0,
+        "reorder_level": 2.0,
+    })
+    inserted = client.calls[-1][2]
+    assert inserted["stock_qty"] == 5 and isinstance(inserted["stock_qty"], int)
+    assert inserted["reorder_level"] == 2 and isinstance(inserted["reorder_level"], int)
+    # Also covers the sibling uuid-id bug (d8fd5d1): the legacy "SP-..." id
+    # must never be reused as the Supabase row's id.
+    assert inserted["id"] != "SP-legacy-id"
+
+    repository.update_item("spare_parts", "part-1", {"quantity_on_hand": 3.0, "reorder_level": 1.0})
+    patch = client.calls[-1][3]
+    assert patch["stock_qty"] == 3 and isinstance(patch["stock_qty"], int)
+    assert patch["reorder_level"] == 1 and isinstance(patch["reorder_level"], int)
+
+
 class FakeResponse:
     def __init__(self, status_code=200, payload=None, content=b""):
         self.status_code = status_code
