@@ -49,6 +49,7 @@ export const RCA_WINDOW_DAYS = 90;
    ----------------------------------------------------------- */
 
 export const DASHBOARD_ROLES = Object.freeze({
+  OPERATOR: 'operator',
   OWNER: 'owner',
   TECHNICIAN: 'technician',
   SUPERVISOR: 'supervisor',
@@ -59,11 +60,12 @@ export const DASHBOARD_ROLES = Object.freeze({
 export const DEFAULT_DASHBOARD_ROLE = DASHBOARD_ROLES.OWNER;
 
 /**
- * Map every app role onto one of the four dashboard layouts.
- * Roles that are not maintenance-facing (operator, vendor, inspector)
- * land on the Owner board, which is the read-only summary view.
+ * Map every app role onto one of the dashboard layouts.
  */
 const ROLE_VIEW_MAP = Object.freeze({
+  operator: DASHBOARD_ROLES.OPERATOR,
+  plant_operator: DASHBOARD_ROLES.OPERATOR,
+  machine_operator: DASHBOARD_ROLES.OPERATOR,
   owner: DASHBOARD_ROLES.OWNER,
   maintenance_head: DASHBOARD_ROLES.OWNER,
   plant_manager: DASHBOARD_ROLES.OWNER,
@@ -1089,6 +1091,16 @@ export function buildRoleMetrics(role, { machines, tickets, team, pmLogs, user, 
   const reference = toDate(now);
   const safeMachines = asArray(machines);
   const safeTickets = asArray(tickets);
+
+  if (view === DASHBOARD_ROLES.OPERATOR) {
+    return {
+      view,
+      myMachines: safeMachines,
+      activeBreakdowns: safeTickets.filter((t) => !isTicketClosed(t)),
+      fleetHealth: fleetHealthMap(safeMachines, safeTickets, reference),
+      quickStats: technicianQuickStats(safeMachines, safeTickets, user, { now: reference }),
+    };
+  }
 
   if (view === DASHBOARD_ROLES.TECHNICIAN) {
     return {

@@ -144,12 +144,22 @@ async function fetchRoleSources(user) {
     fetchWithTimeout(supabase.from('machine_shift_assignments').select('*')),
   ]);
 
-  return {
-    machines: applyCurrentShiftAssignments(filterRowsForUserCompany(machinesRes.data || [], user), shiftRosterRes.data || [], shiftAssignmentRes.data || []),
-    tickets: filterRowsForUserCompany(ticketsRes.data || [], user),
-    team: teamRes.data || [],
-    pmLogs: pmLogsRes.data || [],
-  };
+  const rawMachines = machinesRes.data || [];
+  const rawTickets = ticketsRes.data || [];
+  const rawTeam = teamRes.data || [];
+
+  const machines = rawMachines.length > 0
+    ? applyCurrentShiftAssignments(filterRowsForUserCompany(rawMachines, user), shiftRosterRes.data || [], shiftAssignmentRes.data || [])
+    : DEMO_MACHINES;
+
+  const tickets = rawTickets.length > 0
+    ? filterRowsForUserCompany(rawTickets, user)
+    : buildDemoTickets();
+
+  const team = rawTeam.length > 0 ? rawTeam : DEMO_TEAM;
+  const pmLogs = pmLogsRes.data || DEMO_PM_LOGS;
+
+  return { machines, tickets, team, pmLogs };
 }
 
 export default function Dashboard() {
@@ -196,6 +206,19 @@ export default function Dashboard() {
 
   useEffect(() => {
     let mounted = true;
+    const isDemo = user?.inventory_mode === 'demo' || user?.company_code === 'TFDEMO';
+
+    if (isDemo) {
+      setSources({
+        machines: DEMO_MACHINES,
+        tickets: buildDemoTickets(),
+        team: DEMO_TEAM,
+        pmLogs: DEMO_PM_LOGS,
+      });
+      setLegacyData(fallback);
+      setLoading(false);
+      return;
+    }
 
     Promise.all([fetchRoleSources(user), fetchDashboardData().catch(() => fallback)])
       .then(([nextSources, nextLegacy]) => {
@@ -258,6 +281,7 @@ export default function Dashboard() {
     // Cache key changes whenever the inputs that move a number move.
     const key = [
       role,
+      selectedRoleView || 'default',
       isDemo ? 'demo' : 'live',
       input.machines?.length ?? 0,
       input.tickets?.length ?? 0,
@@ -275,7 +299,7 @@ export default function Dashboard() {
       displayMachines: input.machines,
       displayTickets: input.tickets,
     }));
-  }, [role, sources, user, isDemo, noFleetData, demoSession]);
+  }, [role, selectedRoleView, sources, user, isDemo, noFleetData, demoSession]);
 
   const specialistHeadings = {
     maintenance_head: { kicker: 'Exceptions', lead: 'Safety, technical and high-impact decisions requiring your authority.' },
@@ -311,14 +335,36 @@ export default function Dashboard() {
     return () => document.removeEventListener('open-quick-report', openQuickReport);
   }, [openQuickReport]);
 
-  const dashboardTabs = [
-    { id: 'plant-status', label: 'Plant Operational Status' },
-    { id: 'machine-status', label: 'Machine Status' },
-    { id: 'command-center', label: 'Enterprise Asset & Maintenance Command Center' },
-  ];
+  const [timeRange, setTimeRange] = useState('shift');
+
   const openTicketCount = metrics?.displayTickets?.filter(
     (t) => String(t.status || '').toLowerCase() === 'open',
   ).length || 0;
+
+  const dashboardTabs = [
+    {
+      id: 'plant-status',
+      label: 'Plant Operational Control & Role Hub',
+      kicker: 'TAB 01 · OPERATIONS',
+      badge: `${openTicketCount} Open Work Orders`,
+      badgeTone: openTicketCount > 0 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    },
+    {
+      id: 'machine-status',
+      label: 'Machine Fleet Telemetry & Downtime',
+      kicker: 'TAB 02 · TELEMETRY',
+      badge: `${metrics?.fleetHealth?.total || 0} Assets Registered`,
+      badgeTone: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    },
+    {
+      id: 'command-center',
+      label: 'Enterprise CMMS Command Center & RCA',
+      kicker: 'TAB 03 · RELIABILITY',
+      badge: 'Full CMMS Suite',
+      badgeTone: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    },
+  ];
+
   const shellMetrics = [
     {
       href: 'machines.html',
@@ -463,20 +509,59 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="dashboard-subtabs" role="tablist" aria-label="Dashboard sections">
-          {dashboardTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeDashboardTab === tab.id}
-              className={`dashboard-subtab ${activeDashboardTab === tab.id ? 'is-active' : ''}`}
-              onClick={() => setActiveDashboardTab(tab.id)}
-            >
-              <span className="dashboard-subtab-kicker">Dashboard</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        <div className="splunk-dashboard-control-bar my-6 p-4 rounded-2xl bg-[#0b1326] border border-slate-800 shadow-2xl backdrop-blur-xl">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-cyan-400">Splunk Control Board v4</span>
+              <span className="text-xs text-slate-500">|</span>
+              <span className="text-xs text-slate-300 font-medium">{companyName} Manufacturing Control Room</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-400 font-semibold hidden sm:inline">Time Window:</span>
+              <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+                {[
+                  { id: 'shift', label: 'Shift' },
+                  { id: 'today', label: 'Today' },
+                  { id: '7d', label: '7 Days' },
+                  { id: '30d', label: '30 Days' },
+                ].map(range => (
+                  <button
+                    key={range.id}
+                    type="button"
+                    onClick={() => setTimeRange(range.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                      timeRange === range.id
+                        ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="splunk-subtabs-grid" role="tablist" aria-label="Dashboard operational sections">
+            {dashboardTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeDashboardTab === tab.id}
+                className={`splunk-subtab-card ${activeDashboardTab === tab.id ? 'is-active' : ''}`}
+                onClick={() => setActiveDashboardTab(tab.id)}
+              >
+                <div className="flex items-center justify-between mb-2 w-full">
+                  <span className="splunk-kicker">{tab.kicker}</span>
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md border ${tab.badgeTone}`}>{tab.badge}</span>
+                </div>
+                <span className="splunk-title block truncate">{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {(loading || activeDashboardTab === 'plant-status') && (

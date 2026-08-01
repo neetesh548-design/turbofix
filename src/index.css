@@ -128,6 +128,7 @@
 }
 
 /* Light Theme Design Tokens — Google Stitch Daylight Scenario */
+/* ColorHunt Universal Light Theme Palette across ALL Pages */
 [data-theme="light"] {
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -136,7 +137,7 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   
-  --primary: #059669;
+  --primary: #0891b2;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -144,37 +145,7 @@
   --muted-foreground: #475569;
   --accent: #e2e8f0;
   --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
 
-  /* Semantic state colors — light theme */
-  --success: #059669;
-  --success-foreground: #ffffff;
-  --warning: #d97706;
-  --warning-foreground: #ffffff;
-  --danger: #dc2626;
-  --danger-foreground: #ffffff;
-  --info: #2563eb;
-  --info-foreground: #ffffff;
-
-  --ui-border: rgba(15, 23, 42, 0.12);
-  --input: rgba(15, 23, 42, 0.08);
-  --ring: #059669;
-  --chart-1: #059669;
-  --chart-2: #2563eb;
-  --chart-3: #d97706;
-  --chart-4: #dc2626;
-  --chart-5: #7c3aed;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #059669;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: rgba(15, 23, 42, 0.08);
-  --sidebar-ring: #059669;
-
-  /* Demo & Layout Tokens for Light Mode */
   --bg: #f8fafc;
   --card: #ffffff;
   --navy: #ffffff;
@@ -186,44 +157,195 @@
   --slate-light: #64748b;
   --border: rgba(15, 23, 42, 0.12);
 
-  --green: #059669;
-  --green-dark: #047857;
-  --green-light: rgba(5, 150, 105, 0.12);
-  --brand: #059669;
-
-  background-color: #f8fafc;
-  color: #0f172a;
-}
-
-[data-theme="light"] body {
   background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 
-/* Light Theme Overrides for Stitch Glass Tiles & Cards */
+[data-theme="light"] body,
+[data-theme="light"] #root,
+[data-theme="light"] .app-layout,
+[data-theme="light"] .app-body,
+[data-theme="light"] .app-main,
+[data-theme="light"] .app-content,
+[data-theme="light"] main {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Header & Navigation bar on Light Mode */
+[data-theme="light"] header.app-topbar,
+[data-theme="light"] .app-topbar,
+[data-theme="light"] header.public-nav,
+[data-theme="light"] .public-nav {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-bottom-color: rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .app-brand-name,
+[data-theme="light"] .public-nav-brand .brand-name,
+[data-theme="light"] .public-nav-brand .brand-turbo {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .public-nav-link,
+[data-theme="light"] .public-nav-resources-trigger {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .public-nav-link:hover,
+[data-theme="light"] .public-nav-resources-trigger:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .public-nav-link.active,
+[data-theme="light"] .public-nav-resources-trigger.active {
+  color: #0891b2 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .public-nav-resources-menu {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1) !important;
+}
+
+[data-theme="light"] .public-nav-account {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .public-nav-account strong {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .public-nav-account small {
+  color: #64748b !important;
+}
+
+[data-theme="light"] nav {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+  border-bottom-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+[data-theme="light"] nav a {
+  color: #475569 !important;
+}
+
+[data-theme="light"] nav a:hover {
+  color: #0f172a !important;
+  background-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+[data-theme="light"] nav a.bg-emerald-500\/15,
+[data-theme="light"] nav a[class*="text-[#50ffab]"] {
+  background-color: rgba(8, 145, 178, 0.12) !important;
+  color: #0891b2 !important;
+  border-color: rgba(8, 145, 178, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+/* Universal Page Cards & Containers across Machines, Tickets, Inventory, RCA, Shutdown, Kaizen, Records, Settings, Support, Team */
 [data-theme="light"] .stitch-glass-tile,
+[data-theme="light"] .dreamz-cmms-suite,
 [data-theme="light"] .marketing-pricing-card,
 [data-theme="light"] .marketing-calculator-box,
 [data-theme="light"] .rd-chart-card,
 [data-theme="light"] .tickets-row,
-[data-theme="light"] .tickets-kpi {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+[data-theme="light"] .tickets-kpi,
+[data-theme="light"] .machines-card,
+[data-theme="light"] .inventory-card,
+[data-theme="light"] .shutdown-card,
+[data-theme="light"] .kaizen-card,
+[data-theme="light"] .rca-card,
+[data-theme="light"] .records-card,
+[data-theme="light"] .settings-card,
+[data-theme="light"] .team-card,
+[data-theme="light"] .support-card,
+[data-theme="light"] .kpi-card,
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-900\/60,
+[data-theme="light"] .bg-slate-900\/80,
+[data-theme="light"] .bg-slate-900\/90,
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-slate-950\/70,
+[data-theme="light"] .bg-slate-950\/80,
+[data-theme="light"] .bg-slate-950\/85,
+[data-theme="light"] .bg-slate-950\/90,
+[data-theme="light"] .bg-[#0b0f17],
+[data-theme="light"] .bg-[#0a0f1d],
+[data-theme="light"] .bg-[#080d1a],
+[data-theme="light"] .bg-[#0e121a],
+[data-theme="light"] .bg-[#0f172a],
+[data-theme="light"] .bg-[#141e33],
+[data-theme="light"] .bg-[#12161e],
+[data-theme="light"] .bg-zinc-900,
+[data-theme="light"] .bg-zinc-950 {
+  background-color: #ffffff !important;
   border-color: rgba(203, 213, 225, 0.8) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] .dreamz-cmms-suite div[class*="bg-slate-900"],
+[data-theme="light"] .dreamz-cmms-suite div[class*="bg-slate-950"],
+[data-theme="light"] .dreamz-cmms-suite div[class*="bg-[#080d1a]"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-[data-theme="light"] .tickets-wo {
-  color: #047857 !important;
-  background: rgba(5, 150, 105, 0.1) !important;
-  border-color: rgba(5, 150, 105, 0.3) !important;
+/* Headings and Typography in Light Mode */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6 {
+  color: #0f172a !important;
 }
 
-[data-theme="light"] .tickets-machine,
-[data-theme="light"] .tickets-heading h1 {
+[data-theme="light"] p,
+[data-theme="light"] label,
+[data-theme="light"] span.text-slate-400,
+[data-theme="light"] div.text-slate-400 {
+  color: #475569 !important;
+}
+
+/* Form Inputs, Selects & Search Bars */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Tables across all pages */
+[data-theme="light"] table {
+  border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+[data-theme="light"] th {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-bottom-color: rgba(203, 213, 225, 0.8) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] td {
+  border-bottom-color: rgba(241, 245, 249, 0.9) !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] tr:hover td {
+  background-color: #f1f5f9 !important;
 }
 
 /* ===========================================================
@@ -2574,6 +2696,14 @@ textarea:focus-visible {
 [data-theme="light"] .stitch-glass-tile h2,
 [data-theme="light"] .stitch-glass-tile h3,
 [data-theme="light"] .stitch-glass-tile h4,
+[data-theme="light"] .marketing-home h1,
+[data-theme="light"] .marketing-home h2,
+[data-theme="light"] .marketing-home h3,
+[data-theme="light"] .marketing-home h4,
+[data-theme="light"] .marketing-hero h1,
+[data-theme="light"] .marketing-section h2,
+[data-theme="light"] .marketing-section h3,
+[data-theme="light"] .marketing-card h3,
 [data-theme="light"] .marketing-pricing-card h1,
 [data-theme="light"] .marketing-pricing-card h2,
 [data-theme="light"] .marketing-pricing-card h3,
@@ -2642,10 +2772,11 @@ textarea:focus-visible {
 [data-theme="light"] .brk-submit-bar h2,
 [data-theme="light"] .brk-submit-bar h3,
 [data-theme="light"] .brk-submit-bar h4 {
-  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
 }
 
 /* Same problem, different properties: body copy (text-slate-300), CTA links
@@ -7772,6 +7903,121 @@ details.faq-item p {
   color: var(--marketing-text);
   background: var(--marketing-bg);
 }
+
+/* Universal ColorHunt Light Theme Palette for Public Marketing Pages */
+[data-theme="light"] .marketing-home,
+[data-theme="light"] .marketing-home-wrapper,
+[data-theme="light"] .public-marketing-page {
+  --marketing-bg: #f8fafc;
+  --marketing-panel: #ffffff;
+  --marketing-panel-soft: #f1f5f9;
+  --marketing-line: #cbd5e1;
+  --marketing-text: #0f172a;
+  --marketing-muted: #475569;
+  --marketing-green: #0891b2;
+  --marketing-green-deep: #0e7490;
+
+  color: #0f172a !important;
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .marketing-hero,
+[data-theme="light"] .marketing-page-hero {
+  background:
+    radial-gradient(circle at 78% 28%, rgba(8, 145, 178, 0.08), transparent 35%),
+    radial-gradient(circle at 12% 4%, rgba(245, 158, 11, 0.06), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+[data-theme="light"] .marketing-hero h1,
+[data-theme="light"] .marketing-page-hero h1 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-hero-copy > p,
+[data-theme="light"] .marketing-page-hero p {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .marketing-eyebrow {
+  background: rgba(8, 145, 178, 0.08) !important;
+  border-color: rgba(8, 145, 178, 0.25) !important;
+  color: #0891b2 !important;
+}
+
+[data-theme="light"] .marketing-btn-secondary {
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .marketing-btn-secondary:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-product-preview {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-preview-question,
+[data-theme="light"] .marketing-preview-answer,
+[data-theme="light"] .marketing-preview-metrics {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-card,
+[data-theme="light"] .marketing-section,
+[data-theme="light"] .marketing-grid-card,
+[data-theme="light"] .marketing-story-card,
+[data-theme="light"] .marketing-workflow-card,
+[data-theme="light"] .marketing-contact-box,
+[data-theme="light"] .marketing-faq-item,
+[data-theme="light"] .marketing-pricing-card,
+[data-theme="light"] .marketing-calculator-box,
+[data-theme="light"] .marketing-feature-card,
+[data-theme="light"] .marketing-explore-card,
+[data-theme="light"] .marketing-stat-card {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .marketing-trust-row span {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .marketing-preview-question strong,
+[data-theme="light"] .marketing-preview-priority strong,
+[data-theme="light"] .marketing-preview-metrics b {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-preview-question small,
+[data-theme="light"] .marketing-preview-answer > p,
+[data-theme="light"] .marketing-preview-metrics span {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .marketing-capability-strip {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .marketing-capability-strip span {
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
 .marketing-footer-social-list {
   display: flex;
   gap: 8px;
@@ -11353,6 +11599,11 @@ a:focus-visible,
   background: linear-gradient(180deg, rgba(7, 11, 16, 0.72), rgba(14, 22, 31, 0.92));
 }
 
+[data-theme="light"] .marketing-pricing-section {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-color: #cbd5e1 !important;
+}
+
 .marketing-calculator-box {
   --card-text: #f8fafc;
   --card-text-subtle: #94a3b8;
@@ -11363,6 +11614,15 @@ a:focus-visible,
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 24px 28px;
+}
+
+[data-theme="light"] .marketing-calculator-box {
+  --card-text: #0f172a;
+  --card-text-subtle: #475569;
+  --card-accent: #0891b2;
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
 }
 
 .marketing-calculator-header {
@@ -11870,29 +12130,29 @@ a:focus-visible,
    global light theme is active. */
 :root[data-theme="light"] .marketing-home .stitch-glass-tile,
 :root[data-theme="light"] .platform-experience-page .stitch-glass-tile {
-  --card-text: #f8fafc;
-  --card-text-subtle: #cbd5e1;
-  --card-text-muted: #94a3b8;
-  --card-accent: #34d399;
-  background: rgba(8, 20, 37, 0.88) !important;
-  border-color: rgba(148, 163, 184, 0.24) !important;
+  --card-text: #0f172a;
+  --card-text-subtle: #334155;
+  --card-text-muted: #64748b;
+  --card-accent: #0891b2;
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
   color: var(--card-text) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
 }
 
 :root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(h1, h2, h3, h4) {
-  background: linear-gradient(135deg, var(--card-text), var(--card-text-subtle));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
 }
 
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(p, span, label) { color: inherit; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-white, .text-slate-100, .text-slate-200) { color: var(--card-text) !important; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-slate-300, .text-slate-400) { color: var(--card-text-subtle) !important; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-500 { color: var(--card-text-muted) !important; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-emerald-300, .text-emerald-400) { color: var(--card-accent) !important; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .marketing-text-link { color: var(--card-accent) !important; }
-:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-950 { color: #020617 !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(p, span, label) { color: #334155 !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-white, .text-slate-100, .text-slate-200) { color: #0f172a !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-slate-300, .text-slate-400) { color: #475569 !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-500 { color: #64748b !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-emerald-300, .text-emerald-400) { color: #0891b2 !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .marketing-text-link { color: #0891b2 !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-950 { color: #0f172a !important; }
 
 :root[data-theme="light"] .marketing-pricing-card .marketing-btn-primary {
   color: #ffffff !important;
