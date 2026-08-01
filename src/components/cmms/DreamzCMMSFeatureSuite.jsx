@@ -86,207 +86,286 @@ const LOW_STOCK_SPARES = [
   { id: 'SP-883', part: 'Heavy Duty Conveyor V-Belt B-105', sku: 'SKU-BLT-551', stock: 0, minRequired: 8, unitCost: '₹1,250', vendor: 'Fenner Drives' },
 ];
 
+const TAB_CONFIG = [
+  { id: 'kanban', label: 'Work Orders', icon: Wrench, detail: 'Critical repairs and closure queue' },
+  { id: 'hierarchy', label: 'Asset Health', icon: Layers, detail: 'Tree view, telemetry, and diagnostics' },
+  { id: 'pm', label: 'PM Schedule', icon: Calendar, detail: 'Recurring tasks, due dates, and owners' },
+  { id: 'spares', label: 'Spares', icon: Package, detail: 'Reorder risks and supplier coverage' },
+];
+
+const KANBAN_LANES = [
+  {
+    id: 'emergency',
+    title: 'Emergency Queue',
+    accent: 'red',
+    helper: 'Respond first. Safety and line-stop risks.',
+    badge: 'P0 / P1',
+    ctaLabel: 'Verify LOTO',
+  },
+  {
+    id: 'in_progress',
+    title: 'In Repair',
+    accent: 'sky',
+    helper: 'Active work orders with SLA running.',
+    badge: 'Active SLA',
+    ctaLabel: 'Open Job',
+  },
+  {
+    id: 'verification',
+    title: 'Supervisor Sign-Off',
+    accent: 'amber',
+    helper: 'Proof uploaded and waiting for closeout.',
+    badge: 'Ready',
+    ctaLabel: 'Verify & Close',
+  },
+  {
+    id: 'completed',
+    title: 'Closed',
+    accent: 'emerald',
+    helper: 'Recently completed and verified.',
+    badge: 'Verified',
+    ctaLabel: 'View Summary',
+  },
+];
+
 export default function DreamzCMMSFeatureSuite() {
   const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'hierarchy', 'pm', 'spares'
   const [kanbanState, setKanbanState] = useState(INITIAL_KANBAN);
   const [selectedAsset, setSelectedAsset] = useState(ASSET_HIERARCHY[0].children[0].children[0]);
   const [showLotoModal, setShowLotoModal] = useState(false);
   const [reservedKits, setReservedKits] = useState({});
+  const criticalCount = kanbanState.emergency.length;
+  const activeRepairCount = kanbanState.in_progress.length;
+  const verificationCount = kanbanState.verification.length;
+  const completedCount = kanbanState.completed.length;
+  const pmDueCount = PREVENTIVE_SCHEDULE.filter((task) => task.status === 'Overdue' || task.status === 'Upcoming').length;
+  const machineAlertCount = ASSET_HIERARCHY.flatMap((plant) =>
+    plant.children.flatMap((line) => line.children.filter((asset) => asset.status !== 'Optimal'))
+  ).length;
+  const stockRiskCount = LOW_STOCK_SPARES.filter((spare) => spare.stock < spare.minRequired).length;
+  const todayPriority = criticalCount > 0 ? 'Contain emergency backlog' : 'Keep PM and verification flowing';
+
+  const summaryCards = [
+    { label: 'Critical Tickets', value: criticalCount, tone: 'text-red-300 border-red-500/30 bg-red-500/10', note: 'Needs immediate triage' },
+    { label: 'PM Due Soon', value: pmDueCount, tone: 'text-amber-300 border-amber-500/30 bg-amber-500/10', note: 'Upcoming or overdue tasks' },
+    { label: 'Machine Alerts', value: machineAlertCount, tone: 'text-sky-300 border-sky-500/30 bg-sky-500/10', note: 'Assets outside optimal state' },
+    { label: 'Stock Risks', value: stockRiskCount, tone: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10', note: 'Parts below reorder point' },
+  ];
+
+  const laneStyles = {
+    red: {
+      lane: 'border-red-500/25 bg-red-500/[0.04]',
+      title: 'text-red-300',
+      dot: 'bg-red-400',
+      badge: 'border-red-500/30 bg-red-500/10 text-red-300',
+      card: 'border-red-500/25 bg-slate-950/85 hover:border-red-400/60',
+      cta: 'border-rose-500/40 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25',
+      machine: 'bg-red-400 text-slate-950',
+    },
+    sky: {
+      lane: 'border-sky-500/25 bg-sky-500/[0.04]',
+      title: 'text-sky-300',
+      dot: 'bg-sky-400',
+      badge: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+      card: 'border-sky-500/25 bg-slate-950/85 hover:border-sky-400/60',
+      cta: 'border-sky-500/40 bg-sky-500/15 text-sky-100 hover:bg-sky-500/25',
+      machine: 'bg-sky-400 text-slate-950',
+    },
+    amber: {
+      lane: 'border-amber-500/25 bg-amber-500/[0.04]',
+      title: 'text-amber-300',
+      dot: 'bg-amber-400',
+      badge: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+      card: 'border-amber-500/25 bg-slate-950/85 hover:border-amber-400/60',
+      cta: 'border-amber-500/40 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25',
+      machine: 'bg-amber-300 text-slate-950',
+    },
+    emerald: {
+      lane: 'border-emerald-500/25 bg-emerald-500/[0.04]',
+      title: 'text-emerald-300',
+      dot: 'bg-emerald-400',
+      badge: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+      card: 'border-emerald-500/25 bg-slate-950/85 hover:border-emerald-400/60',
+      cta: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/25',
+      machine: 'bg-emerald-300 text-slate-950',
+    },
+  };
 
   return (
     <div className="dreamz-cmms-suite my-8 rounded-3xl border border-slate-800 bg-slate-950 p-6 md:p-8 shadow-2xl text-slate-100 overflow-hidden">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-        <div>
+      <div className="grid gap-6 border-b border-slate-800 pb-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-bold uppercase tracking-widest mb-2">
             <Cpu className="w-3.5 h-3.5 animate-pulse" />
             Advanced CMMS Operations Suite
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h2 className="max-w-3xl text-3xl font-black text-white tracking-tight sm:text-4xl">
             Enterprise Asset & Maintenance Command Center
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Inspired by industrial CMMS standards: Multi-Tier Asset Tree, Work Order Kanban, Condition Telemetry & Reorder Thresholds.
+          <p className="max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
+            A maintenance control room for triage, repair execution, preventive planning, and spare-risk monitoring across the plant.
           </p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {summaryCards.map((card) => (
+              <div key={card.label} className={`rounded-2xl border p-4 ${card.tone}`}>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">{card.label}</div>
+                <div className="mt-2 text-3xl font-black text-white">{card.value}</div>
+                <div className="mt-1 text-xs text-slate-400">{card.note}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Feature Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-          <button
-            type="button"
-            onClick={() => setActiveTab('kanban')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'kanban'
-                ? 'bg-sky-500 text-slate-950 font-extrabold shadow-lg shadow-sky-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Wrench className="w-3.5 h-3.5" />
-            Work Order Kanban
-          </button>
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-400">Operator Focus</div>
+              <div className="mt-1 text-lg font-bold text-white">{todayPriority}</div>
+              <p className="mt-1 text-sm text-slate-400">Keep the highest-risk work visible, reduce click depth, and make the next action obvious.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-right">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Board Flow</div>
+              <div className="mt-1 text-sm font-semibold text-white">{criticalCount + activeRepairCount + verificationCount} open</div>
+              <div className="text-xs text-slate-400">{completedCount} closed today</div>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('hierarchy')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'hierarchy'
-                ? 'bg-sky-500 text-slate-950 font-extrabold shadow-lg shadow-sky-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            Asset Tree & IoT
-          </button>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {TAB_CONFIG.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('pm')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'pm'
-                ? 'bg-sky-500 text-slate-950 font-extrabold shadow-lg shadow-sky-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            Nested PM Matrix
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('spares')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'spares'
-                ? 'bg-sky-500 text-slate-950 font-extrabold shadow-lg shadow-sky-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Package className="w-3.5 h-3.5" />
-            Low Stock Alerts
-          </button>
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`rounded-2xl border p-3 text-left transition-all ${
+                    isActive
+                      ? 'border-sky-500/50 bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/20'
+                      : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-bold">
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </div>
+                  <div className={`mt-1 text-xs ${isActive ? 'text-slate-900/75' : 'text-slate-400'}`}>{tab.detail}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* TAB 1: WORK ORDER KANBAN */}
       {activeTab === 'kanban' && (
         <div className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Emergency Column */}
-            <div className="stitch-glass-tile p-4 rounded-2xl border border-red-500/30 bg-slate-900/50">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-red-500/20">
-                <span className="text-xs font-extrabold uppercase text-red-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  Emergency Queue ({kanbanState.emergency.length})
-                </span>
-                <span className="text-[10px] font-mono text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">
-                  P0 / P1
-                </span>
-              </div>
-              <div className="space-y-3">
-                {kanbanState.emergency.map((wo) => (
-                  <div key={wo.id} className="p-3.5 rounded-xl border border-red-500/30 bg-slate-950/80 hover:border-red-400 transition-all">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-mono font-bold text-red-400">{wo.id}</span>
-                      <span className="font-mono text-amber-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {wo.slaLeft}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-white mb-2">{wo.title}</h4>
-                    <button
-                      type="button"
-                      onClick={() => setShowLotoModal(true)}
-                      className="w-full mb-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold hover:bg-rose-500/30 transition-all flex items-center justify-center gap-1"
-                    >
-                      <Lock className="w-3 h-3 text-rose-400" /> Verify LOTO Safety Permit (PTW)
-                    </button>
-                    <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800">
-                      <span className="text-slate-400">Tech: <strong className="text-slate-200">{wo.tech}</strong></span>
-                      <span className="text-[10px] font-bold text-slate-950 bg-red-400 px-2 py-0.5 rounded">{wo.machine}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="text-sm font-bold text-white">Work order board</div>
+              <div className="text-xs text-slate-400">Each lane highlights why the ticket is here and what the operator should do next.</div>
             </div>
+            <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+              <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Open repairs: {criticalCount + activeRepairCount + verificationCount}</span>
+              <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Awaiting closeout: {verificationCount}</span>
+              <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Completed today: {completedCount}</span>
+            </div>
+          </div>
 
-            {/* In Progress Column */}
-            <div className="stitch-glass-tile p-4 rounded-2xl border border-sky-500/30 bg-slate-900/50">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-sky-500/20">
-                <span className="text-xs font-extrabold uppercase text-sky-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-                  In Repair ({kanbanState.in_progress.length})
-                </span>
-                <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/30">
-                  Active SLA
-                </span>
-              </div>
-              <div className="space-y-3">
-                {kanbanState.in_progress.map((wo) => (
-                  <div key={wo.id} className="p-3.5 rounded-xl border border-sky-500/30 bg-slate-950/80 hover:border-sky-400 transition-all">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-mono font-bold text-sky-400">{wo.id}</span>
-                      <span className="font-mono text-sky-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {wo.slaLeft}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-white mb-2">{wo.title}</h4>
-                    <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800">
-                      <span className="text-slate-400">Tech: <strong className="text-slate-200">{wo.tech}</strong></span>
-                      <span className="text-[10px] font-bold text-slate-950 bg-sky-400 px-2 py-0.5 rounded">{wo.machine}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+            {KANBAN_LANES.map((lane) => {
+              const items = kanbanState[lane.id];
+              const styles = laneStyles[lane.accent];
 
-            {/* Pending Verification Column */}
-            <div className="stitch-glass-tile p-4 rounded-2xl border border-amber-500/30 bg-slate-900/50">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-500/20">
-                <span className="text-xs font-extrabold uppercase text-amber-400 flex items-center gap-2">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Supervisor Sign-Off ({kanbanState.verification.length})
-                </span>
-              </div>
-              <div className="space-y-3">
-                {kanbanState.verification.map((wo) => (
-                  <div key={wo.id} className="p-3.5 rounded-xl border border-amber-500/30 bg-slate-950/80 hover:border-amber-400 transition-all">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-mono font-bold text-amber-400">{wo.id}</span>
-                      <span className="text-emerald-400 text-[10px] font-bold">Proof Uploaded</span>
+              return (
+                <div key={lane.id} className={`stitch-glass-tile rounded-3xl border p-4 ${styles.lane}`}>
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div>
+                      <div className={`flex items-center gap-2 text-xs font-extrabold uppercase ${styles.title}`}>
+                        <span className={`h-2.5 w-2.5 rounded-full ${styles.dot}`} />
+                        {lane.title}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-400">{lane.helper}</div>
                     </div>
-                    <h4 className="text-xs font-bold text-white mb-2">{wo.title}</h4>
-                    <button
-                      type="button"
-                      className="w-full mt-2 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold hover:bg-amber-500/30 transition-all"
-                    >
-                      Verify & Close Ticket
-                    </button>
+                    <div className="text-right">
+                      <div className={`rounded-full border px-2.5 py-1 text-[10px] font-mono ${styles.badge}`}>{lane.badge}</div>
+                      <div className="mt-1 text-lg font-black text-white">{items.length}</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Completed Column */}
-            <div className="stitch-glass-tile p-4 rounded-2xl border border-emerald-500/30 bg-slate-900/50">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-emerald-500/20">
-                <span className="text-xs font-extrabold uppercase text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Closed ({kanbanState.completed.length})
-                </span>
-              </div>
-              <div className="space-y-3">
-                {kanbanState.completed.map((wo) => (
-                  <div key={wo.id} className="p-3.5 rounded-xl border border-emerald-500/30 bg-slate-950/80 opacity-85 hover:opacity-100 transition-all">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                      <span className="font-mono font-bold text-emerald-400">{wo.id}</span>
-                      <span className="text-[10px] text-slate-400">{wo.completedAt}</span>
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-300 mb-2">{wo.title}</h4>
-                    <span className="inline-block text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-                      Verified Closed
-                    </span>
+                  <div className="mt-4 space-y-3">
+                    {items.map((wo) => (
+                      <div key={wo.id} className={`rounded-2xl border p-3.5 transition-all ${styles.card}`}>
+                        <div className="flex items-start justify-between gap-3 text-[11px] text-slate-400">
+                          <div>
+                            <div className={`font-mono font-bold ${styles.title}`}>{wo.id}</div>
+                            <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">{wo.priority} priority</div>
+                          </div>
+                          <div className="text-right">
+                            {wo.slaLeft ? (
+                              <span className="inline-flex items-center gap-1 font-mono text-amber-300">
+                                <Clock className="h-3 w-3" />
+                                {wo.slaLeft}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400">{wo.completedAt}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <h4 className="mt-3 text-sm font-bold leading-5 text-white">{wo.title}</h4>
+
+                        <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-3 text-[11px]">
+                          <span className="text-slate-400">
+                            Owner: <strong className="text-slate-200">{wo.tech}</strong>
+                          </span>
+                          <span className={`rounded-md px-2 py-1 text-[10px] font-bold ${styles.machine}`}>{wo.machine}</span>
+                        </div>
+
+                        {lane.id === 'emergency' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowLotoModal(true)}
+                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${styles.cta}`}
+                          >
+                            <Lock className="h-3.5 w-3.5" />
+                            {lane.ctaLabel}
+                          </button>
+                        )}
+
+                        {lane.id === 'in_progress' && (
+                          <button
+                            type="button"
+                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${styles.cta}`}
+                          >
+                            <Wrench className="h-3.5 w-3.5" />
+                            {lane.ctaLabel}
+                          </button>
+                        )}
+
+                        {lane.id === 'verification' && (
+                          <button
+                            type="button"
+                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${styles.cta}`}
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            {lane.ctaLabel}
+                          </button>
+                        )}
+
+                        {lane.id === 'completed' && (
+                          <div className="mt-3 inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300">
+                            Verified closed
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
