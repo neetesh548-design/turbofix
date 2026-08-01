@@ -600,8 +600,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785510673.740907,
-    "ast_hash": "19cd341b7ddc54a165973c4f06c2a7bf",
+    "mtime": 1785613052.5688915,
+    "ast_hash": "94df8c29589079831df473a0d1cb935c",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -780,8 +780,8 @@
     "semantic_hash": "822d28f4dd469dfa12264fe250a45d53"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785510162.2687888,
-    "ast_hash": "f58afcd47e7f34b8b8c8e145ae03547b",
+    "mtime": 1785594006.5309587,
+    "ast_hash": "11ca03790d65f013515e5b012b51fe9a",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -815,9 +815,9 @@
     "semantic_hash": ""
   },
   "src/pages/Records.jsx": {
-    "mtime": 1785479231.2887232,
-    "ast_hash": "501511cda73a2d87ab04b149472d7d30",
-    "semantic_hash": "501511cda73a2d87ab04b149472d7d30"
+    "mtime": 1785613138.464433,
+    "ast_hash": "507eae18f17fd1e8ec7d2be0e46313be",
+    "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
     "mtime": 1785422883.498875,
@@ -845,9 +845,9 @@
     "semantic_hash": "60e966f0107476245b6a5664bfa4be92"
   },
   "src/pages/Technician.jsx": {
-    "mtime": 1785452485.1519673,
-    "ast_hash": "3977c90cd47683987444890d961dfa36",
-    "semantic_hash": "3977c90cd47683987444890d961dfa36"
+    "mtime": 1785613110.6755602,
+    "ast_hash": "1f82243f6a0ffc5456e4eac3ada14d28",
+    "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
     "mtime": 1785454393.4912648,
@@ -1325,9 +1325,9 @@
     "semantic_hash": "94f2b6814f55abb5c407013ebd815639"
   },
   "vite.config.js": {
-    "mtime": 1785439339.5698,
-    "ast_hash": "be3d25444c6e3544e2f347b847404ff1",
-    "semantic_hash": "be3d25444c6e3544e2f347b847404ff1"
+    "mtime": 1785594125.384318,
+    "ast_hash": "fb727a711e31f1e3fff7c8971f7003d0",
+    "semantic_hash": ""
   },
   "vitest.config.js": {
     "mtime": 1784994320.1801302,
@@ -1485,8 +1485,8 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1785493700.4488454,
-    "ast_hash": "0cd4a2bd3354f29dbc370094d1363995",
+    "mtime": 1785594188.320086,
+    "ast_hash": "27c29d6bd7584f4071c54bed63bed67d",
     "semantic_hash": ""
   },
   "public/llms.txt": {
@@ -1655,9 +1655,9 @@
     "semantic_hash": "d4c690bebece7cd0499d786fc0a97b26"
   },
   "src/pages/MachinesRefactored.jsx": {
-    "mtime": 1785002708.211834,
-    "ast_hash": "6afbba5f7b4ca75e839dbba4da3a8361",
-    "semantic_hash": "6afbba5f7b4ca75e839dbba4da3a8361"
+    "mtime": 1785613099.2319427,
+    "ast_hash": "23f2facc869ab421479ca0932d699b9d",
+    "semantic_hash": ""
   },
   "src/utils/featureFlags.ts": {
     "mtime": 1785421713.1784608,
@@ -1950,24 +1950,24 @@
     "semantic_hash": "3da90b92f71884741dde9790a3d43231"
   },
   "src/components/dashboard/EngineerDashboard.jsx": {
-    "mtime": 1785023258.4351048,
-    "ast_hash": "84394a691bb3247660f0005ce6a0aebf",
-    "semantic_hash": "84394a691bb3247660f0005ce6a0aebf"
+    "mtime": 1785581284.0735698,
+    "ast_hash": "0b80121de7205c9fff59ce562a11f602",
+    "semantic_hash": ""
   },
   "src/components/dashboard/OwnerDashboard.jsx": {
-    "mtime": 1785342118.998521,
-    "ast_hash": "72a6afa76a81164bd16af0d89b27c0e7",
-    "semantic_hash": "72a6afa76a81164bd16af0d89b27c0e7"
+    "mtime": 1785581319.7766564,
+    "ast_hash": "d31f01b34bacd3ce7902e62eb3fec87a",
+    "semantic_hash": ""
   },
   "src/components/dashboard/SupervisorDashboard.jsx": {
-    "mtime": 1785348041.0061774,
-    "ast_hash": "40d8bfa99b59cab6711e24995b45baa1",
-    "semantic_hash": "40d8bfa99b59cab6711e24995b45baa1"
+    "mtime": 1785581269.307006,
+    "ast_hash": "4eadf2c1f8a1b713e824ba26c7401167",
+    "semantic_hash": ""
   },
   "src/components/dashboard/TechnicianDashboard.jsx": {
-    "mtime": 1785023258.4382162,
-    "ast_hash": "cc432d46fd87df3302a30d57dfc9a79a",
-    "semantic_hash": "cc432d46fd87df3302a30d57dfc9a79a"
+    "mtime": 1785581255.1376567,
+    "ast_hash": "780b817d2ec1874ac1043d669005bc27",
+    "semantic_hash": ""
   },
   "src/lib/dashboardData.js": {
     "mtime": 1785402729.4346437,
@@ -2600,9 +2600,9 @@
     "semantic_hash": "8148046cc3536475a4874c8bef6f13bf"
   },
   "src/pages/AdminPortal.jsx": {
-    "mtime": 1785444493.7555387,
-    "ast_hash": "111a014e39ae5f27561ab88950b9bed3",
-    "semantic_hash": "111a014e39ae5f27561ab88950b9bed3"
+    "mtime": 1785613150.2833762,
+    "ast_hash": "fee61a93d41e7685efb35af3707b7eb5",
+    "semantic_hash": ""
   },
   "tests/admin-portal.spec.js": {
     "mtime": 1785533981.8198068,
@@ -2655,9 +2655,9 @@
     "semantic_hash": "30e61abc860c0b2737633dd48718ccef"
   },
   "src/components/machines/MachinePersonnelMatrixModal.jsx": {
-    "mtime": 1785449737.9620438,
-    "ast_hash": "a4b1622731d4d80570e658a42b83ed00",
-    "semantic_hash": "a4b1622731d4d80570e658a42b83ed00"
+    "mtime": 1785613105.0016344,
+    "ast_hash": "be7a7cc11820d9a96ee7ab6282f2de57",
+    "semantic_hash": ""
   },
   "src/components/ui/StitchVisualCharts.jsx": {
     "mtime": 1785449995.4880106,
@@ -2750,9 +2750,9 @@
     "semantic_hash": "63826c7ce407c45509cabd46459e348c"
   },
   "src/pages/DemoLogin.jsx": {
-    "mtime": 1785478759.3399801,
-    "ast_hash": "b82fb7970cc715a06b076a188fc4aff2",
-    "semantic_hash": "b82fb7970cc715a06b076a188fc4aff2"
+    "mtime": 1785590779.521381,
+    "ast_hash": "82b318b37c5c17bde6ad8d6ce5542b3e",
+    "semantic_hash": ""
   },
   ".stitch-project.json": {
     "mtime": 1785483327.4613855,
@@ -2900,8 +2900,8 @@
     "semantic_hash": ""
   },
   "src/components/cmms/DreamzCMMSFeatureSuite.jsx": {
-    "mtime": 1785576906.0465195,
-    "ast_hash": "ad1be9ba6d133af86022309485c64503",
+    "mtime": 1785593151.7141385,
+    "ast_hash": "847a6ab3cc32a0402a197748788200b2",
     "semantic_hash": ""
   },
   "artifacts/visual-audit/mobile/manifest.json": {
@@ -2975,8 +2975,8 @@
     "semantic_hash": ""
   },
   "src/components/cmms/LockoutTagoutModule.jsx": {
-    "mtime": 1785511273.7309608,
-    "ast_hash": "85d18dff27fbabbf6457e74c6fa86e24",
+    "mtime": 1785613132.920233,
+    "ast_hash": "9141fbfd2e9a7a81c53159ed8aeaf1b8",
     "semantic_hash": ""
   },
   "scripts/find-missing-usestate.js": {
@@ -3747,6 +3747,51 @@
   "tests/ux-audit/marketing-audit-output/workflow-mobile-chrome.png": {
     "mtime": 1785574609.438251,
     "ast_hash": "5e28f5c3fed8ff2bdeacf7cc1f075dec",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/MaintenanceHeadDashboard.jsx": {
+    "mtime": 1785581305.0076475,
+    "ast_hash": "e23bcfb98b435d57d5156820c310f40a",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/RoleFocusSection.jsx": {
+    "mtime": 1785581233.6308897,
+    "ast_hash": "7f4a9f6114dc252bbaf1ee13cefc0cd2",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/engineer.html": {
+    "mtime": 1785589089.2982507,
+    "ast_hash": "9e91771c003c3ae6d770e5548a9fdb11",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/maintenance-head.html": {
+    "mtime": 1785589018.6671753,
+    "ast_hash": "7dfea08f2d95a1e2a9246f91cbe244e6",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/owner.html": {
+    "mtime": 1785588940.0334346,
+    "ast_hash": "0b61bc963ab70f704a34dce047395cc0",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/supervisor.html": {
+    "mtime": 1785589159.9382453,
+    "ast_hash": "1fcf3e2029d040a9749cd53500f795df",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/technician-desktop.html": {
+    "mtime": 1785589236.0335362,
+    "ast_hash": "5aaef23aab68d0f77f0eecae0009ab2e",
+    "semantic_hash": ""
+  },
+  "design/command-center-dashboards/technician-mobile.html": {
+    "mtime": 1785589301.5257049,
+    "ast_hash": "86168b09d907ff789539229fe3bf8228",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/OperatorDashboard.jsx": {
+    "mtime": 1785613121.8039176,
+    "ast_hash": "3bc723cf48316c323e4be04ad72ac1e6",
     "semantic_hash": ""
   }
 }

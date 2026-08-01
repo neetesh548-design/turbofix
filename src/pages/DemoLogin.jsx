@@ -8,12 +8,14 @@ export default function DemoLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const CARD_TONE = 'bg-slate-900/40 text-slate-300 border-slate-700/60 hover:text-cyan-300 hover:bg-cyan-500/5 hover:border-cyan-400/40 hover:shadow-cyan-950/30';
+
   const demoAccounts = [
-    { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', desc: 'Full plant executive view, MTBF/MTTR analytics & SLA control', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 shadow-emerald-950/40' },
-    { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20 shadow-blue-950/40' },
-    { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why RCA root cause analysis, PM schedules & machine health', icon: ShieldCheck, color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20 shadow-indigo-950/40' },
-    { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20 shadow-amber-950/40' },
-    { role: 'EHS & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Safety audit logs, compliance records & 5S quality checks', icon: CheckCircle, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20 shadow-cyan-950/40' },
+    { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', desc: 'Full plant executive view, MTBF/MTTR analytics & SLA control', icon: Building2, color: CARD_TONE },
+    { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: CARD_TONE },
+    { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why RCA root cause analysis, PM schedules & machine health', icon: ShieldCheck, color: CARD_TONE },
+    { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: CARD_TONE },
+    { role: 'EHS & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Safety audit logs, compliance records & 5S quality checks', icon: CheckCircle, color: CARD_TONE },
   ];
 
   const performPostLoginRedirect = () => {
@@ -52,12 +54,12 @@ export default function DemoLogin() {
   };
 
   return (
-    <div className="tf-login-page min-h-screen w-full bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="tf-login-page min-h-screen w-full bg-[#0b1326] text-slate-100 flex flex-col">
       <Navbar />
       <div className="tf-login-shell w-full flex-1 flex items-center justify-center px-4 py-8 sm:p-10">
         <div className="w-full max-w-3xl">
           <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold uppercase tracking-wider mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-bold uppercase tracking-wider mb-4">
               <Sparkles size={14} /> Sample Interactive Demo Mode
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
@@ -90,7 +92,7 @@ export default function DemoLogin() {
                     <p className="text-xs text-slate-300 mb-3">{demo.name}</p>
                     <p className="text-xs text-slate-400 leading-relaxed">{demo.desc}</p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-emerald-400">
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-cyan-400">
                     <span>Launch Demo Workspace</span>
                     <ArrowRight size={14} />
                   </div>
@@ -103,7 +105,7 @@ export default function DemoLogin() {
             <p className="text-xs text-slate-400 mb-2">Have a real factory account?</p>
             <Link
               to="/login.html"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
             >
               Go to Actual Plant Login <ArrowRight size={14} />
             </Link>

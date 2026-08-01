@@ -97,7 +97,7 @@ const KANBAN_LANES = [
   {
     id: 'emergency',
     title: 'Emergency Queue',
-    accent: 'red',
+    accent: 'orange',
     helper: 'Respond first. Safety and line-stop risks.',
     badge: 'P0 / P1',
     ctaLabel: 'Verify LOTO',
@@ -105,7 +105,7 @@ const KANBAN_LANES = [
   {
     id: 'in_progress',
     title: 'In Repair',
-    accent: 'sky',
+    accent: 'cyan',
     helper: 'Active work orders with SLA running.',
     badge: 'Active SLA',
     ctaLabel: 'Open Job',
@@ -146,30 +146,30 @@ export default function DreamzCMMSFeatureSuite() {
   const todayPriority = criticalCount > 0 ? 'Contain emergency backlog' : 'Keep PM and verification flowing';
 
   const summaryCards = [
-    { label: 'Critical Tickets', value: criticalCount, tone: 'text-red-300 border-red-500/30 bg-red-500/10', note: 'Needs immediate triage' },
+    { label: 'Critical Tickets', value: criticalCount, tone: 'text-orange-300 border-orange-500/30 bg-orange-500/10', note: 'Needs immediate triage' },
     { label: 'PM Due Soon', value: pmDueCount, tone: 'text-amber-300 border-amber-500/30 bg-amber-500/10', note: 'Upcoming or overdue tasks' },
-    { label: 'Machine Alerts', value: machineAlertCount, tone: 'text-sky-300 border-sky-500/30 bg-sky-500/10', note: 'Assets outside optimal state' },
+    { label: 'Machine Alerts', value: machineAlertCount, tone: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10', note: 'Assets outside optimal state' },
     { label: 'Stock Risks', value: stockRiskCount, tone: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10', note: 'Parts below reorder point' },
   ];
 
   const laneStyles = {
-    red: {
-      lane: 'border-red-500/25 bg-red-500/[0.04]',
-      title: 'text-red-300',
-      dot: 'bg-red-400',
-      badge: 'border-red-500/30 bg-red-500/10 text-red-300',
-      card: 'border-red-500/25 bg-slate-950/85 hover:border-red-400/60',
-      cta: 'border-rose-500/40 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25',
-      machine: 'bg-red-400 text-slate-950',
+    orange: {
+      lane: 'border-orange-500/25 bg-orange-500/[0.04]',
+      title: 'text-orange-300',
+      dot: 'bg-orange-400',
+      badge: 'border-orange-500/30 bg-orange-500/10 text-orange-300',
+      card: 'border-orange-500/25 bg-slate-950/85 hover:border-orange-400/60',
+      cta: 'border-orange-500/40 bg-orange-500/15 text-orange-200 hover:bg-orange-500/25',
+      machine: 'bg-orange-400 text-slate-950',
     },
-    sky: {
-      lane: 'border-sky-500/25 bg-sky-500/[0.04]',
-      title: 'text-sky-300',
-      dot: 'bg-sky-400',
-      badge: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-      card: 'border-sky-500/25 bg-slate-950/85 hover:border-sky-400/60',
-      cta: 'border-sky-500/40 bg-sky-500/15 text-sky-100 hover:bg-sky-500/25',
-      machine: 'bg-sky-400 text-slate-950',
+    cyan: {
+      lane: 'border-cyan-500/25 bg-cyan-500/[0.04]',
+      title: 'text-cyan-300',
+      dot: 'bg-cyan-400',
+      badge: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',
+      card: 'border-cyan-500/25 bg-slate-950/85 hover:border-cyan-400/60',
+      cta: 'border-cyan-500/40 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25',
+      machine: 'bg-cyan-400 text-slate-950',
     },
     amber: {
       lane: 'border-amber-500/25 bg-amber-500/[0.04]',
@@ -196,7 +196,7 @@ export default function DreamzCMMSFeatureSuite() {
       {/* Header Banner */}
       <div className="grid gap-6 border-b border-slate-800 pb-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-bold uppercase tracking-widest mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">
             <Cpu className="w-3.5 h-3.5 animate-pulse" />
             Advanced CMMS Operations Suite
           </div>
@@ -220,7 +220,7 @@ export default function DreamzCMMSFeatureSuite() {
         <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4">
           <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-400">Operator Focus</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-400">Operator Focus</div>
               <div className="mt-1 text-lg font-bold text-white">{todayPriority}</div>
               <p className="mt-1 text-sm text-slate-400">Keep the highest-risk work visible, reduce click depth, and make the next action obvious.</p>
             </div>
@@ -243,7 +243,7 @@ export default function DreamzCMMSFeatureSuite() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`rounded-2xl border p-3 text-left transition-all ${
                     isActive
-                      ? 'border-sky-500/50 bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/20'
+                      ? 'border-cyan-500/50 bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20'
                       : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
                   }`}
                 >
@@ -375,7 +375,7 @@ export default function DreamzCMMSFeatureSuite() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Tree View */}
           <div className="lg:col-span-5 stitch-glass-tile p-5 rounded-2xl border border-slate-800 bg-slate-900/60">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-sky-400 mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-cyan-400 mb-4 flex items-center gap-2">
               <Layers className="w-4 h-4" /> Plant Asset Hierarchy Tree
             </h3>
 
@@ -388,7 +388,7 @@ export default function DreamzCMMSFeatureSuite() {
                   </div>
                   {plant.children.map((line) => (
                     <div key={line.id} className="ml-4 pl-3 border-l border-slate-800 my-2 space-y-2">
-                      <div className="text-[11px] font-semibold text-sky-400">⚡ {line.name}</div>
+                      <div className="text-[11px] font-semibold text-cyan-400">⚡ {line.name}</div>
                       {line.children.map((asset) => {
                         const isSelected = selectedAsset.id === asset.id;
                         return (
@@ -398,14 +398,14 @@ export default function DreamzCMMSFeatureSuite() {
                             onClick={() => setSelectedAsset(asset)}
                             className={`w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-center justify-between ${
                               isSelected
-                                ? 'bg-sky-500/20 border border-sky-500/50 text-white font-bold'
+                                ? 'bg-cyan-500/20 border border-cyan-500/50 text-white font-bold'
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
                             }`}
                           >
                             <span>⚙️ {asset.name}</span>
                             <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${
                               asset.status === 'Optimal' ? 'bg-emerald-500/10 text-emerald-400' :
-                              asset.status === 'Warning' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
+                              asset.status === 'Warning' ? 'bg-amber-500/10 text-amber-400' : 'bg-orange-500/10 text-orange-400'
                             }`}>
                               {asset.status}
                             </span>
@@ -427,7 +427,7 @@ export default function DreamzCMMSFeatureSuite() {
                   <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">Selected Machine Telemetry</span>
                   <h3 className="text-xl font-bold text-white">{selectedAsset.name}</h3>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
                   IoT Sensor Live Stream
                 </span>
               </div>
@@ -441,7 +441,7 @@ export default function DreamzCMMSFeatureSuite() {
 
                 <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 text-center">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Vibration (FFT)</span>
-                  <div className="text-2xl font-mono font-black text-sky-400 mt-1">{selectedAsset.vib}</div>
+                  <div className="text-2xl font-mono font-black text-cyan-400 mt-1">{selectedAsset.vib}</div>
                   <span className="text-[10px] text-slate-500">Threshold: 5.0 mm/s</span>
                 </div>
 
@@ -453,9 +453,9 @@ export default function DreamzCMMSFeatureSuite() {
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 text-xs text-sky-300 flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xs text-cyan-300 flex items-center justify-between">
               <span>Predictive AI Insight: No anomalous bearing wear detected in last 24h cycle.</span>
-              <button type="button" className="px-3 py-1 rounded bg-sky-500 text-slate-950 font-extrabold text-[11px]">
+              <button type="button" className="px-3 py-1 rounded bg-cyan-500 text-slate-950 font-extrabold text-[11px]">
                 Run Diagnostics
               </button>
             </div>
@@ -467,7 +467,7 @@ export default function DreamzCMMSFeatureSuite() {
       {activeTab === 'pm' && (
         <div className="mt-6 stitch-glass-tile p-5 rounded-2xl border border-slate-800 bg-slate-900/60">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
               <Calendar className="w-4 h-4" /> Recurring Preventive Maintenance Schedule
             </h3>
             <button type="button" className="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold flex items-center gap-1.5">
@@ -491,7 +491,7 @@ export default function DreamzCMMSFeatureSuite() {
               <tbody className="divide-y divide-slate-800/60 font-sans">
                 {PREVENTIVE_SCHEDULE.map((pm) => (
                   <tr key={pm.id} className="hover:bg-slate-900/80 transition-colors">
-                    <td className="py-3.5 font-mono font-bold text-sky-400">{pm.id}</td>
+                    <td className="py-3.5 font-mono font-bold text-cyan-400">{pm.id}</td>
                     <td className="py-3.5 font-bold text-white">{pm.asset}</td>
                     <td className="py-3.5 text-slate-300">{pm.task}</td>
                     <td className="py-3.5 font-mono text-slate-400">{pm.frequency}</td>
@@ -499,7 +499,7 @@ export default function DreamzCMMSFeatureSuite() {
                     <td className="py-3.5 text-slate-300">{pm.assignedTo}</td>
                     <td className="py-3.5">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                        pm.status === 'Overdue' ? 'bg-red-500/20 text-red-400 border border-red-500/40' :
+                        pm.status === 'Overdue' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40' :
                         pm.status === 'Upcoming' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
                         'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                       }`}>
@@ -521,7 +521,7 @@ export default function DreamzCMMSFeatureSuite() {
             <h3 className="text-sm font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-2">
               <Package className="w-4 h-4 text-amber-400" /> Reorder Threshold & Low Stock Spare Parts
             </h3>
-            <span className="text-xs text-red-400 font-bold bg-red-500/10 px-3 py-1 rounded-full border border-red-500/30">
+            <span className="text-xs text-orange-400 font-bold bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/30">
               3 Critical Items Below Minimum Reorder Point
             </span>
           </div>
@@ -538,7 +538,7 @@ export default function DreamzCMMSFeatureSuite() {
                 <div className="flex items-center justify-between mb-3 text-xs">
                   <span className="text-slate-400">Current Stock:</span>
                   <span className={`font-mono font-extrabold px-2.5 py-0.5 rounded ${
-                    sp.stock === 0 ? 'bg-red-500 text-slate-950' : 'bg-amber-500/20 text-amber-300'
+                    sp.stock === 0 ? 'bg-orange-500 text-slate-950' : 'bg-amber-500/20 text-amber-300'
                   }`}>
                     {sp.stock} units (Min: {sp.minRequired})
                   </span>
@@ -546,7 +546,7 @@ export default function DreamzCMMSFeatureSuite() {
 
                 <button
                   type="button"
-                  className="w-full py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                 >
                   <ArrowUpRight className="w-3.5 h-3.5" /> Auto-Generate Purchase Order
                 </button>

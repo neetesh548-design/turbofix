@@ -379,7 +379,7 @@ export default function MachinesRefactored() {
 // ===== SUBCOMPONENTS =====
 
 function MachineListItem({ machine, isSelected, onClick }) {
-  const statusColor = machine.displayStatus === 'breakdown' ? 'text-red-600' : 'text-green-600';
+  const statusColor = machine.displayStatus === 'breakdown' ? 'text-orange-600' : 'text-green-600';
   const statusEmoji = machine.displayStatus === 'breakdown' ? '❌' : '✅';
 
   return (
@@ -426,9 +426,9 @@ function MachineOverview({ machine, details, onQuickAction }) {
 
       {/* Top Alerts */}
       {details.alerts.length > 0 && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
           {details.alerts.map((alert, i) => (
-            <p key={i} className="text-sm text-red-800 dark:text-red-200">{alert}</p>
+            <p key={i} className="text-sm text-orange-800 dark:text-orange-200">{alert}</p>
           ))}
         </div>
       )}
@@ -459,7 +459,7 @@ function MachineOverview({ machine, details, onQuickAction }) {
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => onQuickAction('report-issue')}
-          className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition"
+          className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium transition"
         >
           Report Issue
         </button>
@@ -514,7 +514,7 @@ function AccordionSections({ machine, details, expandedSections, onToggle, onQui
           {details.parts?.slice(0, 5).map(p => (
             <div key={p.id} className="p-2 bg-gray-50 dark:bg-slate-700 rounded text-sm flex justify-between">
               <span>{p.part_name}</span>
-              <span className={p.stock_qty <= p.reorder_level ? 'text-red-600 font-bold' : 'text-green-600'}>
+              <span className={p.stock_qty <= p.reorder_level ? 'text-orange-600 font-bold' : 'text-green-600'}>
                 {p.stock_qty}
               </span>
             </div>

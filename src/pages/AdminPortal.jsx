@@ -504,7 +504,7 @@ export default function AdminPortal() {
               </div>
 
               {honeypotErr && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium flex items-center gap-2">
+                <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-orange-400 text-xs font-medium flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   <span>{honeypotErr}</span>
                 </div>
@@ -561,7 +561,7 @@ export default function AdminPortal() {
             </div>
 
             {loginErr && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium">
+              <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-orange-400 text-xs font-medium">
                 {loginErr}
               </div>
             )}
@@ -636,11 +636,11 @@ export default function AdminPortal() {
           </div>
         )}
         {actionErr && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-semibold flex items-center justify-between shadow-lg">
+          <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl text-orange-400 text-sm font-semibold flex items-center justify-between shadow-lg">
             <span className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" /> {actionErr}
             </span>
-            <button onClick={() => setActionErr('')} className="text-red-400 hover:text-red-200 text-lg">
+            <button onClick={() => setActionErr('')} className="text-orange-400 hover:text-orange-200 text-lg">
               ×
             </button>
           </div>
@@ -686,20 +686,20 @@ export default function AdminPortal() {
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xl">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Breakdown Tickets</p>
-              <p className="text-3xl font-black text-rose-400 mt-1">{tickets.length}</p>
-              <p className="text-[11px] text-rose-400 font-semibold mt-1">Requires Operator Verification</p>
+              <p className="text-3xl font-black text-orange-400 mt-1">{tickets.length}</p>
+              <p className="text-[11px] text-orange-400 font-semibold mt-1">Requires Operator Verification</p>
             </div>
-            <div className="p-3.5 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20">
+            <div className="p-3.5 bg-orange-500/10 text-orange-400 rounded-2xl border border-orange-500/20">
               <Ticket className="w-6 h-6" />
             </div>
           </div>
 
           <div className={`bg-slate-900/90 border rounded-2xl p-5 flex items-center justify-between shadow-xl ${
-            quotaExceededCompanies.length > 0 ? 'border-red-500/50 bg-red-950/20' : 'border-slate-800'
+            quotaExceededCompanies.length > 0 ? 'border-orange-500/50 bg-orange-950/20' : 'border-slate-800'
           }`}>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quota Exceeded</p>
-              <p className={`text-3xl font-black mt-1 ${quotaExceededCompanies.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p className={`text-3xl font-black mt-1 ${quotaExceededCompanies.length > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
                 {quotaExceededCompanies.length}
               </p>
               <p className="text-[11px] text-slate-400 font-semibold mt-1">
@@ -708,7 +708,7 @@ export default function AdminPortal() {
                   : 'All factories within limits'}
               </p>
             </div>
-            <div className={`p-3.5 rounded-2xl border ${quotaExceededCompanies.length > 0 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+            <div className={`p-3.5 rounded-2xl border ${quotaExceededCompanies.length > 0 ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
               <AlertTriangle className="w-6 h-6" />
             </div>
           </div>
@@ -900,11 +900,11 @@ export default function AdminPortal() {
                         </td>
                         <td className="p-4 text-slate-300">
                           <div className="flex items-center gap-2">
-                            <span className={(c.machines_count || 0) > (c.machine_quota || 5) ? 'text-red-400 font-bold' : ''}>
+                            <span className={(c.machines_count || 0) > (c.machine_quota || 5) ? 'text-orange-400 font-bold' : ''}>
                               {c.machines_count || 0} / {c.machine_quota || 5}
                             </span>
                             {(c.machines_count || 0) > (c.machine_quota || 5) && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded font-bold">OVER</span>
                             )}
                             <button
                               onClick={() => {
@@ -921,11 +921,11 @@ export default function AdminPortal() {
                         </td>
                         <td className="p-4 text-slate-300">
                           <div className="flex items-center gap-2">
-                            <span className={(c.users_count || 0) > (c.user_quota || 10) ? 'text-red-400 font-bold' : ''}>
+                            <span className={(c.users_count || 0) > (c.user_quota || 10) ? 'text-orange-400 font-bold' : ''}>
                               {c.users_count || 0} / {c.user_quota || 10}
                             </span>
                             {(c.users_count || 0) > (c.user_quota || 10) && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold">OVER</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded font-bold">OVER</span>
                             )}
                             <button
                               onClick={() => {
@@ -990,7 +990,7 @@ export default function AdminPortal() {
                           )}
                           <button
                             onClick={() => handleDeleteCompany(c.company_code)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg text-xs font-semibold transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
@@ -1033,7 +1033,7 @@ export default function AdminPortal() {
                 <button
                   onClick={() => setStatusFilter('breakdown')}
                   className={`px-2.5 py-1 rounded-lg font-semibold ${
-                    statusFilter === 'breakdown' ? 'bg-rose-500/20 text-rose-400' : 'text-slate-400'
+                    statusFilter === 'breakdown' ? 'bg-orange-500/20 text-orange-400' : 'text-slate-400'
                   }`}
                 >
                   Breakdown
@@ -1084,7 +1084,7 @@ export default function AdminPortal() {
                               <Check className="w-3 h-3" /> Running
                             </span>
                           ) : m.status === 'breakdown' || m.status === 'down' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/30">
                               <AlertTriangle className="w-3 h-3" /> Breakdown
                             </span>
                           ) : (
@@ -1115,7 +1115,7 @@ export default function AdminPortal() {
 
                           <button
                             onClick={() => handleDeleteMachine(m.id, m.name)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg text-xs font-semibold transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Decommission
                           </button>
@@ -1166,7 +1166,7 @@ export default function AdminPortal() {
                               Resolved
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/30">
                               Open Breakdown
                             </span>
                           )}
@@ -1415,7 +1415,7 @@ export default function AdminPortal() {
                 </div>
               </div>
               {((quotaModalComp.machines_count || 0) > newMachineQuota || (quotaModalComp.users_count || 0) > newUserQuota) && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium flex items-center gap-2">
+                <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-orange-400 text-xs font-medium flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   Warning: Current usage exceeds the new quota. The factory will need to reduce usage or request an increase.
                 </div>

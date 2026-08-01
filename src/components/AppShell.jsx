@@ -496,7 +496,7 @@ export default function AppShell({ children, active }) {
             <button
               type="button"
               onClick={logout}
-              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-800/40 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2 text-slate-400 hover:text-orange-400 hover:bg-orange-950/40 rounded-xl transition-all cursor-pointer border border-transparent hover:border-orange-800/40 min-w-[44px] min-h-[44px] flex items-center justify-center"
               title="Log out"
               aria-label="Log out"
             >

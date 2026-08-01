@@ -6,6 +6,17 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
+    {
+      name: 'html-fallback-plugin',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url && req.url.endsWith('.html') && req.url !== '/index.html' && !req.url.startsWith('/@') && !req.url.startsWith('/src')) {
+            req.url = '/index.html';
+          }
+          next();
+        });
+      },
+    },
     react(), 
     tailwindcss(),
     VitePWA({

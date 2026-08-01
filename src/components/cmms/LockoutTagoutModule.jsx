@@ -18,9 +18,9 @@ import {
 
 const ENERGY_SOURCES = [
   { id: 'elec', name: 'Electrical Power 415V 3-Phase', icon: Zap, color: 'text-amber-400 border-amber-500/40 bg-amber-500/10', isolated: true, lockTag: 'LOTO-E-401' },
-  { id: 'hyd', name: 'Hydraulic Pressure (220 Bar)', icon: Droplet, color: 'text-sky-400 border-sky-500/40 bg-sky-500/10', isolated: true, lockTag: 'LOTO-H-209' },
+  { id: 'hyd', name: 'Hydraulic Pressure (220 Bar)', icon: Droplet, color: 'text-cyan-400 border-cyan-500/40 bg-cyan-500/10', isolated: true, lockTag: 'LOTO-H-209' },
   { id: 'pneu', name: 'Pneumatic Air Line (6.5 Bar)', icon: Wind, color: 'text-teal-400 border-teal-500/40 bg-teal-500/10', isolated: false, lockTag: 'LOTO-P-112' },
-  { id: 'thermal', name: 'Hot Surface / Steam Line (120°C)', icon: Flame, color: 'text-rose-400 border-rose-500/40 bg-rose-500/10', isolated: false, lockTag: 'LOTO-T-088' },
+  { id: 'thermal', name: 'Hot Surface / Steam Line (120°C)', icon: Flame, color: 'text-orange-400 border-orange-500/40 bg-orange-500/10', isolated: false, lockTag: 'LOTO-T-088' },
 ];
 
 export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId = 'WO-8041', onComplete }) {
@@ -36,22 +36,22 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
   const allIsolated = energyState.every(e => e.isolated);
 
   return (
-    <div className="loto-module stitch-glass-tile p-6 rounded-3xl border border-rose-500/30 bg-slate-950 shadow-2xl text-slate-100 my-6">
+    <div className="loto-module stitch-glass-tile p-6 rounded-3xl border border-orange-500/30 bg-slate-950 shadow-2xl text-slate-100 my-6">
       {/* LOTO Safety Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 animate-pulse">
+          <div className="p-3 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 animate-pulse">
             <Lock className="w-6 h-6" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-extrabold uppercase tracking-widest mb-1">
               <ShieldAlert className="w-3 h-3" /> Safety Permit-to-Work (PTW / LOTO)
             </div>
             <h3 className="text-xl font-black text-white tracking-tight">
               Lockout / Tagout Energy Isolation — {machineName}
             </h3>
             <p className="text-xs text-slate-400">
-              Work Order <strong className="text-rose-400 font-mono">{ticketId}</strong> requires zero-energy state verification before repair unlock.
+              Work Order <strong className="text-orange-400 font-mono">{ticketId}</strong> requires zero-energy state verification before repair unlock.
             </p>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
           <span className={`font-extrabold font-mono px-2 py-0.5 rounded ${
             allIsolated && photoUploaded && supervisorSigned
               ? 'bg-emerald-500 text-slate-950'
-              : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+              : 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
           }`}>
             {allIsolated && photoUploaded && supervisorSigned ? 'LOTO VERIFIED & ACTIVE' : 'ZERO-ENERGY PENDING'}
           </span>
@@ -71,21 +71,21 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
       {/* Stepper Progress */}
       <div className="grid grid-cols-3 gap-3 my-6 text-center text-xs">
         <div className={`p-3 rounded-xl border transition-all ${
-          currentStep === 1 ? 'border-rose-500 bg-rose-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
+          currentStep === 1 ? 'border-orange-500 bg-orange-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
         }`}>
-          <span className="block text-[10px] font-mono text-rose-400 uppercase">Step 1</span>
+          <span className="block text-[10px] font-mono text-orange-400 uppercase">Step 1</span>
           1. Energy Source Isolation
         </div>
         <div className={`p-3 rounded-xl border transition-all ${
-          currentStep === 2 ? 'border-rose-500 bg-rose-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
+          currentStep === 2 ? 'border-orange-500 bg-orange-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
         }`}>
-          <span className="block text-[10px] font-mono text-rose-400 uppercase">Step 2</span>
+          <span className="block text-[10px] font-mono text-orange-400 uppercase">Step 2</span>
           2. Physical Padlock & Tag Photo
         </div>
         <div className={`p-3 rounded-xl border transition-all ${
-          currentStep === 3 ? 'border-rose-500 bg-rose-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
+          currentStep === 3 ? 'border-orange-500 bg-orange-500/10 font-bold text-white' : 'border-slate-800 bg-slate-900/60 text-slate-400'
         }`}>
-          <span className="block text-[10px] font-mono text-rose-400 uppercase">Step 3</span>
+          <span className="block text-[10px] font-mono text-orange-400 uppercase">Step 3</span>
           3. Safety Sign-Off & Lock
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
       {currentStep === 1 && (
         <div className="space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <AlertOctagon className="w-4 h-4 text-rose-400" /> Verify & Toggle Breakers / Valves to Locked Off
+            <AlertOctagon className="w-4 h-4 text-orange-400" /> Verify & Toggle Breakers / Valves to Locked Off
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -107,7 +107,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     source.isolated
                       ? 'border-emerald-500/40 bg-emerald-500/10 text-white'
-                      : 'border-rose-500/40 bg-rose-500/10 text-slate-300'
+                      : 'border-orange-500/40 bg-orange-500/10 text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
 
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded ${
-                      source.isolated ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'
+                      source.isolated ? 'bg-emerald-500 text-slate-950' : 'bg-orange-500 text-white'
                     }`}>
                       {source.isolated ? 'ISOLATED (0)' : 'LIVE DANGER'}
                     </span>
@@ -139,7 +139,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
               onClick={() => setCurrentStep(2)}
               className={`px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all ${
                 allIsolated
-                  ? 'bg-rose-500 hover:bg-rose-400 text-white shadow-lg shadow-rose-500/20 cursor-pointer'
+                  ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20 cursor-pointer'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >
@@ -153,11 +153,11 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
       {currentStep === 2 && (
         <div className="space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Camera className="w-4 h-4 text-sky-400" /> Physical Padlock & Isolation Tag Photo Proof
+            <Camera className="w-4 h-4 text-cyan-400" /> Physical Padlock & Isolation Tag Photo Proof
           </h4>
 
           <div className="p-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center mx-auto border border-sky-500/30">
+            <div className="w-12 h-12 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto border border-cyan-500/30">
               <Camera className="w-6 h-6" />
             </div>
 
@@ -174,7 +174,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
                 <button
                   type="button"
                   onClick={() => setPhotoUploaded(true)}
-                  className="mt-3 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition-all inline-flex items-center gap-2"
+                  className="mt-3 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition-all inline-flex items-center gap-2"
                 >
                   <Camera className="w-4 h-4" /> Capture LOTO Lock Photo
                 </button>
@@ -196,7 +196,7 @@ export default function LockoutTagoutModule({ machineName = 'PRESS-04', ticketId
               onClick={() => setCurrentStep(3)}
               className={`px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all ${
                 photoUploaded
-                  ? 'bg-rose-500 hover:bg-rose-400 text-white shadow-lg shadow-rose-500/20 cursor-pointer'
+                  ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20 cursor-pointer'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >

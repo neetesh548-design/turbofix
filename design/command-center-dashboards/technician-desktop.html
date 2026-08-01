@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TurboFix Technician Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..900&amp;family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .status-led {
+            box-shadow: 0 0 8px currentColor;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1326;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#2d3449",
+                      "primary": "#8aebff",
+                      "on-tertiary": "#003824",
+                      "outline-variant": "#3c494c",
+                      "on-tertiary-container": "#005a3d",
+                      "on-primary-container": "#005763",
+                      "tertiary-container": "#46d89d",
+                      "surface-bright": "#31394d",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "on-secondary-fixed-variant": "#783200",
+                      "surface-dim": "#0b1326",
+                      "error-container": "#93000a",
+                      "tertiary": "#68f5b8",
+                      "surface-container-low": "#131b2e",
+                      "secondary": "#ffb690",
+                      "on-secondary-container": "#4a1c00",
+                      "surface-tint": "#2fd9f4",
+                      "surface-on": "#dae2fd",
+                      "inverse-primary": "#006877",
+                      "on-surface": "#dae2fd",
+                      "surface-container-highest": "#2d3449",
+                      "secondary-fixed-dim": "#ffb690",
+                      "tertiary-fixed": "#6ffbbe",
+                      "on-primary": "#00363e",
+                      "secondary-fixed": "#ffdbca",
+                      "on-surface-variant": "#bbc9cd",
+                      "outline": "#859397",
+                      "on-primary-fixed": "#001f25",
+                      "on-tertiary-fixed": "#002113",
+                      "secondary-container": "#ec6a06",
+                      "on-error": "#690005",
+                      "on-background": "#dae2fd",
+                      "primary-fixed-dim": "#2fd9f4",
+                      "on-primary-fixed-variant": "#004e5a",
+                      "surface-container-high": "#222a3d",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed": "#a2eeff",
+                      "surface": "#0b1326",
+                      "error": "#ffb4ab",
+                      "surface-container": "#171f33",
+                      "inverse-on-surface": "#283044",
+                      "inverse-surface": "#dae2fd",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "background": "#0b1326",
+                      "on-secondary": "#552100",
+                      "primary-container": "#22d3ee",
+                      "on-secondary-fixed": "#341100"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "bento-gap": "12px",
+                      "margin-mobile": "16px",
+                      "gutter": "16px",
+                      "margin-desktop": "32px"
+              },
+              "fontFamily": {
+                      "label-caps": ["JetBrains Mono"],
+                      "body-lg": ["Outfit"],
+                      "headline-md": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "body-md": ["Outfit"],
+                      "data-md": ["JetBrains Mono"],
+                      "data-lg": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "data-lg": ["20px", {"lineHeight": "24px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-[#020617] text-on-surface font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="flex justify-between items-center px-margin-desktop h-16 w-full z-50 bg-surface-dim border-b border-outline-variant docked full-width top-0">
+<div class="flex items-center gap-8">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+                TurboFix
+            </div>
+<!-- Role Switcher -->
+<div class="hidden lg:flex bg-surface-container-low p-1 rounded-full border border-outline-variant">
+<button class="px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-all">Owner</button>
+<button class="px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-all">Head</button>
+<button class="px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-all">Engineer</button>
+<button class="px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-all">Supervisor</button>
+<button class="px-4 py-1 rounded-full font-label-caps text-label-caps bg-primary-container text-on-primary-container shadow-[0_0_10px_rgba(34,211,238,0.3)]">Tech</button>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="hidden xl:flex gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer font-body-md text-body-md pb-1" href="#">Plant Operational Status</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer font-body-md text-body-md pb-1" href="#">Machine Status</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-bold font-body-md text-body-md" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional technician portrait, close-up shot, wearing industrial dark navy utility gear with a clean minimalist tech background, dramatic high-contrast lighting, 8k resolution, cinematic industrial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpR3yEqisaY7ZLtBBYllMApNB-XUpljAVCvlNYC9y6GGb8hqcqrqKIIHYEoz83g6zFD89bOkOlafF4oaWDw2SigVXgaSAEbVUfejdpuii2zRQnhaZZop-BUcQ7Dt5bfhPImz2CWKtR1dPL8dUw2bCDcf9VBeJ1yknQfhnr6wa0q83LxPkaBIUMAdYuKqLO_tntenGYzxL1K8QL54nTRETgJVZmMEXiK0mWfZHGUA9G-8e84UN9_T3YEBmZnduu3QFtfVjmvS1O0q0"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Grid -->
+<main class="max-w-[1600px] mx-auto p-margin-desktop grid grid-cols-12 gap-6">
+<!-- Priority Rail (Top Row Full Width) -->
+<section class="col-span-12 flex flex-wrap gap-4 items-center bg-surface-container-low p-4 border border-outline-variant rounded-lg">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mr-4">Priority Feed</span>
+<div class="flex items-center gap-2 bg-[#020617] border border-secondary-container/30 px-3 py-1.5 rounded-lg">
+<span class="w-2 h-2 rounded-full bg-secondary status-led"></span>
+<span class="font-label-caps text-label-caps text-on-surface">Breached Jobs:</span>
+<span class="font-data-md text-data-md text-secondary font-bold">02</span>
+</div>
+<div class="flex items-center gap-2 bg-[#020617] border border-outline-variant px-3 py-1.5 rounded-lg">
+<span class="w-2 h-2 rounded-full bg-primary/40"></span>
+<span class="font-label-caps text-label-caps text-on-surface">Waiting Spare:</span>
+<span class="font-data-md text-data-md text-on-surface font-bold">05</span>
+</div>
+<div class="flex items-center gap-2 bg-[#020617] border border-outline-variant px-3 py-1.5 rounded-lg">
+<span class="w-2 h-2 rounded-full bg-primary/40"></span>
+<span class="font-label-caps text-label-caps text-on-surface">Machine Watchlist:</span>
+<span class="font-data-md text-data-md text-on-surface font-bold">03</span>
+</div>
+</section>
+<!-- KPI Strip -->
+<div class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+<div class="bg-surface-container p-6 border border-outline-variant rounded-lg flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">TO CLOSE TODAY</span>
+<span class="font-data-lg text-4xl text-primary font-bold">08</span>
+<div class="h-1 w-full bg-surface-variant mt-2 overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%;"></div>
+</div>
+</div>
+<div class="bg-surface-container p-6 border border-outline-variant rounded-lg flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">OVERDUE PM</span>
+<span class="font-data-lg text-4xl text-secondary font-bold">02</span>
+<span class="text-xs text-secondary-container/80 mt-1">CRITICAL IMPACT</span>
+</div>
+<div class="bg-surface-container p-6 border border-outline-variant rounded-lg flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">SPARES TO ORDER</span>
+<span class="font-data-lg text-4xl text-on-surface font-bold">14</span>
+<span class="text-xs text-on-surface-variant mt-1">PENDING VERIFICATION</span>
+</div>
+</div>
+<!-- Start Here Panel -->
+<section class="col-span-12 lg:col-span-6 bg-surface-container-high border border-primary/20 rounded-lg p-8 relative overflow-hidden flex flex-col justify-between">
+<div class="absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none">
+
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-primary tracking-[0.2em] mb-4 block">ACTIVE DISPATCH</span>
+<h1 class="font-headline-lg text-headline-lg mb-2">Hydraulic Pump Seal Replacement</h1>
+<p class="text-on-surface-variant font-body-md max-w-md">Location: Production Line B - Zone 04. Estimated duration: 45mins. Safety permits verified.</p>
+</div>
+<div class="mt-8 flex items-center gap-6">
+<button class="bg-primary-container text-on-primary-container px-8 py-4 font-label-caps text-label-caps rounded-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-3">
+                    OPEN JOB
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant">JOB ID</span>
+<span class="font-data-md text-data-md">TRB-8821-04</span>
+</div>
+</div>
+</section>
+<!-- Needs Your Attention -->
+<section class="col-span-12 lg:col-span-3 bg-surface-container p-6 border border-outline-variant rounded-lg flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant border-b border-outline-variant pb-2">NEEDS ATTENTION</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-surface-container-low border border-outline-variant rounded-lg hover:border-primary/50 cursor-pointer transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">order_approve</span>
+<span class="font-body-md text-on-surface">Approve Parts Request</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-low border border-outline-variant rounded-lg hover:border-primary/50 cursor-pointer transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+<span class="font-body-md text-on-surface">Confirm Shift Handover</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Urgent Jobs Queue -->
+<section class="col-span-12 lg:col-span-8 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">warning</span>
+                    URGENT JOBS QUEUE
+                </h3>
+<span class="font-data-md text-data-md text-on-surface-variant">02 ITEMS</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-high border border-secondary-container/50 p-5 rounded-lg flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-xs px-2 py-0.5 bg-surface-dim border border-outline-variant text-on-surface-variant rounded">PRESS-04</span>
+<h4 class="font-headline-md text-lg mt-2">Safety Interlock Fault</h4>
+</div>
+<div class="bg-secondary/10 border border-secondary px-2 py-1 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary status-led"></span>
+<span class="text-[10px] font-bold text-secondary uppercase">Emergency</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-data-md text-xs text-on-surface-variant">SLA: 00:14:22 remaining</span>
+<button class="bg-secondary text-on-secondary px-4 py-1.5 font-label-caps text-xs rounded hover:bg-secondary/90 transition-colors">START</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-high border border-secondary-container/50 p-5 rounded-lg flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-xs px-2 py-0.5 bg-surface-dim border border-outline-variant text-on-surface-variant rounded">CONV-21</span>
+<h4 class="font-headline-md text-lg mt-2">Motor Overload Trip</h4>
+</div>
+<div class="bg-secondary/10 border border-secondary px-2 py-1 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary status-led"></span>
+<span class="text-[10px] font-bold text-secondary uppercase">Emergency</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<span class="font-data-md text-xs text-on-surface-variant">SLA: 00:28:45 remaining</span>
+<button class="bg-secondary text-on-secondary px-4 py-1.5 font-label-caps text-xs rounded hover:bg-secondary/90 transition-colors">START</button>
+</div>
+</div>
+</div>
+<!-- Everything Else (Collapsed) -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container-low border border-outline-variant rounded-lg hover:bg-surface-container transition-colors group">
+<span class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-3">
+<span class="material-symbols-outlined text-sm">list</span>
+                    EVERYTHING ELSE (14 REMAINING JOBS)
+                </span>
+<span class="material-symbols-outlined group-hover:translate-y-0.5 transition-transform">expand_more</span>
+</button>
+</section>
+<!-- My Machines Grid -->
+<section class="col-span-12 lg:col-span-4 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">precision_manufacturing</span>
+                    MY MACHINES
+                </h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Machine 1 -->
+<div class="bg-surface-container p-4 border border-outline-variant rounded-lg flex flex-col gap-3">
+<span class="font-data-md text-sm text-on-surface">CNC-01</span>
+<div class="flex items-center gap-2 px-2 py-1 bg-tertiary/10 border border-tertiary/40 rounded w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold text-tertiary uppercase">Nominal</span>
+</div>
+<div class="mt-2 h-10 w-full bg-surface-dim relative overflow-hidden rounded">
+<div class="absolute inset-0 bg-gradient-to-r from-tertiary/20 to-transparent w-full h-full animate-pulse"></div>
+</div>
+</div>
+<!-- Machine 2 -->
+<div class="bg-surface-container p-4 border border-outline-variant rounded-lg flex flex-col gap-3">
+<span class="font-data-md text-sm text-on-surface">PRESS-04</span>
+<div class="flex items-center gap-2 px-2 py-1 bg-secondary/10 border border-secondary/40 rounded w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold text-secondary uppercase">Alert</span>
+</div>
+<div class="mt-2 h-10 w-full bg-surface-dim relative overflow-hidden rounded">
+<div class="absolute inset-0 bg-gradient-to-r from-secondary/20 to-transparent w-full h-full animate-pulse"></div>
+</div>
+</div>
+<!-- Machine 3 -->
+<div class="bg-surface-container p-4 border border-outline-variant rounded-lg flex flex-col gap-3">
+<span class="font-data-md text-sm text-on-surface">VAC-CHILL</span>
+<div class="flex items-center gap-2 px-2 py-1 bg-primary/10 border border-primary/40 rounded w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-[10px] font-bold text-primary uppercase">Live</span>
+</div>
+<div class="mt-2 h-10 w-full bg-surface-dim relative overflow-hidden rounded">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent w-full h-full animate-pulse"></div>
+</div>
+</div>
+<!-- Machine 4 -->
+<div class="bg-surface-container p-4 border border-outline-variant rounded-lg flex flex-col gap-3">
+<span class="font-data-md text-sm text-on-surface">PACK-44</span>
+<div class="flex items-center gap-2 px-2 py-1 bg-tertiary/10 border border-tertiary/40 rounded w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold text-tertiary uppercase">Nominal</span>
+</div>
+<div class="mt-2 h-10 w-full bg-surface-dim relative overflow-hidden rounded">
+<div class="absolute inset-0 bg-gradient-to-r from-tertiary/20 to-transparent w-full h-full animate-pulse"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                let ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Simulating data heartbeat
+        setInterval(() => {
+            const dataValues = document.querySelectorAll('.font-data-lg');
+            dataValues.forEach(val => {
+                val.style.opacity = '0.7';
+                setTimeout(() => val.style.opacity = '1', 150);
+            });
+        }, 5000);
+    </script>
+<style>
+        .ripple {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            border-radius: 50%;
+            animation: ripple-effect 0.6s linear;
+        }
+        @keyframes ripple-effect {
+            0% { width: 0; height: 0; }
+            100% { width: 400px; height: 400px; opacity: 0; }
+        }
+    </style>
+</body></html>

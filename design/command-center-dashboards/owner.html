@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TurboFix Owner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "primary": "#8aebff",
+              "surface-container-lowest": "#090f11",
+              "surface-container-highest": "#2f3638",
+              "on-secondary-fixed-variant": "#783200",
+              "on-tertiary-container": "#6e4600",
+              "background": "#0e1416",
+              "secondary-fixed-dim": "#ffb690",
+              "tertiary-fixed-dim": "#ffb957",
+              "primary-fixed-dim": "#2fd9f4",
+              "inverse-surface": "#dde4e5",
+              "tertiary-container": "#ffb13b",
+              "inverse-on-surface": "#2b3233",
+              "secondary-fixed": "#ffdbca",
+              "tertiary": "#ffd6a3",
+              "error": "#ffb4ab",
+              "error-container": "#93000a",
+              "surface-dim": "#0e1416",
+              "on-primary-fixed-variant": "#004e5a",
+              "primary-fixed": "#a2eeff",
+              "on-secondary": "#552100",
+              "outline-variant": "#3c494c",
+              "tertiary-fixed": "#ffddb5",
+              "on-surface": "#dde4e5",
+              "surface-container-high": "#242b2d",
+              "primary-container": "#22d3ee",
+              "on-error": "#690005",
+              "on-surface-variant": "#bbc9cd",
+              "surface-variant": "#2f3638",
+              "surface-container": "#1a2122",
+              "surface-bright": "#343a3c",
+              "on-secondary-container": "#4a1c00",
+              "on-primary": "#00363e",
+              "inverse-primary": "#006877",
+              "on-primary-container": "#005763",
+              "on-tertiary-fixed-variant": "#643f00",
+              "secondary": "#ffb690",
+              "outline": "#859397",
+              "on-secondary-fixed": "#341100",
+              "on-error-container": "#ffdad6",
+              "surface-tint": "#2fd9f4",
+              "on-tertiary": "#462b00",
+              "surface": "#0e1416",
+              "on-primary-fixed": "#001f25",
+              "on-background": "#dde4e5",
+              "on-tertiary-fixed": "#2a1800",
+              "surface-container-low": "#161d1e",
+              "secondary-container": "#ec6a06"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            "spacing": {
+              "base": "8px",
+              "gutter": "16px",
+              "margin-desktop": "40px",
+              "container-padding": "24px",
+              "margin-mobile": "16px"
+            },
+            "fontFamily": {
+              "headline-lg": ["Outfit"],
+              "data-md": ["JetBrains Mono"],
+              "display-lg": ["Outfit"],
+              "headline-md": ["Outfit"],
+              "data-sm": ["JetBrains Mono"],
+              "body-lg": ["Outfit"],
+              "body-md": ["Outfit"],
+              "data-lg": ["JetBrains Mono"]
+            },
+            "fontSize": {
+              "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+              "data-md": ["16px", {"lineHeight": "1.4", "fontWeight": "500"}],
+              "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+              "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}],
+              "data-sm": ["13px", {"lineHeight": "1.4", "fontWeight": "400"}],
+              "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+              "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+              "data-lg": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+      body {
+        background-color: #090f11;
+        color: #dde4e5;
+        font-family: 'Outfit', sans-serif;
+      }
+      .bento-card {
+        background-color: rgba(22, 29, 30, 0.4);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+      .bento-card:hover {
+        border-color: rgba(138, 235, 255, 0.3);
+        background-color: rgba(22, 29, 30, 0.6);
+      }
+      .glass-orange {
+        background: rgba(236, 106, 6, 0.1);
+        border: 1px solid rgba(236, 106, 6, 0.3);
+      }
+      .glass-cyan {
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+      }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 fixed top-0 left-0 z-50 bg-surface-container-lowest/80 border-b border-white/10 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary">TurboFix</span>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-200" href="#">Plant Operational Status</a>
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-200" href="#">Machine Status</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-body-md" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<!-- Role Switcher -->
+<div class="flex items-center bg-surface-container-high rounded-full px-1 py-1 gap-1 border border-white/5">
+<button class="px-3 py-1 rounded-full text-data-sm font-data-sm bg-primary text-on-primary">Owner</button>
+<button class="px-3 py-1 rounded-full text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors">Head</button>
+<button class="px-3 py-1 rounded-full text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors">Engineer</button>
+<button class="px-3 py-1 rounded-full text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors">Supervisor</button>
+<button class="px-3 py-1 rounded-full text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors">Tech</button>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer" data-icon="settings">settings</span>
+<img class="w-8 h-8 rounded-full border border-primary/30" data-alt="A professional headshot of a senior executive in a dark tech-focused environment, softly lit by blue ambient screens, wearing a charcoal blazer, clean and authoritative composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBm3oC1eFKJTvmTYbfMbaBG4-EjwJhxHwkiI4cmTURoWspKdRh6y4-99IgfYTxZDTSajxVcfeol6vSK-Df8pnFdY9OvhIESGJU_J3SZTJN5znpfwa4mlCRl2ER41TouUF9i5MYXfZMp3AbRn0ycbJ6LKMCJu4QYAV8YnD3rCcO7x_Wd34I23Xzy8lTP8gubgLmfi4t2IG0PkTu6dO8e59xFs-Ywi3tcfdKhaPGFJWh-xOeOAPY0mwaF67qSkgxWVdRFKNVEbVhDnUQ"/>
+</div>
+</div>
+</header>
+<main class="mt-24 px-margin-desktop mb-12 max-w-[1600px] mx-auto">
+<!-- Top Section: Urgent Action & Priority Rail -->
+<div class="grid grid-cols-12 gap-gutter mb-gutter">
+<!-- 2. Start Here Panel (Top Left, Large) -->
+<div class="col-span-12 lg:col-span-8 bento-card p-container-padding rounded-xl relative overflow-hidden group">
+<div class="absolute -right-12 -top-12 w-64 h-64 bg-secondary/10 blur-[100px] rounded-full group-hover:bg-secondary/20 transition-all duration-700"></div>
+<div class="relative z-10 flex flex-col h-full justify-between">
+<div>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary" data-icon="priority_high">priority_high</span>
+<span class="text-data-sm font-data-sm text-secondary uppercase tracking-widest">Executive Authorization Required</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg mb-4 text-on-surface">Authorize Emergency Overtime for Line 4</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl">
+                            Line 4 is experiencing a <span class="text-secondary font-bold">P-0 critical failure</span> on the main conveyor motor. Technician Miller is requesting 4h overtime to complete replacement tonight.
+                        </p>
+</div>
+<div class="mt-8 flex items-end justify-between">
+<div class="bg-surface-container-high/50 p-4 rounded-lg border border-secondary/20">
+<p class="text-data-sm font-data-sm text-on-surface-variant">Estimated Risk Impact</p>
+<p class="text-headline-md font-headline-md text-secondary">₹4.2L/hr <span class="text-body-md font-normal opacity-70">Loss</span></p>
+</div>
+<button class="bg-secondary-container hover:bg-secondary transition-all active:scale-95 text-on-secondary-container px-8 py-4 rounded-lg font-headline-md shadow-lg shadow-secondary/20 flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="timer_auto">animated_images</span>
+                            AUTHORIZE OVERTIME
+                        </button>
+</div>
+</div>
+</div>
+<!-- 3. Priority Rail (Top Right) -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<div class="bento-card p-6 rounded-xl h-full flex flex-col justify-center">
+<h3 class="text-data-sm font-data-sm text-on-surface-variant uppercase tracking-wider mb-4">Operational Exposure</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="glass-orange p-3 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="warning">warning</span>
+<span class="text-data-sm font-data-sm text-secondary">3 SLA Breaches</span>
+</div>
+<div class="bg-surface-container-highest/30 border border-white/10 p-3 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="group">group</span>
+<span class="text-data-sm font-data-sm">2 Overloaded Techs</span>
+</div>
+<div class="bg-surface-container-highest/30 border border-white/10 p-3 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="lock_clock">lock_clock</span>
+<span class="text-data-sm font-data-sm">5 Blocked Jobs</span>
+</div>
+<div class="glass-orange p-3 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="trending_up">trending_up</span>
+<span class="text-data-sm font-data-sm text-secondary">+12m Response Drift</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. KPI Strip -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-gutter">
+<div class="bento-card p-6 rounded-xl">
+<p class="text-data-sm font-data-sm text-on-surface-variant mb-2">Money at Risk</p>
+<div class="flex items-end justify-between">
+<h2 class="text-data-lg font-data-lg text-secondary">₹18.4M <span class="text-data-sm font-normal opacity-70">/mo</span></h2>
+<div class="flex items-center text-secondary">
+<span class="material-symbols-outlined" data-icon="arrow_upward">arrow_upward</span>
+<span class="text-data-sm">8%</span>
+</div>
+</div>
+</div>
+<div class="bento-card p-6 rounded-xl">
+<p class="text-data-sm font-data-sm text-on-surface-variant mb-2">Maintenance Spend</p>
+<div class="flex items-end justify-between">
+<h2 class="text-data-lg font-data-lg text-on-surface">₹6.2M <span class="text-data-sm font-normal opacity-70">YTD</span></h2>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined" data-icon="arrow_downward">arrow_downward</span>
+<span class="text-data-sm">12.4%</span>
+</div>
+</div>
+</div>
+<div class="bento-card p-6 rounded-xl">
+<p class="text-data-sm font-data-sm text-on-surface-variant mb-2">Critical Machines</p>
+<div class="flex items-end justify-between">
+<h2 class="text-data-lg font-data-lg text-primary">114 <span class="text-data-sm font-normal opacity-70">Active</span></h2>
+<div class="flex items-center text-primary">
+<span class="text-data-sm">98% Health</span>
+</div>
+</div>
+</div>
+<div class="bento-card p-6 rounded-xl relative overflow-hidden">
+<div class="absolute inset-0 bg-secondary/5"></div>
+<p class="text-data-sm font-data-sm text-on-surface-variant mb-2 relative z-10">Production Loss</p>
+<div class="flex items-end justify-between relative z-10">
+<h2 class="text-data-lg font-data-lg text-secondary">14.2%</h2>
+<div class="flex items-center text-secondary">
+<span class="material-symbols-outlined text-[18px]" data-icon="report">report</span>
+<span class="text-data-sm ml-1">Alert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Section -->
+<div class="grid grid-cols-12 gap-gutter mb-gutter">
+<!-- 5. Morning Review (Middle Left) -->
+<div class="col-span-12 lg:col-span-5 bento-card p-container-padding rounded-xl">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md">Executive Morning Review</h3>
+<span class="text-data-sm text-on-surface-variant">March 14, 2024</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container/50 rounded-lg border border-white/5">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="text-body-md">Plant availability within budget?</span>
+</div>
+<span class="text-data-md font-data-md text-primary">94.2%</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container/50 rounded-lg border border-white/5">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<span class="text-body-md">Statutory safety compliance?</span>
+</div>
+<span class="text-data-md font-data-md text-primary">None</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-secondary/10 rounded-lg border border-secondary/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="inventory_2">inventory_2</span>
+<span class="text-body-md">Spare parts procurement bottlenecks?</span>
+</div>
+<span class="text-data-md font-data-md text-secondary">4 Pending</span>
+</div>
+</div>
+</div>
+<!-- 6. Machine Risk & Exposure (Middle Right) -->
+<div class="col-span-12 lg:col-span-7 bento-card p-container-padding rounded-xl">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md">Financial Risk Exposure Map</h3>
+<button class="text-primary text-data-sm hover:underline">View Global Map</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[240px]">
+<div class="border border-secondary/30 rounded-lg p-5 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-4">
+<h4 class="text-body-lg font-bold">Unit-4 Blower</h4>
+<span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-[10px] uppercase font-bold tracking-tighter">High Risk</span>
+</div>
+<div class="space-y-2">
+<div class="w-full bg-surface-container h-1.5 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[88%]"></div>
+</div>
+<div class="flex justify-between text-data-sm">
+<span class="text-on-surface-variant">Vibration Delta</span>
+<span class="text-secondary font-bold">+2.4mm/s</span>
+</div>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<span class="text-data-sm text-on-surface-variant">Replacement Cost</span>
+<span class="text-data-md font-data-md">₹1.8M</span>
+</div>
+</div>
+</div>
+<div class="border border-primary/30 rounded-lg p-5 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-4">
+<h4 class="text-body-lg font-bold text-on-surface">Main Transformer</h4>
+<span class="bg-primary/20 text-primary px-2 py-1 rounded text-[10px] uppercase font-bold tracking-tighter">Normal</span>
+</div>
+<div class="space-y-2">
+<div class="w-full bg-surface-container h-1.5 rounded-full">
+<div class="bg-primary h-full rounded-full w-[12%]"></div>
+</div>
+<div class="flex justify-between text-data-sm">
+<span class="text-on-surface-variant">Thermal Status</span>
+<span class="text-primary font-bold">Stable</span>
+</div>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<span class="text-data-sm text-on-surface-variant">Annualized Risk</span>
+<span class="text-data-md font-data-md">₹0.2M</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- 7. Monthly Summary (Bottom Left) -->
+<div class="col-span-12 lg:col-span-4 bento-card p-container-padding rounded-xl">
+<h3 class="font-headline-md text-headline-md mb-6">Monthly Performance Rollup</h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between items-end mb-4">
+<div>
+<p class="text-data-sm text-on-surface-variant">4-Week Uptime</p>
+<p class="text-headline-md font-data-md text-primary">94.2% <span class="text-data-sm font-normal opacity-50">avg</span></p>
+</div>
+<div class="flex gap-1 h-12 items-end">
+<div class="w-4 bg-primary/40 h-[80%] rounded-t-sm"></div>
+<div class="w-4 bg-primary/60 h-[90%] rounded-t-sm"></div>
+<div class="w-4 bg-primary/30 h-[75%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[94%] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-white/10">
+<p class="text-data-sm text-on-surface-variant mb-4 uppercase tracking-widest">Spend Breakdown</p>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-body-md">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span> Planned Prev.</span>
+<span class="font-data-md">₹4.2M</span>
+</div>
+<div class="flex justify-between items-center text-body-md">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-secondary"></span> Emergency</span>
+<span class="font-data-md text-secondary">₹1.8M</span>
+</div>
+<div class="flex justify-between items-center text-body-md">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-on-surface-variant"></span> Others</span>
+<span class="font-data-md">₹0.2M</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 8. Machines Needing Attention (Bottom Right) -->
+<div class="col-span-12 lg:col-span-8 bento-card p-container-padding rounded-xl">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md">Asset Maintenance Priority Queue</h3>
+<div class="flex gap-2">
+<button class="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full">
+<thead>
+<tr class="text-left border-b border-white/10 pb-4">
+<th class="text-data-sm font-data-sm text-on-surface-variant pb-4 uppercase tracking-widest">Asset ID</th>
+<th class="text-data-sm font-data-sm text-on-surface-variant pb-4 uppercase tracking-widest">Anomaly Detect</th>
+<th class="text-data-sm font-data-sm text-on-surface-variant pb-4 uppercase tracking-widest">Status</th>
+<th class="text-data-sm font-data-sm text-on-surface-variant pb-4 uppercase tracking-widest">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-secondary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px]">PRESS-04</p>
+<p class="text-data-sm text-on-surface-variant">Stamping Line B</p>
+</div>
+</div>
+</td>
+<td class="py-4">
+<p class="text-body-md font-medium text-secondary">Hydraulic Leak</p>
+<p class="text-data-sm text-on-surface-variant">Pressure dropped below 140 Bar</p>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 bg-secondary/10 text-secondary border border-secondary/30 rounded text-data-sm uppercase font-bold">Critical</span>
+</td>
+<td class="py-4 text-right">
+<button class="text-primary hover:text-primary-container font-medium text-data-sm transition-colors">Dispatch Now →</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-tertiary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px]">CV-02</p>
+<p class="text-data-sm text-on-surface-variant">Sorting Conveyor</p>
+</div>
+</div>
+</td>
+<td class="py-4">
+<p class="text-body-md font-medium">Belt Misalignment</p>
+<p class="text-data-sm text-on-surface-variant">Slight lateral drift detected</p>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 bg-surface-container-highest/50 text-tertiary border border-tertiary/30 rounded text-data-sm uppercase font-bold">Warning</span>
+</td>
+<td class="py-4 text-right">
+<button class="text-primary hover:text-primary-container font-medium text-data-sm transition-colors">Schedule Shift →</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="memory">memory</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px]">CNC-01</p>
+<p class="text-data-sm text-on-surface-variant">Milling Department</p>
+</div>
+</div>
+</td>
+<td class="py-4">
+<p class="text-body-md font-medium text-on-surface-variant">Nominal Performance</p>
+<p class="text-data-sm text-on-surface-variant">All telemetry within ±0.2%</p>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/30 rounded text-data-sm uppercase font-bold">Optimal</span>
+</td>
+<td class="py-4 text-right">
+<button class="text-on-surface-variant hover:text-on-surface font-medium text-data-sm transition-colors">Review Logs →</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-12 mb-8 px-margin-desktop border-t border-white/5 pt-8 text-center text-on-surface-variant">
+<p class="text-data-sm font-data-sm uppercase tracking-widest">Powered by TurboFix Enterprise AI • Precision in Maintenance</p>
+</footer>
+<script>
+        // Micro-interactions and subtle glow effects
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Simulating some status updates
+        setInterval(() => {
+            const riskValue = document.querySelector('.text-headline-md.text-secondary');
+            if (riskValue && Math.random() > 0.7) {
+                riskValue.classList.add('animate-pulse');
+                setTimeout(() => riskValue.classList.remove('animate-pulse'), 1000);
+            }
+        }, 3000);
+    </script>
+</body></html>

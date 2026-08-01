@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TurboFix CMMS | Supervisor Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-error": "#690005",
+                      "surface-container-high": "#222a3d",
+                      "inverse-primary": "#006877",
+                      "surface-container-low": "#131b2e",
+                      "on-secondary-container": "#4a1c00",
+                      "error": "#ffb4ab",
+                      "primary-fixed-dim": "#2fd9f4",
+                      "primary": "#22d3ee",
+                      "tertiary": "#68f5b8",
+                      "primary-fixed": "#a2eeff",
+                      "background": "#020617",
+                      "on-primary-fixed": "#001f25",
+                      "on-error-container": "#ffdad6",
+                      "surface-tint": "#2fd9f4",
+                      "on-surface": "#dae2fd",
+                      "surface-container-highest": "#2d3449",
+                      "on-tertiary": "#003824",
+                      "secondary-container": "#f97316",
+                      "on-primary-fixed-variant": "#004e5a",
+                      "on-background": "#dae2fd",
+                      "surface": "#0b1326",
+                      "on-surface-variant": "#bbc9cd",
+                      "on-secondary": "#552100",
+                      "on-primary": "#00363e",
+                      "on-primary-container": "#005763",
+                      "inverse-on-surface": "#283044",
+                      "outline": "#1e293b",
+                      "inverse-surface": "#dae2fd",
+                      "secondary": "#f97316",
+                      "secondary-fixed": "#ffdbca",
+                      "on-tertiary-fixed": "#002113",
+                      "tertiary-fixed": "#6ffbbe",
+                      "tertiary-container": "#46d89d",
+                      "on-secondary-fixed-variant": "#783200",
+                      "error-container": "#93000a",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "surface-bright": "#31394d",
+                      "on-tertiary-container": "#005a3d",
+                      "surface-container-lowest": "#060e20",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "outline-variant": "#3c494c",
+                      "surface-variant": "#0f172a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "margin-desktop": "32px",
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "bento-gap": "12px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "headline-md": ["Outfit"],
+                      "data-md": ["JetBrains Mono"],
+                      "data-lg": ["JetBrains Mono"],
+                      "body-md": ["Outfit"],
+                      "label-caps": ["JetBrains Mono"],
+                      "body-lg": ["Outfit"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "data-lg": ["20px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body { background-color: #020617; color: #dae2fd; font-family: 'Outfit', sans-serif; }
+        .bento-card { background-color: #0f172a; border: 1px solid #1e293b; padding: 24px; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .kpi-value { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen">
+<!-- Top Navigation Bar -->
+<nav class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<div class="flex items-center gap-2 text-lg font-bold text-slate-50">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-950" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</div>
+<span class="tracking-tight uppercase font-headline-md">TurboFix</span>
+</div>
+<!-- Role Switcher -->
+<div class="hidden lg:flex items-center gap-2">
+<button class="px-3 py-1 border border-slate-700 rounded-full text-[11px] font-label-caps text-slate-400 hover:border-slate-500 transition-colors">Owner</button>
+<button class="px-3 py-1 border border-slate-700 rounded-full text-[11px] font-label-caps text-slate-400 hover:border-slate-500 transition-colors">Head</button>
+<button class="px-3 py-1 border border-slate-700 rounded-full text-[11px] font-label-caps text-slate-400 hover:border-slate-500 transition-colors">Engineer</button>
+<button class="px-3 py-1 bg-primary text-slate-950 rounded-full text-[11px] font-label-caps font-bold">Supervisor</button>
+<button class="px-3 py-1 border border-slate-700 rounded-full text-[11px] font-label-caps text-slate-400 hover:border-slate-500 transition-colors">Tech</button>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="hidden xl:flex items-center gap-8 h-full">
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-body-md text-sm" href="#">Plant Operational Status</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-body-md text-sm" href="#">Machine Status</a>
+<a class="text-primary border-b-2 border-primary h-full flex items-center pt-1 font-body-md text-sm font-medium" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:bg-slate-800/50 rounded-lg transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-slate-800/50 rounded-lg transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden ml-2">
+<img class="w-full h-full object-cover" data-alt="Close-up professional portrait of a technical supervisor in a modern industrial setting, wearing a clean dark uniform, focused expression, cinematic lighting with subtle cyan highlights, photorealistic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtVUMur57aeKUBeHrzWsVvZm1w1NblbcJzD0wI6kTJkfdSClLtkgUV6tnYrfFPNJOEqxrLpxapXBCaikE9nOCnSyzDgpYCMgqtKWW5t5ueTgSf6C1H2zCrF4KKP9q-xPN01xlBzJ9OWjlgx3-JvLE_tHWQpkbeRrn3W6rNnh7aZj5ubH4qXVMsApLimzn0MN289fqV0nFfYLbyIZp781N0osFbnw6Sz3EZ76lIBR5sFuuxUxvm2gHlN5k_-tM_-1Dt6wUJpZMAL_E"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="max-w-[1600px] mx-auto p-6 space-y-6">
+<!-- 1. Start Here Coordination Panel -->
+<section class="w-full bg-primary/10 border border-primary/20 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/20 border border-primary/30 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">bolt</span>
+</div>
+<div>
+<h2 class="font-headline-md text-primary">Start Here: Coordination Required</h2>
+<p class="text-slate-400 font-body-md">Line 4 is experiencing bottlenecking. 4 Technicians requested emergency overtime authorization.</p>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary-fixed-dim text-slate-950 font-bold px-6 py-3 rounded uppercase tracking-wider text-sm transition-all flex items-center gap-2 active:scale-95">
+                Authorize Emergency Overtime for Line 4
+                <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</section>
+<!-- 2. Priority Rail -->
+<section class="flex flex-wrap gap-3">
+<div class="flex items-center gap-2 bg-secondary/10 border border-secondary/30 px-3 py-1.5 rounded text-secondary font-label-caps text-xs">
+<span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                SLA BREACHES: 03
+            </div>
+<div class="flex items-center gap-2 bg-secondary/10 border border-secondary/30 px-3 py-1.5 rounded text-secondary font-label-caps text-xs">
+<span class="material-symbols-outlined text-[14px]">groups</span>
+                OVERLOADED TECHS: 02
+            </div>
+<div class="flex items-center gap-2 bg-secondary/10 border border-secondary/30 px-3 py-1.5 rounded text-secondary font-label-caps text-xs">
+<span class="material-symbols-outlined text-[14px]">block</span>
+                BLOCKED JOBS: 05
+            </div>
+<div class="flex items-center gap-2 bg-slate-800/50 border border-slate-700 px-3 py-1.5 rounded text-slate-300 font-label-caps text-xs ml-auto">
+                RESPONSE DRIFT: <span class="text-secondary font-bold">+12M</span>
+</div>
+</section>
+<!-- 3. KPI Strip -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bento-card flex flex-col gap-1">
+<span class="text-slate-400 font-label-caps text-[11px] uppercase tracking-widest">Resolved This Week</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-data-lg text-slate-100 kpi-value">142</span>
+<span class="text-primary text-xs font-data-md">↑ 12%</span>
+</div>
+</div>
+<div class="bento-card flex flex-col gap-1">
+<span class="text-slate-400 font-label-caps text-[11px] uppercase tracking-widest">Avg Resolution Time</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-data-lg text-slate-100 kpi-value">1.8h</span>
+<span class="text-slate-500 text-xs font-data-md">Target: 2.0h</span>
+</div>
+</div>
+<div class="bento-card flex flex-col gap-1">
+<span class="text-slate-400 font-label-caps text-[11px] uppercase tracking-widest">On-time PM</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-data-lg text-primary kpi-value">94.2%</span>
+<span class="text-primary text-xs font-data-md">STABLE</span>
+</div>
+</div>
+<div class="bento-card flex flex-col gap-1">
+<span class="text-slate-400 font-label-caps text-[11px] uppercase tracking-widest">Team Utilization</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-data-lg text-secondary kpi-value">88%</span>
+<span class="text-secondary text-xs font-data-md">HIGH LOAD</span>
+</div>
+</div>
+</section>
+<!-- 4. Bento Grid Row 1 -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+<!-- Immediate Actions -->
+<div class="bento-card lg:col-span-1 space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-slate-100">Immediate Actions</h3>
+<span class="material-symbols-outlined text-slate-500">list_alt</span>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-slate-950 border border-slate-800 rounded group cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-label-caps text-primary">SPARES APPROVAL</span>
+<span class="text-[10px] text-slate-600 font-data-md">14:20</span>
+</div>
+<p class="text-sm font-body-md text-slate-300">Approve Spare Parts: Line 2 Hydraulic Pump</p>
+</div>
+<div class="p-3 bg-slate-950 border border-slate-800 rounded group cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-label-caps text-secondary">SAFETY REVIEW</span>
+<span class="text-[10px] text-slate-600 font-data-md">12:05</span>
+</div>
+<p class="text-sm font-body-md text-slate-300">Review Incident Report #882: Minor Oil Spill</p>
+</div>
+<div class="p-3 bg-slate-950 border border-slate-800 rounded group cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-label-caps text-slate-400">MAINTENANCE LOG</span>
+<span class="text-[10px] text-slate-600 font-data-md">10:44</span>
+</div>
+<p class="text-sm font-body-md text-slate-300">Close Monthly PM Loop: Assembly Bay 1</p>
+</div>
+</div>
+</div>
+<!-- Team Status Roster -->
+<div class="bento-card lg:col-span-2 space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-slate-100">Team Status Roster</h3>
+<div class="flex gap-2">
+<button class="text-xs font-label-caps text-primary border border-primary/20 px-2 py-1 rounded">LIVE FEED</button>
+<span class="material-symbols-outlined text-slate-500">engineering</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-slate-800 text-[11px] font-label-caps text-slate-500">
+<th class="pb-3 pl-2">TECH</th>
+<th class="pb-3">ASSIGNMENT</th>
+<th class="pb-3">STATUS</th>
+<th class="pb-3 text-right pr-2">LOCATION</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-800/50">
+<tr class="hover:bg-slate-800/20 transition-colors">
+<td class="py-4 pl-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center font-bold text-xs text-primary">AJ</div>
+<div>
+<div class="text-sm font-medium text-slate-200">Alex Johnson</div>
+<div class="text-[10px] text-slate-500 font-data-md">Senior Mech</div>
+</div>
+</div>
+</td>
+<td class="py-4">
+<div class="text-sm font-data-md text-slate-400">#PM-CR-02</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-[10px] font-bold uppercase">LIVE</span>
+</td>
+<td class="py-4 text-right pr-2">
+<div class="text-xs font-body-md text-slate-400">Curing Station B</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/20 transition-colors">
+<td class="py-4 pl-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-secondary/20 flex items-center justify-center font-bold text-xs text-secondary">MS</div>
+<div>
+<div class="text-sm font-medium text-slate-200">Maria Silva</div>
+<div class="text-[10px] text-slate-500 font-data-md">Electrician</div>
+</div>
+</div>
+</td>
+<td class="py-4">
+<div class="text-sm font-data-md text-slate-400">#L4-MOT-18</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-0.5 rounded-full bg-secondary/10 border border-secondary/30 text-secondary text-[10px] font-bold uppercase animate-pulse">EMERGENCY</span>
+</td>
+<td class="py-4 text-right pr-2">
+<div class="text-xs font-body-md text-slate-400">Conveyor Line 4</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/20 transition-colors">
+<td class="py-4 pl-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-300">RK</div>
+<div>
+<div class="text-sm font-medium text-slate-200">Robert King</div>
+<div class="text-[10px] text-slate-500 font-data-md">Apprentice</div>
+</div>
+</div>
+</td>
+<td class="py-4">
+<div class="text-sm font-data-md text-slate-400">#GEN-CLN-11</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-500 text-[10px] font-bold uppercase">IDLE</span>
+</td>
+<td class="py-4 text-right pr-2">
+<div class="text-xs font-body-md text-slate-400">Maintenance Lab</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- 5. Bento Grid Row 2 -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+<!-- Crew Balance Snapshot -->
+<div class="bento-card space-y-4">
+<h3 class="font-headline-md text-slate-100">Crew Balance Snapshot</h3>
+<div class="flex flex-col items-center justify-center h-48 relative">
+<!-- Semi-circle radial chart representation -->
+<div class="w-40 h-40 border-8 border-slate-800 rounded-full border-t-primary border-r-primary rotate-45"></div>
+<div class="absolute flex flex-col items-center">
+<span class="text-3xl font-data-lg text-slate-100">82%</span>
+<span class="text-[10px] font-label-caps text-slate-500">CAPACITY FILLED</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 text-center">
+<div class="p-2 border border-slate-800 rounded">
+<div class="text-xs text-slate-500 font-label-caps">OPTIMAL</div>
+<div class="text-lg font-data-md text-primary">12/14</div>
+</div>
+<div class="p-2 border border-slate-800 rounded">
+<div class="text-xs text-slate-500 font-label-caps">STANDBY</div>
+<div class="text-lg font-data-md text-slate-300">02</div>
+</div>
+</div>
+</div>
+<!-- Workload Balance -->
+<div class="bento-card space-y-6">
+<h3 class="font-headline-md text-slate-100">Workload Balance</h3>
+<div class="space-y-5">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-label-caps">
+<span class="text-slate-300">Mechanical Team</span>
+<span class="text-secondary">94% Load</span>
+</div>
+<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[94%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-label-caps">
+<span class="text-slate-300">Electrical Team</span>
+<span class="text-primary">76% Load</span>
+</div>
+<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[76%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-label-caps">
+<span class="text-slate-300">Calibration Unit</span>
+<span class="text-primary">62% Load</span>
+</div>
+<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[62%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-label-caps">
+<span class="text-slate-300">Facilities Group</span>
+<span class="text-primary">45% Load</span>
+</div>
+<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[45%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Response Time Trend -->
+<div class="bento-card space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-slate-100">Response Time Trend</h3>
+<span class="text-secondary font-data-md text-xs">+12m Drift</span>
+</div>
+<div class="h-32 flex items-end gap-1 px-2">
+<div class="flex-1 bg-slate-800 h-[60%] rounded-t-sm"></div>
+<div class="flex-1 bg-slate-800 h-[65%] rounded-t-sm"></div>
+<div class="flex-1 bg-slate-800 h-[55%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[45%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-[80%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-[95%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-[88%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between text-[10px] font-label-caps text-slate-600 px-1">
+<span>08:00</span>
+<span>10:00</span>
+<span>12:00</span>
+<span>14:00</span>
+<span>NOW</span>
+</div>
+<div class="pt-4 border-t border-slate-800 flex items-center gap-3">
+<div class="p-2 bg-secondary/10 rounded">
+<span class="material-symbols-outlined text-secondary text-sm">warning</span>
+</div>
+<p class="text-xs text-slate-400">Response times are exceeding target thresholds on Line 4 shifts.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Simple Atmospheric Effect -->
+<div class="fixed inset-0 pointer-events-none z-[-1] opacity-20">
+<div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-secondary/10 blur-[150px] rounded-full"></div>
+</div>
+<script>
+        // Micro-interaction for hover states on bento cards
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'rgba(34, 211, 238, 0.3)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = '#1e293b';
+            });
+        });
+    </script>
+</body></html>

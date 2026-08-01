@@ -37,6 +37,7 @@ import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
 import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
 import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
+import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -62,6 +63,10 @@ import { filterRowsForUserCompany } from '../utils/tenant';
 import './Dashboard.css';
 
 const ROLE_HEADINGS = {
+  operator: {
+    kicker: 'Shopfloor control',
+    lead: 'Machine status, breakdown reporting & shift safety checklist in one place.',
+  },
   [DASHBOARD_ROLES.OWNER]: {
     kicker: 'Business overview',
     lead: 'Fleet exposure, cost and service levels — the whole plant in one screen.',
@@ -78,9 +83,18 @@ const ROLE_HEADINGS = {
     kicker: 'Reliability',
     lead: 'Repeat failures, root causes and whether the corrective actions landed.',
   },
+  maintenance_head: {
+    kicker: 'Exceptions & authority',
+    lead: 'Safety, technical sign-offs, spare budgets, and high-impact decisions.',
+  },
 };
 
 const ROLE_HEROES = {
+  operator: {
+    badge: 'Plant & Machine Operator Station',
+    title: 'Monitor machine health, scan QR breakdown codes instantly, and track technician response in real time.',
+    body: 'Keep production moving safely with 1-tap reporting, clear shift safety checklists, and live callout status.',
+  },
   [DASHBOARD_ROLES.OWNER]: {
     badge: 'Plant VP & Factory Owner View',
     title: 'Real-time visibility into every machine breakdown, SLA timer, and financial downtime risk across all shifts.',
@@ -100,6 +114,11 @@ const ROLE_HEROES = {
     badge: 'Reliability Engineering View',
     title: 'Focus on repeat failures, weak components, and corrective action quality before the same issue returns.',
     body: 'Use reliability signals to drive better fixes, stronger root cause control, and fewer recurring breakdowns.',
+  },
+  maintenance_head: {
+    badge: 'Maintenance Head & Plant Operations',
+    title: 'Strategic oversight across plant lines, high-impact exception approvals, and spare parts financial budget.',
+    body: 'Control downtime exposure, approve critical repair overrides, and manage reliability across every shift.',
   },
 };
 
@@ -141,14 +160,20 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [quickReportOpen, setQuickReportOpen] = useState(false);
   const [activeDashboardTab, setActiveDashboardTab] = useState('plant-status');
+  const [selectedRoleView, setSelectedRoleView] = useState(null);
 
   // One cache per mount. Recomputing the fleet on every render is wasteful;
   // a 5-minute TTL is well inside how fast a maintenance board needs to move.
   const cacheRef = useRef(null);
   if (cacheRef.current === null) cacheRef.current = createMetricsCache();
 
-  const role = useMemo(() => resolveDashboardRole(user?.role), [user]);
-  const appRole = normalizeRole(user?.role);
+  const defaultRole = useMemo(() => resolveDashboardRole(user?.role), [user]);
+  const defaultAppRole = normalizeRole(user?.role);
+  
+  const currentRole = selectedRoleView || defaultRole;
+  const role = currentRole;
+  const appRole = selectedRoleView ? selectedRoleView : defaultAppRole;
+  
   const specialistRole = ['maintenance_head', 'quality_inspector', 'safety_officer'].includes(appRole)
     ? appRole
     : null;
@@ -418,11 +443,23 @@ export default function Dashboard() {
             <span>{heading.lead}</span>
           </div>
           <div className="dashboard-role-chips" aria-label="Available role views">
-            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.OWNER ? 'is-active' : ''}`}>Owner</span>
-            <span className={`dashboard-role-chip ${appRole === 'maintenance_head' ? 'is-active' : ''}`}>Maintenance Head</span>
-            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.SUPERVISOR ? 'is-active' : ''}`}>Supervisor</span>
-            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.ENGINEER ? 'is-active' : ''}`}>Engineer</span>
-            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.TECHNICIAN ? 'is-active' : ''}`}>Technician</span>
+            {[
+              { id: 'operator', label: 'Operator' },
+              { id: DASHBOARD_ROLES.OWNER, label: 'Owner' },
+              { id: 'maintenance_head', label: 'Maintenance Head' },
+              { id: DASHBOARD_ROLES.SUPERVISOR, label: 'Supervisor' },
+              { id: DASHBOARD_ROLES.ENGINEER, label: 'Engineer' },
+              { id: DASHBOARD_ROLES.TECHNICIAN, label: 'Technician' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`dashboard-role-chip ${appRole === item.id || (role === item.id && !specialistRole) ? 'is-active' : ''}`}
+                onClick={() => setSelectedRoleView(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -455,19 +492,23 @@ export default function Dashboard() {
           </div>
           ) : (
           <div className="dashboard-tab-panel" role="tabpanel" aria-label="Plant Operational Status">
-            {specialistRole === 'maintenance_head' && (
+            {appRole === 'operator' && (
+              <OperatorDashboard metrics={metrics} user={user} loading={loading} onQuickReport={openQuickReport} />
+            )}
+
+            {specialistRole === 'maintenance_head' && appRole !== 'operator' && (
               <MaintenanceHeadDashboard tickets={sources.tickets} metrics={metrics} loading={loading} />
             )}
 
-            {specialistRole && specialistRole !== 'maintenance_head' && (
+            {specialistRole && specialistRole !== 'maintenance_head' && appRole !== 'operator' && (
               <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
             )}
 
-            {!specialistRole && role === DASHBOARD_ROLES.OWNER && (
+            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.OWNER && (
               <OwnerDashboard metrics={metrics} loading={loading} />
             )}
 
-            {!specialistRole && role === DASHBOARD_ROLES.TECHNICIAN && (
+            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.TECHNICIAN && (
               <TechnicianDashboard
                 metrics={metrics}
                 user={user}
@@ -476,7 +517,7 @@ export default function Dashboard() {
               />
             )}
 
-            {!specialistRole && role === DASHBOARD_ROLES.SUPERVISOR && (
+            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.SUPERVISOR && (
               <>
                 <SupervisorDashboard metrics={metrics} loading={loading} isDemoData={usingDemoTeam && !noFleetData} />
                 <ClosedLoopControlCard
@@ -488,7 +529,7 @@ export default function Dashboard() {
               </>
             )}
 
-            {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
+            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.ENGINEER && (
               <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
             )}
           </div>

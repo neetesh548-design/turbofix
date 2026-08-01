@@ -1,0 +1,85 @@
+/*
+ * TurboFix Command Center — Role Dashboard Design Tokens
+ * Source: Stitch project "TurboFix Modern UI" (projects/6322273605992702600)
+ * Scope: Owner / Maintenance Head / Engineer / Supervisor / Technician dashboards
+ *
+ * Usage: add this block alongside the existing tokens in src/index.css, or
+ * scope it under a wrapper class (e.g. [data-theme="command-center"]) if you
+ * want it to coexist with the current app-wide theme instead of replacing it.
+ *
+ * Color law (do not violate when extending):
+ *   - cyan  = healthy / active / live / selected / stable states only
+ *   - orange = critical action / risk / authority-required states only
+ *   - everything else stays neutral dark surface
+ */
+
+:root {
+  /* Semantic accent colors */
+  --cc-primary: #22d3ee;           /* cyan — healthy / active / live */
+  --cc-primary-foreground: #00363e;
+  --cc-secondary: #f97316;         /* orange — critical / risk / authority */
+  --cc-secondary-foreground: #341100;
+
+  /* Surfaces (tonal layering, darkest to lightest) */
+  --cc-background: #0b1326;
+  --cc-surface: #0b1326;
+  --cc-surface-low: #131b2e;
+  --cc-surface: #171f33;
+  --cc-surface-high: #222a3d;
+  --cc-surface-highest: #2d3449;
+
+  /* Text */
+  --cc-on-surface: #dae2fd;
+  --cc-on-surface-variant: #bbc9cd;
+
+  /* Borders */
+  --cc-outline: #1e293b;
+  --cc-outline-variant: #3c494c;
+
+  /* Status (rare use outside the cyan/orange law — reserve for tertiary states) */
+  --cc-error: #ffb4ab;
+  --cc-tertiary: #68f5b8;
+
+  /* Shape */
+  --cc-radius-sm: 4px;
+  --cc-radius: 8px;
+  --cc-radius-lg: 12px;
+  --cc-radius-full: 9999px;
+
+  /* Typography — matches TurboFix production typeface exactly */
+  --cc-font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cc-font-mono: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+
+  /* Type scale */
+  --cc-text-display-lg: 700 48px/56px var(--cc-font-sans);
+  --cc-text-headline-lg: 600 32px/40px var(--cc-font-sans);
+  --cc-text-headline-md: 600 24px/32px var(--cc-font-sans);
+  --cc-text-body-lg: 400 18px/28px var(--cc-font-sans);
+  --cc-text-body-md: 400 16px/24px var(--cc-font-sans);
+  --cc-text-label-caps: 700 12px/16px var(--cc-font-mono); /* letter-spacing: 0.05em, uppercase */
+  --cc-text-data-lg: 600 20px/24px var(--cc-font-mono);
+  --cc-text-data-md: 500 14px/20px var(--cc-font-mono);
+
+  /* Spacing rhythm */
+  --cc-gutter: 16px;
+  --cc-margin-desktop: 32px;
+  --cc-margin-mobile: 16px;
+  --cc-bento-gap: 12px;
+}
+
+/* Tailwind config extend() equivalent, if you prefer JS tokens:
+ *
+ * colors: {
+ *   'cc-primary': '#22d3ee',
+ *   'cc-secondary': '#f97316',
+ *   'cc-surface': '#0b1326',
+ *   'cc-surface-high': '#222a3d',
+ *   'cc-on-surface': '#dae2fd',
+ *   'cc-on-surface-variant': '#bbc9cd',
+ *   'cc-outline': '#1e293b',
+ * },
+ * fontFamily: {
+ *   'cc-sans': ['Outfit', 'sans-serif'],
+ *   'cc-mono': ['JetBrains Mono', 'monospace'],
+ * },
+ */

@@ -134,7 +134,7 @@ export default function MachinePersonnelMatrixModal({
 
         {/* Form Body */}
         <form onSubmit={handleFormSave} className="mt-5 space-y-6">
-          {error && <div className="p-3 text-xs bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl flex items-center gap-2"><AlertCircle size={14} />{error}</div>}
+          {error && <div className="p-3 text-xs bg-orange-500/10 border border-orange-500/30 text-orange-400 rounded-xl flex items-center gap-2"><AlertCircle size={14} />{error}</div>}
           {success && <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} />{success}</div>}
 
           {/* Section 1: Maintenance Team (Shift-based) */}
@@ -166,7 +166,7 @@ export default function MachinePersonnelMatrixModal({
                 {matrix.technicians.map((id, idx) => (
                   <span key={id} className="inline-flex items-center gap-1.5 bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg">
                     <span className="text-[10px] font-bold text-emerald-400">Shift {String.fromCharCode(65 + idx)}:</span> {getUserName(id)}
-                    <button type="button" onClick={() => handleMultiRemove('technicians', id)} className="text-slate-400 hover:text-rose-400 ml-1">
+                    <button type="button" onClick={() => handleMultiRemove('technicians', id)} className="text-slate-400 hover:text-orange-400 ml-1">
                       <Trash2 size={12} />
                     </button>
                   </span>
@@ -193,7 +193,7 @@ export default function MachinePersonnelMatrixModal({
                 {matrix.supervisors.map((id, idx) => (
                   <span key={id} className="inline-flex items-center gap-1.5 bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg">
                     <span className="text-[10px] font-bold text-blue-400">Supervisor {idx + 1}:</span> {getUserName(id)}
-                    <button type="button" onClick={() => handleMultiRemove('supervisors', id)} className="text-slate-400 hover:text-rose-400 ml-1">
+                    <button type="button" onClick={() => handleMultiRemove('supervisors', id)} className="text-slate-400 hover:text-orange-400 ml-1">
                       <Trash2 size={12} />
                     </button>
                   </span>
@@ -220,7 +220,7 @@ export default function MachinePersonnelMatrixModal({
                 {matrix.engineers.map((id, idx) => (
                   <span key={id} className="inline-flex items-center gap-1.5 bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg">
                     <span className="text-[10px] font-bold text-indigo-400">Engineer {idx + 1}:</span> {getUserName(id)}
-                    <button type="button" onClick={() => handleMultiRemove('engineers', id)} className="text-slate-400 hover:text-rose-400 ml-1">
+                    <button type="button" onClick={() => handleMultiRemove('engineers', id)} className="text-slate-400 hover:text-orange-400 ml-1">
                       <Trash2 size={12} />
                     </button>
                   </span>
@@ -254,7 +254,7 @@ export default function MachinePersonnelMatrixModal({
                 {matrix.prod_supervisors.map((id, idx) => (
                   <span key={id} className="inline-flex items-center gap-1.5 bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg">
                     <span className="text-[10px] font-bold text-amber-400">Prod Sup {idx + 1}:</span> {getUserName(id)}
-                    <button type="button" onClick={() => handleMultiRemove('prod_supervisors', id)} className="text-slate-400 hover:text-rose-400 ml-1">
+                    <button type="button" onClick={() => handleMultiRemove('prod_supervisors', id)} className="text-slate-400 hover:text-orange-400 ml-1">
                       <Trash2 size={12} />
                     </button>
                   </span>
@@ -281,7 +281,7 @@ export default function MachinePersonnelMatrixModal({
                 {matrix.prod_engineers.map((id, idx) => (
                   <span key={id} className="inline-flex items-center gap-1.5 bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg">
                     <span className="text-[10px] font-bold text-amber-300">Prod Eng {idx + 1}:</span> {getUserName(id)}
-                    <button type="button" onClick={() => handleMultiRemove('prod_engineers', id)} className="text-slate-400 hover:text-rose-400 ml-1">
+                    <button type="button" onClick={() => handleMultiRemove('prod_engineers', id)} className="text-slate-400 hover:text-orange-400 ml-1">
                       <Trash2 size={12} />
                     </button>
                   </span>
@@ -300,7 +300,7 @@ export default function MachinePersonnelMatrixModal({
               {/* Maintenance Head (Single) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Maintenance Head / Manager <span className="text-rose-400">* (Max 1)</span>
+                  Maintenance Head / Manager <span className="text-orange-400">* (Max 1)</span>
                 </label>
                 <select
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg text-xs px-3 py-2 text-slate-200"
@@ -315,7 +315,7 @@ export default function MachinePersonnelMatrixModal({
               {/* Production Head (Single) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Production Head / Manager <span className="text-rose-400">* (Max 1)</span>
+                  Production Head / Manager <span className="text-orange-400">* (Max 1)</span>
                 </label>
                 <select
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg text-xs px-3 py-2 text-slate-200"
@@ -330,7 +330,7 @@ export default function MachinePersonnelMatrixModal({
               {/* Plant Director / VP (Single) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Plant Director / VP Operations <span className="text-rose-400">* (Max 1)</span>
+                  Plant Director / VP Operations <span className="text-orange-400">* (Max 1)</span>
                 </label>
                 <select
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg text-xs px-3 py-2 text-slate-200"
@@ -345,7 +345,7 @@ export default function MachinePersonnelMatrixModal({
               {/* Plant Owner (Single) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Plant Owner <span className="text-rose-400">* (Max 1)</span>
+                  Plant Owner <span className="text-orange-400">* (Max 1)</span>
                 </label>
                 <select
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg text-xs px-3 py-2 text-slate-200"

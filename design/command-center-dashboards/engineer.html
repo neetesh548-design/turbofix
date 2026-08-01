@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TurboFix Engineer Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            900: "#0e1416",
+                            950: "#080c0d",
+                        },
+                        cyan: {
+                            500: "#22D3EE",
+                        },
+                        orange: {
+                            500: "#F97316",
+                        }
+                    },
+                    borderRadius: {
+                        "DEFAULT": "2px",
+                        "lg": "4px",
+                        "xl": "4px",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Outfit", "sans-serif"],
+                        display: ["Outfit", "sans-serif"],
+                        body: ["Outfit", "sans-serif"],
+                        label: ["Outfit", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0e1416;
+            color: #e2e8f0;
+            font-family: 'Outfit', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .mono-value {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .bento-card {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e1416;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="antialiased">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 z-50 w-full h-16 flex justify-between items-center px-6 bg-slate-900 border-b border-slate-800 backdrop-blur-md">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-lg font-bold text-slate-50">
+<div class="grid grid-cols-2 gap-0.5">
+<div class="w-2 h-2 bg-cyan-500"></div>
+<div class="w-2 h-2 bg-slate-700"></div>
+<div class="w-2 h-2 bg-slate-700"></div>
+<div class="w-2 h-2 bg-cyan-500"></div>
+</div>
+<span>TurboFix</span>
+</div>
+<!-- Role Switcher -->
+<nav class="flex bg-slate-950/50 p-1 rounded-lg border border-slate-800 ml-4">
+<button class="px-3 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider">Owner</button>
+<button class="px-3 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider">Head</button>
+<button class="px-3 py-1 text-[11px] font-semibold text-cyan-500 bg-cyan-500/10 rounded-sm border border-cyan-500/20 uppercase tracking-wider">Engineer</button>
+<button class="px-3 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider">Supervisor</button>
+<button class="px-3 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider">Tech</button>
+</nav>
+</div>
+<div class="flex items-center gap-8 h-full">
+<div class="flex gap-6 h-full items-center">
+<a class="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium h-full flex items-center" href="#">Plant Operational Status</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium h-full flex items-center" href="#">Machine Status</a>
+<a class="text-cyan-500 border-b-2 border-cyan-500 text-sm font-medium h-full flex items-center" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</div>
+<div class="flex items-center gap-4 text-slate-400">
+<button class="p-2 hover:bg-slate-800/50 rounded-lg transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border border-slate-900"></span>
+</button>
+<button class="p-2 hover:bg-slate-800/50 rounded-lg transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-slate-700">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female industrial engineer wearing a modern smart headset and a dark navy uniform. The background is a clean, blurred industrial control room with soft cyan and neutral slate lighting. The image captures a focused, expert expression suitable for a high-end enterprise management platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAztV2bQXX2CxCzv8JqlvXPLXfQgGrhLATNSM3UBFCqj5lEW1wuaGhotIEmAZ9M307BrhmgHSgEviEs99QT5oXXQedyrEvT8JN38FCPEdcrnGJQcBE11MWJTY1dQo7SW7GHxo-I18XBGW7kPVpTMdoMQ9SSYXWWSLY5bojR-dqi700Lz3QkCoQXh1tA-LtnA1QOkfb3lBOgzLP-EvaEPZ0OcMjeioGX3SCg8tcocOGafH3pFUla43ReKDRJaTckfwqET8wKupB8sJI"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-[1600px] mx-auto space-y-6">
+<!-- Priority Rail & KPI Strip -->
+<div class="flex flex-col lg:flex-row gap-6">
+<!-- Start Here & Priority Rail -->
+<div class="lg:w-1/3 space-y-4">
+<div class="bento-card p-5 rounded-lg border-l-4 border-orange-500 flex justify-between items-center bg-gradient-to-r from-orange-500/5 to-transparent">
+<div>
+<p class="text-[10px] uppercase tracking-[0.2em] text-orange-500 font-bold mb-1">Critical Failure Alert</p>
+<h2 class="text-xl font-bold text-slate-100">Analyze Repeat Failure on Line 3</h2>
+</div>
+<button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-transform active:scale-95 text-xs">
+                        Initiate 5-Why Analysis
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-full text-[11px] font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer hover:border-slate-500">
+<span class="w-1.5 h-1.5 bg-orange-500 rounded-full"></span> Repeat Hotspots
+                    </span>
+<span class="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-full text-[11px] font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer hover:border-slate-500">
+<span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span> Overdue CAPA
+                    </span>
+<span class="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-full text-[11px] font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer hover:border-slate-500">
+<span class="w-1.5 h-1.5 bg-cyan-500 rounded-full"></span> RCA Discipline
+                    </span>
+<span class="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-full text-[11px] font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer hover:border-slate-500">
+<span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span> Weak Signals
+                    </span>
+</div>
+</div>
+<!-- KPI Strip -->
+<div class="lg:w-2/3 grid grid-cols-2 md:grid-cols-5 gap-4">
+<div class="bento-card p-4 rounded-lg">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Repeat Fail Rate</p>
+<p class="mono-value text-2xl font-bold text-orange-500">14.2%</p>
+<div class="mt-2 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-orange-500 h-full w-[14.2%]"></div>
+</div>
+</div>
+<div class="bento-card p-4 rounded-lg">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Fleet MTBF</p>
+<p class="mono-value text-2xl font-bold text-cyan-500">212<span class="text-sm ml-1 text-slate-400">h</span></p>
+<p class="text-[10px] text-slate-500 mt-2 font-medium">↑ 4% vs last week</p>
+</div>
+<div class="bento-card p-4 rounded-lg">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Problematic Machine</p>
+<p class="mono-value text-xl font-bold text-orange-500 truncate">PRESS-04</p>
+<p class="text-[10px] text-orange-500/70 mt-2 font-medium">3 Breakdown events</p>
+</div>
+<div class="bento-card p-4 rounded-lg">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">CAPA Completion</p>
+<p class="mono-value text-2xl font-bold text-slate-100">88%</p>
+<div class="mt-2 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-cyan-500 h-full w-[88%]"></div>
+</div>
+</div>
+<div class="bento-card p-4 rounded-lg">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Eng. Actions</p>
+<p class="mono-value text-2xl font-bold text-slate-100">09</p>
+<p class="text-[10px] text-slate-500 mt-2 font-medium">Pending Review</p>
+</div>
+</div>
+</div>
+<!-- Main Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Immediate Actions & CAPA Tracker -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<!-- CAPA Tracker Table -->
+<section class="bento-card rounded-lg overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-slate-100 flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">assignment_turned_in</span>
+                            CAPA Tracker
+                        </h3>
+<button class="text-xs text-cyan-500 font-bold hover:underline">View All Records</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-950/50 text-slate-500 uppercase text-[10px] tracking-widest font-bold">
+<tr>
+<th class="px-6 py-3 border-b border-slate-800">ID</th>
+<th class="px-6 py-3 border-b border-slate-800">Action Item</th>
+<th class="px-6 py-3 border-b border-slate-800">Owner</th>
+<th class="px-6 py-3 border-b border-slate-800">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-800/50">
+<tr class="hover:bg-slate-800/20">
+<td class="px-6 py-4 mono-value font-medium text-slate-400">CP-2041</td>
+<td class="px-6 py-4 text-slate-200">Replace proximity sensors on Indexer-01</td>
+<td class="px-6 py-4 text-slate-400">M. Sterling</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm text-[10px] font-bold bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 uppercase">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/20">
+<td class="px-6 py-4 mono-value font-medium text-slate-400">CP-2044</td>
+<td class="px-6 py-4 text-slate-200">Update PLC logic for pressure threshold alarm</td>
+<td class="px-6 py-4 text-slate-400">J. Doe</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm text-[10px] font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 uppercase">In Progress</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/20">
+<td class="px-6 py-4 mono-value font-medium text-slate-400">CP-2048</td>
+<td class="px-6 py-4 text-slate-200">Structural integrity audit of Line 3 scaffolding</td>
+<td class="px-6 py-4 text-slate-400">K. Vance</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 uppercase">Pending</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Repeat Failure Hotspots -->
+<div class="bento-card rounded-lg p-5">
+<h3 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-500">local_fire_department</span>
+                            Repeat Failure Hotspots
+                        </h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="mono-value text-xs text-slate-500 w-16">PRESS-04</span>
+<div class="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-orange-500 h-full w-[85%]"></div>
+</div>
+<span class="mono-value text-xs font-bold text-slate-300">08</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="mono-value text-xs text-slate-500 w-16">CNC-02</span>
+<div class="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-slate-500 h-full w-[60%]"></div>
+</div>
+<span class="mono-value text-xs font-bold text-slate-300">05</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="mono-value text-xs text-slate-500 w-16">MIX-01</span>
+<div class="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-slate-500 h-full w-[45%]"></div>
+</div>
+<span class="mono-value text-xs font-bold text-slate-300">03</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="mono-value text-xs text-slate-500 w-16">PACK-44</span>
+<div class="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-slate-500 h-full w-[30%]"></div>
+</div>
+<span class="mono-value text-xs font-bold text-slate-300">02</span>
+</div>
+</div>
+</div>
+<!-- Trending Issues -->
+<div class="bento-card rounded-lg p-5">
+<h3 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-500">trending_up</span>
+                            Trending Issues
+                        </h3>
+<div class="space-y-3">
+<div class="p-3 bg-slate-900 border-l-2 border-orange-500">
+<p class="text-xs font-bold text-orange-500 mb-1">Vibration Spikes</p>
+<p class="text-sm text-slate-300 leading-tight">Line 3 Motor Drive: Amplitude exceeded 4.5mm/s RMS in three cycles.</p>
+</div>
+<div class="p-3 bg-slate-900 border-l-2 border-slate-700">
+<p class="text-xs font-bold text-slate-400 mb-1">Pressure Drift</p>
+<p class="text-sm text-slate-300 leading-tight">Boiler Feed System: Noted gradual loss of pressure stability at peak load.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Rail: Immediate Actions & Insights -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Immediate Actions -->
+<section class="bento-card rounded-lg p-5">
+<h3 class="font-bold text-slate-100 mb-4 flex justify-between items-center">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-500">bolt</span>
+                            Immediate Actions
+                        </span>
+<span class="px-2 py-0.5 bg-slate-800 text-[10px] text-slate-400 rounded">Priority High</span>
+</h3>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-3 bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded transition-colors cursor-pointer group">
+<input class="w-4 h-4 rounded-sm bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0" type="checkbox"/>
+<div class="flex-grow">
+<p class="text-sm font-medium text-slate-200 group-hover:text-cyan-500 transition-colors">Review Telemetry (Line 3)</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-tighter">Due in 4h</p>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded transition-colors cursor-pointer group">
+<input class="w-4 h-4 rounded-sm bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0" type="checkbox"/>
+<div class="flex-grow">
+<p class="text-sm font-medium text-slate-200 group-hover:text-cyan-500 transition-colors">Approve Lubrication SOP</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-tighter">Draft status</p>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded transition-colors cursor-pointer group">
+<input class="w-4 h-4 rounded-sm bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0" type="checkbox"/>
+<div class="flex-grow">
+<p class="text-sm font-medium text-slate-200 group-hover:text-cyan-500 transition-colors">Validate PLC Patch</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-tighter">Security directive</p>
+</div>
+</label>
+</div>
+</section>
+<!-- Engineering Insights -->
+<section class="bento-card rounded-lg p-5 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-cyan-500/10 transition-colors"></div>
+<h3 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">lightbulb</span>
+                        Engineering Insights
+                    </h3>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="w-1 bg-cyan-500/30 rounded-full h-auto"></div>
+<div>
+<p class="text-xs font-bold text-cyan-500 uppercase tracking-widest mb-1">Fatigue Correlation</p>
+<p class="text-sm text-slate-300 leading-relaxed italic">"Analysis of PRESS-04 indicates a 15% correlation between ambient humidity and hydraulic seal fatigue. Recommend environmental control review."</p>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-800">
+<button class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-sm transition-colors text-slate-300">Open Knowledge Base</button>
+</div>
+</div>
+</section>
+<!-- My Machines: Quick Status -->
+<section class="space-y-3">
+<h3 class="font-bold text-[10px] text-slate-500 uppercase tracking-[0.2em] px-1">Active Machine Health</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bento-card p-3 rounded-lg flex flex-col justify-between h-24 border-l-2 border-cyan-500">
+<span class="mono-value text-xs font-bold text-slate-100">CNC-01</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+<span class="text-[10px] uppercase font-bold text-cyan-500">Optimal</span>
+</div>
+</div>
+<div class="bento-card p-3 rounded-lg flex flex-col justify-between h-24 border-l-2 border-orange-500">
+<span class="mono-value text-xs font-bold text-slate-100">PRESS-04</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+<span class="text-[10px] uppercase font-bold text-orange-500">Critical</span>
+</div>
+</div>
+<div class="bento-card p-3 rounded-lg flex flex-col justify-between h-24 border-l-2 border-cyan-500">
+<span class="mono-value text-xs font-bold text-slate-100">VAC-CHILL</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 bg-cyan-500 rounded-full"></span>
+<span class="text-[10px] uppercase font-bold text-cyan-500">Stable</span>
+</div>
+</div>
+<div class="bento-card p-3 rounded-lg flex flex-col justify-between h-24 border-l-2 border-slate-600">
+<span class="mono-value text-xs font-bold text-slate-100">PACK-44</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 bg-slate-600 rounded-full"></span>
+<span class="text-[10px] uppercase font-bold text-slate-500">Idle</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Technical Metrics Footer Strip -->
+<footer class="mt-8 border-t border-slate-800 pt-6">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Mean Time To Repair</p>
+<p class="mono-value text-lg text-slate-100">3.4h</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Sensor Uptime</p>
+<p class="mono-value text-lg text-cyan-500">99.98%</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Active RCAs</p>
+<p class="mono-value text-lg text-slate-100">14</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Spares Availability</p>
+<p class="mono-value text-lg text-slate-100">82%</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Work Order Closure</p>
+<p class="mono-value text-lg text-cyan-500">92%</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Unplanned DT</p>
+<p class="mono-value text-lg text-orange-500">12.1h</p>
+</div>
+</div>
+</footer>
+</main>
+<script>
+        // Simple micro-interaction for checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const text = this.nextElementSibling.querySelector('p');
+                if (this.checked) {
+                    text.classList.add('line-through', 'opacity-50');
+                } else {
+                    text.classList.remove('line-through', 'opacity-50');
+                }
+            });
+        });
+    </script>
+</body></html>

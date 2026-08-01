@@ -68,7 +68,7 @@
   padding: 8px 15px;
   border-radius: 9px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.04);
+  background: rgba(148, 163, 184, 0.04);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.79rem;
@@ -77,7 +77,7 @@
   white-space: nowrap;
   transition: background 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
 }
-.inv-btn:hover:not(:disabled) { background: rgba(250, 245, 238, 0.09); }
+.inv-btn:hover:not(:disabled) { background: rgba(148, 163, 184, 0.09); }
 .inv-btn:focus-visible { outline: 2px solid var(--md-accent); outline-offset: 2px; }
 .inv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -98,7 +98,7 @@
   height: 44px;
   border-radius: 8px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink-dim);
   cursor: pointer;
   text-decoration: none;
@@ -139,7 +139,7 @@
   padding: 8px 12px 8px 32px;
   border-radius: 9px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.82rem;
@@ -167,7 +167,7 @@
   padding: 4px 11px;
   border-radius: 999px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink-dim);
   font-family: inherit;
   font-size: 0.74rem;
@@ -226,7 +226,7 @@
   padding: 7px 10px;
   border-radius: 8px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.8rem;
@@ -276,7 +276,7 @@
 .inv-status-yellow { color: var(--md-amber); background: rgba(173, 138, 46, 0.15); border-color: rgba(173, 138, 46, 0.32); }
 .inv-status-green { color: var(--md-green); background: rgba(92, 148, 80, 0.15); border-color: rgba(92, 148, 80, 0.34); }
 .inv-status-blue { color: var(--md-blue); background: rgba(61, 127, 176, 0.14); border-color: rgba(61, 127, 176, 0.3); }
-.inv-status-gray { color: var(--md-ink-dim); background: rgba(250, 245, 238, 0.05); border-color: var(--md-line); }
+.inv-status-gray { color: var(--md-ink-dim); background: rgba(148, 163, 184, 0.05); border-color: var(--md-line); }
 
 /* Criticality band, deliberately quieter than stock status: it
    describes the part, not today's shortage. */
@@ -329,7 +329,7 @@
   vertical-align: top;
 }
 .inv-table tbody tr:last-child td { border-bottom: none; }
-.inv-table tbody tr:hover td { background: rgba(250, 245, 238, 0.022); }
+.inv-table tbody tr:hover td { background: rgba(148, 163, 184, 0.022); }
 
 .inv-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .inv-table th.num { text-align: right; }
@@ -339,7 +339,7 @@
 .inv-table code {
   font-size: 0.7rem;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.04);
+  background: rgba(148, 163, 184, 0.04);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -404,7 +404,7 @@
   padding: 9px 11px;
   border-radius: 10px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
 }
 .inv-supplier-main { display: grid; gap: 2px; min-width: 0; }
 .inv-supplier-main strong { font-size: 0.83rem; color: var(--md-ink); }
@@ -435,7 +435,7 @@
   padding: 11px 8px;
   border-radius: 11px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
   color: var(--md-ink-dim);
   font-family: inherit;
   cursor: pointer;
@@ -482,7 +482,7 @@
 .inv-bin-contents code {
   font-size: 0.68rem;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.04);
+  background: rgba(148, 163, 184, 0.04);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -566,7 +566,7 @@
   padding: 9px 13px;
   border-radius: 10px;
   border: 1px solid var(--md-accent);
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   flex: 1;
 }
 
@@ -580,7 +580,7 @@
   border-radius: 12px;
   border: 1px solid var(--md-line);
   border-left: 3px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
   min-width: 0;
 }
 .inv-po-card.danger { border-left-color: var(--md-red); }
@@ -597,7 +597,7 @@
 .inv-po-number {
   font-size: 0.69rem;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   padding: 2px 6px;
   border-radius: 5px;
 }
@@ -665,7 +665,7 @@
   display: grid;
   gap: 5px;
   border-radius: 9px;
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
 }
 .inv-po-items li {
   display: grid;
@@ -678,7 +678,7 @@
 .inv-po-item-name code {
   font-size: 0.67rem;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -699,7 +699,7 @@
   padding: 8px 10px;
   border-radius: 9px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.78rem;
@@ -837,7 +837,7 @@
   cursor: default;
   transition: background 0.15s ease;
 }
-.inv-donut-legend li.active { background: rgba(250, 245, 238, 0.05); }
+.inv-donut-legend li.active { background: rgba(148, 163, 184, 0.05); }
 .inv-legend-swatch {
   width: 10px;
   height: 10px;
@@ -854,7 +854,7 @@
   gap: 2px;
   padding: 8px 11px;
   border-radius: 9px;
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   font-size: 0.74rem;
   color: var(--md-ink-dim);
 }
@@ -940,7 +940,7 @@
    checked, not that it was forgotten. */
 .inv-saving-card.empty {
   border-color: var(--md-line);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
   color: var(--md-ink-dim);
 }
 .inv-saving-card.empty strong { color: var(--md-ink-dim); }
@@ -967,7 +967,7 @@
   padding: 4px 9px;
   border-radius: 8px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.73rem;
@@ -984,7 +984,7 @@
   padding: 11px 13px;
   border-radius: 11px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
 }
 .inv-comparison-head {
   display: flex;
@@ -997,7 +997,7 @@
 .inv-comparison-head code {
   font-size: 0.68rem;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -1022,7 +1022,7 @@
   gap: 9px;
   padding: 5px 9px;
   border-radius: 8px;
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   font-size: 0.76rem;
 }
 .inv-comparison-options li.best {
@@ -1097,7 +1097,7 @@
   padding: 7px 10px;
   border-radius: 8px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.03);
+  background: rgba(148, 163, 184, 0.03);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.8rem;
@@ -1129,7 +1129,7 @@
   padding: 9px 11px;
   border-radius: 10px;
   border: 1px solid var(--md-line);
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
 }
 .inv-preview-lines strong { display: block; font-size: 0.82rem; }
 .inv-preview-lines small { display: block; font-size: 0.69rem; color: var(--md-ink-dim); }
@@ -1232,7 +1232,7 @@
     padding: 11px 12px;
     border: 1px solid var(--md-line);
     border-radius: 11px;
-    background: rgba(250, 245, 238, 0.022);
+    background: rgba(148, 163, 184, 0.022);
   }
   .inv-page .inv-table tbody tr:hover td { background: none; }
   .inv-page .inv-table tbody td {

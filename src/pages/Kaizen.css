@@ -77,7 +77,7 @@
   font-size: 0.67rem;
   font-weight: 600;
   color: var(--md-ink-dim);
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   border: 1px solid var(--md-line);
   white-space: nowrap;
 }
@@ -97,7 +97,7 @@
   padding: 8px 15px;
   border-radius: 9px;
   border: 1px solid var(--md-line-strong);
-  background: rgba(250, 245, 238, 0.04);
+  background: rgba(148, 163, 184, 0.04);
   color: var(--md-ink);
   font-family: inherit;
   font-size: 0.79rem;
@@ -105,7 +105,7 @@
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
 }
-.kz-btn:hover:not(:disabled) { background: rgba(250, 245, 238, 0.09); }
+.kz-btn:hover:not(:disabled) { background: rgba(148, 163, 184, 0.09); }
 .kz-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .kz-btn-sm { min-height: 44px; padding: 5px 11px; font-size: 0.73rem; }
 
@@ -282,12 +282,12 @@
 .kz-idea {
   border: 1px solid var(--md-line);
   border-radius: 11px;
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
   overflow: hidden;
   transition: border-color 0.15s ease;
 }
 .kz-idea:hover { border-color: var(--md-line-strong); }
-.kz-idea.open { border-color: var(--md-line-strong); background: rgba(250, 245, 238, 0.04); }
+.kz-idea.open { border-color: var(--md-line-strong); background: rgba(148, 163, 184, 0.04); }
 
 .kz-idea-head {
   display: grid;
@@ -494,7 +494,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 1px solid rgba(250, 245, 238, 0.22);
+  border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(20, 16, 12, 0.8);
   color: #F2ECE3;
   cursor: pointer;
@@ -515,7 +515,7 @@
   padding: 10px 13px;
   border: 1px solid var(--md-line);
   border-radius: 11px;
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
 }
 .kz-fame-rank {
   display: flex;
@@ -569,7 +569,7 @@
   cursor: pointer;
   border-radius: 6px;
 }
-.kz-catbar-row:hover { background: rgba(250, 245, 238, 0.04); }
+.kz-catbar-row:hover { background: rgba(148, 163, 184, 0.04); }
 .kz-catbar-label {
   font-size: 0.75rem;
   color: var(--md-ink-dim);
@@ -580,7 +580,7 @@
   display: flex;
   height: 11px;
   border-radius: 6px;
-  background: rgba(250, 245, 238, 0.05);
+  background: rgba(148, 163, 184, 0.05);
   overflow: hidden;
 }
 .kz-catbar-fill { display: block; height: 100%; transition: width 0.3s ease; }
@@ -640,7 +640,7 @@
 }
 .kz-funnel-row.bottleneck { background: rgba(173, 138, 46, 0.1); }
 .kz-funnel-label { font-size: 0.75rem; color: var(--md-ink-dim); }
-.kz-funnel-track { height: 13px; border-radius: 6px; background: rgba(250, 245, 238, 0.05); overflow: hidden; }
+.kz-funnel-track { height: 13px; border-radius: 6px; background: rgba(148, 163, 184, 0.05); overflow: hidden; }
 .kz-funnel-fill { display: block; height: 100%; background: var(--md-blue-deep); transition: width 0.3s ease; }
 .kz-funnel-row.bottleneck .kz-funnel-fill { background: var(--md-amber-deep); }
 .kz-funnel-count {
@@ -665,7 +665,7 @@
   padding: 12px 13px;
   border: 1px solid var(--md-line);
   border-radius: 11px;
-  background: rgba(250, 245, 238, 0.022);
+  background: rgba(148, 163, 184, 0.022);
   min-width: 0;
 }
 .kz-trend-label {
@@ -732,7 +732,7 @@
   cursor: pointer;
 }
 .kz-pager button:disabled { opacity: 0.35; cursor: not-allowed; }
-.kz-pager button:hover:not(:disabled) { background: rgba(250, 245, 238, 0.07); }
+.kz-pager button:hover:not(:disabled) { background: rgba(148, 163, 184, 0.07); }
 
 /* ------------------------------------------------------------
    Tablet — 1080px
@@ -818,7 +818,7 @@
     padding: 11px 12px;
     border: 1px solid var(--md-line);
     border-radius: 11px;
-    background: rgba(250, 245, 238, 0.022);
+    background: rgba(148, 163, 184, 0.022);
   }
   .kz-page .kz-table tbody th {
     border: 0;

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TurboFix Maintenance Head Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Shared Components Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#2a1800",
+                    "outline-variant": "#3c494c",
+                    "inverse-surface": "#dbe2fd",
+                    "background": "#0b1326",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-secondary-fixed-variant": "#783200",
+                    "on-secondary-fixed": "#341100",
+                    "surface-container-high": "#222a3e",
+                    "secondary": "#ffb690",
+                    "inverse-on-surface": "#283044",
+                    "secondary-fixed-dim": "#ffb690",
+                    "surface-bright": "#31394e",
+                    "on-tertiary": "#462b00",
+                    "on-primary-container": "#005763",
+                    "surface-container": "#171f33",
+                    "surface-container-low": "#131b2e",
+                    "inverse-primary": "#006877",
+                    "tertiary": "#ffd6a3",
+                    "surface-container-lowest": "#060d20",
+                    "primary-fixed": "#a2eeff",
+                    "on-secondary-container": "#4a1c00",
+                    "tertiary-fixed": "#ffddb5",
+                    "surface-container-highest": "#2d3449",
+                    "surface-variant": "#2d3449",
+                    "tertiary-fixed-dim": "#ffb957",
+                    "on-secondary": "#552100",
+                    "error-container": "#93000a",
+                    "on-error-container": "#ffdad6",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#2fd9f4",
+                    "on-primary": "#00363e",
+                    "surface": "#0b1326",
+                    "surface-dim": "#0b1326",
+                    "primary-fixed-dim": "#2fd9f4",
+                    "on-tertiary-container": "#6e4600",
+                    "secondary-fixed": "#ffdbca",
+                    "on-surface": "#dbe2fd",
+                    "on-surface-variant": "#bbc9cd",
+                    "primary-container": "#22d3ee",
+                    "on-primary-fixed-variant": "#004e5a",
+                    "primary": "#8aebff",
+                    "on-background": "#dbe2fd",
+                    "on-error": "#690005",
+                    "secondary-container": "#ec6a06",
+                    "tertiary-container": "#ffb13b",
+                    "outline": "#859397",
+                    "on-primary-fixed": "#001f25"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "container-padding": "20px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Outfit"],
+                    "display-lg": ["Outfit"],
+                    "headline-md": ["Outfit"],
+                    "body-sm": ["Outfit"],
+                    "mono-kpi": ["JetBrains Mono"],
+                    "mono-data": ["JetBrains Mono"],
+                    "label-caps": ["JetBrains Mono"],
+                    "display-lg-mobile": ["Outfit"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "mono-kpi": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body { background-color: #0b1326; color: #dbe2fd; -webkit-font-smoothing: antialiased; }
+      .bento-card { background-color: #111827; border: 1px solid #1f2937; transition: border-color 0.2s ease; }
+      .bento-card:hover { border-color: #374151; }
+      .scanline { background: linear-gradient(to bottom, transparent, rgba(47, 217, 244, 0.05), transparent); height: 100px; width: 100%; position: absolute; animation: scan 4s linear infinite; pointer-events: none; }
+      @keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(1000%); } }
+      .micro-grid { background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0); background-size: 24px 24px; }
+    </style>
+</head>
+<body class="font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden micro-grid min-h-screen">
+<!-- TopNavBar Shell -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant fixed top-0 z-50">
+<div class="flex items-center gap-6">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+                TurboFix Enterprise
+            </div>
+<nav class="hidden md:flex gap-8 items-center h-full pt-1">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors cursor-pointer" href="#">Plant Operational Status</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors cursor-pointer" href="#">Machine Status</a>
+<a class="text-primary dark:text-primary border-b-2 border-primary pb-1 font-bold text-body-md transition-colors cursor-pointer" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<!-- Role Switcher -->
+<div class="flex bg-surface-container p-1 rounded-full border border-outline-variant">
+<button class="px-3 py-1 rounded-full text-label-caps font-label-caps text-on-surface-variant hover:text-on-surface transition-all">OWNER</button>
+<button class="px-4 py-1 rounded-full text-label-caps font-label-caps bg-primary text-on-primary-fixed font-bold shadow-lg shadow-primary/10">HEAD</button>
+<button class="px-3 py-1 rounded-full text-label-caps font-label-caps text-on-surface-variant hover:text-on-surface transition-all">ENGINEER</button>
+<button class="px-3 py-1 rounded-full text-label-caps font-label-caps text-on-surface-variant hover:text-on-surface transition-all">SUPERVISOR</button>
+<button class="px-3 py-1 rounded-full text-label-caps font-label-caps text-on-surface-variant hover:text-on-surface transition-all">TECH</button>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer active:scale-95 duration-150">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer active:scale-95 duration-150">settings</button>
+<div class="w-8 h-8 rounded-full border border-primary/30 overflow-hidden cursor-pointer active:scale-95 duration-150">
+<img alt="User Avatar" data-alt="A professional headshot of a senior maintenance executive in a dark tech-focused environment, dramatic side lighting, high-contrast corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDegmp68ufKQLbHTdD7IXsQaELojeR8tqO5eEtUz0vPkab_TFpNN9BUpOZxoTmi9ZbG0fsGG-xA5pXUkK9E9XIesyrvavJoi_6YQROviPyInDEPbc7QszyroFPvjes1j9tVTJbMDLOLvA8t5PJz0wurcfGNhv62mPe2ElfruKVexusmviFDuB1jdnnzg7tGxkfmEBfHBQV34PHwlU6FPpt7HdUNq_nsgiCx3OKFY45vOFDGbW7ZQUbWmL5l9jcf4VslZMfYSBUD5DU"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 px-margin-desktop pb-12 max-w-[1600px] mx-auto">
+<!-- Priority Rail & Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface">Command Dashboard</h1>
+<p class="text-on-surface-variant font-body-sm text-body-sm">Global Maintenance Visibility • Session: Active 02:41</p>
+</div>
+<div class="flex gap-3 flex-wrap">
+<div class="flex items-center gap-2 px-3 py-1.5 bento-card rounded-lg border-secondary/40">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-secondary">CRITICAL OPEN (08)</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bento-card rounded-lg border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">pending_actions</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">AWAITING SIGN-OFF (14)</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bento-card rounded-lg border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">security_update_warning</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">FLEET EXPOSURE (12%)</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bento-card rounded-lg border-error/40">
+<span class="material-symbols-outlined text-error text-sm">history</span>
+<span class="font-label-caps text-label-caps text-error">ESCALATED DELAYS (03)</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- 1. Start Here Panel (Emergency) -->
+<div class="col-span-12 md:col-span-5 lg:col-span-4 bento-card p-container-padding relative overflow-hidden flex flex-col justify-between min-h-[220px] border-secondary/50">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-secondary text-4xl opacity-20" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary block mb-2">SYSTEM ALERT // LEVEL 1</span>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2 font-bold uppercase tracking-tight">Emergency Shutdown Authorization</h2>
+<p class="text-on-surface-variant font-body-sm text-body-sm max-w-[280px]">Vibration exceeds threshold on Centrifugal Compressor <span class="font-mono-data text-secondary">C-402</span>. Bearing failure imminent.</p>
+</div>
+<button class="mt-4 bg-secondary text-on-secondary-fixed py-3 px-6 font-label-caps text-label-caps font-bold rounded flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all">
+                    AUTHORIZE SHUTDOWN
+                    <span class="material-symbols-outlined text-base">power_settings_new</span>
+</button>
+</div>
+<!-- 3. KPI Strip (Integrated into Bento) -->
+<div class="col-span-12 md:col-span-7 lg:col-span-8 grid grid-cols-2 lg:grid-cols-5 gap-gutter">
+<div class="bento-card p-4 flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">OPEN CRITICAL WO</span>
+<div class="flex items-baseline gap-2">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">08</span>
+<span class="text-secondary material-symbols-outlined text-sm">trending_up</span>
+</div>
+</div>
+<div class="bento-card p-4 flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">SLA RISK %</span>
+<div class="flex items-baseline gap-2">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">14.2</span>
+<span class="text-primary material-symbols-outlined text-sm">trending_down</span>
+</div>
+</div>
+<div class="bento-card p-4 flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">MTBF TREND</span>
+<div class="flex items-baseline gap-2">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">342h</span>
+<span class="text-primary material-symbols-outlined text-sm">trending_up</span>
+</div>
+</div>
+<div class="bento-card p-4 flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">BACKLOG AGING</span>
+<div class="flex items-baseline gap-2">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">12d</span>
+<span class="text-on-surface-variant material-symbols-outlined text-sm">horizontal_rule</span>
+</div>
+</div>
+<div class="bento-card p-4 flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">WEEKLY CLOSURE</span>
+<div class="flex items-baseline gap-2">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">88%</span>
+<span class="text-primary material-symbols-outlined text-sm">keyboard_arrow_up</span>
+</div>
+</div>
+</div>
+<!-- 4. Authority Queue -->
+<div class="col-span-12 lg:col-span-5 bento-card p-container-padding">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant">AUTHORITY QUEUE</h3>
+<span class="font-mono-data text-mono-data text-primary">02 PENDING</span>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-surface-container-low border border-outline-variant flex justify-between items-center group hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-primary/10 rounded">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-semibold">Critical Spare P-101 Blades</p>
+<p class="text-[10px] font-label-caps text-on-surface-variant">PO #88219 • VALUE $14.2K</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded border border-error/50 text-error hover:bg-error/10 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary-fixed flex items-center justify-center hover:brightness-110 transition-colors shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low border border-outline-variant flex justify-between items-center group hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-primary/10 rounded">
+<span class="material-symbols-outlined text-primary">engineering</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-semibold">Major Overhaul Sign-off Boiler B-2</p>
+<p class="text-[10px] font-label-caps text-on-surface-variant">WO #MAJ-004 • POST-OP VERIFICATION</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary-fixed flex items-center justify-center hover:brightness-110 transition-colors shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-outline-variant text-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-highest transition-colors uppercase">View All Requests</button>
+</div>
+<!-- 5. Fleet Technical Exposure -->
+<div class="col-span-12 lg:col-span-7 bento-card p-container-padding">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase">Fleet Technical Exposure</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-4 border border-secondary/40 bg-secondary/5 relative">
+<div class="flex justify-between items-start mb-4">
+<span class="font-mono-data text-mono-data text-secondary">C-402</span>
+<span class="px-2 py-0.5 bg-secondary text-on-secondary-fixed text-[9px] font-bold">CRITICAL</span>
+</div>
+<div class="h-24 flex items-end gap-1 mb-2">
+<div class="flex-1 bg-secondary/20 h-[40%]"></div>
+<div class="flex-1 bg-secondary/20 h-[55%]"></div>
+<div class="flex-1 bg-secondary/20 h-[50%]"></div>
+<div class="flex-1 bg-secondary h-full animate-pulse"></div>
+</div>
+<p class="font-label-caps text-label-caps text-secondary">VIBRATION SPIKE: 12.4mm/s</p>
+</div>
+<div class="p-4 border border-outline-variant">
+<div class="flex justify-between items-start mb-4">
+<span class="font-mono-data text-mono-data text-primary">M-102</span>
+<span class="px-2 py-0.5 border border-primary text-primary text-[9px] font-bold">STABLE</span>
+</div>
+<div class="h-24 flex items-end gap-1 mb-2">
+<div class="flex-1 bg-primary/20 h-[30%]"></div>
+<div class="flex-1 bg-primary/20 h-[25%]"></div>
+<div class="flex-1 bg-primary/20 h-[28%]"></div>
+<div class="flex-1 bg-primary/20 h-[24%]"></div>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">TEMP: 42°C (NOMINAL)</p>
+</div>
+<div class="p-4 border border-outline-variant">
+<div class="flex justify-between items-start mb-4">
+<span class="font-mono-data text-mono-data text-primary">L-221</span>
+<span class="px-2 py-0.5 bg-primary/20 text-primary text-[9px] font-bold">ACTIVE</span>
+</div>
+<div class="h-24 flex items-end gap-1 mb-2">
+<div class="flex-1 bg-primary/20 h-[60%]"></div>
+<div class="flex-1 bg-primary/20 h-[62%]"></div>
+<div class="flex-1 bg-primary h-[65%]"></div>
+<div class="flex-1 bg-primary/20 h-[58%]"></div>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">LOAD: 88% RATED</p>
+</div>
+</div>
+</div>
+<!-- 6. Work Order Health (Gauge) -->
+<div class="col-span-12 md:col-span-4 bento-card p-container-padding flex flex-col items-center">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant self-start mb-8 uppercase">Work Order Health</h3>
+<div class="relative w-48 h-48 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="502.6" stroke-dashoffset="125" stroke-width="12"></circle>
+<circle class="text-secondary" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="502.6" stroke-dashoffset="400" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-mono-kpi text-mono-kpi text-on-surface">75/25</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">SCHED VS EMER</span>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-4 w-full">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+<span class="font-label-caps text-label-caps text-on-surface">SCHEDULED</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-secondary rounded-full"></div>
+<span class="font-label-caps text-label-caps text-on-surface">EMERGENCY</span>
+</div>
+</div>
+</div>
+<!-- 7. PM Compliance & 8. Spare Bottlenecks -->
+<div class="col-span-12 md:col-span-4 space-y-gutter">
+<div class="bento-card p-container-padding">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">PM Compliance</h3>
+<span class="text-primary font-mono-data">98.4%</span>
+</div>
+<div class="flex items-end gap-2 mb-2">
+<span class="font-mono-kpi text-mono-kpi text-secondary">07</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">OVERDUE ITEMS</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[98.4%]"></div>
+</div>
+</div>
+<div class="bento-card p-container-padding">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-4">Spare Bottlenecks</h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center border-l-2 border-secondary pl-3 py-1">
+<div>
+<p class="font-mono-data text-mono-data text-on-surface text-xs">SKF 22216 Bearing</p>
+<p class="text-[10px] text-on-surface-variant">LOCATION: WH-4</p>
+</div>
+<span class="px-2 py-1 bg-secondary/10 text-secondary font-mono-data text-xs">STOCK: 0</span>
+</div>
+<div class="flex justify-between items-center border-l-2 border-primary pl-3 py-1">
+<div>
+<p class="font-mono-data text-mono-data text-on-surface text-xs">Control Board PCB-v3</p>
+<p class="text-[10px] text-on-surface-variant">LOCATION: ELECT-A</p>
+</div>
+<span class="px-2 py-1 bg-primary/10 text-primary font-mono-data text-xs">STOCK: 1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 9. Reliability Trends -->
+<div class="col-span-12 md:col-span-4 bento-card p-container-padding">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase">Reliability Trends (4W)</h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-label-caps text-on-surface-variant">MTBF (HOURS)</span>
+<span class="text-[10px] font-mono-data text-primary">AVG 310h</span>
+</div>
+<div class="flex items-end h-16 gap-2">
+<div class="flex-1 bg-primary/30 h-[70%]" title="Week 1"></div>
+<div class="flex-1 bg-primary/30 h-[65%]" title="Week 2"></div>
+<div class="flex-1 bg-primary/30 h-[80%]" title="Week 3"></div>
+<div class="flex-1 bg-primary h-[90%]" title="Week 4"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-label-caps text-on-surface-variant">MTTR (MINUTES)</span>
+<span class="text-[10px] font-mono-data text-secondary">AVG 122m</span>
+</div>
+<div class="flex items-end h-16 gap-2">
+<div class="flex-1 bg-secondary/30 h-[80%]" title="Week 1"></div>
+<div class="flex-1 bg-secondary/30 h-[90%]" title="Week 2"></div>
+<div class="flex-1 bg-secondary h-[40%]" title="Week 3"></div>
+<div class="flex-1 bg-secondary/30 h-[50%]" title="Week 4"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed bottom-0 left-0 w-full h-1/2 pointer-events-none z-[-1] opacity-20">
+
+</div>
+<div class="scanline"></div>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.995)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

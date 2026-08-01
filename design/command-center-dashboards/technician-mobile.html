@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>TurboFix Technician Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Design System Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-surface-variant": "#bbc9cd",
+                "surface": "#0b1326",
+                "surface-container-low": "#131b2e",
+                "on-secondary-fixed-variant": "#783200",
+                "error": "#ffb4ab",
+                "surface-container": "#171f33",
+                "secondary": "#ffb690",
+                "surface-dim": "#0b1326",
+                "inverse-on-surface": "#283044",
+                "primary-fixed": "#a2eeff",
+                "inverse-surface": "#dae2fd",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed-dim": "#ffb690",
+                "surface-container-highest": "#2d3449",
+                "background": "#0b1326",
+                "outline-variant": "#3c494c",
+                "surface-variant": "#2d3449",
+                "inverse-primary": "#006877",
+                "tertiary-fixed-dim": "#b9c8de",
+                "error-container": "#93000a",
+                "surface-container-lowest": "#060e20",
+                "on-secondary-fixed": "#341100",
+                "surface-tint": "#2fd9f4",
+                "on-tertiary-fixed-variant": "#39485a",
+                "outline": "#859397",
+                "on-primary-fixed": "#001f25",
+                "on-primary": "#00363e",
+                "surface-container-high": "#222a3d",
+                "tertiary": "#cfdef4",
+                "on-background": "#dae2fd",
+                "tertiary-fixed": "#d4e4fa",
+                "on-tertiary": "#233143",
+                "on-secondary": "#552100",
+                "on-surface": "#dae2fd",
+                "on-primary-fixed-variant": "#004e5a",
+                "primary-container": "#22d3ee",
+                "on-secondary-container": "#4a1c00",
+                "tertiary-container": "#b3c2d8",
+                "secondary-fixed": "#ffdbca",
+                "surface-bright": "#31394d",
+                "on-primary-container": "#005763",
+                "primary": "#8aebff",
+                "on-tertiary-fixed": "#0d1c2d",
+                "on-error": "#690005",
+                "primary-fixed-dim": "#2fd9f4",
+                "secondary-container": "#ec6a06",
+                "on-tertiary-container": "#415062"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "touch-target-min": "48px",
+                "stack-lg": "24px",
+                "base": "4px",
+                "stack-sm": "8px",
+                "margin-mobile": "16px",
+                "stack-md": "16px",
+                "gutter-mobile": "12px"
+            },
+            "fontFamily": {
+                "data-display-lg": ["JetBrains Mono"],
+                "body-lg": ["Outfit"],
+                "body-sm": ["Outfit"],
+                "headline-lg": ["Outfit"],
+                "headline-md": ["Outfit"],
+                "label-caps": ["JetBrains Mono"],
+                "data-display-md": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                "data-display-lg": ["24px", {"lineHeight": "24px", "fontWeight": "700"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "headline-md": ["20px", {"lineHeight": "26px", "fontWeight": "600"}],
+                "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                "data-display-md": ["16px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Outfit', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hud-border {
+            border: 1px solid #1E293B;
+        }
+        .hud-border-active {
+            border: 1px solid #22D3EE;
+        }
+        .hud-border-urgent {
+            border: 1px solid #F97316;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-margin-mobile w-full z-50 sticky top-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="precision_manufacturing">precision_manufacturing</span>
+<h1 class="font-headline-lg text-primary tracking-tighter">TurboFix</h1>
+</div>
+<div class="flex items-center gap-stack-md">
+<div class="text-on-primary-container bg-primary-container rounded-full px-3 py-1 font-label-caps text-[10px]">Tech</div>
+<button class="material-symbols-outlined text-on-surface-variant p-2 active:scale-95 transition-transform" data-icon="notifications">notifications</button>
+<div class="w-8 h-8 rounded-full border border-outline-variant bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a professional industrial technician wearing a dark blue technical jumpsuit. The lighting is dramatic and cinematic, with cool cyan rim lights highlighting their determined expression. The background is a slightly blurred high-tech maintenance bay with glowing diagnostic screens. Professional, high-authority technical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKTj_dQ_XFPETCTppfC7SAM8cxCFS-Jm_nNtWuEB77p5FWRCjMVjdjGQ_2dIQ33Po3qpfyIR2TRC7qTbqu68GKVWRR5QBwwLY-2pYNp1d9XdGMftcQwx-AziFGgC8MOUZ1BWylrk3cEoBfEADtaq1qEOEKX_-MfNASQTATWDTnAa2_WkPZrIbAaveBGRvc0LyUmGa1H9PETeGzULE_wDcDsuk128jUlRvifw2tKWEOaVmPvYi11NkNNJhEy9kMed6derItW_r_7ZM"/>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Segmented Tab Strip) -->
+<nav class="bg-surface-container-low border-b border-outline-variant flex flex-row w-full px-margin-mobile gap-stack-md h-12 items-center touch-pan-x overflow-x-auto whitespace-nowrap scrollbar-hide sticky top-16 z-40">
+<a class="text-on-surface-variant font-label-caps text-label-caps hover:text-on-surface transition-colors py-3" href="#">Plant Operational Status</a>
+<a class="text-on-surface-variant font-label-caps text-label-caps hover:text-on-surface transition-colors py-3" href="#">Machine Status</a>
+<a class="text-primary border-b-2 border-primary font-bold font-label-caps text-label-caps py-3" href="#">Enterprise Asset &amp; Maintenance Command Center</a>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 pb-24 px-margin-mobile pt-stack-md space-y-stack-lg overflow-y-auto">
+<!-- Start Here Card -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Immediate Task</h2>
+<div class="hud-border-active bg-surface-container p-stack-md rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-base">
+<span class="font-label-caps text-[10px] text-primary-container border border-primary-container px-2 py-0.5 rounded">UNIT-042</span>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface leading-tight mb-stack-md">Hydraulic Pump Seal Replacement</h3>
+<button class="w-full h-[52px] bg-primary-container text-on-primary-container font-bold rounded-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    OPEN JOB
+                </button>
+</div>
+</section>
+<!-- KPI Row -->
+<div class="grid grid-cols-3 gap-gutter-mobile">
+<div class="hud-border bg-surface-container-low p-stack-sm rounded flex flex-col items-center">
+<span class="font-label-caps text-[9px] text-on-surface-variant text-center leading-none mb-1">TO CLOSE TODAY</span>
+<span class="font-data-display-lg text-primary">08</span>
+</div>
+<div class="hud-border-urgent bg-surface-container-low p-stack-sm rounded flex flex-col items-center">
+<span class="font-label-caps text-[9px] text-secondary text-center leading-none mb-1">OVERDUE PM</span>
+<span class="font-data-display-lg text-secondary">02</span>
+</div>
+<div class="hud-border bg-surface-container-low p-stack-sm rounded flex flex-col items-center">
+<span class="font-label-caps text-[9px] text-on-surface-variant text-center leading-none mb-1">SPARES TO ORDER</span>
+<span class="font-data-display-lg text-on-surface">14</span>
+</div>
+</div>
+<!-- Priority Chips Row -->
+<div class="flex gap-stack-sm overflow-x-auto scrollbar-hide pb-1">
+<div class="flex-none hud-border-urgent bg-surface-container-highest px-3 py-1.5 rounded-full flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<span class="font-label-caps text-[10px] text-secondary">BREACHED JOBS: 02</span>
+</div>
+<div class="flex-none hud-border bg-surface-container px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">WAITING SPARE: 05</span>
+</div>
+<div class="flex-none hud-border bg-surface-container px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="visibility">visibility</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">MACHINE WATCHLIST: 03</span>
+</div>
+</div>
+<!-- Needs Your Attention -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Needs Your Attention</h2>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-stack-md hud-border bg-surface-container rounded active:bg-surface-variant transition-colors">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary" data-icon="fact_check">fact_check</span>
+</div>
+<span class="font-body-lg text-on-surface">Approve Parts Request</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-stack-md hud-border bg-surface-container rounded active:bg-surface-variant transition-colors">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary" data-icon="groups">groups</span>
+</div>
+<span class="font-body-lg text-on-surface">Confirm Shift Handover</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Urgent Jobs Queue -->
+<section class="space-y-stack-sm">
+<div class="flex justify-between items-center">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Urgent Jobs Queue</h2>
+<span class="text-[10px] text-secondary font-bold">LATEST UPDATES</span>
+</div>
+<!-- Urgent Job Card 1 -->
+<div class="hud-border-urgent bg-surface-container rounded-lg p-stack-md relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="bg-secondary text-on-secondary-fixed font-label-caps text-[9px] px-2 py-0.5 rounded font-black">EMERGENCY</span>
+</div>
+<div class="mb-4">
+<div class="font-label-caps text-[10px] text-secondary mb-1">CRITICAL FAULT</div>
+<h3 class="font-headline-md text-on-surface">PRESS-04: Safety Interlock Fault</h3>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="schedule">schedule</span>
+<span class="text-xs text-on-surface-variant">Reported 12m ago</span>
+</div>
+</div>
+<button class="w-full h-[52px] border border-secondary text-secondary font-bold rounded active:bg-secondary active:text-on-secondary-fixed transition-all flex items-center justify-center gap-2">
+                    START DIAGNOSTIC
+                </button>
+</div>
+<!-- Urgent Job Card 2 -->
+<div class="hud-border-urgent bg-surface-container rounded-lg p-stack-md relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="bg-secondary text-on-secondary-fixed font-label-caps text-[9px] px-2 py-0.5 rounded font-black">EMERGENCY</span>
+</div>
+<div class="mb-4">
+<div class="font-label-caps text-[10px] text-secondary mb-1">ELECTRICAL TRIP</div>
+<h3 class="font-headline-md text-on-surface">CONV-21: Motor Overload Trip</h3>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-xs text-on-surface-variant">Packaging Line B</span>
+</div>
+</div>
+<button class="w-full h-[52px] border border-secondary text-secondary font-bold rounded active:bg-secondary active:text-on-secondary-fixed transition-all flex items-center justify-center gap-2">
+                    START REPAIR
+                </button>
+</div>
+</section>
+<!-- Everything Else (Accordion Row) -->
+<button class="w-full flex items-center justify-between p-stack-md hud-border bg-surface-container-low rounded-lg active:bg-surface-variant transition-colors group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="low_priority">low_priority</span>
+<span class="font-body-lg text-on-surface">14 Remaining Jobs</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-active:rotate-90 transition-transform" data-icon="expand_more">expand_more</span>
+</button>
+<!-- My Machines -->
+<section class="space-y-stack-sm pb-8">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase">My Machines</h2>
+<div class="flex gap-stack-md overflow-x-auto scrollbar-hide pb-2">
+<!-- Machine Card 1 -->
+<div class="flex-none w-48 hud-border bg-surface-container p-stack-md rounded-lg">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="w-10 h-10 rounded hud-border bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container"></div>
+<span class="font-label-caps text-[9px] text-primary-container">LIVE</span>
+</div>
+</div>
+<div class="font-headline-md text-on-surface mb-base truncate">CNC-Router 12</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">LOAD: 78%</div>
+<div class="w-full h-1 bg-outline-variant mt-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 78%"></div>
+</div>
+</div>
+<!-- Machine Card 2 -->
+<div class="flex-none w-48 hud-border bg-surface-container p-stack-md rounded-lg">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="w-10 h-10 rounded hud-border bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container"></div>
+<span class="font-label-caps text-[9px] text-primary-container">NOMINAL</span>
+</div>
+</div>
+<div class="font-headline-md text-on-surface mb-base truncate">Lathe XL-500</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">TEMP: 42°C</div>
+<div class="w-full h-1 bg-outline-variant mt-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 42%"></div>
+</div>
+</div>
+<!-- Machine Card 3 -->
+<div class="flex-none w-48 hud-border bg-surface-container p-stack-md rounded-lg">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="w-10 h-10 rounded hud-border bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="robot_2">robot_2</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+<span class="font-label-caps text-[9px] text-secondary">CHECK</span>
+</div>
+</div>
+<div class="font-headline-md text-on-surface mb-base truncate">ARM-Robot-01</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">CYCLE: 92%</div>
+<div class="w-full h-1 bg-outline-variant mt-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 92%"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container fixed bottom-0 w-full z-50 border-t border-outline-variant flex justify-around items-center h-16 pb-safe">
+<a class="flex flex-col items-center justify-center text-primary font-bold transition-all active:bg-surface-variant h-full w-full" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-body-sm text-[10px] mt-0.5">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all active:bg-surface-variant h-full w-full" href="#">
+<span class="material-symbols-outlined" data-icon="work_history">work_history</span>
+<span class="font-body-sm text-[10px] mt-0.5">Jobs</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all active:bg-surface-variant h-full w-full" href="#">
+<span class="material-symbols-outlined" data-icon="construction">construction</span>
+<span class="font-body-sm text-[10px] mt-0.5">Machines</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all active:bg-surface-variant h-full w-full relative" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+<span class="font-body-sm text-[10px] mt-0.5">Alerts</span>
+<span class="absolute top-3 right-5 w-2 h-2 bg-secondary rounded-full border border-surface"></span>
+</a>
+</nav>
+<script>
+        // Simple touch micro-interactions
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('touchstart', () => {
+                el.style.opacity = '0.7';
+            });
+            el.addEventListener('touchend', () => {
+                el.style.opacity = '1';
+            });
+        });
+    </script>
+</body></html>
