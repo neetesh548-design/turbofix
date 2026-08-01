@@ -291,6 +291,39 @@ export default function Dashboard() {
     { id: 'machine-status', label: 'Machine Status' },
     { id: 'command-center', label: 'Enterprise Asset & Maintenance Command Center' },
   ];
+  const openTicketCount = metrics?.displayTickets?.filter(
+    (t) => String(t.status || '').toLowerCase() === 'open',
+  ).length || 0;
+  const shellMetrics = [
+    {
+      href: 'machines.html',
+      label: 'Fleet machines',
+      value: metrics?.fleetHealth?.total || 0,
+      tone: 'ok',
+      detail: 'Live machine register',
+    },
+    {
+      href: 'tickets.html',
+      label: 'Open tickets',
+      value: openTicketCount,
+      tone: 'warning',
+      detail: 'Current work orders',
+    },
+    {
+      href: 'tickets.html?urgency=critical',
+      label: 'Active breakdowns',
+      value: activeBreakdownCount,
+      tone: activeBreakdownCount > 0 ? 'danger' : 'ok',
+      detail: 'Critical + high urgency',
+    },
+    {
+      href: 'records.html',
+      label: 'SLA health',
+      value: metrics?.sla?.pct != null ? `${metrics.sla.pct}%` : '—',
+      tone: metrics?.sla?.pct != null && metrics.sla.pct < 85 ? 'warning' : 'info',
+      detail: 'On-time closure trend',
+    },
+  ];
 
   return (
     <AppShell active="overview">
@@ -309,138 +342,55 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Executive Persona Connection Banner */}
-        <div className="stitch-glass-tile overflow-hidden mb-6 flex flex-col md:flex-row items-center gap-6 p-4 sm:p-5 relative group border border-emerald-500/30">
-          <div className="w-full md:w-1/3 h-44 rounded-xl overflow-hidden relative flex-shrink-0">
-            <img
-              src={`${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`}
-              alt="Plant Operations Executive Control"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-70" />
-            <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
-              Live Fleet Control Room
-            </span>
-          </div>
-          <div className="flex-1 space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-              <span>{hero.badge}</span>
-            </div>
-            <h2 className="text-lg font-bold text-slate-100 leading-snug">
-              "{hero.title}"
-            </h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {hero.body}
-            </p>
-          </div>
-        </div>
-
-        {/* Stitch Obsidian Executive Summary Strip — Instant Important Info */}
         {loading ? (
-          <div className="stitch-glass-tile p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl animate-pulse">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-800" />
-              <div className="space-y-2">
-                <div className="w-48 h-4 bg-slate-800 rounded" />
-                <div className="w-80 h-3 bg-slate-800/60 rounded" />
-              </div>
+          <div className="dashboard-shell-skeleton" aria-hidden="true">
+            <div className="dashboard-shell-hero dashboard-shell-hero-loading">
+              <div className="dashboard-skeleton dashboard-skeleton-pill" />
+              <div className="dashboard-skeleton dashboard-skeleton-title" />
+              <div className="dashboard-skeleton dashboard-skeleton-body" />
+              <div className="dashboard-skeleton dashboard-skeleton-body short" />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-16 bg-slate-900/80 rounded-xl border border-slate-800/60 p-3 flex flex-col justify-between">
-                  <div className="w-20 h-3 bg-slate-800 rounded" />
-                  <div className="w-12 h-5 bg-slate-700 rounded mt-1" />
+            <div className="dashboard-shell-kpis">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="dashboard-shell-kpi dashboard-shell-kpi-loading">
+                  <div className="dashboard-skeleton dashboard-skeleton-label" />
+                  <div className="dashboard-skeleton dashboard-skeleton-value" />
+                  <div className="dashboard-skeleton dashboard-skeleton-detail" />
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="at-a-glance-summary">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(80,255,171,0.25)]">
-                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">{roleSummaryTitle}</h2>
-                    <span className="stitch-neon-pill">AT-A-GLANCE</span>
-                  </div>
-                  <p className="text-xs text-slate-300 mt-0.5">
-                    Welcome, <strong className="text-emerald-400 font-semibold">{user?.name || 'Staff'}</strong> ({role ? role.replace('_', ' ') : 'User'}).
-                    {' '}{roleSummaryLine}
-                  </p>
-                </div>
+          <>
+            <section className="dashboard-shell-hero" data-testid="dashboard-role-hero">
+              <div className="dashboard-shell-copy">
+                <span className="dashboard-shell-badge">{hero.badge}</span>
+                <h2>{hero.title}</h2>
+                <p>{hero.body}</p>
               </div>
-              
-              <div className="flex items-center gap-2 flex-wrap">
-                <a href="tickets.html" className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all flex items-center gap-1.5">
-                  <span>View Tickets ({metrics?.displayTickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0})</span>
+              <aside className="dashboard-shell-side">
+                <span className="dashboard-shell-side-label">Today</span>
+                <strong>{roleSummaryTitle}</strong>
+                <p>
+                  Welcome, <span>{user?.name || 'Staff'}</span>. {roleSummaryLine}
+                </p>
+                <div className="dashboard-shell-actions">
+                  <a href="tickets.html">Open tickets</a>
+                  <a href="machines.html">Machine register</a>
+                </div>
+              </aside>
+            </section>
+
+            <section className="dashboard-shell-kpis" data-testid="at-a-glance-summary" aria-label="At a glance summary">
+              {shellMetrics.map((item) => (
+                <a key={item.label} href={item.href} className={`dashboard-shell-kpi ${item.tone}`}>
+                  <span className="dashboard-shell-kpi-label">{item.label}</span>
+                  <strong className="dashboard-shell-kpi-value">{item.value}</strong>
+                  <small className="dashboard-shell-kpi-detail">{item.detail}</small>
                 </a>
-                <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all flex items-center gap-1.5">
-                  <span>Machine Register ({metrics?.fleetHealth?.total || 0})</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Quick Metric Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
-              <a href="machines.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Fleet Machines</span>
-                <div className="text-xl font-extrabold text-white mt-1 flex items-center justify-between">
-                  <span>{metrics?.fleetHealth?.total || 0}</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
-                </div>
-              </a>
-              <a href="tickets.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all group">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Open Tickets</span>
-                <div className="text-xl font-extrabold text-amber-400 mt-1 flex items-center justify-between">
-                  <span>{metrics?.displayTickets?.filter(t => String(t.status || '').toLowerCase() === 'open').length || 0}</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                </div>
-              </a>
-              <a href="tickets.html?urgency=critical" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all group">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">Active Breakdowns</span>
-                <div className="text-xl font-extrabold text-rose-400 mt-1 flex items-center justify-between">
-                  <span>{activeBreakdownCount}</span>
-                  <span className={`w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f87171] ${activeBreakdownCount > 0 ? 'animate-pulse' : ''}`} />
-                </div>
-              </a>
-              <a href="records.html" className="bg-slate-900/70 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-800 hover:border-emerald-500/40 transition-all group">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200">SLA Health</span>
-                <div className="text-xl font-extrabold text-emerald-400 mt-1 flex items-center justify-between">
-                  <span>{metrics?.sla?.pct != null ? `${metrics.sla.pct}%` : '—'}</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#50ffab]" />
-                </div>
-              </a>
-            </div>
-
-            {/* Visual Charts Row: Donut & Bar Chart */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <StitchDonutChart
-                title="Plant Fleet Health Distribution"
-                subtitle="Live Machine Status"
-                data={[
-                  { label: 'Running (Optimal)', value: metrics?.fleetHealth?.byStatus?.running || 0, color: '#50FFAB' },
-                  { label: 'Minor Issues', value: metrics?.fleetHealth?.byStatus?.issues || 0, color: '#FBBF24' },
-                  { label: 'Breakdown / Down', value: metrics?.fleetHealth?.byStatus?.down || 0, color: '#F87171' },
-                  { label: 'Scheduled PM', value: metrics?.fleetHealth?.byStatus?.maintenance || 0, color: '#60A5FA' },
-                ]}
-                centerLabel="Fleet"
-              />
-
-              <StitchBarChart
-                title="Downtime Hours by Production Line"
-                subtitle="Weekly Downtime Analysis"
-                items={[
-                  { label: 'Grid Casting Line 1', value: 3.5, max: 10, unit: 'hrs', color: '#F87171' },
-                  { label: 'Plate Pasting Line 2', value: 1.8, max: 10, unit: 'hrs', color: '#FBBF24' },
-                  { label: 'COS Assembly Line 3', value: 0.5, max: 10, unit: 'hrs', color: '#50FFAB' },
-                  { label: 'Formation Charging Line 4', value: 0.2, max: 10, unit: 'hrs', color: '#60A5FA' },
-                ]}
-              />
-            </div>
-          </div>
+              ))}
+            </section>
+          </>
         )}
 
         {error && (
@@ -486,7 +436,8 @@ export default function Dashboard() {
               className={`dashboard-subtab ${activeDashboardTab === tab.id ? 'is-active' : ''}`}
               onClick={() => setActiveDashboardTab(tab.id)}
             >
-              {tab.label}
+              <span className="dashboard-subtab-kicker">Dashboard</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -546,41 +497,41 @@ export default function Dashboard() {
 
         {!loading && activeDashboardTab === 'machine-status' && (
           <div className="dashboard-tab-panel" role="tabpanel" aria-label="Machine Status">
-            <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="machine-status-summary">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="dashboard-machine-summary" data-testid="machine-status-summary">
+              <div className="dashboard-machine-summary-head">
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Machine status</h2>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <h2>Machine status</h2>
+                  <p>
                     Fleet health, live breakdown exposure, and weekly line downtime in one place.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all">
-                    Open machine register
-                  </a>
-                </div>
+                <a href="machines.html">Open machine register</a>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
-                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Fleet Machines</span>
-                  <div className="text-xl font-extrabold text-white mt-1">{metrics?.fleetHealth?.total || 0}</div>
+              <section className="dashboard-shell-kpis" aria-label="Machine status summary">
+                <div className="dashboard-shell-kpi ok">
+                  <span className="dashboard-shell-kpi-label">Fleet machines</span>
+                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.total || 0}</strong>
+                  <small className="dashboard-shell-kpi-detail">Total registered assets</small>
                 </div>
-                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Running</span>
-                  <div className="text-xl font-extrabold text-emerald-400 mt-1">{metrics?.fleetHealth?.byStatus?.running || 0}</div>
+                <div className="dashboard-shell-kpi ok">
+                  <span className="dashboard-shell-kpi-label">Running</span>
+                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.running || 0}</strong>
+                  <small className="dashboard-shell-kpi-detail">Healthy operating assets</small>
                 </div>
-                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Issues</span>
-                  <div className="text-xl font-extrabold text-amber-400 mt-1">{metrics?.fleetHealth?.byStatus?.issues || 0}</div>
+                <div className="dashboard-shell-kpi warning">
+                  <span className="dashboard-shell-kpi-label">Issues</span>
+                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.issues || 0}</strong>
+                  <small className="dashboard-shell-kpi-detail">Need attention soon</small>
                 </div>
-                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Down</span>
-                  <div className="text-xl font-extrabold text-rose-400 mt-1">{metrics?.fleetHealth?.byStatus?.down || 0}</div>
+                <div className="dashboard-shell-kpi danger">
+                  <span className="dashboard-shell-kpi-label">Down</span>
+                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.down || 0}</strong>
+                  <small className="dashboard-shell-kpi-detail">Production-impacting assets</small>
                 </div>
-              </div>
+              </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <StitchDonutChart
                   title="Plant Fleet Health Distribution"
                   subtitle="Live Machine Status"
