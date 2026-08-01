@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BrainCircuit, ClipboardCheck, Gauge, Layers3, Route as RouteIcon, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -18,7 +17,7 @@ export default function WhyTurboFix() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={Layers3}
@@ -105,6 +104,6 @@ export default function WhyTurboFix() {
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   );
 }

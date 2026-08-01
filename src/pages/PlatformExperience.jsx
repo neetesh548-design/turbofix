@@ -24,7 +24,6 @@ import {
   Phone,
   Bot
 } from 'lucide-react';
-import MainLayout from '../layouts/MainLayout';
 import { useLanguage } from '../LanguageContext';
 
 const DEVICES = [
@@ -158,7 +157,7 @@ export default function PlatformExperience() {
   };
 
   return (
-    <MainLayout>
+    <>
       <div className="platform-experience-page bg-slate-950 text-slate-100 min-h-screen pb-24">
         {/* Hidden Page Header Banner */}
         <div className="border-b border-slate-800 bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 py-10 px-4 sm:px-8">
@@ -292,6 +291,7 @@ export default function PlatformExperience() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">App Module:</span>
               <select
+                aria-label="App module"
                 value={selectedPage.id}
                 onChange={(e) => {
                   const page = PREVIEW_PAGES.find((p) => p.id === e.target.value);
@@ -500,6 +500,6 @@ export default function PlatformExperience() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

@@ -115,9 +115,9 @@
     "semantic_hash": "93e92b47538da140cc19d9ee1f5a8ce7"
   },
   "backend/app/repositories/base.py": {
-    "mtime": 1785298345.4287162,
-    "ast_hash": "2d1a7eab768f465e9b124f46a75c955c",
-    "semantic_hash": "2d1a7eab768f465e9b124f46a75c955c"
+    "mtime": 1785505012.3674662,
+    "ast_hash": "e15c7e54d6f9502f35176657161777e7",
+    "semantic_hash": ""
   },
   "backend/app/repositories/local/__init__.py": {
     "mtime": 1783853001.7570555,
@@ -160,9 +160,9 @@
     "semantic_hash": "4b0493095e4487d7114ed83575cbf3d4"
   },
   "backend/app/repositories/local/user_repo.py": {
-    "mtime": 1785298367.8145554,
-    "ast_hash": "c9afb59a231c0420159039239f37c352",
-    "semantic_hash": "c9afb59a231c0420159039239f37c352"
+    "mtime": 1785505029.1012526,
+    "ast_hash": "763f9e6b1e38f5f418e7a38475ac657b",
+    "semantic_hash": ""
   },
   "backend/app/repositories/sheets/__init__.py": {
     "mtime": 1783853001.7578316,
@@ -210,14 +210,14 @@
     "semantic_hash": "82b6faaa37d17c472ae394274c922025"
   },
   "backend/app/repositories/sheets/user_repo.py": {
-    "mtime": 1784263689.5035505,
-    "ast_hash": "e0051cd91151a253a3fe770f298728c7",
-    "semantic_hash": "e0051cd91151a253a3fe770f298728c7"
+    "mtime": 1785505036.3349462,
+    "ast_hash": "67f572d1e346f9147c600e241bf897c7",
+    "semantic_hash": ""
   },
   "backend/app/repositories/supabase_repo.py": {
-    "mtime": 1785432449.2564433,
-    "ast_hash": "bfbbbc6a8272b64dc94b1979f73fc280",
-    "semantic_hash": "bfbbbc6a8272b64dc94b1979f73fc280"
+    "mtime": 1785505965.9768953,
+    "ast_hash": "8ee4288272d67764bf8ce2fd4b847649",
+    "semantic_hash": ""
   },
   "backend/app/routers/__init__.py": {
     "mtime": 1783853001.7585542,
@@ -225,14 +225,14 @@
     "semantic_hash": "04e5d6edc7b373226e03ee800e5d7cc1"
   },
   "backend/app/routers/admin_router.py": {
-    "mtime": 1785432456.6381867,
-    "ast_hash": "4c2566ebcffd4ec0e7140739eb170245",
-    "semantic_hash": "4c2566ebcffd4ec0e7140739eb170245"
+    "mtime": 1785505201.987436,
+    "ast_hash": "a65b5dcae9bb57a70f635e7bc3e4e62f",
+    "semantic_hash": ""
   },
   "backend/app/routers/auth_router.py": {
-    "mtime": 1785422909.7694356,
-    "ast_hash": "360d9a30f8f041f77c4e7c3906c1c139",
-    "semantic_hash": "360d9a30f8f041f77c4e7c3906c1c139"
+    "mtime": 1785505158.1373842,
+    "ast_hash": "7a6487271a4f402443d7777c3e390249",
+    "semantic_hash": ""
   },
   "backend/app/routers/dashboard_router.py": {
     "mtime": 1785402110.4537444,
@@ -355,9 +355,9 @@
     "semantic_hash": "4b061e051bcf6382c3507f7baa7f1ef9"
   },
   "backend/scripts/create_user.py": {
-    "mtime": 1783853001.7621503,
-    "ast_hash": "25f059cd9529813295dc41bdf47052a0",
-    "semantic_hash": "25f059cd9529813295dc41bdf47052a0"
+    "mtime": 1785505411.513253,
+    "ast_hash": "37693d351beb8784330cc6438ad53695",
+    "semantic_hash": ""
   },
   "backend/scripts/generate_logo.py": {
     "mtime": 1783853001.7622428,
@@ -390,9 +390,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "backend/tests/conftest.py": {
-    "mtime": 1785309102.389586,
-    "ast_hash": "43e693439b613f081c2923a763af4048",
-    "semantic_hash": "43e693439b613f081c2923a763af4048"
+    "mtime": 1785506047.4053214,
+    "ast_hash": "80e2007291640700fde42d7a066fe9dd",
+    "semantic_hash": ""
   },
   "backend/tests/test_admin_onboarding.py": {
     "mtime": 1784216635.907104,
@@ -545,9 +545,9 @@
     "semantic_hash": "67dc2fcd404df39f8fec29a873e6819c"
   },
   "package.json": {
-    "mtime": 1785437863.9624696,
-    "ast_hash": "995c97549d5c588b299eda5439527af0",
-    "semantic_hash": "995c97549d5c588b299eda5439527af0"
+    "mtime": 1785501497.1238625,
+    "ast_hash": "ff70de89eb1595865ce7b4c39acdb33e",
+    "semantic_hash": ""
   },
   "playwright.config.js": {
     "mtime": 1785232221.3920717,
@@ -555,9 +555,9 @@
     "semantic_hash": "1242c16e7d798e55a6dbead4013bb49b"
   },
   "playwright.config.ts": {
-    "mtime": 1785451714.6033201,
-    "ast_hash": "26dcadc7e3a11769ee796c18d66bd02b",
-    "semantic_hash": "26dcadc7e3a11769ee796c18d66bd02b"
+    "mtime": 1785501015.022653,
+    "ast_hash": "8fc5ca370152a63a74b5f862335e1eda",
+    "semantic_hash": ""
   },
   "public/manifest.json": {
     "mtime": 1785187830.768868,
@@ -565,9 +565,9 @@
     "semantic_hash": "f1b779a5c7ea84f579f4d46936485a6a"
   },
   "src/App.jsx": {
-    "mtime": 1785478800.8353055,
-    "ast_hash": "e9752954181de9bbfafb68dd3a214173",
-    "semantic_hash": "e9752954181de9bbfafb68dd3a214173"
+    "mtime": 1785508354.2370994,
+    "ast_hash": "6180593b5bac1219618183509d19defd",
+    "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
     "mtime": 1785451901.088881,
@@ -605,9 +605,9 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785449021.987965,
-    "ast_hash": "fdc5e317ffa1b6ac8c069d09bec5e709",
-    "semantic_hash": "fdc5e317ffa1b6ac8c069d09bec5e709"
+    "mtime": 1785510673.740907,
+    "ast_hash": "19cd341b7ddc54a165973c4f06c2a7bf",
+    "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
     "mtime": 1784403054.8513017,
@@ -785,8 +785,8 @@
     "semantic_hash": "822d28f4dd469dfa12264fe250a45d53"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785488257.155014,
-    "ast_hash": "24ef1d878055ee9bd8f74852fcef159b",
+    "mtime": 1785510162.2687888,
+    "ast_hash": "f58afcd47e7f34b8b8c8e145ae03547b",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -830,9 +830,9 @@
     "semantic_hash": "55d52b41eadf9e286ee9d64a2de4e74e"
   },
   "src/pages/Settings.jsx": {
-    "mtime": 1785454052.5725677,
-    "ast_hash": "cae0acebc4b4889cf82f903347368b8a",
-    "semantic_hash": "cae0acebc4b4889cf82f903347368b8a"
+    "mtime": 1785510915.1258254,
+    "ast_hash": "a5f628daab40fc270652e0c59806c589",
+    "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
     "mtime": 1785452676.8022664,
@@ -2075,9 +2075,9 @@
     "semantic_hash": "f85f9375169308a9fb00aa63da30df61"
   },
   "scripts/onboard_and_approve_factory.py": {
-    "mtime": 1785013704.2461927,
-    "ast_hash": "b0fada5c56f1bab65fa86a5c90beb490",
-    "semantic_hash": "b0fada5c56f1bab65fa86a5c90beb490"
+    "mtime": 1785505410.3836718,
+    "ast_hash": "d52813703ea3d85be77626210c8183f5",
+    "semantic_hash": ""
   },
   "src/__tests__/qrgateway-master.test.js": {
     "mtime": 1785011380.569797,
@@ -2350,9 +2350,9 @@
     "semantic_hash": "25284b798d5e2a82b942d0e861b68fe6"
   },
   "src/pages/ReportBreakdown.jsx": {
-    "mtime": 1785454215.9885204,
-    "ast_hash": "bf22b3b90edcffd161ba4f488b8a43e6",
-    "semantic_hash": "bf22b3b90edcffd161ba4f488b8a43e6"
+    "mtime": 1785511337.7918777,
+    "ast_hash": "54f578b949dd313553a8d49abf9745f2",
+    "semantic_hash": ""
   },
   "src/utils/breakdownRouter.js": {
     "mtime": 1785059623.6720433,
@@ -2435,9 +2435,9 @@
     "semantic_hash": "f73af5f23b8da847142a0bd7f38676a4"
   },
   "src/pages/RCA.jsx": {
-    "mtime": 1785452521.0004468,
-    "ast_hash": "3c45d7e6cd45bf58c3e4eaf99f6a832a",
-    "semantic_hash": "3c45d7e6cd45bf58c3e4eaf99f6a832a"
+    "mtime": 1785511314.0514326,
+    "ast_hash": "721567ee6f2481d9073eb2323c743af2",
+    "semantic_hash": ""
   },
   "tests/report-breakdown.spec.js": {
     "mtime": 1785093795.1202283,
@@ -2695,8 +2695,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
-    "mtime": 1785499841.399887,
-    "ast_hash": "3d48136ba9b1e689b48a6a0439917ca7",
+    "mtime": 1785509729.6782672,
+    "ast_hash": "5cf86c71f0ac482c1af34523900f306b",
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
@@ -2790,13 +2790,13 @@
     "semantic_hash": "b368aa5559bf468df0ffa14900642adc"
   },
   "admin-drawer-audit.png": {
-    "mtime": 1785306269.5059764,
-    "ast_hash": "73fb33d1dd8ec6ce70232a2d2719f376",
+    "mtime": 1785512279.4422758,
+    "ast_hash": "9de4afaadda9d175ed0a64684db3b188",
     "semantic_hash": ""
   },
   "admin-live-audit.png": {
-    "mtime": 1785306268.2336707,
-    "ast_hash": "6f10991b509c52bca9d3464b9035eadf",
+    "mtime": 1785512277.252161,
+    "ast_hash": "af509a1b98deb072b09ba722c4b23f8e",
     "semantic_hash": ""
   },
   "backend/app/services/digest_service.py": {
@@ -3100,18 +3100,563 @@
     "semantic_hash": ""
   },
   "src/components/marketing/FeatureCard.jsx": {
-    "mtime": 1785499019.7776058,
-    "ast_hash": "8ebc6b11dcfd59e97292fbb3a1fba390",
+    "mtime": 1785500072.4478133,
+    "ast_hash": "9284f55c137e064c265cf8cb5fb83305",
     "semantic_hash": ""
   },
   "tests/ux-audit/feature-card-consistency.spec.ts": {
-    "mtime": 1785499096.8246305,
-    "ast_hash": "5627b8e77a34b58d23af573365cdfac6",
+    "mtime": 1785500186.0169764,
+    "ast_hash": "880f87f09cdb8bb52a4ec6c00cecbf77",
     "semantic_hash": ""
   },
   "tests/ux-audit/feature-card-consistency.spec.ts-snapshots/home-feature-card-grid-chromium-darwin.png": {
-    "mtime": 1785499697.1921103,
-    "ast_hash": "83661bf1418d1361549ed1b60ed131b8",
+    "mtime": 1785500211.018038,
+    "ast_hash": "375114b700e027e222a4fddf34b07949",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/light-theme-contrast.spec.ts": {
+    "mtime": 1785501079.485029,
+    "ast_hash": "8bd9df21b500b8de2088c4295b168e83",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/manifest.json": {
+    "mtime": 1785510079.6277738,
+    "ast_hash": "ee360e50da27aabf4fb2b9db426e565e",
+    "semantic_hash": ""
+  },
+  "scripts/capture-light-theme-visuals.js": {
+    "mtime": 1785507960.6495001,
+    "ast_hash": "0eef7e2f70120a3dd35dd88d387c5649",
+    "semantic_hash": ""
+  },
+  "scripts/stitch-visual-bridge.js": {
+    "mtime": 1785510028.4358418,
+    "ast_hash": "349d94449018ee2e99bd2124ece70b07",
+    "semantic_hash": ""
+  },
+  "LIGHT_THEME_VISUAL_AUDIT_REPORT.md": {
+    "mtime": 1785510700.9865427,
+    "ast_hash": "074c7e4bd0149bd51f920876a1791ca2",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/dashboard-light.png": {
+    "mtime": 1785510036.7963412,
+    "ast_hash": "84ab909eabefda22166c05848224206c",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/inventory-light.png": {
+    "mtime": 1785510048.2113082,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/kaizen-light.png": {
+    "mtime": 1785510053.5437634,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/machines-light.png": {
+    "mtime": 1785510045.479256,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/report-breakdown-light.png": {
+    "mtime": 1785510056.2316737,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/settings-light.png": {
+    "mtime": 1785510050.8610032,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/technician-light.png": {
+    "mtime": 1785510042.5633993,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/tickets-light.png": {
+    "mtime": 1785510039.7559118,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "backend/tests/test_supabase_password_reset.py": {
+    "mtime": 1785506010.1282754,
+    "ast_hash": "1ab9a9907a80bcf2bcc0eebafb48b3aa",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/platform-light.png": {
+    "mtime": 1785510079.5749812,
+    "ast_hash": "87a38828e822a6f47143548aee185e48",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/pricing-light.png": {
+    "mtime": 1785510073.912085,
+    "ast_hash": "3bd7e9fcd38e1d364d49e513296a7fdb",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/rca-light.png": {
+    "mtime": 1785510062.763484,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/records-light.png": {
+    "mtime": 1785510059.2794564,
+    "ast_hash": "84ab909eabefda22166c05848224206c",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/shutdown-planner-light.png": {
+    "mtime": 1785510065.482645,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/support-light.png": {
+    "mtime": 1785510070.9451802,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/team-light.png": {
+    "mtime": 1785510068.2130644,
+    "ast_hash": "e5b00c59cad760b3383866b004152d40",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/light-theme/why-turbofix-light.png": {
+    "mtime": 1785510076.6903858,
+    "ast_hash": "918aa14560d73b6b479385f2037cee26",
+    "semantic_hash": ""
+  },
+  "src/pages/PlatformExperience.jsx": {
+    "mtime": 1785509539.10367,
+    "ast_hash": "c939e76e70f2ec917ec27510356be602",
+    "semantic_hash": ""
+  },
+  "tests/platform-experience.spec.js": {
+    "mtime": 1785509258.2720928,
+    "ast_hash": "01891caf412a8c84b8e3b4276e4b1742",
+    "semantic_hash": ""
+  },
+  "src/components/cmms/DreamzCMMSFeatureSuite.jsx": {
+    "mtime": 1785513350.6204338,
+    "ast_hash": "931f207291226bc2651f2fca51fcf5df",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/manifest.json": {
+    "mtime": 1785510664.2785866,
+    "ast_hash": "6b2a75b8ea33cd773076f35f6497e1c1",
+    "semantic_hash": ""
+  },
+  "scripts/capture-dashboard-mobile-visuals.js": {
+    "mtime": 1785510523.8122134,
+    "ast_hash": "645ab9f86ae3a0e18c26e3a286e27c51",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-engineer-dashboard-iphone-15-pro.png": {
+    "mtime": 1785510638.0898933,
+    "ast_hash": "8ae3b2ee34c0627ad80c30c551631fc2",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-engineer-dashboard-iphone-se.png": {
+    "mtime": 1785510649.7735417,
+    "ast_hash": "1590ae4f99e9e48940a466f43f7588ed",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-engineer-dashboard-pixel-7.png": {
+    "mtime": 1785510664.2160873,
+    "ast_hash": "2e6cbeae23f506f756c8ab20f1142057",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-owner-dashboard-iphone-15-pro.png": {
+    "mtime": 1785510629.3276498,
+    "ast_hash": "13b040fb8cfa8acec655481bbaa86e5d",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-owner-dashboard-iphone-se.png": {
+    "mtime": 1785510640.7897093,
+    "ast_hash": "e21196f0d47b69058df5f297ea86e337",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-owner-dashboard-pixel-7.png": {
+    "mtime": 1785510653.3951085,
+    "ast_hash": "f57e9e57a98324a9e2583bed7cdcb025",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-iphone-15-pro.png": {
+    "mtime": 1785510634.853493,
+    "ast_hash": "a0cd7a4b6eb0986cf0530cd584b1c0ec",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-iphone-se.png": {
+    "mtime": 1785510646.1966558,
+    "ast_hash": "b71a9b40ab294658dbcaacd1dc0b1616",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-supervisor-dashboard-pixel-7.png": {
+    "mtime": 1785510660.6283891,
+    "ast_hash": "76968928c530883d4b6ea6f568ad1522",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-technician-dashboard-iphone-15-pro.png": {
+    "mtime": 1785510632.0792663,
+    "ast_hash": "bfc46b2f7cd1ac04ab27d31124a4cced",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-technician-dashboard-iphone-se.png": {
+    "mtime": 1785510643.1728122,
+    "ast_hash": "c3c4d55ee4988cf0593841353f547ae5",
+    "semantic_hash": ""
+  },
+  "artifacts/visual-audit/mobile/dashboard-technician-dashboard-pixel-7.png": {
+    "mtime": 1785510657.2883525,
+    "ast_hash": "7f0d62a5658924d6fcd97fe7f0a5bf33",
+    "semantic_hash": ""
+  },
+  "src/components/cmms/LockoutTagoutModule.jsx": {
+    "mtime": 1785511273.7309608,
+    "ast_hash": "85d18dff27fbabbf6457e74c6fa86e24",
+    "semantic_hash": ""
+  },
+  "scripts/find-missing-usestate.js": {
+    "mtime": 1785513342.1230402,
+    "ast_hash": "13595d4cd7c3e13fd7725cadf87be0b1",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/feature-card-consistency.spec.ts-snapshots/home-feature-card-grid-mobile-chrome-darwin.png": {
+    "mtime": 1785512808.7468128,
+    "ast_hash": "9dab73511d2038a7b9c9cdd7e7d4af90",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/responsive.spec.ts-snapshots/dashboard-ipad-mini-chromium-darwin.png": {
+    "mtime": 1785512025.7327783,
+    "ast_hash": "77d8b0ab5726a7cef908f73dce5116f4",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/responsive.spec.ts-snapshots/dashboard-ipad-mini-mobile-chrome-darwin.png": {
+    "mtime": 1785512882.793464,
+    "ast_hash": "77d8b0ab5726a7cef908f73dce5116f4",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/responsive.spec.ts-snapshots/dashboard-ipad-pro-chromium-darwin.png": {
+    "mtime": 1785512028.4427888,
+    "ast_hash": "ba3ff44c3bd240e989d7c183d6f4606f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/responsive.spec.ts-snapshots/dashboard-ipad-pro-mobile-chrome-darwin.png": {
+    "mtime": 1785512885.2770379,
+    "ast_hash": "ba3ff44c3bd240e989d7c183d6f4606f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512104.1081717,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512950.1511936,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512104.190997,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512948.8745022,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512064.8534336,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512918.3669863,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512063.9832323,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/ai-records-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512917.3260448,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512075.0529294,
+    "ast_hash": "8a608109277d0a68cc8c4cbf6c0f0de8",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512926.0946913,
+    "ast_hash": "57d9dfe958a900356534f8c6124c46ca",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512072.663126,
+    "ast_hash": "8a608109277d0a68cc8c4cbf6c0f0de8",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512924.6718466,
+    "ast_hash": "57d9dfe958a900356534f8c6124c46ca",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512035.5243976,
+    "ast_hash": "8a608109277d0a68cc8c4cbf6c0f0de8",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512895.0497556,
+    "ast_hash": "57d9dfe958a900356534f8c6124c46ca",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512037.3197675,
+    "ast_hash": "59a6c528b600c64600765f5acf741b1e",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/dashboard-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512894.590615,
+    "ast_hash": "57d9dfe958a900356534f8c6124c46ca",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512096.298325,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512941.7602882,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512091.7535949,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512940.996439,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512055.0507112,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512910.628594,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512055.3764088,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/inventory-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512908.182702,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512097.8578742,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512946.1292279,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512096.493698,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512945.346982,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512059.5868626,
+    "ast_hash": "e087d6fec1ad42f0ab1028b7dc1abfac",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512914.8976662,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512056.9689353,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/kaizen-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512913.8381107,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512088.113443,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512939.2713196,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512087.2012374,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512048.9316607,
+    "ast_hash": "b5101888100168c71eb32beb5b8bdd55",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512906.8713663,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512049.6750531,
+    "ast_hash": "e087d6fec1ad42f0ab1028b7dc1abfac",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/machines-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512904.0755723,
+    "ast_hash": "b6e55060c2137a508ad3fcd0c3ec5dd3",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512106.1672566,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512955.1791077,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512106.3410785,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512952.4458692,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512067.7267098,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512922.8227744,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512067.4435725,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/settings-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512921.0464723,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512083.1767027,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512935.3963952,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512083.2216716,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512932.5167253,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512046.2343178,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512901.4378145,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512044.2203343,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/technician-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512900.9898846,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-dark-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512078.5468435,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-dark-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512930.3938684,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-dark-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512075.5098352,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-dark-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512929.113433,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-light-full-desktop-chromium-darwin.png": {
+    "mtime": 1785512040.6070082,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-light-full-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512897.2904031,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-light-mvp-desktop-chromium-darwin.png": {
+    "mtime": 1785512038.5569499,
+    "ast_hash": "da792bee2b5c8b2cdb913135c4109cfc",
+    "semantic_hash": ""
+  },
+  "tests/ux-audit/visual-regression.spec.ts-snapshots/tickets-light-mvp-desktop-mobile-chrome-darwin.png": {
+    "mtime": 1785512895.8259478,
+    "ast_hash": "07ab9009cde52eb92e464cc7ea13f77f",
     "semantic_hash": ""
   }
 }

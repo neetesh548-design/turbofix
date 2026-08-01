@@ -17,6 +17,7 @@ const MarketingDemo = lazy(() => import('./pages/marketing/Demo'));
 const Pricing = lazy(() => import('./pages/marketing/Pricing'));
 const MarketingContact = lazy(() => import('./pages/marketing/Contact'));
 const QRGenerator = lazy(() => import('./pages/QRGenerator'));
+const MainLayoutRoute = lazy(() => import('./layouts/MainLayoutRoute'));
 const Login = lazy(() => import('./pages/Login'));
 const DemoLogin = lazy(() => import('./pages/DemoLogin'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -151,19 +152,21 @@ function App() {
                   <SearchMetadata />
                   <Suspense fallback={<div className="route-loading">Loading TurboFix…</div>}>
                     <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
-                    <Route path="/platform.html" element={<Platform />} />
-                    <Route path="/platform-experience.html" element={<PlatformExperience />} />
+                    <Route element={<MainLayoutRoute />}>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/why-turbofix.html" element={<WhyTurboFix />} />
+                      <Route path="/platform.html" element={<Platform />} />
+                      <Route path="/platform-experience.html" element={<PlatformExperience />} />
+                      <Route path="/experience.html" element={<PlatformExperience />} />
+                      <Route path="/records-platform.html" element={<RecordsPlatform />} />
+                      <Route path="/workflow.html" element={<Workflow />} />
+                      <Route path="/demo.html" element={<MarketingDemo />} />
+                      <Route path="/pricing.html" element={<Pricing />} />
+                      <Route path="/contact.html" element={<MarketingContact />} />
+                      <Route path="/qr-generator.html" element={<QRGenerator />} />
+                    </Route>
                     <Route path="/platform-experience" element={<Navigate to="/platform-experience.html" replace />} />
-                    <Route path="/experience.html" element={<PlatformExperience />} />
                     <Route path="/experience" element={<Navigate to="/experience.html" replace />} />
-                    <Route path="/records-platform.html" element={<RecordsPlatform />} />
-                    <Route path="/workflow.html" element={<Workflow />} />
-                    <Route path="/demo.html" element={<MarketingDemo />} />
-                    <Route path="/pricing.html" element={<Pricing />} />
-                    <Route path="/contact.html" element={<MarketingContact />} />
-                    <Route path="/qr-generator.html" element={<QRGenerator />} />
                     <Route path="/login.html" element={<Login />} />
                     <Route path="/login" element={<Navigate to="/login.html" replace />} />
                     <Route path="/demo-login.html" element={<DemoLogin />} />

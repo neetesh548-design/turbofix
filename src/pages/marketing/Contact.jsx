@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { PhoneCall } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -18,7 +17,7 @@ export default function Contact() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={PhoneCall}
@@ -33,6 +32,6 @@ export default function Contact() {
         <ContactCard />
         <FaqAccordion title={copy.faqTitle} />
       </div>
-    </MainLayout>
+    </>
   );
 }

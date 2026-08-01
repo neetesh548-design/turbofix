@@ -20,7 +20,7 @@ export default function FeatureCard({ icon: Icon, title, body, to, badge, ctaLab
       {...tagProps}
     >
       {badge != null && (
-        <span className="absolute top-6 right-8 text-xs font-bold text-slate-500">{badge}</span>
+        <span className="absolute top-6 right-8 text-xs font-bold text-slate-400">{badge}</span>
       )}
       <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 transition-colors group-hover:bg-emerald-500/20">
         <Icon size={22} />

@@ -8843,8 +8843,22 @@ details.faq-item p {
 .public-nav.light-style .public-nav-link {
   color: #475569;
 }
+[data-theme="light"] .public-nav-resources-trigger,
+.public-nav.light-style .public-nav-resources-trigger {
+  color: #475569;
+}
 [data-theme="light"] .public-nav-link:hover,
 .public-nav.light-style .public-nav-link:hover {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+[data-theme="light"] .public-nav-resources-trigger:hover,
+[data-theme="light"] .public-nav-resources-trigger.active,
+[data-theme="light"] .public-nav-resources.open .public-nav-resources-trigger,
+.public-nav.light-style .public-nav-resources-trigger:hover,
+.public-nav.light-style .public-nav-resources-trigger.active,
+.public-nav.light-style .public-nav-resources.open .public-nav-resources-trigger {
   color: #0f172a;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
@@ -11330,6 +11344,9 @@ a:focus-visible,
 }
 
 .marketing-calculator-box {
+  --card-text: #f8fafc;
+  --card-text-subtle: #94a3b8;
+  --card-accent: #25D366;
   max-width: 840px;
   margin: 0 auto 40px;
   background: rgba(255, 255, 255, 0.03);
@@ -11349,13 +11366,13 @@ a:focus-visible,
 
 .marketing-calculator-header strong {
   font-size: 1.05rem;
-  color: #f8fafc;
+  color: var(--card-text);
   display: block;
 }
 
 .marketing-calculator-header p {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--card-text-subtle);
   margin: 2px 0 0;
 }
 
@@ -11423,11 +11440,11 @@ a:focus-visible,
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--card-text-subtle);
 }
 
 .marketing-slider-label strong {
-  color: #25D366;
+  color: var(--card-accent);
   font-size: 1.1rem;
 }
 
@@ -11445,7 +11462,7 @@ a:focus-visible,
   justify-content: space-between;
   gap: 12px;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--card-text-subtle);
 }
 
 /* Pricing Grid & Cards */
@@ -11458,6 +11475,10 @@ a:focus-visible,
 }
 
 .marketing-pricing-card {
+  --card-text: #f8fafc;
+  --card-text-subtle: #cbd5e1;
+  --card-text-muted: #94a3b8;
+  --card-accent: #25D366;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
   padding: 28px;
@@ -11468,6 +11489,14 @@ a:focus-visible,
   flex-direction: column;
 }
 .marketing-pricing-card > * { min-width: 0; }
+
+:root[data-theme="light"] .marketing-calculator-box,
+:root[data-theme="light"] .marketing-pricing-card {
+  --card-text: #0f172a;
+  --card-text-subtle: #334155;
+  --card-text-muted: #475569;
+  --card-accent: #047857;
+}
 
 .marketing-pricing-card.recommended {
   border-color: rgba(37, 211, 102, 0.4);
@@ -11498,12 +11527,12 @@ a:focus-visible,
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: var(--card-text-muted);
   text-transform: uppercase;
 }
 
 .marketing-plan-badge.growth-badge {
-  color: #25D366;
+  color: var(--card-accent);
 }
 
 .marketing-plan-price {
@@ -11514,7 +11543,7 @@ a:focus-visible,
 }
 
 .marketing-plan-price .original-price {
-  color: #64748b;
+  color: var(--card-text-muted);
   font-size: 0.95rem;
   text-decoration: line-through;
 }
@@ -11522,17 +11551,17 @@ a:focus-visible,
 .marketing-plan-price .current-price {
   font-size: 2.3rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--card-text);
 }
 
 .marketing-plan-price .period {
-  color: #94a3b8;
+  color: var(--card-text-muted);
   font-size: 0.85rem;
 }
 
 .marketing-plan-total {
   font-size: 0.82rem;
-  color: #25D366;
+  color: var(--card-accent);
   background: rgba(37, 211, 102, 0.08);
   padding: 6px 10px;
   border-radius: 8px;
@@ -11541,7 +11570,7 @@ a:focus-visible,
 
 .marketing-plan-desc {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--card-text-muted);
   margin-bottom: 20px;
 }
 
@@ -11553,7 +11582,7 @@ a:focus-visible,
   flex-direction: column;
   gap: 10px;
   font-size: 0.875rem;
-  color: #cbd5e1;
+  color: var(--card-text-subtle);
   flex: 1;
 }
 
@@ -11564,7 +11593,7 @@ a:focus-visible,
 }
 
 .marketing-plan-features svg {
-  color: #25D366;
+  color: var(--card-accent);
   flex-shrink: 0;
 }
 
@@ -11681,6 +11710,25 @@ a:focus-visible,
     color: #94a3b8;
   }
 
+  .sticky-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sticky-bar-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #25D366 0%, #059669 100%);
+    color: #0f172a;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);
+  }
+
   .marketing-btn-sm {
     padding: 8px 14px;
     font-size: 0.8rem;
@@ -11694,6 +11742,17 @@ a:focus-visible,
    =========================================================== */
 
 @media (max-width: 768px) {
+  input[type="range"] {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .marketing-footer a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+  }
+
   button:not(.ant-switch),
   .btn,
   select,
@@ -11790,6 +11849,35 @@ a:focus-visible,
   box-shadow: 0 8px 24px rgba(4, 120, 87, 0.12);
 }
 
+/* Marketing pages keep dark, image-rich cards in both site themes. Central
+   card tokens ensure hardcoded utility colors cannot be washed out when the
+   global light theme is active. */
+:root[data-theme="light"] .marketing-home .stitch-glass-tile,
+:root[data-theme="light"] .platform-experience-page .stitch-glass-tile {
+  --card-text: #f8fafc;
+  --card-text-subtle: #cbd5e1;
+  --card-text-muted: #94a3b8;
+  --card-accent: #34d399;
+  background: rgba(8, 20, 37, 0.88) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  color: var(--card-text) !important;
+}
+
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(h1, h2, h3, h4) {
+  background: linear-gradient(135deg, var(--card-text), var(--card-text-subtle));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(p, span, label) { color: inherit; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-white, .text-slate-100, .text-slate-200) { color: var(--card-text) !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-slate-300, .text-slate-400) { color: var(--card-text-subtle) !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-500 { color: var(--card-text-muted) !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile :is(.text-emerald-300, .text-emerald-400) { color: var(--card-accent) !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .marketing-text-link { color: var(--card-accent) !important; }
+:root[data-theme="light"] :is(.marketing-home, .platform-experience-page) .stitch-glass-tile .text-slate-950 { color: #020617 !important; }
+
 /* High-Precision JetBrains Mono Data Metrics */
 .stitch-metric-data {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -11834,5 +11922,3 @@ a:focus-visible,
 .stitch-card-hover:hover {
   transform: translateY(-2px);
 }
-
-

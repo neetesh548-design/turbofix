@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import MainLayout from '../layouts/MainLayout';
 
 export default function QRGenerator() {
   const [waNumber, setWaNumber] = useState('');
@@ -50,7 +49,7 @@ export default function QRGenerator() {
   };
 
   return (
-    <MainLayout>
+    <>
       <section className="qr-generator-page">
         <div className="container qr-generator-shell">
           <div className="qr-generator-hero">
@@ -138,6 +137,6 @@ export default function QRGenerator() {
           )}
         </div>
       </section>
-    </MainLayout>
+    </>
   );
 }

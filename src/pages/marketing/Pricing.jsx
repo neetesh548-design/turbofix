@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { IndianRupee } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -18,7 +17,7 @@ export default function Pricing() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={IndianRupee}
@@ -92,6 +91,6 @@ export default function Pricing() {
         <PricingCalculator />
         <FaqAccordion title={copy.faqTitle} />
       </div>
-    </MainLayout>
+    </>
   );
 }

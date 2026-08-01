@@ -57,10 +57,11 @@ export default function RoiCalculator() {
           {/* Slider 1: Machines */}
           <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
             <div className="flex justify-between items-center mb-2 text-xs sm:text-sm">
-              <label className="font-semibold text-slate-200">Active Fleet Machines in Plant</label>
+              <label htmlFor="roi-machines" className="font-semibold text-slate-200">Active Fleet Machines in Plant</label>
               <span className="font-extrabold text-emerald-400 text-base">{machines} Machines</span>
             </div>
             <input
+              id="roi-machines"
               type="range"
               min="2"
               max="100"
@@ -68,7 +69,7 @@ export default function RoiCalculator() {
               onChange={(e) => setMachines(Number(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+            <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
               <span>2</span>
               <span>25</span>
               <span>50</span>
@@ -79,10 +80,11 @@ export default function RoiCalculator() {
           {/* Slider 2: Hourly Downtime Cost */}
           <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
             <div className="flex justify-between items-center mb-2 text-xs sm:text-sm">
-              <label className="font-semibold text-slate-200">Average Production Loss per Hour (₹)</label>
+              <label htmlFor="roi-hourly-cost" className="font-semibold text-slate-200">Average Production Loss per Hour (₹)</label>
               <span className="font-extrabold text-emerald-400 text-base">₹{hourlyCost.toLocaleString('en-IN')}/hr</span>
             </div>
             <input
+              id="roi-hourly-cost"
               type="range"
               min="2000"
               max="100000"
@@ -91,7 +93,7 @@ export default function RoiCalculator() {
               onChange={(e) => setHourlyCost(Number(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+            <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
               <span>₹2,000/hr</span>
               <span>₹25,000/hr</span>
               <span>₹50,000/hr</span>
@@ -103,10 +105,11 @@ export default function RoiCalculator() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
               <div className="flex justify-between items-center mb-2 text-xs">
-                <label className="font-semibold text-slate-200">Monthly Breakdowns</label>
+                <label htmlFor="roi-breakdowns" className="font-semibold text-slate-200">Monthly Breakdowns</label>
                 <span className="font-bold text-amber-400">{breakdownsPerMonth} / month</span>
               </div>
               <input
+                id="roi-breakdowns"
                 type="range"
                 min="1"
                 max="30"
@@ -118,10 +121,11 @@ export default function RoiCalculator() {
 
             <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
               <div className="flex justify-between items-center mb-2 text-xs">
-                <label className="font-semibold text-slate-200">Avg MTTR Repair Time</label>
+                <label htmlFor="roi-repair-time" className="font-semibold text-slate-200">Avg MTTR Repair Time</label>
                 <span className="font-bold text-sky-400">{avgRepairHours} Hours</span>
               </div>
               <input
+                id="roi-repair-time"
                 type="range"
                 min="1"
                 max="12"

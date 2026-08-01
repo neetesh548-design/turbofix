@@ -10,6 +10,7 @@ import {
   Factory,
   Gauge,
   IndianRupee,
+  MessageCircle,
   PhoneCall,
   PlayCircle,
   QrCode,
@@ -20,13 +21,14 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
-import MainLayout from '../layouts/MainLayout';
 import CapabilityStrip from '../components/marketing/CapabilityStrip';
 import ProofBanner from '../components/marketing/ProofBanner';
 import FeatureCard from '../components/marketing/FeatureCard';
 import RoiCalculator from '../components/marketing/RoiCalculator';
 import QrDemoPreview from '../components/marketing/QrDemoPreview';
 import { contentByLanguage, HERO_SCENARIOS } from '../data/marketingContent';
+
+const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
 const EXPLORE_LINKS = [
   { icon: Wrench, title: 'Platform', body: 'Breakdown, records, shutdown, technician, and control-board tools in one system.', to: '/platform.html' },
@@ -67,7 +69,7 @@ export default function Home() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         {/* HERO SECTION */}
         <section className="marketing-hero">
@@ -97,6 +99,16 @@ export default function Home() {
                 <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Chennai OEMs</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Ludhiana Engineering</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Gujarat Pharma</span>
+              </div>
+
+              {/* Compliance & Trust Badges */}
+              <div className="marketing-trust-row flex-wrap gap-2 mt-2">
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-semibold">
+                  <ShieldCheck size={12} /> MSME Registered
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-semibold">
+                  <CheckCircle2 size={12} /> GST Compliant Invoicing
+                </span>
               </div>
             </div>
 
@@ -290,12 +302,21 @@ export default function Home() {
             <small>10-sec QR reporting &amp; 5-Why RCA</small>
           </div>
           <div className="sticky-bar-actions">
+            <a
+              href={`https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent('Hi, I want to know more about TurboFix for my factory.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sticky-bar-whatsapp"
+              aria-label="Chat with TurboFix on WhatsApp"
+            >
+              <MessageCircle size={20} />
+            </a>
             <Link to="/contact.html" className="marketing-btn marketing-btn-primary marketing-btn-sm">
               Book Walkthrough <ArrowRight size={13} />
             </Link>
           </div>
         </div>
       )}
-    </MainLayout>
+    </>
   );
 }

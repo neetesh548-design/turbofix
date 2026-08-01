@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, PlayCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -36,10 +35,11 @@ function DemoRoiCalculator() {
         <div className="space-y-6">
           <div>
             <div className="flex justify-between items-center text-sm font-semibold mb-2">
-              <span className="text-slate-300">Active Machines in Plant</span>
+              <label htmlFor="demo-roi-machines" className="text-slate-300">Active Machines in Plant</label>
               <span className="text-emerald-400 font-mono text-base font-bold">{machines} Machines</span>
             </div>
             <input
+              id="demo-roi-machines"
               type="range"
               min="5"
               max="100"
@@ -57,10 +57,11 @@ function DemoRoiCalculator() {
 
           <div>
             <div className="flex justify-between items-center text-sm font-semibold mb-2">
-              <span className="text-slate-300">Monthly Breakdown Hours</span>
+              <label htmlFor="demo-roi-downtime" className="text-slate-300">Monthly Breakdown Hours</label>
               <span className="text-emerald-400 font-mono text-base font-bold">{downtimeHours} Hrs / Month</span>
             </div>
             <input
+              id="demo-roi-downtime"
               type="range"
               min="5"
               max="100"
@@ -78,10 +79,11 @@ function DemoRoiCalculator() {
 
           <div>
             <div className="flex justify-between items-center text-sm font-semibold mb-2">
-              <span className="text-slate-300">Production Loss per Hour</span>
+              <label htmlFor="demo-roi-hourly-rate" className="text-slate-300">Production Loss per Hour</label>
               <span className="text-emerald-400 font-mono text-base font-bold">₹{hourlyRate.toLocaleString('en-IN')} / Hr</span>
             </div>
             <input
+              id="demo-roi-hourly-rate"
               type="range"
               min="1000"
               max="20000"
@@ -145,7 +147,7 @@ export default function Demo() {
   };
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={PlayCircle}
@@ -192,7 +194,7 @@ export default function Demo() {
                     alt="Operator QR Scanner Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Operator View</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Operator View</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">10-sec QR Reporting</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Operators report machine issues by scanning QR codes on mobile browsers without app downloads.</p>
@@ -207,7 +209,7 @@ export default function Demo() {
                     alt="Technician Field Repair Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Technician View</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Technician View</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Technician WhatsApp AI</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Receive instant WhatsApp breakdown alerts with 5-Why diagnostic guidance and spare part recommendations.</p>
@@ -222,7 +224,7 @@ export default function Demo() {
                     alt="Control Room Executive Dashboard Demo"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Executive View</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Executive View</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Plant Owner Control Room</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Monitor plant-wide MTBF, MTTR, SLA compliance, and open breakdown work order queues in real time.</p>
@@ -231,6 +233,6 @@ export default function Demo() {
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   );
 }

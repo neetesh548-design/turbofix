@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Database, FileSearch, LockKeyhole, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -18,7 +17,7 @@ export default function Platform() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={Wrench}
@@ -50,7 +49,7 @@ export default function Platform() {
                     alt="10-sec QR Breakdown Dispatch"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 1</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 1</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">10-sec QR Dispatch</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">No app downloads. Operators scan machine QR tags to report failures with instant WhatsApp technician routing.</p>
@@ -65,7 +64,7 @@ export default function Platform() {
                     alt="Technician 5-Why Repair AI"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 2</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 2</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">Technician AI Repair</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Technicians get 5-Why diagnostic recommendations, machine manual snippets, and verified spare part options.</p>
@@ -80,7 +79,7 @@ export default function Platform() {
                     alt="Shutdown & Preventive Maintenance"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 3</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 3</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">Shutdown & Overhaul</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Plan preventive maintenance schedules, manage overhaul tasklists, and prevent unscheduled plant downtime.</p>
@@ -95,7 +94,7 @@ export default function Platform() {
                     alt="Executive Control Room & Analytics"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 4</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 4</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">Executive Control Room</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Track plant MTBF, MTTR, SLA bottlenecks, and technician response times in real time across all lines.</p>
@@ -144,6 +143,6 @@ export default function Platform() {
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   );
 }

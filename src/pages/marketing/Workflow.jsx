@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Gauge, Route as RouteIcon } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -16,7 +15,7 @@ export default function Workflow() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={RouteIcon}
@@ -48,7 +47,7 @@ export default function Workflow() {
                     alt="Step 1: Operator 10-sec QR Breakdown Scan"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg shadow-md">01</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">01</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">1. 10-sec QR Report</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Operators scan the machine's physical QR tag with any phone. No app download needed.</p>
@@ -63,7 +62,7 @@ export default function Workflow() {
                     alt="Step 2: Technician AI Diagnosis & Field Repair"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg shadow-md">02</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">02</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">2. AI Diagnosis & Dispatch</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">WhatsApp automatically alerts the assigned technician with 5-Why root cause guidance.</p>
@@ -78,7 +77,7 @@ export default function Workflow() {
                     alt="Step 3: Team Collaboration & Spares Verification"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg shadow-md">03</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">03</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">3. Spares & Work Execution</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Technicians verify replacement parts, record downtime, and log root-cause repair actions.</p>
@@ -93,7 +92,7 @@ export default function Workflow() {
                     alt="Step 4: Maintenance Head Sign-off & Audit Closure"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg shadow-md">04</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">04</span>
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">4. Verified Closure</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Maintenance Head approves closure. MTBF and MTTR metrics update live in executive dashboard.</p>
@@ -107,6 +106,6 @@ export default function Workflow() {
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   );
 }

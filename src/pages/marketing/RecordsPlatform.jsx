@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArchiveRestore, ArrowRight, CheckCircle2, Database, FileCheck2, FileSearch, Image, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import MainLayout from '../../layouts/MainLayout';
 import PageHero from '../../components/marketing/PageHero';
 import CapabilityStrip from '../../components/marketing/CapabilityStrip';
 import ProofBanner from '../../components/marketing/ProofBanner';
@@ -17,7 +16,7 @@ export default function RecordsPlatform() {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <div className="marketing-home">
         <PageHero
           icon={ArchiveRestore}
@@ -83,7 +82,7 @@ export default function RecordsPlatform() {
                     alt="Paper Logbook & Handwritten OCR Scanning"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">OCR Engine</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">OCR Engine</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Paper Logbook OCR</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Turn handwritten register pages, PDF manuals, and vendor service invoices into searchable digital records.</p>
@@ -98,7 +97,7 @@ export default function RecordsPlatform() {
                     alt="Shutdown & Heavy Overhaul Logbook Digitization"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Overhaul Vault</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Overhaul Vault</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Overhaul History Preservation</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Preserve historical annual overhaul reports, sensor calibration certificates, and major component replacements.</p>
@@ -113,7 +112,7 @@ export default function RecordsPlatform() {
                     alt="Approved Document Vault & Security"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <span className="absolute top-3 left-3 bg-emerald-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">Plant Security</span>
+                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Plant Security</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Human Approval Gate</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">Maintenance Head reviews and approves extracted machine context before AI uses it in live breakdown assistance.</p>
@@ -144,6 +143,6 @@ export default function RecordsPlatform() {
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   );
 }
