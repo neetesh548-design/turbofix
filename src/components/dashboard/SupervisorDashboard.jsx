@@ -14,10 +14,11 @@
 
 import React from 'react';
 import {
-  AlertOctagon, Users, Activity, CheckCircle2, ArrowUpRight,
+  AlertOctagon, Users, Activity, CheckCircle2, ArrowUpRight, ShieldAlert, Workflow, TimerReset, UserRound,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars, Sparkline } from './DashboardChart.jsx';
+import RoleFocusSection from './RoleFocusSection.jsx';
 import { formatHours, formatPct } from '../../utils/dashboardMetrics.js';
 
 const TREND_COPY = {
@@ -34,6 +35,39 @@ export default function SupervisorDashboard({ metrics, loading = false, isDemoDa
   const breaches = Array.isArray(metrics?.breaches) ? metrics.breaches : [];
   const weekly = metrics?.weekly || {};
   const trendMeta = TREND_COPY[trend.direction] || TREND_COPY.unknown;
+  const overloaded = (workload.rows || []).filter((row) => row.overloaded);
+  const idle = (workload.rows || []).filter((row) => row.open === 0);
+  const mostLoaded = [...(workload.rows || [])].sort((a, b) => b.open - a.open)[0] || null;
+  const mostBreachedMember = [...team].sort((a, b) => b.breachedOpen - a.breachedOpen || b.openTickets - a.openTickets)[0] || null;
+  const supervisorFocus = breaches[0]
+    ? {
+      type: 'breach',
+      title: `${breaches[0].machineName} is already outside SLA`,
+      body: `${breaches[0].assignee} owns this ticket and it is overdue by ${formatHours(breaches[0].hoursOverdue)}.`,
+      cta: 'Open ticket queue',
+      href: 'tickets.html',
+      pill: `${breaches.length} breach${breaches.length === 1 ? '' : 'es'}`,
+      tone: 'danger',
+    }
+    : workload.imbalanced && mostLoaded
+      ? {
+        type: 'imbalance',
+        title: `${mostLoaded.name} is carrying the heaviest open load`,
+        body: `${mostLoaded.open} open jobs against a capacity of ${mostLoaded.capacity}. Rebalance before new work lands.`,
+        cta: 'Open team view',
+        href: 'team.html',
+        pill: `${overloaded.length} overloaded`,
+        tone: 'warning',
+      }
+      : {
+        type: 'flow',
+        title: 'The floor is stable right now',
+        body: 'No active SLA breach is visible. Use this window to balance workload and clear upcoming risk early.',
+        cta: 'Review team load',
+        href: 'team.html',
+        pill: 'Stable',
+        tone: 'ok',
+      };
 
   return (
     <div className="rd-board rd-board-supervisor" data-testid="supervisor-dashboard" data-loading={loading ? 'true' : 'false'}>
@@ -42,6 +76,28 @@ export default function SupervisorDashboard({ metrics, loading = false, isDemoDa
           Showing sample team data — connect technician assignments to see live numbers.
         </p>
       )}
+
+      <RoleFocusSection
+        ariaLabel="Supervisor start here"
+        tone={supervisorFocus.tone}
+        title={supervisorFocus.title}
+        body={supervisorFocus.body}
+        pill={supervisorFocus.pill}
+        meta={[
+          { icon: ShieldAlert, text: `${breaches.length} active breaches`, label: 'breaches' },
+          { icon: Workflow, text: `${overloaded.length} overloaded technicians`, label: 'overloaded' },
+          { icon: UserRound, text: `${idle.length} idle technicians`, label: 'idle' },
+        ]}
+        actions={[
+          { href: supervisorFocus.href, label: supervisorFocus.cta },
+          { href: 'tickets.html', label: 'Open all jobs' },
+        ]}
+        priorities={[
+          { label: 'Breach queue', value: breaches.length, help: 'Jobs already outside SLA', tone: breaches.length ? 'danger' : '' },
+          { label: 'Rebalance needed', value: overloaded.length, help: 'Technicians above capacity', tone: overloaded.length ? 'warning' : '' },
+          { label: 'Response trend', value: trendMeta.label, help: 'Direction of closure speed', tone: trend.direction === 'degrading' ? 'danger' : trend.direction === 'improving' ? 'info' : '' },
+        ]}
+      />
 
       {breaches.length > 0 && (
         <section className="rd-alert-panel" data-testid="supervisor-breach-alert" aria-label="SLA breaches">
@@ -100,6 +156,65 @@ export default function SupervisorDashboard({ metrics, loading = false, isDemoDa
           data-testid="kpi-team-utilization"
         />
       </section>
+
+      <div className="rd-split">
+        <DashboardChart
+          title="Immediate supervisor actions"
+          subtitle="Where you can unblock fastest"
+          caption={`${Math.min(4, breaches.length + overloaded.length)} priority items`}
+        >
+          {breaches.length || overloaded.length || mostBreachedMember ? (
+            <div className="rd-tech-mini-list">
+              {breaches.slice(0, 2).map((breach) => (
+                <a key={breach.ticketId} className="rd-tech-mini danger" href="tickets.html">
+                  <span className="rd-tech-mini-label">SLA breach</span>
+                  <strong>{breach.machineName}</strong>
+                  <small>{breach.assignee} · {formatHours(breach.hoursOverdue)} overdue</small>
+                </a>
+              ))}
+              {overloaded.slice(0, 2).map((row) => (
+                <a key={row.id} className="rd-tech-mini warning" href="team.html">
+                  <span className="rd-tech-mini-label">Overloaded technician</span>
+                  <strong>{row.name}</strong>
+                  <small>{row.open} open jobs · capacity {row.capacity}</small>
+                </a>
+              ))}
+              {!breaches.length && !overloaded.length && mostBreachedMember ? (
+                <a className="rd-tech-mini info" href="team.html">
+                  <span className="rd-tech-mini-label">Watch closest load</span>
+                  <strong>{mostBreachedMember.name}</strong>
+                  <small>{mostBreachedMember.openTickets} open jobs · SLA {formatPct(mostBreachedMember.slaPct, '—')}</small>
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <p className="rd-empty">No action hotspots right now. A good time to tighten PM discipline or reassign preventive work.</p>
+          )}
+        </DashboardChart>
+
+        <DashboardChart
+          title="Crew balance snapshot"
+          subtitle="Who is stretched and who can absorb work"
+          caption={`${team.length} technicians`}
+        >
+          {team.length ? (
+            <div className="rd-tech-mini-list">
+              {([...team]
+                .sort((a, b) => b.openTickets - a.openTickets)
+                .slice(0, 4)
+              ).map((member) => (
+                <a key={member.id} className={`rd-tech-mini ${member.tone === 'danger' ? 'danger' : member.tone === 'warning' ? 'warning' : 'info'}`} href="team.html">
+                  <span className="rd-tech-mini-label">{member.tone === 'danger' ? 'Needs support' : member.tone === 'warning' ? 'Watch closely' : 'Available / stable'}</span>
+                  <strong>{member.name}</strong>
+                  <small>{member.openTickets} open · {member.machineCount} machines · SLA {formatPct(member.slaPct, '—')}</small>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="rd-empty">No technician roster yet.</p>
+          )}
+        </DashboardChart>
+      </div>
 
       <DashboardChart
         title="Team status"

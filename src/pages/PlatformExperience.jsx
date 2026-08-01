@@ -300,7 +300,7 @@ export default function PlatformExperience() {
                     setKey((k) => k + 1);
                   }
                 }}
-                className="bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-emerald-500"
+                className="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-emerald-500"
               >
                 {PREVIEW_PAGES.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -311,7 +311,7 @@ export default function PlatformExperience() {
               <button
                 type="button"
                 onClick={() => setKey((k) => k + 1)}
-                className="p-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-400 hover:text-white"
                 title="Reload Device Frames"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -351,7 +351,7 @@ export default function PlatformExperience() {
                 </div>
                 <div className="text-center mt-3">
                   <div className="text-xs font-bold text-slate-300">Shopfloor Operator & Field Tech</div>
-                  <div className="text-[11px] text-slate-500">10-sec QR Report & WhatsApp Routing</div>
+                  <div className="text-[11px] text-slate-400">10-sec QR Report & WhatsApp Routing</div>
                 </div>
               </div>
 
@@ -377,7 +377,7 @@ export default function PlatformExperience() {
                 </div>
                 <div className="text-center mt-3">
                   <div className="text-xs font-bold text-slate-300">Maintenance Head & Shift Lead</div>
-                  <div className="text-[11px] text-slate-500">RCA 5-Why Approval & Spare Part Dispatch</div>
+                  <div className="text-[11px] text-slate-400">RCA 5-Why Approval & Spare Part Dispatch</div>
                 </div>
               </div>
             </div>

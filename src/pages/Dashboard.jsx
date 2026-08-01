@@ -36,6 +36,7 @@ import { StitchDonutChart, StitchBarChart } from '../components/ui/StitchVisualC
 import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
 import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
+import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -79,6 +80,29 @@ const ROLE_HEADINGS = {
   },
 };
 
+const ROLE_HEROES = {
+  [DASHBOARD_ROLES.OWNER]: {
+    badge: 'Plant VP & Factory Owner View',
+    title: 'Real-time visibility into every machine breakdown, SLA timer, and financial downtime risk across all shifts.',
+    body: 'Stay ahead of production bottlenecks. Track open breakdowns, maintenance head sign-offs, and critical replacement alerts live from your plant dashboard.',
+  },
+  [DASHBOARD_ROLES.TECHNICIAN]: {
+    badge: 'Technician Daily Workspace',
+    title: 'Start the right job first, see what is slipping, and close work without hunting through the system.',
+    body: 'Your queue, machine responsibility, blocked spares, and quick reporting are brought into one simple view designed for constant daily use.',
+  },
+  [DASHBOARD_ROLES.SUPERVISOR]: {
+    badge: 'Supervisor Control View',
+    title: 'Spot overload, assign faster, and remove blockers before tickets turn into escalations.',
+    body: 'Keep the team balanced, monitor SLA risk, and direct action across technicians and machines without extra clicks.',
+  },
+  [DASHBOARD_ROLES.ENGINEER]: {
+    badge: 'Reliability Engineering View',
+    title: 'Focus on repeat failures, weak components, and corrective action quality before the same issue returns.',
+    body: 'Use reliability signals to drive better fixes, stronger root cause control, and fewer recurring breakdowns.',
+  },
+};
+
 /** Supabase read with the same 3s budget the legacy dashboard used. */
 function fetchWithTimeout(promise, ms = 3000) {
   return Promise.race([
@@ -116,6 +140,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quickReportOpen, setQuickReportOpen] = useState(false);
+  const [activeDashboardTab, setActiveDashboardTab] = useState('plant-status');
 
   // One cache per mount. Recomputing the fleet on every render is wasteful;
   // a 5-minute TTL is well inside how fast a maintenance board needs to move.
@@ -233,11 +258,26 @@ export default function Dashboard() {
     safety_officer: { kicker: 'Safety control', lead: 'Unsafe conditions, restart checks and missing safety evidence.' },
   };
   const heading = specialistHeadings[specialistRole] || ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
+  const hero = ROLE_HEROES[role] || ROLE_HEROES[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
   const activeBreakdownCount = metrics?.displayTickets?.filter(
     (t) => ['critical', 'high'].includes(String(t.urgency || '').toLowerCase()),
   ).length || 0;
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
+  const roleSummaryTitle = role === DASHBOARD_ROLES.TECHNICIAN
+    ? 'Technician operational status'
+    : role === DASHBOARD_ROLES.SUPERVISOR
+      ? 'Supervisor operational status'
+      : role === DASHBOARD_ROLES.ENGINEER
+        ? 'Reliability operational status'
+        : 'Plant operational status';
+  const roleSummaryLine = role === DASHBOARD_ROLES.TECHNICIAN
+    ? 'Your active workload, SLA pressure, and assigned machines are summarized below. Open a job and get moving.'
+    : role === DASHBOARD_ROLES.SUPERVISOR
+      ? 'Your team load, fleet exposure, and active breaches are summarized below. Use this to redirect effort early.'
+      : role === DASHBOARD_ROLES.ENGINEER
+        ? 'Reliability exposure, open work, and fleet health are summarized below. Use this to prioritize technical improvement.'
+        : 'Key plant metrics are summarized below. Select any section to dig deep.';
 
   // Global Cmd/Ctrl+N shortcut (see accessibility.js) dispatches this instead
   // of AppShell owning the dialog, since only this page has the machine list.
@@ -245,6 +285,12 @@ export default function Dashboard() {
     document.addEventListener('open-quick-report', openQuickReport);
     return () => document.removeEventListener('open-quick-report', openQuickReport);
   }, [openQuickReport]);
+
+  const dashboardTabs = [
+    { id: 'plant-status', label: 'Plant Operational Status' },
+    { id: 'machine-status', label: 'Machine Status' },
+    { id: 'command-center', label: 'Enterprise Asset & Maintenance Command Center' },
+  ];
 
   return (
     <AppShell active="overview">
@@ -278,13 +324,13 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-              <span>Plant VP &amp; Factory Owner View</span>
+              <span>{hero.badge}</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
-              "Real-time visibility into every machine breakdown, SLA timer, and financial downtime risk across all shifts."
+              "{hero.title}"
             </h2>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Stay ahead of production bottlenecks. Track open breakdowns, maintenance head sign-offs, and critical replacement alerts live from your plant dashboard.
+              {hero.body}
             </p>
           </div>
         </div>
@@ -317,12 +363,12 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Plant Operational Status</h2>
+                    <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">{roleSummaryTitle}</h2>
                     <span className="stitch-neon-pill">AT-A-GLANCE</span>
                   </div>
                   <p className="text-xs text-slate-300 mt-0.5">
                     Welcome, <strong className="text-emerald-400 font-semibold">{user?.name || 'Staff'}</strong> ({role ? role.replace('_', ' ') : 'User'}).
-                    Key plant metrics are summarized below. Select any section to dig deep.
+                    {' '}{roleSummaryLine}
                   </p>
                 </div>
               </div>
@@ -415,7 +461,38 @@ export default function Dashboard() {
           </p>
         )}
 
-        {loading ? (
+        <div className="dashboard-role-strip" data-testid="dashboard-role-strip">
+          <div className="dashboard-role-copy">
+            <span className="dashboard-role-label">Active dashboard</span>
+            <strong>{specialistRole ? specialistRole.replaceAll('_', ' ') : role.replaceAll('_', ' ')}</strong>
+            <span>{heading.lead}</span>
+          </div>
+          <div className="dashboard-role-chips" aria-label="Available role views">
+            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.OWNER ? 'is-active' : ''}`}>Owner</span>
+            <span className={`dashboard-role-chip ${appRole === 'maintenance_head' ? 'is-active' : ''}`}>Maintenance Head</span>
+            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.SUPERVISOR ? 'is-active' : ''}`}>Supervisor</span>
+            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.ENGINEER ? 'is-active' : ''}`}>Engineer</span>
+            <span className={`dashboard-role-chip ${role === DASHBOARD_ROLES.TECHNICIAN ? 'is-active' : ''}`}>Technician</span>
+          </div>
+        </div>
+
+        <div className="dashboard-subtabs" role="tablist" aria-label="Dashboard sections">
+          {dashboardTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeDashboardTab === tab.id}
+              className={`dashboard-subtab ${activeDashboardTab === tab.id ? 'is-active' : ''}`}
+              onClick={() => setActiveDashboardTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {(loading || activeDashboardTab === 'plant-status') && (
+          loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
             {[1, 2, 3].map(i => (
               <div key={i} className="h-44 bg-slate-900/60 rounded-2xl border border-slate-800/80 p-5 animate-pulse flex flex-col justify-between">
@@ -425,9 +502,13 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        ) : (
-          <>
-            {specialistRole && (
+          ) : (
+          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Plant Operational Status">
+            {specialistRole === 'maintenance_head' && (
+              <MaintenanceHeadDashboard tickets={sources.tickets} metrics={metrics} loading={loading} />
+            )}
+
+            {specialistRole && specialistRole !== 'maintenance_head' && (
               <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
             )}
 
@@ -459,9 +540,78 @@ export default function Dashboard() {
             {!specialistRole && role === DASHBOARD_ROLES.ENGINEER && (
               <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
             )}
+          </div>
+          )
+        )}
 
+        {!loading && activeDashboardTab === 'machine-status' && (
+          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Machine Status">
+            <div className="stitch-glass-tile p-4 sm:p-5 mb-6 text-slate-100 relative overflow-hidden shadow-xl" data-testid="machine-status-summary">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">Machine status</h2>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Fleet health, live breakdown exposure, and weekly line downtime in one place.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a href="machines.html" className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all">
+                    Open machine register
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/80">
+                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Fleet Machines</span>
+                  <div className="text-xl font-extrabold text-white mt-1">{metrics?.fleetHealth?.total || 0}</div>
+                </div>
+                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Running</span>
+                  <div className="text-xl font-extrabold text-emerald-400 mt-1">{metrics?.fleetHealth?.byStatus?.running || 0}</div>
+                </div>
+                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Issues</span>
+                  <div className="text-xl font-extrabold text-amber-400 mt-1">{metrics?.fleetHealth?.byStatus?.issues || 0}</div>
+                </div>
+                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Down</span>
+                  <div className="text-xl font-extrabold text-rose-400 mt-1">{metrics?.fleetHealth?.byStatus?.down || 0}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <StitchDonutChart
+                  title="Plant Fleet Health Distribution"
+                  subtitle="Live Machine Status"
+                  data={[
+                    { label: 'Running (Optimal)', value: metrics?.fleetHealth?.byStatus?.running || 0, color: '#50FFAB' },
+                    { label: 'Minor Issues', value: metrics?.fleetHealth?.byStatus?.issues || 0, color: '#FBBF24' },
+                    { label: 'Breakdown / Down', value: metrics?.fleetHealth?.byStatus?.down || 0, color: '#F87171' },
+                    { label: 'Scheduled PM', value: metrics?.fleetHealth?.byStatus?.maintenance || 0, color: '#60A5FA' },
+                  ]}
+                  centerLabel="Fleet"
+                />
+
+                <StitchBarChart
+                  title="Downtime Hours by Production Line"
+                  subtitle="Weekly Downtime Analysis"
+                  items={[
+                    { label: 'Grid Casting Line 1', value: 3.5, max: 10, unit: 'hrs', color: '#F87171' },
+                    { label: 'Plate Pasting Line 2', value: 1.8, max: 10, unit: 'hrs', color: '#FBBF24' },
+                    { label: 'COS Assembly Line 3', value: 0.5, max: 10, unit: 'hrs', color: '#50FFAB' },
+                    { label: 'Formation Charging Line 4', value: 0.2, max: 10, unit: 'hrs', color: '#60A5FA' },
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!loading && activeDashboardTab === 'command-center' && (
+          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Enterprise Asset and Maintenance Command Center">
             <DreamzCMMSFeatureSuite />
-          </>
+          </div>
         )}
 
         <QuickReportDialog

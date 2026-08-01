@@ -47,7 +47,7 @@ function DemoRoiCalculator() {
               onChange={(e) => setMachines(Number(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
+            <div className="flex justify-between text-xs text-slate-400 mt-1">
               <span>5</span>
               <span>25</span>
               <span>50</span>
@@ -69,7 +69,7 @@ function DemoRoiCalculator() {
               onChange={(e) => setDowntimeHours(Number(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
+            <div className="flex justify-between text-xs text-slate-400 mt-1">
               <span>5 hrs</span>
               <span>30 hrs</span>
               <span>60 hrs</span>
@@ -92,7 +92,7 @@ function DemoRoiCalculator() {
               onChange={(e) => setHourlyRate(Number(e.target.value))}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
+            <div className="flex justify-between text-xs text-slate-400 mt-1">
               <span>₹1,000</span>
               <span>₹5,000</span>
               <span>₹10,000</span>
@@ -105,19 +105,19 @@ function DemoRoiCalculator() {
           <div className="bg-slate-900/80 p-5 rounded-xl border border-slate-800">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Current Loss / Mo</span>
             <span className="text-xl md:text-2xl font-bold font-mono text-red-400">₹{currentDowntimeLoss.toLocaleString('en-IN')}</span>
-            <span className="text-[11px] text-slate-500 block mt-1">Without automated response</span>
+            <span className="text-[11px] text-slate-400 block mt-1">Without automated response</span>
           </div>
 
           <div className="bg-slate-900/80 p-5 rounded-xl border border-slate-800">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">45% MTTR Recovery</span>
             <span className="text-xl md:text-2xl font-bold font-mono text-emerald-400">₹{estimatedSavings.toLocaleString('en-IN')}</span>
-            <span className="text-[11px] text-slate-500 block mt-1">Gross production value saved</span>
+            <span className="text-[11px] text-slate-400 block mt-1">Gross production value saved</span>
           </div>
 
           <div className="bg-slate-900/80 p-5 rounded-xl border border-slate-800">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">TurboFix Investment</span>
             <span className="text-xl md:text-2xl font-bold font-mono text-slate-200">₹{softwareInvestment.toLocaleString('en-IN')}</span>
-            <span className="text-[11px] text-slate-500 block mt-1">₹699 / machine / month</span>
+            <span className="text-[11px] text-slate-400 block mt-1">₹699 / machine / month</span>
           </div>
 
           <div className="bg-emerald-950/60 p-5 rounded-xl border border-emerald-500/40">

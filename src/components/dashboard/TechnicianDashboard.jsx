@@ -14,10 +14,11 @@
 
 import React from 'react';
 import {
-  AlertTriangle, ClipboardList, Wrench, PackageSearch, CalendarClock, Zap, ArrowUpRight,
+  AlertTriangle, ClipboardList, Wrench, PackageSearch, CalendarClock, Zap, ArrowUpRight, CircleAlert, Gauge, Clock3, ListTodo,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart from './DashboardChart.jsx';
+import RoleFocusSection from './RoleFocusSection.jsx';
 import { formatHours } from '../../utils/dashboardMetrics.js';
 
 const HEALTH_TONE = { down: 'danger', issues: 'warning', running: 'ok' };
@@ -28,6 +29,13 @@ export default function TechnicianDashboard({ metrics, user, loading = false, on
   const normal = Array.isArray(queue.normal) ? queue.normal : [];
   const myMachines = Array.isArray(metrics?.myMachines) ? metrics.myMachines : [];
   const stats = metrics?.quickStats || {};
+  const nextJob = urgent[0] || normal[0] || null;
+  const breachedJobs = [...urgent, ...normal].filter((row) => row.breached);
+  const blockedJobs = [...urgent, ...normal].filter((row) => row.stage === 'waiting_spare');
+  const atRiskJobs = [...urgent, ...normal].filter((row) => !row.breached && row.slaState === 'at_risk');
+  const downMachines = myMachines.filter((machine) => machine.health === 'down');
+  const issueMachines = myMachines.filter((machine) => machine.health === 'issues');
+  const showWatchlist = downMachines.length || issueMachines.length;
 
   const [showAllMachines, setShowAllMachines] = React.useState(false);
   const visibleMachines = showAllMachines ? myMachines : myMachines.slice(0, 5);
@@ -45,6 +53,58 @@ export default function TechnicianDashboard({ metrics, user, loading = false, on
           </p>
         </div>
       </section>
+
+      {nextJob ? (
+        <RoleFocusSection
+          ariaLabel="Technician start here"
+          tone={nextJob.breached ? 'danger' : nextJob.slaState === 'at_risk' ? 'warning' : 'ok'}
+          title={nextJob.machineName}
+          body={nextJob.issue}
+          pill={nextJob.breached
+            ? `Overdue by ${formatHours(Math.abs(nextJob.remainingHours ?? 0))}`
+            : nextJob.remainingHours != null
+              ? `${formatHours(nextJob.remainingHours)} left`
+              : nextJob.slaLabel}
+          meta={[
+            { icon: CircleAlert, text: `${nextJob.urgency} priority`, label: 'priority' },
+            { icon: Clock3, text: nextJob.stage.replaceAll('_', ' '), label: 'stage' },
+            ...(nextJob.woNumber ? [{ icon: ListTodo, text: nextJob.woNumber, label: 'wo' }] : []),
+          ]}
+          actions={[
+            { href: `technician.html?ticket=${encodeURIComponent(nextJob.id ?? '')}`, label: 'Start this job' },
+            { href: 'tickets.html', label: 'Open full queue' },
+          ]}
+          priorities={[
+            { label: 'Breached jobs', value: breachedJobs.length, help: 'Need immediate recovery', tone: breachedJobs.length ? 'danger' : '' },
+            { label: 'Waiting spare', value: blockedJobs.length, help: 'Blocked by parts', tone: blockedJobs.length ? 'warning' : '' },
+            { label: 'Machine watchlist', value: downMachines.length + issueMachines.length, help: 'Down or unstable assets', tone: showWatchlist ? 'info' : '' },
+          ]}
+        />
+      ) : (
+        <section className="rd-tech-focus" aria-label="Technician start here">
+          <div className="rd-tech-focus-card">
+            <span className="rd-tech-focus-kicker">Start here</span>
+            <p className="rd-empty">No active job is assigned to you right now. Great time for PM, 5S, or Kaizen work.</p>
+          </div>
+          <div className="rd-tech-priorities">
+            <article className={`rd-tech-priority ${breachedJobs.length ? 'danger' : ''}`}>
+              <span className="rd-tech-priority-label">Breached jobs</span>
+              <strong>{breachedJobs.length}</strong>
+              <small>Need immediate recovery</small>
+            </article>
+            <article className={`rd-tech-priority ${blockedJobs.length ? 'warning' : ''}`}>
+              <span className="rd-tech-priority-label">Waiting spare</span>
+              <strong>{blockedJobs.length}</strong>
+              <small>Blocked by parts</small>
+            </article>
+            <article className={`rd-tech-priority ${showWatchlist ? 'info' : ''}`}>
+              <span className="rd-tech-priority-label">Machine watchlist</span>
+              <strong>{downMachines.length + issueMachines.length}</strong>
+              <small>Down or unstable assets</small>
+            </article>
+          </div>
+        </section>
+      )}
 
       <section className="rd-kpi-row rd-kpi-row-3" aria-label="Today at a glance">
         <DashboardKpiCard
@@ -72,6 +132,66 @@ export default function TechnicianDashboard({ metrics, user, loading = false, on
           data-testid="kpi-parts-to-order"
         />
       </section>
+
+      <div className="rd-split">
+        <DashboardChart
+          title="Needs your attention"
+          subtitle="Exceptions first"
+          caption={`${breachedJobs.length + atRiskJobs.length + blockedJobs.length} exceptions`}
+        >
+          {breachedJobs.length || atRiskJobs.length || blockedJobs.length ? (
+            <div className="rd-tech-mini-list">
+              {breachedJobs.slice(0, 2).map((job) => (
+                <a key={`breach-${job.id}`} className="rd-tech-mini danger" href={`technician.html?ticket=${encodeURIComponent(job.id ?? '')}`}>
+                  <span className="rd-tech-mini-label">SLA breached</span>
+                  <strong>{job.machineName}</strong>
+                  <small>{job.issue}</small>
+                </a>
+              ))}
+              {blockedJobs.slice(0, 2).map((job) => (
+                <a key={`blocked-${job.id}`} className="rd-tech-mini warning" href={`tickets.html?ticket=${encodeURIComponent(job.id ?? '')}`}>
+                  <span className="rd-tech-mini-label">Waiting spare</span>
+                  <strong>{job.machineName}</strong>
+                  <small>{job.issue}</small>
+                </a>
+              ))}
+              {!breachedJobs.length && !blockedJobs.length && atRiskJobs.slice(0, 3).map((job) => (
+                <a key={`risk-${job.id}`} className="rd-tech-mini info" href={`technician.html?ticket=${encodeURIComponent(job.id ?? '')}`}>
+                  <span className="rd-tech-mini-label">At risk</span>
+                  <strong>{job.machineName}</strong>
+                  <small>{job.issue}</small>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="rd-empty">Nothing blocked or slipping right now. You are in a good operating zone.</p>
+          )}
+        </DashboardChart>
+
+        <DashboardChart
+          title="Machine watchlist"
+          subtitle="Assets most likely to pull you back"
+          caption={`${downMachines.length} down · ${issueMachines.length} unstable`}
+        >
+          {showWatchlist ? (
+            <div className="rd-tech-mini-list">
+              {[...downMachines, ...issueMachines].slice(0, 4).map((machine) => (
+                <a
+                  key={machine.machineId}
+                  className={`rd-tech-mini ${machine.health === 'down' ? 'danger' : 'warning'}`}
+                  href={`machines.html?machine=${encodeURIComponent(machine.machineId)}`}
+                >
+                  <span className="rd-tech-mini-label">{machine.health === 'down' ? 'Down machine' : 'Needs attention'}</span>
+                  <strong>{machine.machineName}</strong>
+                  <small>{machine.pmLabel} · {machine.openTickets} open ticket{machine.openTickets === 1 ? '' : 's'}</small>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="rd-empty">Your assigned machines are stable right now.</p>
+          )}
+        </DashboardChart>
+      </div>
 
       <DashboardChart
         title="Urgent — do these first"
@@ -109,6 +229,7 @@ export default function TechnicianDashboard({ metrics, user, loading = false, on
                     <span className={`rd-dot ${HEALTH_TONE[machine.health] || ''}`} aria-hidden="true" />
                   </span>
                   <small className="rd-machine-status">{machine.healthLabel}</small>
+                  {machine.location ? <small className="rd-machine-location">{machine.location}</small> : null}
                   <span className="rd-machine-meta">
                     <span>{machine.openTickets} open</span>
                     <span className={`rd-pm rd-pm-${machine.pmTone}`}>{machine.pmLabel}</span>

@@ -795,9 +795,9 @@
     "semantic_hash": "5e577a8e8a8aaa2af6f2b11771fff9fe"
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785478781.655828,
-    "ast_hash": "069e861552c77285eb7472cd56982cc4",
-    "semantic_hash": "069e861552c77285eb7472cd56982cc4"
+    "mtime": 1785574668.7147744,
+    "ast_hash": "744e8857cf447d75eca68a748e36d29c",
+    "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
     "mtime": 1785453108.2126307,
@@ -2070,8 +2070,8 @@
     "semantic_hash": "25284b798d5e2a82b942d0e861b68fe6"
   },
   "src/pages/ReportBreakdown.jsx": {
-    "mtime": 1785511337.7918777,
-    "ast_hash": "54f578b949dd313553a8d49abf9745f2",
+    "mtime": 1785574152.0900908,
+    "ast_hash": "5721204cfdf1e16a5b740856443c1132",
     "semantic_hash": ""
   },
   "src/utils/breakdownRouter.js": {
@@ -2380,8 +2380,8 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785572149.1524255,
-    "ast_hash": "a3f73cb0244f452db9d274beb7d5f1e0",
+    "mtime": 1785574132.5120223,
+    "ast_hash": "5128c07834520a0e2bceabdca5eafb97",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
@@ -2890,8 +2890,8 @@
     "semantic_hash": ""
   },
   "src/pages/PlatformExperience.jsx": {
-    "mtime": 1785572126.6188679,
-    "ast_hash": "a577593ab245be91bbf4ea4e1b8198a4",
+    "mtime": 1785574158.068698,
+    "ast_hash": "8da867b18ef236a1007038036160a77d",
     "semantic_hash": ""
   },
   "tests/platform-experience.spec.js": {
@@ -2900,8 +2900,8 @@
     "semantic_hash": ""
   },
   "src/components/cmms/DreamzCMMSFeatureSuite.jsx": {
-    "mtime": 1785513350.6204338,
-    "ast_hash": "931f207291226bc2651f2fca51fcf5df",
+    "mtime": 1785576906.0465195,
+    "ast_hash": "ad1be9ba6d133af86022309485c64503",
     "semantic_hash": ""
   },
   "artifacts/visual-audit/mobile/manifest.json": {
@@ -3660,93 +3660,93 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/contact-chromium.png": {
-    "mtime": 1785573252.190029,
-    "ast_hash": "a506a1761663f7d3d5315c9ca549be9d",
+    "mtime": 1785574559.8896613,
+    "ast_hash": "a5a8dbaf79d5888e76f6b0d7361e5b61",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/contact-mobile-chrome.png": {
-    "mtime": 1785573457.3271232,
-    "ast_hash": "ed1f045e93faebcddde62cd5d53519e8",
+    "mtime": 1785574630.376347,
+    "ast_hash": "0326eaf5403d560f326c02ffb4b292b5",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/demo-chromium.png": {
-    "mtime": 1785573210.933696,
-    "ast_hash": "134a91650e629303c452ddfff8400463",
+    "mtime": 1785574548.0493162,
+    "ast_hash": "027617f5f55bbda9e9793b9ba1ceb5ba",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/demo-mobile-chrome.png": {
-    "mtime": 1785573437.127187,
-    "ast_hash": "ae90c4a8a7671a86af1ce8983df71b13",
+    "mtime": 1785574616.7540607,
+    "ast_hash": "f6262a178a23a4bc54ea4157041a057b",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/home-chromium.png": {
-    "mtime": 1785573098.0783262,
-    "ast_hash": "164b6bf42ab6d4e1fd1b6b299a88ee7e",
+    "mtime": 1785574509.5870628,
+    "ast_hash": "b0ffb3ae9b7565f525e29e87edcd1e75",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/home-mobile-chrome.png": {
-    "mtime": 1785573273.7718356,
-    "ast_hash": "1fb146671e642c38b6466d9faddd7b98",
+    "mtime": 1785574569.7047882,
+    "ast_hash": "db95cd2d960ea3a04b391e9e24c96d4b",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/platform-chromium.png": {
-    "mtime": 1785573138.7998037,
-    "ast_hash": "bb0a50ac0f78d3cb17d9c1719577c99f",
+    "mtime": 1785574522.0049205,
+    "ast_hash": "0ff852cd5ee1ba4b3a4000955010a7d7",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/platform-experience-chromium.png": {
-    "mtime": 1785573153.4922888,
-    "ast_hash": "1d9b373083979116690bfaeaf63293f7",
+    "mtime": 1785574529.0607502,
+    "ast_hash": "0af526d491361eee3a757651e9d58a9e",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/platform-experience-mobile-chrome.png": {
-    "mtime": 1785573312.4278655,
-    "ast_hash": "21453f556cedb75fda73d90900aaf8d2",
+    "mtime": 1785574593.2107503,
+    "ast_hash": "fbb86197fb82985ed44c8ca3a4f99e88",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/platform-mobile-chrome.png": {
-    "mtime": 1785573299.4763937,
-    "ast_hash": "4b476dc9b35f29745ca6d2f121def868",
+    "mtime": 1785574584.3490233,
+    "ast_hash": "478bc297b9f3b4509114d3148d8780d6",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/pricing-chromium.png": {
-    "mtime": 1785573236.6727245,
-    "ast_hash": "5e435823c621c1488e3c4bee004f6d8e",
+    "mtime": 1785574554.3555973,
+    "ast_hash": "5441cf0101819e1a1722f02a230a361f",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/pricing-mobile-chrome.png": {
-    "mtime": 1785573447.913125,
-    "ast_hash": "a92b96bbeb267108548bc020b2682573",
+    "mtime": 1785574623.7873473,
+    "ast_hash": "c87e73d3d7f7688f883fd9eaeb1568dd",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/records-platform-chromium.png": {
-    "mtime": 1785573175.3699968,
-    "ast_hash": "80ec1d59f0988d5a706cba1ddfe683aa",
+    "mtime": 1785574536.375845,
+    "ast_hash": "db0e453eefccc12d67e319c20ff9d7fb",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/records-platform-mobile-chrome.png": {
-    "mtime": 1785573415.786964,
-    "ast_hash": "e5d117edf93dc648219d2d2acd01348e",
+    "mtime": 1785574602.1821256,
+    "ast_hash": "fc5fb570281c666919276b08c033b7fb",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/why-turbofix-chromium.png": {
-    "mtime": 1785573114.1902664,
-    "ast_hash": "e43fe85e327837fb802856628084e051",
+    "mtime": 1785574516.2147276,
+    "ast_hash": "c3cdf1b66c4bd221f2735e2b76b3a879",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/why-turbofix-mobile-chrome.png": {
-    "mtime": 1785573289.070618,
-    "ast_hash": "e42fec2a6896bf97a0d3a4a9b3d4f15b",
+    "mtime": 1785574576.5439203,
+    "ast_hash": "5814f36248fa0085add2a215786087ee",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/workflow-chromium.png": {
-    "mtime": 1785573187.117662,
-    "ast_hash": "929203925406d59b8ea78f84791bfe98",
+    "mtime": 1785574542.0793765,
+    "ast_hash": "66dfbb0f687d1439d949bb322f9866f7",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/workflow-mobile-chrome.png": {
-    "mtime": 1785573426.3059237,
-    "ast_hash": "6c37fe23468b5fc35d01f1cfbecca794",
+    "mtime": 1785574609.438251,
+    "ast_hash": "5e28f5c3fed8ff2bdeacf7cc1f075dec",
     "semantic_hash": ""
   }
 }

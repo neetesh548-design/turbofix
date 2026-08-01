@@ -1,16 +1,16 @@
 # Graph Report - TurboFix  (2026-08-01)
 
 ## Corpus Check
-- 586 files · ~1,524,424 words
+- 588 files · ~2,884,431 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 6151 nodes · 10401 edges · 526 communities (414 shown, 112 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 448 edges (avg confidence: 0.58)
+- 6160 nodes · 10332 edges · 514 communities (419 shown, 95 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 447 edges (avg confidence: 0.58)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `46bf6fb9`
+- Built from commit: `01468413`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -457,16 +457,9 @@
 - 5. Developer Portal Integration ✅
 - CSS Enhancements ✅
 - transcribe_audio
-- translate_message
-- CounterWidget.test.jsx
 - 11. CSS Enhancements ✅
-- 13. Testing Checklist
-- 15. Security Considerations
-- 1. WebSocket Infrastructure ✅
-- 2. Real-time Notifications ✅
 - 3. Activity Feed ✅
 - 4. Presence Indicators ✅
-- 9. WebSocket Connection Setup
 - Resources
 - 11. localStorage Structure Optimization
 - 12. Web Vitals Targets
@@ -482,23 +475,18 @@
 - archive/README.md
 - task.md
 - Testing Checklist
-- 6. CSS Enhancements ✅
 - Testing Checklist
 - Files Created/Modified
-- Known Limitations & Future Work
-- Resources & Documentation
-- PhotoCapture.jsx
 - EventRepository
 - MachineRepository
 - TechnicianWorkRepository
 - TicketRepository
 - Testing Checklist
 - Resources
-- badge.jsx
 - translations.js
 
 ## God Nodes (most connected - your core abstractions)
-1. `react` - 143 edges
+1. `react` - 144 edges
 2. `MachineRepository` - 110 edges
 3. `CurrentUser` - 96 edges
 4. `auth_headers()` - 94 edges
@@ -527,79 +515,79 @@
 ## Hyperedges (group relationships)
 - **TurboFix Main Workflow Pages** — src_pages_qrgateway_qrgateway, src_pages_technician_technician, src_pages_machines_machines, src_pages_records_records, src_pages_dashboard_dashboard [INFERRED 0.85]
 
-## Communities (526 total, 112 thin omitted)
+## Communities (514 total, 95 thin omitted)
 
 ### Community 0 - "Machine Health & Core State"
-Cohesion: 0.10
-Nodes (19): Calls Gemini to turn a raw issue description into a structured brief.     Same p, summarize_issue(), extract_machine_record(), IssueBrief, maintenance_assistant(), _normalize_confidence(), _normalize_urgency(), Answer a scoped maintenance question through the OpenAI provider. (+11 more)
+Cohesion: 0.18
+Nodes (6): FakeAsyncClient, FakeResponse, json_content_for(), test_summarize_issue_bounds_invalid_confidence(), test_summarize_issue_defaults_unexpected_urgency_to_medium(), test_summarize_issue_parses_and_normalizes_urgency()
 
 ### Community 1 - "Ticket & Breakdown Routing"
 Cohesion: 0.04
 Nodes (47): 0-1 Click Tests, 10. Post-Launch Monitoring, 11. Future Enhancements (Post-Launch), 1. Data-Driven Usage Frequency Matrix, 2. Navigation Architecture Changes, 3. Smart Context Persistence (Intelligent Defaults), 4. Keyboard Navigation & Accessibility, 5. Mobile-Responsive Adjustments (+39 more)
 
 ### Community 2 - "AI Records & Vault Management"
-Cohesion: 0.06
-Nodes (67): IssueCapture(), QUICK_PHRASES, MachineSelector(), scannerAvailable(), PhotoAnnotatorModal(), RoleForm(), QuickReportDialog(), machine() (+59 more)
+Cohesion: 0.10
+Nodes (33): RoleForm(), assignedEngineer(), assignedSupervisor(), BREAKDOWN_ROLES, buildBreakdownRecord(), CATEGORY_INDEX, categoryMeta(), GENERAL_CATEGORY (+25 more)
 
 ### Community 3 - "Authentication & Session Token"
 Cohesion: 0.05
-Nodes (34): CustomKpiRepository, new_kpi_entry_id(), new_kpi_id(), Abstract base classes (interfaces) for all TurboFix data repositories.  Every co, Read/write access to owner-defined custom KPI configs and daily data entries., Return all custom KPI configs for a company., Return a single KPI config, or None., Append a new custom KPI config row. (+26 more)
+Nodes (35): get_custom_kpis(), Return the configured CustomKpiRepository implementation (cached singleton)., CustomKpiRepository, new_kpi_entry_id(), new_kpi_id(), Abstract base classes (interfaces) for all TurboFix data repositories.  Every co, Read/write access to owner-defined custom KPI configs and daily data entries., Return all custom KPI configs for a company. (+27 more)
 
 ### Community 4 - "Marketing Landing & Presentation"
 Cohesion: 0.04
 Nodes (47): 10. **Production Checklist**, 11. **Key Concepts for TurboFix**, 12. **Next Steps**, 1. **Initial Setup**, 2. **Running Migrations**, 3. **Create Demo Auth Users** (Required for Demo Login), 4. **Understanding RLS (Row Level Security)**, 5. **Database Schema Overview** (+39 more)
 
 ### Community 5 - "dashboardMetrics.js"
-Cohesion: 0.09
-Nodes (72): MACHINES, NOW, opts, PM_LOGS, TEAM, TICKETS, NOW, buildRoleMetrics() (+64 more)
+Cohesion: 0.14
+Nodes (46): MACHINES, NOW, opts, PM_LOGS, TEAM, TICKETS, buildRoleMetrics(), buildWorkQueue() (+38 more)
 
 ### Community 6 - "base.py"
 Cohesion: 0.16
 Nodes (8): DEMO_BREAKDOWN_MACHINES, DEMO_MACHINES, DEMO_MACHINES, DEMO_TEAM, emptyAssignments, buildDemoTicketsLegacy(), DEMO_TICKETS, hoursAgo()
 
 ### Community 7 - "react"
-Cohesion: 0.04
-Nodes (9): react, ENERGY_SOURCES, FormInput(), FeatureCard(), Notification(), TYPE_STYLES, SlaMeter(), Button() (+1 more)
+Cohesion: 0.02
+Nodes (19): react, compressImage(), PhotoCapture(), ENERGY_SOURCES, FormInput(), DEVICES, PREVIEW_PAGES, DEFAULT_FAQS (+11 more)
 
 ### Community 8 - "auth_router.py"
 Cohesion: 0.13
 Nodes (29): add_supervisor(), AddSupervisorRequest, _company_approved(), _extract_10_digit_phone(), _find_user_by_phone(), login(), LoginRequest, otp_forgot_password() (+21 more)
 
 ### Community 9 - "main.py"
-Cohesion: 0.11
-Nodes (10): download_media(), Send turbofix_new_ticket: ticket, machine, location, issue, urgency, assignee., Resolve a WhatsApp media ID → download → save to MEDIA_STORE_DIR.      Returns t, send_template_message(), FakeAsyncClient, FakePostAsyncClient, FakeResponse, Tests for the WhatsApp infrastructure client — updated for the SOLID architectur (+2 more)
+Cohesion: 0.12
+Nodes (8): download_media(), Resolve a WhatsApp media ID → download → save to MEDIA_STORE_DIR.      Returns t, FakeAsyncClient, FakePostAsyncClient, FakeResponse, Tests for the WhatsApp infrastructure client — updated for the SOLID architectur, test_download_media_saves_file(), test_send_template_message_posts_expected_payload()
 
 ### Community 10 - "asArray"
-Cohesion: 0.10
-Nodes (61): EMPTY_FILTERS, fetchInventorySources(), fetchWithTimeout(), Inventory(), MODIFY_ROLES, ROLE_HEADINGS, STATUS_FILTERS, VIEW_ONLY_ROLES (+53 more)
+Cohesion: 0.15
+Nodes (46): daysAgo(), item(), makePart(), NOW, one(), PO_ROWS, SHELF, SHELF_PARTS (+38 more)
 
 ### Community 11 - "UserRepository"
-Cohesion: 0.03
-Nodes (61): Self-contained internal TurboFix platform administration console., Read/write access to the Users and Companies entities., Generate a new unique user ID scoped to a company., Look up a user by phone or email (case-insensitive)., Return the user dict for user_id, or None., Return all users in the system., Append a new user row. Keys must match USERS_HEADER.          Backends that need, Verify identifier (phone or email) + password. Return the user dict if valid, el (+53 more)
+Cohesion: 0.04
+Nodes (31): Self-contained internal TurboFix platform administration console., admin_app(), admin_company_users(), admin_company_workspace_preview(), admin_console(), admin_list_companies(), admin_login(), admin_update_company() (+23 more)
 
 ### Community 12 - "Supabase Setup & Configuration Guide for TurboFix"
 Cohesion: 0.04
 Nodes (45): 10. RECOMMENDED PRIORITIZATION, 11. TESTING CHECKLIST, 12. DEVELOPER NOTES, 1. FEATURE COMPLETENESS AUDIT, 1. State Management Disconnect, 2. Missing Feature Flags, 2. MVP-FIRST DRILL-DOWN ISSUES, 3. API Integration Unclear (+37 more)
 
 ### Community 13 - "kaizenMetrics.js"
-Cohesion: 0.13
-Nodes (52): BAND_LABEL, KaizenIdeaCard(), KaizenPhotoGallery(), KaizenStatusBadge(), EMPTY_DRAFT, OperatorKaizen(), SupervisorKaizen(), days() (+44 more)
+Cohesion: 0.19
+Nodes (42): BAND_LABEL, KaizenIdeaCard(), days(), idea(), NOW, buildKaizenMetrics(), categoryLabel(), computeRoi() (+34 more)
 
 ### Community 14 - "LocalTicketRepository"
-Cohesion: 0.10
-Nodes (7): LocalMachineRepository, Reads/writes machines in the Machines tab of the local tracker workbook.      Ma, Return the next Mnnn code for a company (e.g. 'M003' if M001/M002 exist)., machine_repo(), Tests for the local (openpyxl) ticket and machine repositories.  Replaces test_s, test_load_machines_is_cached_within_ttl(), test_load_machines_refreshes_after_ttl_expires()
+Cohesion: 0.06
+Nodes (13): LocalEventRepository, LocalMachineRepository, LocalTicketRepository, Local (openpyxl / Excel) implementations of TicketRepository and MachineReposito, Reads/writes events in the MachineEvents tab of the local tracker workbook., Reads/writes machines in the Machines tab of the local tracker workbook.      Ma, Return the next Mnnn code for a company (e.g. 'M003' if M001/M002 exist)., Reads/writes tickets in the Tickets tab of the local tracker workbook. (+5 more)
 
 ### Community 15 - "TurboFix Approver Agent"
 Cohesion: 0.04
 Nodes (45): 10.1 Monitor Metrics, 10.2 Create Post-Release Report, 2.1 Verify Review Completeness, 2.2 Check for Merge Conflicts, 2.3 Verify Commit Hygiene, 2.4 Verify No Secrets Leaked, 3.1 Determine Version Number, 3.2 Create Version Tag (+37 more)
 
 ### Community 16 - "useLanguage"
-Cohesion: 0.10
-Nodes (28): Footer(), LanguageGate(), CapabilityStrip(), ContactCard(), DEFAULT_FAQS, FaqAccordion(), PageHero(), PricingCalculator() (+20 more)
+Cohesion: 0.19
+Nodes (3): Footer(), LanguageGate(), SkipLink()
 
 ### Community 17 - "escalation_service.py"
-Cohesion: 0.14
-Nodes (13): Worst-Case & Robustness Verification Test Suite for TurboFix Backend., Verify backend handles SQL injection and XSS payloads cleanly during registratio, Verify backend handles 50,000 character string payload without buffer overflow /, Verify phone extractor and OTP sender handle malformed, empty, or international, Verify OTP verification endpoint handles non-numeric and SQL injection OTP strin, Verify that when BOTH Fast2SMS and WhatsApp gateways fail/raise exceptions, API, Verify unauthorized users cannot access admin management routes., test_fast2sms_and_whatsapp_simultaneous_network_outage() (+5 more)
+Cohesion: 0.17
+Nodes (25): NOW, monthSummary(), responseTimeTrend(), weeklySummary(), buildTicketsCSV(), COLUMNS, downloadTicketsCSV(), escapeCell() (+17 more)
 
 ### Community 18 - "main.go"
 Cohesion: 0.09
@@ -607,31 +595,31 @@ Nodes (29): Seed script — creates the DEMO company with owner + 11 supervisors
 
 ### Community 19 - "ticketSla.js"
 Cohesion: 0.14
-Nodes (26): machine(), NOW, withOpenTickets(), computeMachineHealth(), DATABASE_STATUS_BUCKETS, databaseStatusBucket(), daysSince(), daysUntil() (+18 more)
+Nodes (29): machine(), NOW, withOpenTickets(), computeMachineHealth(), DATABASE_STATUS_BUCKETS, databaseStatusBucket(), daysSince(), daysUntil() (+21 more)
 
 ### Community 20 - "formatInr"
-Cohesion: 0.15
-Nodes (21): is_configured(), is_configured(), Check if WhatsApp bridge mode is active., _graph_url(), WhatsApp messaging — routes through WaCRM when configured, else direct Meta Clou, Send turbofix_ticket_closed: ticket, machine, resolution, closer, duration., Send a plain text message., Send a broadcast to multiple recipients. Only available via WaCRM.      recipien (+13 more)
+Cohesion: 0.13
+Nodes (24): is_configured(), is_configured(), Check if WhatsApp bridge mode is active., _graph_url(), WhatsApp messaging — routes through WaCRM when configured, else direct Meta Clou, Send turbofix_new_ticket: ticket, machine, location, issue, urgency, assignee., Send turbofix_ticket_closed: ticket, machine, resolution, closer, duration., Send a plain text message. (+16 more)
 
 ### Community 21 - "consumables_service.py"
 Cohesion: 0.08
-Nodes (36): approve_purchase_order(), check_and_reserve_stock(), _check_reorder_for_table(), create_part_request(), create_purchase_order(), _find_inventory_item(), get_purchase_order(), _has_recent_auto_reorder() (+28 more)
+Nodes (34): approve_purchase_order(), check_and_reserve_stock(), _check_reorder_for_table(), create_part_request(), create_purchase_order(), _find_inventory_item(), get_purchase_order(), _has_recent_auto_reorder() (+26 more)
 
 ### Community 22 - "digest_service.py"
-Cohesion: 0.07
-Nodes (27): initialize_ticket_escalation(), Set the first escalation timer on a newly created ticket., Integration tests for escalation_service.py  Tests ticket escalation workflow: -, Test supervisor rejecting technician's closure (incomplete work)., Test technician delegating ticket to colleague., Test marking issue as outsourced (vendor/contractor involvement)., Test technician submitting closure evidence (photo/notes)., Test WhatsApp message formatting for escalation alerts. (+19 more)
+Cohesion: 0.08
+Nodes (23): Integration tests for escalation_service.py  Tests ticket escalation workflow: -, Test supervisor rejecting technician's closure (incomplete work)., Test technician delegating ticket to colleague., Test marking issue as outsourced (vendor/contractor involvement)., Test technician submitting closure evidence (photo/notes)., Test WhatsApp message formatting for escalation alerts., Test escalation when spare parts unavailable in stock., In-memory session store for testing. (+15 more)
 
 ### Community 23 - "test_dashboard_service.py"
 Cohesion: 0.06
 Nodes (45): get_machines(), get_tickets(), build_custom_kpi_values(), build_dashboard_overview(), compute_kpis(), get_dashboard_data(), get_machine_highlights(), get_tickets_by_assignee() (+37 more)
 
 ### Community 24 - "wacrm_client.py"
-Cohesion: 0.12
-Nodes (37): POST to `url` with automatic retry on transient errors.      All keyword argumen, GET from `url` with automatic retry on transient errors., resilient_get(), resilient_post(), get_account_info(), get_broadcast_status(), get_conversation(), get_conversation_messages() (+29 more)
+Cohesion: 0.08
+Nodes (45): Fast2SMS SMS Client — https://docs.fast2sms.com/reference/authorization, send_sms_message(), _is_retryable(), Resilient HTTP client with tenacity retry + exponential backoff.  Wraps httpx fo, POST to `url` with automatic retry on transient errors.      All keyword argumen, GET from `url` with automatic retry on transient errors., resilient_get(), resilient_post() (+37 more)
 
 ### Community 25 - "auth_headers"
 Cohesion: 0.15
-Nodes (19): admin_token(), _machine(), Machine-onboarding quota + the internal TurboFix-team admin console.  Seeded sta, Verify the Supabase fast-path aggregates tickets/docs/records correctly., test_admin_app_has_safer_client_controls(), test_admin_app_requires_admin_token(), test_admin_can_list_users_and_reset_password(), test_admin_can_view_company_dashboard() (+11 more)
+Nodes (24): auth_headers(), test_assistant_rejects_machine_from_another_company(), test_machine_assistant_uses_exact_question_and_machine_data(), test_plant_wide_ai_context_contains_every_company_machine(), test_plant_wide_assistant_has_live_data_fallback(), admin_token(), _machine(), Machine-onboarding quota + the internal TurboFix-team admin console.  Seeded sta (+16 more)
 
 ### Community 26 - "Phase 1 Action Plan - Getting Started"
 Cohesion: 0.04
@@ -643,19 +631,19 @@ Nodes (45): Accomplishments, Accomplishments, Activity Summary, Build Verificati
 
 ### Community 28 - "login"
 Cohesion: 0.10
-Nodes (34): auth_headers(), login(), test_assistant_rejects_machine_from_another_company(), test_machine_assistant_uses_exact_question_and_machine_data(), test_plant_wide_ai_context_contains_every_company_machine(), test_plant_wide_assistant_has_live_data_fallback(), TestReports, test_cannot_download_another_companys_document() (+26 more)
+Nodes (28): login(), test_cannot_download_another_companys_document(), test_list_documents_filtered_by_machine(), test_list_documents_scoped_to_own_company(), test_maintenance_head_can_upload_document(), test_owner_can_delete_document(), test_supervisor_cannot_delete_document(), test_supervisor_cannot_upload_document() (+20 more)
 
 ### Community 29 - "dependencies"
 Cohesion: 0.06
 Nodes (33): @ant-design/icons, antd, class-variance-authority, clsx, html-to-react, jszip, lucide-react, dependencies (+25 more)
 
 ### Community 30 - "Dashboard"
-Cohesion: 0.05
-Nodes (60): CurrentUser, The authenticated caller's identity, parsed straight from the JWT - no extra, Enforces the same multi-tenant isolation used for tickets/machines         elsew, FileStorage, Return file bytes for a storage_path previously returned by save()., Delete the file at storage_path. Silently ignores missing files., Save file bytes and return an opaque storage_path string for later retrieval., PartsRepository (+52 more)
+Cohesion: 0.04
+Nodes (82): CurrentUser, The authenticated caller's identity, parsed straight from the JWT - no extra, Enforces the same multi-tenant isolation used for tickets/machines         elsew, _content_matches_extension(), FileStorage, FileTooLargeError, get_file_storage(), ABC (+74 more)
 
 ### Community 31 - "machineHealth.js"
 Cohesion: 0.06
-Nodes (38): configure_logging(), Call once at application startup (from main.py lifespan)., Rate limiting for sensitive endpoints — prevents brute-force, spam, and DoS., _auto_reorder_loop(), _daily_digest_loop(), _drift_check_loop(), _escalation_loop(), health() (+30 more)
+Nodes (39): configure_logging(), Call once at application startup (from main.py lifespan)., Rate limiting for sensitive endpoints — prevents brute-force, spam, and DoS., _auto_reorder_loop(), _daily_digest_loop(), _drift_check_loop(), _escalation_loop(), health() (+31 more)
 
 ### Community 32 - "TurboFix UI Consistency Audit & Implementation Plan"
 Cohesion: 0.05
@@ -666,8 +654,8 @@ Cohesion: 0.06
 Nodes (30): 3.1 TypeScript & Linting, 3.2 Unit Tests, 3.3 E2E Tests, 4.1 Architecture & Design, 4.2 Code Quality, 4.3 React & Hooks Best Practices, 4.4 i18n & Localization, 4.5 Responsive Design (+22 more)
 
 ### Community 34 - "test_new_features.py"
-Cohesion: 0.08
-Nodes (15): rewrite_document_paths(), client(), _events_for_machine(), _image_payload(), _last_ticket(), Tests for new features: photo support, language detection, ticket closure, machi, TestImageSupport, TestMachineEvents (+7 more)
+Cohesion: 0.05
+Nodes (21): _clear_di_caches(), isolated_machine_data_store(), Clear all DI factory lru_caches so monkeypatched config is picked up., Prevent generated MachineData files from leaking across tests or into source dat, A TestClient wired to a throwaway copy of the tracker (never the real one)     a, rewrite_document_paths(), vault_client(), client() (+13 more)
 
 ### Community 35 - "scripts"
 Cohesion: 0.06
@@ -675,23 +663,23 @@ Nodes (31): scripts, agent:redesign, build, deploy, dev, lint, predeploy, previe
 
 ### Community 36 - "App.jsx"
 Cohesion: 0.06
-Nodes (31): App(), Assistant, Dashboard, DemoLogin, Home, Inventory, Kaizen, Login (+23 more)
+Nodes (30): Assistant, Dashboard, DemoLogin, Home, Inventory, Kaizen, Login, Machines (+22 more)
 
 ### Community 37 - "Navbar.jsx"
 Cohesion: 0.44
 Nodes (10): cipherTransform(), computeChecksum(), decryptUrlParams(), encryptUrlParams(), generateMachineQRUrl(), getAdminEncryptionConfig(), getAdminUrlSecret(), resetAdminEncryptionMemory() (+2 more)
 
 ### Community 38 - "AppShell.jsx"
-Cohesion: 0.14
-Nodes (12): AppShell(), getLiveDataAnswer(), Assistant(), getLiveDataAnswer(), machineSuggestions, plantSuggestions, AccordionSections(), MachinesRefactored() (+4 more)
+Cohesion: 0.11
+Nodes (20): AppShell(), getLiveDataAnswer(), Assistant(), getLiveDataAnswer(), machineSuggestions, plantSuggestions, MachinesRefactored(), calculateEstimate() (+12 more)
 
 ### Community 39 - "react"
 Cohesion: 0.10
 Nodes (23): react, react, CachedData, LazyComponent, MemoizedCard, OptimizedImage(), OptimizedList(), useDebounce() (+15 more)
 
 ### Community 40 - "Machines.jsx"
-Cohesion: 0.09
-Nodes (18): MachineRepository, CapexEscalationModal(), MachineDetailDrawer(), URGENCY_TONE, MachinePersonnelMatrixModal(), KAIZEN_CATEGORIES, LEAN_WASTES, Machines() (+10 more)
+Cohesion: 0.10
+Nodes (16): MachineRepository, CapexEscalationModal(), MachineDetailDrawer(), URGENCY_TONE, MachinePersonnelMatrixModal(), KAIZEN_CATEGORIES, LEAN_WASTES, Machines() (+8 more)
 
 ### Community 41 - "read_records"
 Cohesion: 0.16
@@ -706,12 +694,12 @@ Cohesion: 0.13
 Nodes (27): Automatic Technician Alerts (Feature), Reply DEMO on WhatsApp (Call to Action), Evidence-Based Closure (Feature), Target Audience: Factories / Every Factory Worker, TurboFix WhatsApp Brochure (Marketing Image), Instant Breakdown Tickets (Feature), TurboFix Product (Maintenance Ticketing Platform), Step 1: Scan the Machine QR Code (+19 more)
 
 ### Community 45 - "get_worksheet"
-Cohesion: 0.11
-Nodes (26): ensure_headers(), _find_worksheet(), _get_all_values(), get_client(), get_spreadsheet(), get_worksheet(), _open_spreadsheet(), Any (+18 more)
+Cohesion: 0.12
+Nodes (22): ensure_headers(), _find_worksheet(), _get_all_values(), get_client(), get_spreadsheet(), get_worksheet(), _open_spreadsheet(), Any (+14 more)
 
 ### Community 46 - "SheetsTicketRepository"
-Cohesion: 0.13
-Nodes (6): Reads/writes events in the MachineEvents worksheet of a Google Sheet., Reads/writes machines in the Machines worksheet of a Google Sheet.      Maintain, Reads/writes tickets in the Tickets worksheet of a Google Sheet., SheetsEventRepository, SheetsMachineRepository, SheetsTicketRepository
+Cohesion: 0.12
+Nodes (8): Read canonical records while tolerating old, extra, or blank columns.      Produ, read_records(), Reads/writes events in the MachineEvents worksheet of a Google Sheet., Reads/writes machines in the Machines worksheet of a Google Sheet.      Maintain, Reads/writes tickets in the Tickets worksheet of a Google Sheet., SheetsEventRepository, SheetsMachineRepository, SheetsTicketRepository
 
 ### Community 47 - "whatsapp_webhook/index.ts"
 Cohesion: 0.18
@@ -726,12 +714,12 @@ Cohesion: 0.05
 Nodes (41): 1. Detail Lists Migration (30 min), 1. KPI Cards → AntDKPICard, 2. Chart Cards → AntDChartCard, 2. Status Badges (20 min), 3. Empty States (15 min), 4. Health Ring (25 min), After (Ant Design), Before (Custom) (+33 more)
 
 ### Community 50 - "create_access_token"
-Cohesion: 0.10
-Nodes (15): create_access_token(), create_admin_token(), Live Demo Onboarding & Multi-Tenant Data Firewall End-to-End Verification Test., test_complete_live_demo_onboarding_and_firewall_flow(), test_backup_contains_originals_structured_data_csv_and_machine_data(), test_duplicate_source_is_rejected(), test_non_owner_operational_role_can_create_review_draft(), test_only_maintenance_head_can_approve_and_approved_data_reaches_machine_context() (+7 more)
+Cohesion: 0.11
+Nodes (17): create_access_token(), get_tickets(), Return the configured TicketRepository implementation (cached singleton)., new_ticket_id(), owner_headers(), Unit tests for Report Router endpoints in app.routers.report_router., _open_ticket(), _technician_token() (+9 more)
 
 ### Community 51 - "whatsapp.py"
-Cohesion: 0.10
-Nodes (19): create_reset_token(), decode_access_token(), decode_reset_token(), get_current_admin(), get_current_user(), _password_fingerprint(), Phase 5 - Document Vault authentication.  A small, real (not stubbed) JWT auth l, Returns the payload only if the token is a valid, unexpired reset token.     Cal (+11 more)
+Cohesion: 0.09
+Nodes (22): create_admin_token(), create_reset_token(), decode_access_token(), decode_reset_token(), get_current_admin(), get_current_user(), _password_fingerprint(), Phase 5 - Document Vault authentication.  A small, real (not stubbed) JWT auth l (+14 more)
 
 ### Community 52 - "test_fanout.py"
 Cohesion: 0.15
@@ -746,16 +734,16 @@ Cohesion: 0.16
 Nodes (11): OPENAI_API_KEY, RAZORPAY_WEBHOOK_SECRET, WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, NotificationPayload, hexToBytes() (+3 more)
 
 ### Community 56 - "Inventory.jsx"
-Cohesion: 0.08
-Nodes (35): new_document_id(), Read/write access to the Tickets data entity., Generate a new unique ticket ID., Append a new ticket row. Keys must match TICKETS_HEADER., Return the ticket dict for ticket_id, or None if not found., Set voice_note_media_id on the matching row. Returns True if found., Update AI-generated fields on the matching ticket. Returns True if found., Return all tickets belonging to a company. (+27 more)
+Cohesion: 0.04
+Nodes (80): ABC, MachineRepository, Read/write access to the Tickets data entity., Generate a new unique ticket ID., Append a new ticket row. Keys must match TICKETS_HEADER., Return the ticket dict for ticket_id, or None if not found., Set voice_note_media_id on the matching row. Returns True if found., Update AI-generated fields on the matching ticket. Returns True if found. (+72 more)
 
 ### Community 57 - "conftest.py"
 Cohesion: 0.13
-Nodes (6): _clear_di_caches(), isolated_machine_data_store(), Clear all DI factory lru_caches so monkeypatched config is picked up., Prevent generated MachineData files from leaking across tests or into source dat, A TestClient wired to a throwaway copy of the tracker (never the real one)     a, vault_client()
+Nodes (21): StockHealthIndicator(), stockReason(), EMPTY_FILTERS, fetchInventorySources(), fetchWithTimeout(), Inventory(), MODIFY_ROLES, ROLE_HEADINGS (+13 more)
 
 ### Community 58 - "ai_assistant/index.ts"
-Cohesion: 0.12
-Nodes (17): person(), ALLOWED_AI_ROLES, allowedOrigins, buildMachineMarkdown(), bullets(), compactExtraction(), compactProperties(), cors() (+9 more)
+Cohesion: 0.13
+Nodes (16): ALLOWED_AI_ROLES, allowedOrigins, buildMachineMarkdown(), bullets(), compactExtraction(), compactProperties(), cors(), DANGEROUS_RESPONSE_PATTERNS (+8 more)
 
 ### Community 59 - "TurboFix Client Presentation Script (10 Slides)"
 Cohesion: 0.05
@@ -766,12 +754,12 @@ Cohesion: 0.07
 Nodes (12): new_user_id(), LocalUserRepository, _normalize(), Reads/writes Users and Companies tabs in the local tracker workbook., Look up a user by phone or email (case-insensitive, whitespace-trimmed)., _normalize(), Google Sheets implementation of UserRepository., Reads/writes Users and Companies worksheets in a Google Sheet. (+4 more)
 
 ### Community 61 - ".select"
-Cohesion: 0.07
-Nodes (15): get_part_requests(), _build_factory_to_code_map(), GET rows. params are PostgREST query-string filters., Durable, tenant-scoped AI machine records stored in Supabase., Overwrite a GoTrue identity's password via the admin API., Build a mapping of factory_id -> company_code in bulk with minimal queries., Thin wrapper around httpx for PostgREST calls., _SupabaseClient (+7 more)
+Cohesion: 0.12
+Nodes (7): get_part_requests(), GET rows. params are PostgREST query-string filters., SupabaseDocumentRepository, SupabaseEventRepository, SupabasePartRequestRepository, DocumentRepository, EventRepository
 
 ### Community 62 - "SupabaseTicketRepository"
-Cohesion: 0.11
-Nodes (6): get_ai_feedback(), _expand_encoded_json(), Supabase TEXT has no Excel cell limit, so persist readable JSON., SupabaseAIFeedbackRepository, SupabaseTicketRepository, TicketRepository
+Cohesion: 0.12
+Nodes (4): get_ai_feedback(), SupabaseAIFeedbackRepository, SupabaseTicketRepository, TicketRepository
 
 ### Community 63 - "Tab Visibility by Role"
 Cohesion: 0.05
@@ -782,16 +770,16 @@ Cohesion: 0.18
 Nodes (9): DirectionProvider(), getFlagEmoji(), LanguageStats(), LanguageSwitcher(), LocalizedDate(), LocalizedNumber(), LocalizedText(), I18nManager (+1 more)
 
 ### Community 65 - "gemini.py"
-Cohesion: 0.21
-Nodes (18): active_provider(), analyze_image(), detect_language(), enabled(), extract_machine_record(), maintenance_assistant(), Resolves which AI backend to use: "gemini", "openai", or "" (AI layer off)., Extract structured maintenance facts without approving them for AI use. (+10 more)
+Cohesion: 0.19
+Nodes (19): active_provider(), analyze_image(), detect_language(), enabled(), extract_machine_record(), maintenance_assistant(), Resolves which AI backend to use: "gemini", "openai", or "" (AI layer off)., Extract structured maintenance facts without approving them for AI use. (+11 more)
 
 ### Community 66 - "Kaizen.jsx"
 Cohesion: 0.05
 Nodes (39): **Build Quality**, **Code Quality**, 📁 COMPLETE FILE INVENTORY, **Components (8 Files)**, 🎉 CONCLUSION, 📞 CONTACT & NEXT STEPS, 🚀 DEPLOYMENT ROADMAP, **Documentation (18 Files)** (+31 more)
 
 ### Community 67 - "_build_role_context"
-Cohesion: 0.10
-Nodes (21): Send turbofix_escalation in its six-placeholder order., send_escalation_template(), approve_ticket_closure(), delegate_to_colleague(), escalate_part_request(), escalate_ticket(), mark_outsourced(), _minutes_open() (+13 more)
+Cohesion: 0.11
+Nodes (21): approve_ticket_closure(), delegate_to_colleague(), escalate_part_request(), escalate_ticket(), mark_outsourced(), _minutes_open(), Escalation engine — checks ticket timers and fires WhatsApp notifications.  Two, Advance a part request to the next escalation level. (+13 more)
 
 ### Community 68 - "Records.jsx"
 Cohesion: 0.05
@@ -810,12 +798,12 @@ Cohesion: 0.12
 Nodes (9): DriveFileStorage, LocalFileStorage, _object_key(), Path, Stores files on the local filesystem under DOCUMENT_STORE_DIR.      WARNING: Rai, Stores files in a Google Drive folder using the Drive API.      Files are organi, Build a Drive API service (lazy import — not needed in local mode)., Private object storage for production machine records. (+1 more)
 
 ### Community 72 - ".select_one"
-Cohesion: 0.17
-Nodes (6): get_escalation_config(), _company_code_for_factory_id(), _company_code_for_id(), Given a company UUID, return its domain code., Given a factory UUID, find the matching company domain code., SupabaseEscalationConfigRepository
+Cohesion: 0.20
+Nodes (7): _company_code_for_factory_id(), _company_code_for_id(), Durable, tenant-scoped AI machine records stored in Supabase., Given a company UUID, return its domain code., Given a factory UUID, find the matching company domain code., SupabaseMachineRecordRepository, MachineRecordRepository
 
 ### Community 73 - "intelligence_service.py"
-Cohesion: 0.17
-Nodes (7): _company_id_for_code(), _factory_id_for_code(), Look up an existing GoTrue identity by email (admin API)., Given a company domain/code, return its companies UUID., Given a company domain/code, return the corresponding factories UUID., Coerce a request-layer float (e.g. reorder_level: float in     SparePartIn/Consu, _to_int()
+Cohesion: 0.15
+Nodes (9): _company_id_for_code(), _factory_id_for_code(), Look up an existing GoTrue identity by email (admin API)., Given a company domain/code, return its companies UUID., Given a company domain/code, return the corresponding factories UUID., Coerce a request-layer float (e.g. reorder_level: float in     SparePartIn/Consu, SupabasePartsRepository, _to_int() (+1 more)
 
 ### Community 74 - "components.json"
 Cohesion: 0.11
@@ -826,12 +814,12 @@ Cohesion: 0.16
 Nodes (13): FeatureFlag, FlagConfig, FLAGS, getAllFeatureFlags(), getCurrentUser(), getFeatureFlagOverride(), getUserPercentage(), isFeatureFlagEnabled() (+5 more)
 
 ### Community 76 - "roles.js"
-Cohesion: 0.25
-Nodes (17): analyze_image(), detect_language(), extract_machine_record(), _headers(), maintenance_assistant(), Send a machine photo to Gemini and get a text description of visible issues., Detect the language and return an ISO 639-1 code., Translate text to the target language. (+9 more)
+Cohesion: 0.19
+Nodes (18): analyze_image(), detect_language(), extract_machine_record(), _headers(), maintenance_assistant(), Send a machine photo to Gemini and get a text description of visible issues., Detect the language and return an ISO 639-1 code., Translate text to the target language. (+10 more)
 
 ### Community 77 - "i18n.js"
-Cohesion: 0.29
-Nodes (8): dateFormatter, i18n, numberFormatter, I18nContext, I18nProvider(), useI18nContext(), SUPPORTED_LANGUAGES, TRANSLATIONS
+Cohesion: 0.19
+Nodes (12): CounterWidget(), useCounter(), CSS_PATH, __dirname, dateFormatter, i18n, numberFormatter, I18nContext (+4 more)
 
 ### Community 78 - "Dashboard.jsx"
 Cohesion: 0.23
@@ -842,16 +830,16 @@ Cohesion: 0.21
 Nodes (12): allowedOrigins, cors(), reply(), analyzeImage(), _callGemini(), detectLanguage(), extractConsumableUsage(), getConfig() (+4 more)
 
 ### Community 80 - "LocalUserRepository"
-Cohesion: 0.07
-Nodes (47): CRITICALITY_ROWS, DashboardChart(), HEALTH_COLUMNS, HorizontalBars(), Sparkline(), StatusDonut(), DashboardKpiCard(), CAPA_FILTERS (+39 more)
+Cohesion: 0.08
+Nodes (41): CRITICALITY_ROWS, DashboardChart(), HEALTH_COLUMNS, HorizontalBars(), Sparkline(), StatusDonut(), DashboardKpiCard(), CAPA_FILTERS (+33 more)
 
 ### Community 81 - "Notification.jsx"
 Cohesion: 0.36
 Nodes (10): filterRowsToVisibleMachines(), isMachineAssignedToTechnician(), isMachineVisibleToShiftUser(), isShiftScopedRole(), isTechnicianRole(), SHIFT_SCOPED_ROLES, TECHNICIAN_ROLES, technicianCandidateIds() (+2 more)
 
 ### Community 82 - "ticket_service.py"
-Cohesion: 0.17
-Nodes (6): CapturingClient, FakeResponse, gemini_reply(), test_summarize_issue_defaults_unexpected_urgency_to_medium(), test_summarize_issue_parses_json_and_normalizes_urgency(), test_transcribe_audio_sends_inline_audio_and_strips_text()
+Cohesion: 0.19
+Nodes (3): CapturingClient, FakeResponse, gemini_reply()
 
 ### Community 83 - "check_repeat_failure"
 Cohesion: 0.05
@@ -878,8 +866,8 @@ Cohesion: 0.50
 Nodes (8): isEnabled(), detectAndStoreLanguage(), getSession(), handleAudioMessage(), handleImageMessage(), logEvent(), markNotified(), triageAndStore()
 
 ### Community 89 - "SheetsPartsRepository"
-Cohesion: 0.18
-Nodes (3): new_item_id(), LocalPartsRepository, Reads/writes spare parts and consumables in the local workbook.
+Cohesion: 0.16
+Nodes (4): new_item_id(), LocalPartsRepository, Local (openpyxl / Excel) implementation of PartsRepository., Reads/writes spare parts and consumables in the local workbook.
 
 ### Community 90 - "get_tickets"
 Cohesion: 0.26
@@ -898,20 +886,20 @@ Cohesion: 0.10
 Nodes (7): AntDChartCard(), AntDDetailList(), AntDEmptyState(), AntDKPICard(), fallback, money, TREND_WINDOWS
 
 ### Community 95 - "PerformanceMonitor"
-Cohesion: 0.06
-Nodes (49): ABC, get_file_storage(), Return the FileStorage implementation selected by DOCUMENT_STORE env var., DocumentRepository, MachineRecordRepository, MachineRepository, Read/write access to the Machines data entity., Return {machine_id: {...}} for all machines (may be cached). (+41 more)
+Cohesion: 0.12
+Nodes (18): machine(), NOW, person(), confirmationMessage(), formatResponseWindow(), isReportClosed(), reporterSummary(), reportTime() (+10 more)
 
 ### Community 96 - "ticketMeta.js"
 Cohesion: 0.16
 Nodes (8): aiInsight(), issueSummary(), LIFECYCLE, UNRATED_URGENCY, URGENCY_META, urgencyBadgeStyle(), urgencyMeta(), urgencyRank()
 
 ### Community 97 - "LocalSettingsRepository"
-Cohesion: 0.10
-Nodes (7): new_event_id(), LocalEventRepository, LocalTicketRepository, Local (openpyxl / Excel) implementations of TicketRepository and MachineReposito, Reads/writes events in the MachineEvents tab of the local tracker workbook., Reads/writes tickets in the Tickets tab of the local tracker workbook., ticket_repo()
+Cohesion: 0.18
+Nodes (14): Pluggable outbound email (Phase 5 - password reset).  Mirrors the local/sheets a, Send (or, in console mode, log) a plain-text email. Failures are logged and, _send_console(), send_email(), _send_smtp(), Notification service — handles Email and WhatsApp routing for POs and requests., Send PO/Part request notifications via Email (always) and WhatsApp (if not opted, _send_po_email() (+6 more)
 
 ### Community 98 - "test_summarize.py"
-Cohesion: 0.14
-Nodes (32): _approved_record_markdown(), build_machine_data(), _document_text(), _internet_reference(), _list_items(), machine_data_path(), _missing_sections(), Path (+24 more)
+Cohesion: 0.09
+Nodes (43): MachineRecordRepository, Read/write access to AI-extracted machine records and approvals., Generate a new unique record ID., Return company records with optional machine/status filters., Return one record, or None., Append a machine record row., Patch fields on one record. Returns True if found., Return an existing source with the same content hash, if any. (+35 more)
 
 ### Community 99 - "Security Patch"
 Cohesion: 0.50
@@ -930,20 +918,20 @@ Cohesion: 0.15
 Nodes (12): Key Reminders, Output Format, Phase 1: Receive & Parse Requirement, Phase 2: Design Architecture, Phase 3: Code Implementation, Phase 4: Write Tests, Phase 5: Update Documentation, Phase 6: Create Git Commit (+4 more)
 
 ### Community 105 - "notification_service.py"
-Cohesion: 0.16
-Nodes (17): _content_matches_extension(), FileTooLargeError, ABC, Pluggable file storage — local disk (dev/test) and Google Drive (production).  T, Check that file content magic bytes match the claimed extension., Shared upload validation — called before any save attempt., UnsupportedFileTypeError, validate_upload() (+9 more)
+Cohesion: 0.11
+Nodes (18): initialize_ticket_escalation(), Set the first escalation timer on a newly created ticket., handle_confirm_ai_command(), handle_issue_part_command(), handle_override_ai_command(), handle_parts_request_command(), handle_po_approve_command(), handle_po_reject_command() (+10 more)
 
 ### Community 107 - "_factory_id_for_code"
-Cohesion: 0.14
-Nodes (15): StitchBarChart(), StitchDonutChart(), fetchKaizenSources(), fetchWithTimeout(), Kaizen(), realizeSaving(), ROLE_HEADINGS, createMetricsCache() (+7 more)
+Cohesion: 0.16
+Nodes (12): StitchBarChart(), fetchKaizenSources(), fetchWithTimeout(), Kaizen(), realizeSaving(), ROLE_HEADINGS, DEMO_KAIZENS, DEMO_OPERATOR (+4 more)
 
 ### Community 108 - "test_intelligence_service.py"
 Cohesion: 0.17
 Nodes (12): detect_language(), Detect language of issue descriptions (English, Hindi, Marathi)., Test detection of English text., Test detection of Hindi text (Devanagari script)., Test detection of Marathi text., Test mixed language text defaults to primary language., Test language detection on empty or whitespace-only text., test_detect_language_empty_text() (+4 more)
 
 ### Community 109 - "FakeAsyncClient"
-Cohesion: 0.09
-Nodes (12): SupabasePartsRepository, compressed_json(), FakeAsyncClient, FakeAuthClient, FakePostgrestClient, FakeResponse, test_supabase_auth_uses_trusted_directory_link_not_user_metadata(), test_supabase_file_storage_uses_private_bucket_and_safe_object_key() (+4 more)
+Cohesion: 0.10
+Nodes (10): compressed_json(), FakeAsyncClient, FakeAuthClient, FakePostgrestClient, FakeResponse, test_supabase_auth_uses_trusted_directory_link_not_user_metadata(), test_supabase_file_storage_uses_private_bucket_and_safe_object_key(), test_supabase_machine_record_repository_is_tenant_scoped_and_expands_json() (+2 more)
 
 ### Community 110 - "test_vault_password_reset.py"
 Cohesion: 0.23
@@ -962,8 +950,8 @@ Cohesion: 0.06
 Nodes (34): 10. **No Data Context**, 1. **Form Complexity Explosion**, 2. **Modal Dialog Proliferation**, 3. **9 Workspace Tabs with Sub-tabs**, 4. **No Progressive Disclosure**, 5. **Fragmented Workflows**, 6. **No Quick Actions**, 7. **Search & Filter Fragmentation** (+26 more)
 
 ### Community 115 - ".insert"
-Cohesion: 0.14
-Nodes (16): _build_role_context(), _fallback_role_response(), generate_ai_chat_response(), handle_registered_whatsapp_message(), normalize_phone(), Any, Role-based WhatsApp Conversational Assistant & AI Query Service for TurboFix.  T, Use Gemini 2.5 Flash to generate a role-appropriate WhatsApp response. (+8 more)
+Cohesion: 0.19
+Nodes (15): _build_role_context(), _fallback_role_response(), generate_ai_chat_response(), handle_registered_whatsapp_message(), normalize_phone(), Any, Role-based WhatsApp Conversational Assistant & AI Query Service for TurboFix.  T, Use Gemini 2.5 Flash to generate a role-appropriate WhatsApp response. (+7 more)
 
 ### Community 116 - "Phase 0 Release Baseline"
 Cohesion: 0.18
@@ -974,8 +962,8 @@ Cohesion: 0.18
 Nodes (10): background_color, description, display, icons, name, orientation, short_name, shortcuts (+2 more)
 
 ### Community 118 - "DemoLogin.jsx"
-Cohesion: 0.06
-Nodes (50): get_custom_kpis(), get_documents(), get_events(), get_machine_records(), get_machines(), get_parts(), get_settings(), get_technician_work() (+42 more)
+Cohesion: 0.08
+Nodes (34): get_documents(), get_events(), get_machine_records(), get_machines(), get_parts(), get_settings(), get_technician_work(), get_users() (+26 more)
 
 ### Community 119 - "._user_to_dict"
 Cohesion: 0.33
@@ -1005,6 +993,10 @@ Nodes (13): Bug Fix: Quick Example, Expected Timeline, Failure State (Reviewer R
 Cohesion: 0.20
 Nodes (9): After Test Success, Feature Specification, Stage 1: Creator, Stage 2: Reviewer, Stage 3: Approver, Success Criteria for Test, Test Execution Log Template, Test Feature: Simple Widget Component (+1 more)
 
+### Community 129 - "ShutdownPlanner.jsx"
+Cohesion: 0.15
+Nodes (4): get_escalation_config(), get_shift_config(), SupabaseEscalationConfigRepository, SupabaseShiftConfigRepository
+
 ### Community 130 - "LocalFileStorage"
 Cohesion: 0.06
 Nodes (34): 1. Comprehensive Audit ✅, 1. View Mode Implementation, 2. View Mode Toggle ✅, 2. WhatsApp Entry Point, 3. QuickReportDialog Design, 3. WhatsApp Integration Entry Point ✅, Build Status, Code (2 new components) (+26 more)
@@ -1013,9 +1005,13 @@ Nodes (34): 1. Comprehensive Audit ✅, 1. View Mode Implementation, 2. View Mod
 Cohesion: 0.06
 Nodes (33): 1. Missing React Imports ✅ FIXED, 2. XSS Vulnerability - Unescaped Parameters ✅ FIXED, 3. WebSocket Queue Unbounded Growth ✅ FIXED, 4. Exponential Backoff Never Caps ✅ FIXED, 5. SSRF - Webhook URL Validation ✅ FIXED, AUDIT STATISTICS, CONCLUSION, Concurrency & Race Conditions (+25 more)
 
+### Community 132 - "LocalPartsRepository"
+Cohesion: 0.11
+Nodes (9): _build_factory_to_code_map(), _expand_encoded_json(), Supabase (PostgREST) implementation of all TurboFix repositories.  Connects to t, Supabase TEXT has no Excel cell limit, so persist readable JSON., Build a mapping of factory_id -> company_code in bulk with minimal queries., SupabaseCustomKpiRepository, SupabaseTechnicianWorkRepository, CustomKpiRepository (+1 more)
+
 ### Community 133 - "SheetsDocumentRepository"
-Cohesion: 0.08
-Nodes (12): Verify email+password against GoTrue. True only on a genuine match., Map Supabase users row → standard USERS_HEADER dict., Map Supabase companies row → standard COMPANIES_HEADER dict., SupabaseUserRepository, fake_supabase(), FakeSupabaseClient, Regression tests for SupabaseUserRepository password reset token self-invalidati, test_supabase_login_token_cannot_be_used_as_reset_token() (+4 more)
+Cohesion: 0.09
+Nodes (11): Map Supabase users row → standard USERS_HEADER dict., Map Supabase companies row → standard COMPANIES_HEADER dict., SupabaseUserRepository, fake_supabase(), FakeSupabaseClient, Regression tests for SupabaseUserRepository password reset token self-invalidati, test_supabase_login_token_cannot_be_used_as_reset_token(), test_supabase_password_reset_http_flow_prevents_token_reuse() (+3 more)
 
 ### Community 134 - "test_contact_privacy.py"
 Cohesion: 0.06
@@ -1034,8 +1030,8 @@ Cohesion: 0.36
 Nodes (9): icons.svg (Icon Sprite Sheet), Bluesky Icon (butterfly logo), Brand/Social-Link Icon Group (dark-fill, uniform ~19x19 viewBox), Discord Icon (game controller/mascot face logo), Documentation Icon (open book/chat outline, purple stroke), GitHub Icon (Octocat/Git logo), Social/Community Icon (person with badge/ribbon, purple stroke), UI Accent Icon Group (purple stroke #aa3bff, outline style) (+1 more)
 
 ### Community 139 - "table.jsx"
-Cohesion: 0.13
-Nodes (16): MOCK_LOGS, iconBg, MicrosoftAppLauncher(), Navbar(), apiFetch(), getApiBase(), startKeepalive(), DemoLogin() (+8 more)
+Cohesion: 0.24
+Nodes (9): iconBg, MicrosoftAppLauncher(), Navbar(), DemoLogin(), Login(), isTokenExpired(), readAuth(), safeRedirectPath() (+1 more)
 
 ### Community 140 - "admin_portal/index.ts"
 Cohesion: 0.28
@@ -1046,12 +1042,12 @@ Cohesion: 0.12
 Nodes (7): jwt(), authScript(), MACHINE, NOW, header, payload, signInAs()
 
 ### Community 143 - "SheetsMachineRecordRepository"
-Cohesion: 0.33
-Nodes (8): generateChecklist(), similarity(), step(), STOP_WORDS, text(), tokens(), AdminPortal(), QRGenerator()
+Cohesion: 0.38
+Nodes (7): generateChecklist(), similarity(), step(), STOP_WORDS, text(), tokens(), AdminPortal()
 
 ### Community 145 - "get_technician_load"
-Cohesion: 0.16
-Nodes (5): Sends a downloaded voice note to OpenAI's transcription API and returns the, transcribe_audio(), FakeAsyncClient, FakeResponse, test_transcribe_audio_returns_stripped_text()
+Cohesion: 0.21
+Nodes (12): Calls Gemini to turn a raw issue description into a structured brief.     Same p, summarize_issue(), extract_machine_record(), maintenance_assistant(), _normalize_confidence(), _normalize_urgency(), Answer a scoped maintenance question through the OpenAI provider., Extract structured machine knowledge from text-readable record sources. (+4 more)
 
 ### Community 146 - "test_admin_onboarding.py"
 Cohesion: 0.06
@@ -1102,8 +1098,8 @@ Cohesion: 0.07
 Nodes (29): 1. **ViewModeContext** (`src/ViewModeContext.jsx`), 2. **App.jsx Updates**, 3. **AdvancedFeaturesDrilldown.jsx Updates**, 4. **AppShell.jsx Updates**, 5. **Translations (9 languages)**, Author Notes, Behavior Matrix, Browser Compatibility (+21 more)
 
 ### Community 160 - "QRGateway.jsx"
-Cohesion: 0.23
-Nodes (6): TechnicianWorkRepository, AdvancedFeaturesDrilldown(), ContactReveal(), EmptyState(), defaultWork, Technician()
+Cohesion: 0.21
+Nodes (7): TechnicianWorkRepository, AdvancedFeaturesDrilldown(), ContactReveal(), EmptyState(), StitchDonutChart(), defaultWork, Technician()
 
 ### Community 161 - "RUN_TEST.sh"
 Cohesion: 0.52
@@ -1114,8 +1110,8 @@ Cohesion: 0.40
 Nodes (3): AUDIT_DIR, MANIFEST_PATH, REPORT_PATH
 
 ### Community 163 - "ErrorBoundary"
-Cohesion: 0.38
-Nodes (3): QrDemoPreview(), RoiCalculator(), EXPLORE_LINKS
+Cohesion: 0.23
+Nodes (7): MOCK_LOGS, apiFetch(), getApiBase(), startKeepalive(), ResetPassword(), configuredSupabaseUrl, supabase
 
 ### Community 164 - "Tickets"
 Cohesion: 0.38
@@ -1189,6 +1185,10 @@ Nodes (24): 30-Second Setup, 30+ Worst-Case Scenarios:, Browser Coverage, CI/CD,
 Cohesion: 0.08
 Nodes (23): 1. ✅ Owner / Plant Director, 2. ✅ Maintenance Technician (TESTED), 3. Maintenance Head (Implementation Verified), 4. Other Roles (Configured), Access Control ✅, Conclusion, Desktop Navigation ✅, Edge Cases Tested (+15 more)
 
+### Community 185 - "initialize_ticket_escalation"
+Cohesion: 0.10
+Nodes (19): get_machine_events(), get_root_cause_analysis(), Return the full event history for a machine (scoped to user's company)., Run AI root cause analysis on a machine's full event history., analyze_image(), detect_language(), maintenance_assistant(), AI service — thin, provider-agnostic wrapper around the Gemini AI layer.  For th (+11 more)
+
 ### Community 186 - "datetime"
 Cohesion: 0.21
 Nodes (13): _compute_metrics(), _filter_tickets_in_range(), generate_report(), _parse_dt(), _period_range(), _previous_period_range(), Report service — generates daily, weekly, monthly, and YTD maintenance reports., Generate a report for a company and period. (+5 more)
@@ -1206,8 +1206,8 @@ Cohesion: 0.09
 Nodes (22): Dashboard ✅ (DONE), Implementation Pattern, Inventory, Kaizen, Machines, MVP-First Refactoring Plan — All Tabs, Notes, Overview (+14 more)
 
 ### Community 191 - "migrate.cjs"
-Cohesion: 0.09
-Nodes (23): Accessibility Score, Accessibility Testing, Already Working ✅, Browser DevTools, Completion Date, Core Web Vitals Targets, Design System, External Libraries (+15 more)
+Cohesion: 0.04
+Nodes (46): 1. Accessibility (WCAG AAA) ✅, 2. Theme System 🎨 ✅, 3. Error Resilience 🛡️ ✅, 4. Performance Monitoring 📈 ✅, Accessibility Score, Accessibility Testing, Already Working ✅, Browser DevTools (+38 more)
 
 ### Community 192 - "package.json"
 Cohesion: 0.40
@@ -1246,8 +1246,8 @@ Cohesion: 0.09
 Nodes (21): 1. Comprehensive Audit ✅, 1. WhatsApp Integration (1-2 days) ⬅️ NEXT PRIORITY, 2. Evidence Capture (0.5 days), 2. View Mode Toggle Implementation ✅, 3. AI Records Workflow Discovery ✅, 3. Escalation Configuration (2 days), Critical Blockers (4-6 days to fix), Current Status Summary (+13 more)
 
 ### Community 208 - "dashboardLayout.js"
-Cohesion: 0.06
-Nodes (38): Pluggable outbound email (Phase 5 - password reset).  Mirrors the local/sheets a, Send (or, in console mode, log) a plain-text email. Failures are logged and, _send_console(), send_email(), _send_smtp(), Fast2SMS SMS Client — https://docs.fast2sms.com/reference/authorization, send_sms_message(), _is_retryable() (+30 more)
+Cohesion: 0.14
+Nodes (18): dispatch_daily_digest(), dispatch_weekly_digest(), format_daily_digest_message(), format_weekly_digest_message(), generate_daily_digest_payload(), generate_weekly_digest_payload(), get_company_executive_phones(), Any (+10 more)
 
 ### Community 210 - "AntDNavigationLayout.jsx"
 Cohesion: 0.83
@@ -1319,7 +1319,7 @@ Nodes (3): TurboFix Logo (SVG), Favicon (favicon.svg), TurboFix Brand Identity
 
 ### Community 231 - "_FakeBrief"
 Cohesion: 0.08
-Nodes (52): EventRepository, Read/write access to the MachineEvents data entity., ai_enabled(), Return True if any AI provider is configured and ready., _detect_and_store_language(), finish_audio_ticket(), finish_image_ticket(), finish_text_ticket() (+44 more)
+Nodes (43): EventRepository, new_event_id(), Read/write access to the MachineEvents data entity., Append a new event row. Keys must match MACHINE_EVENTS_HEADER., Return all events for a machine, oldest first., Return all events for a company., ai_enabled(), Return True if any AI provider is configured and ready. (+35 more)
 
 ### Community 236 - "._db_row"
 Cohesion: 0.18
@@ -1333,6 +1333,10 @@ Nodes (7): EMPTY_DRAFT, fetchBreakdownSources(), fetchWithTimeout(), normaliseMa
 Cohesion: 0.10
 Nodes (20): 1. Role Definitions (`src/lib/roles.js`), 2. Permission Check Function, 3. Navigation Filtering (`src/components/AppShell.jsx`), Desktop Navigation (Line 432), Features, Future Enhancements, Implementation Details, 🔧 Maintenance Engineer (+12 more)
 
+### Community 244 - "check_and_flag_on_creation"
+Cohesion: 0.29
+Nodes (3): Google Sheets implementation of DocumentRepository.  Previously documents_store., Reads/writes document metadata in the Documents worksheet of a Google Sheet., SheetsDocumentRepository
+
 ### Community 252 - "ViewModeContext.jsx"
 Cohesion: 0.10
 Nodes (20): 0. The One Rule, 10. Proof & Success Milestones (how we show it worked — the reason they keep paying), 11. Coverage Matrix — every roadmap section is placed (no point left out), 12. First 30 / 60 / 90 Days for a New Customer, 13. Positioning We Lead With (§18), 1. The Core Problem (and the Fix), 2. Onboarding Philosophy (3 principles, straight from the roadmap), 3. The Buyer Journey — Try → Land → Expand (+12 more)
@@ -1342,16 +1346,16 @@ Cohesion: 0.11
 Nodes (20): confirm_ai_diagnosis(), extract_machine_record(), get_factory_ai_stats(), get_least_loaded_technician(), get_machine_ai_accuracy(), get_shift_config(), get_technician_load(), is_technician_overloaded() (+12 more)
 
 ### Community 275 - "TurboFix-Improvements-Onboarding.md"
-Cohesion: 0.33
-Nodes (6): Completion Status, Next Phase (Phase 3), Overview, Performance Goals, Phase 2 Targets, Phase 2: User Experience Enhancement - Implementation Checklist
+Cohesion: 0.08
+Nodes (24): 6. CSS Enhancements ✅, Completion Status, Current Limitations, Example Integration, External Libraries, Feature Breakdown by Use Case, Features, Files Created (+16 more)
 
 ### Community 280 - "_FakeBrief"
-Cohesion: 0.24
-Nodes (3): LocalDocumentRepository, Local (openpyxl / Excel) implementation of DocumentRepository., Reads/writes document metadata in the Documents tab of the local workbook.
+Cohesion: 0.23
+Nodes (4): new_document_id(), LocalDocumentRepository, Local (openpyxl / Excel) implementation of DocumentRepository., Reads/writes document metadata in the Documents tab of the local workbook.
 
 ### Community 284 - "test_extract_prioritizes_confidence_over_volume"
-Cohesion: 0.08
-Nodes (27): Supabase (PostgREST) implementation of all TurboFix repositories.  Connects to t, acknowledge_prediction(), calculate_ticket_downtime_cost(), _check_failure_pattern(), check_threshold_drift(), _create_prediction(), get_factory_downtime_summary(), get_predictions() (+19 more)
+Cohesion: 0.05
+Nodes (40): Sends a downloaded voice note to OpenAI's transcription API and returns the, transcribe_audio(), acknowledge_prediction(), calculate_ticket_downtime_cost(), _check_failure_pattern(), get_factory_downtime_summary(), get_predictions(), _hours_open() (+32 more)
 
 ### Community 285 - "test_check_repeat_failure_first_occurrence"
 Cohesion: 0.12
@@ -1384,6 +1388,10 @@ Nodes (14): 1.1 Hero Section & Above-the-Fold (94/100), 1.2 Storytelling & Infor
 ### Community 294 - "extract_machine_record"
 Cohesion: 0.13
 Nodes (17): check_inventory(), Check stock level and return depletion status alert., Integration tests for intelligence_service.py  Tests AI-powered machine intellig, Test extracting data from machine photo (vision AI)., Test that high-confidence extractions are preferred over quantity., Test handling when two sources give conflicting specs., Test no alert when spare parts stock is sufficient., Test alert triggered when stock falls below safety threshold. (+9 more)
+
+### Community 296 - "_send_daily_digest"
+Cohesion: 0.24
+Nodes (9): IssueCapture(), QUICK_PHRASES, PhotoAnnotatorModal(), QuickReportDialog(), classifyIssue(), ISSUE_CATEGORIES, URGENCY_ORDER, urgencyMeta() (+1 more)
 
 ### Community 297 - "dashboardLayout.js"
 Cohesion: 0.44
@@ -1429,6 +1437,10 @@ Nodes (11): 0. The governing principle: burden absorption, 1. The closed loop (s
 Cohesion: 0.17
 Nodes (11): How these are prioritized (RCM logic), Immediate recommendation, Onboarding sequence (each phase closes a reliability loop, zero burden), The maintenance case in one line per tier (why "critical"), Tier 0 — Safety & continuity *(onboard first)*, Tier 1 — Chronic recurrence *(the highest-ROI improvement — zero new burden)*, Tier 2 — Acute uptime (measure & defend availability), Tier 3 — Parts continuity (kill "waiting for spare") (+3 more)
 
+### Community 311 - "SheetsPartsRepository"
+Cohesion: 0.27
+Nodes (3): Google Sheets implementation of PartsRepository.  Previously parts_store.py only, Reads/writes spare parts and consumables worksheets in a Google Sheet., SheetsPartsRepository
+
 ### Community 312 - "TurboFix Playwright UX/UI Audit Plan"
 Cohesion: 0.18
 Nodes (9): 10. Success Criteria, 2. Test File Structure, 4. Playwright Configuration, 5. Test Execution Commands, 6. CI/CD Integration (GitHub Actions), 7. Audit Results Summary Template, 8. Package Dependencies, 9. Quick Start (+1 more)
@@ -1438,8 +1450,8 @@ Cohesion: 0.18
 Nodes (10): By Category, By Feature, 🔄 CI/CD Ready, 📊 Deliverable Quality, 📚 Documentation References, GitHub Actions Workflow Included, 🚀 Launch Status, Scripts Provided (+2 more)
 
 ### Community 314 - "extractMediaInfo"
-Cohesion: 0.36
-Nodes (9): calculateEstimate(), clampHours(), defaultEstimationRules, formatDate(), loadEstimationRules(), nextSunday(), priorityRank, ShutdownPlanner() (+1 more)
+Cohesion: 0.27
+Nodes (12): list_machines(), list_team(), reveal_team_contact(), can_reveal_contact(), company_hierarchy(), directory_entry(), _first_user_id(), _manager_chain() (+4 more)
 
 ### Community 315 - "Utility: sw-strategies.js"
 Cohesion: 0.20
@@ -1461,6 +1473,10 @@ Nodes (9): 5. Business Intelligence Metrics ✅, Completion Status, Data Flow, E
 Cohesion: 0.22
 Nodes (9): 1. Audit Categories & Test Coverage, A. Visual Regression Testing (Screenshots), B. Accessibility (a11y) Testing, C. Responsive Design Testing, D. Interaction & Workflow Testing, E. Performance Testing, F. Dark Mode Consistency, G. Mobile Touch UX (+1 more)
 
+### Community 321 - "run_predictive_maintenance_check"
+Cohesion: 0.21
+Nodes (8): KaizenPhotoGallery(), KaizenStatusBadge(), EMPTY_DRAFT, OperatorKaizen(), KAIZEN_CATEGORIES, LEAN_WASTES, minutesPerDayToAnnualRupees(), statusMeta()
+
 ### Community 332 - "3. UX/UI"
 Cohesion: 0.25
 Nodes (8): 3. UX/UI, Accessibility, Forms and input, Information architecture, Language and localization, Mobile and responsive, Role-appropriate views, WhatsApp experience
@@ -1475,7 +1491,7 @@ Nodes (8): 4. Language Switcher Component ✅, Component: LanguageSwitcher, Dire
 
 ### Community 339 - "MASTER_SESSION_REPORT.md"
 Cohesion: 0.09
-Nodes (23): 10. Integration Points, 11. CSS Enhancements ✅, 13. Testing Checklist, 14. Browser Support, 15. Security Considerations, 16. Future Enhancements (Phase 8+), 17. Completion Status, 2. Real-time Notifications ✅ (+15 more)
+Nodes (23): 10. Integration Points, 14. Browser Support, 16. Future Enhancements (Phase 8+), 17. Completion Status, 1. WebSocket Infrastructure ✅, 5. Live Machine Status ✅, 8. localStorage Data Structures, 9. WebSocket Connection Setup (+15 more)
 
 ### Community 340 - "MIGRATION_COMPLETE_FINAL_REPORT.md"
 Cohesion: 0.25
@@ -1534,24 +1550,28 @@ Cohesion: 0.29
 Nodes (7): 1. `PLAYWRIGHT_UX_AUDIT.md` (1,800+ lines), 2. `PLAYWRIGHT_AUDIT_SUMMARY.md` (449 lines), 3. `PLAYWRIGHT_DELIVERY_CHECKLIST.md` (384 lines), Configuration Updates, Documentation Files (3 Total), `package.json` — Added 10 test scripts, 🎯 What Was Delivered
 
 ### Community 362 - "run_threshold_drift_check"
-Cohesion: 0.28
-Nodes (10): new_ticket_id(), _open_ticket(), _technician_token(), test_evidence_upload_is_persisted_and_downloadable(), test_submission_requires_complete_checklist_and_notes(), test_technician_can_submit_work_for_supervisor_approval(), test_unassigned_technician_cannot_access_ticket(), _open_ticket() (+2 more)
+Cohesion: 0.18
+Nodes (11): ContactCard(), contentByLanguage, faqs, HERO_SCENARIOS, platformFeatures, recordOutcomeIcons, recordSourceIcons, recordStepIcons (+3 more)
+
+### Community 367 - "test_otp_auth.py"
+Cohesion: 0.21
+Nodes (4): Overwrite a GoTrue identity's password via the admin API., Verify email+password against GoTrue. True only on a genuine match., Thin wrapper around httpx for PostgREST calls., _SupabaseClient
 
 ### Community 368 - "test-puppeteer.js"
 Cohesion: 0.33
 Nodes (6): 5. Operations and Reliability, Backup and recovery, Deployment, Monitoring and alerting, Performance, Scalability considerations
 
 ### Community 373 - "2. Theme System 🎨 ✅"
-Cohesion: 0.33
-Nodes (6): 2. Theme System 🎨 ✅, Component Implementation (`src/components/ThemeToggle.jsx`), Component Integration, CSS Enhancements (`src/index.css`), Hook Implementation (`src/hooks/useTheme.js`), Status: 🟢 Complete
+Cohesion: 0.50
+Nodes (8): MachineSelector(), scannerAvailable(), assignedTechnician(), machineFromQr(), machineIdOf(), machineNameOf(), parseMachineQr(), searchMachines()
 
 ### Community 377 - "3. Error Resilience 🛡️ ✅"
-Cohesion: 0.33
-Nodes (6): 3. Error Resilience 🛡️ ✅, Component Implementation, Component Integration, CSS Enhancements (`src/index.css`), Status: 🟢 Complete, Utilities (`src/utils/retry.js`)
+Cohesion: 0.43
+Nodes (7): test_backup_contains_originals_structured_data_csv_and_machine_data(), test_duplicate_source_is_rejected(), test_non_owner_operational_role_can_create_review_draft(), test_only_maintenance_head_can_approve_and_approved_data_reaches_machine_context(), test_restore_requires_maintenance_head(), test_supervisor_can_upload_and_company_isolation_is_enforced(), upload_record()
 
 ### Community 389 - "4. Performance Monitoring 📈 ✅"
-Cohesion: 0.33
-Nodes (6): 4. Performance Monitoring 📈 ✅, Component Integration, CSS Enhancements (`src/index.css`), Hook Implementation (`src/hooks/usePerformanceMonitor.js`), Metrics Tracked, Status: 🟢 Complete
+Cohesion: 0.48
+Nodes (4): KaizenPager(), SupervisorKaizen(), usePagedIdeas(), formatDaysLeft()
 
 ### Community 390 - "1. Component Library (Reusable Across App)"
 Cohesion: 0.33
@@ -1574,8 +1594,8 @@ Cohesion: 0.40
 Nodes (5): 4. Architecture and Code Quality, Backend (FastAPI), Database (Supabase), Frontend (React + Vite), Integration points
 
 ### Community 397 - "Feature Breakdown by Use Case"
-Cohesion: 0.40
-Nodes (5): Feature Breakdown by Use Case, For Accessibility, For First-Time Users, For Mobile Users, For Power Users
+Cohesion: 0.33
+Nodes (4): MARKETING_PAGES, OUT_DIR, NOTE: do NOT truncate here — beforeAll re-fires per Playwright project, RESULTS_FILE
 
 ### Community 398 - "Feature Breakdown"
 Cohesion: 0.40
@@ -1604,10 +1624,6 @@ Nodes (5): Components (2 files), Documentation, Files Created, Modified Files, U
 ### Community 404 - "6. Files Created (5 files, 1500+ lines)"
 Cohesion: 0.40
 Nodes (5): 6. Files Created (5 files, 1500+ lines), Components (4):, Modified Files:, Styling (1):, Utilities (1):
-
-### Community 405 - "8. localStorage Data Structures"
-Cohesion: 0.40
-Nodes (5): 8. localStorage Data Structures, activity-feed (Array), live-machine-status (Array), online-users (Array), realtime-notifications (Array)
 
 ### Community 406 - "7. Files Created (5 files, 1500+ lines)"
 Cohesion: 0.40
@@ -1644,6 +1660,10 @@ Nodes (5): Immediate (Today/Tomorrow), 🎯 Next Steps, Post-Launch, This Month,
 ### Community 414 - "migrate.cjs"
 Cohesion: 0.40
 Nodes (4): fs, pages, { Parser }, path
+
+### Community 415 - "run_daily_digest_check"
+Cohesion: 0.67
+Nodes (3): 11. CSS Enhancements ✅, Components Styled:, File: RealtimeCollaboration.css (800+ lines)
 
 ### Community 416 - "check_and_flag_on_creation"
 Cohesion: 0.50
@@ -1750,8 +1770,8 @@ Cohesion: 0.50
 Nodes (4): 12. Performance Metrics, Load Times:, Memory Usage:, Network:
 
 ### Community 442 - "5. Live Machine Status ✅"
-Cohesion: 0.50
-Nodes (4): 5. Live Machine Status ✅, Component: LiveMachineStatus, Health States:, Machine Alerts Component:
+Cohesion: 0.67
+Nodes (3): 13. Testing Checklist, Manual Testing:, WebSocket Events:
 
 ### Community 443 - "3. Performance Dashboard ✅"
 Cohesion: 0.50
@@ -1772,6 +1792,10 @@ Nodes (4): Completed, Documentation, ✅ Session Accomplishments, Testing Ready
 ### Community 447 - "Machine Knowledge"
 Cohesion: 0.50
 Nodes (4): DocumentRepository, DriveFileStorage, Machine Knowledge, MachineRecordRepository
+
+### Community 448 - "DeviceViewportSwitcher.jsx"
+Cohesion: 0.67
+Nodes (3): 15. Security Considerations, Data Privacy:, WebSocket Security:
 
 ### Community 451 - "Migration Patterns"
 Cohesion: 0.67
@@ -1811,7 +1835,7 @@ Nodes (3): 2. Tooltip & Contextual Help ✅, Component: Tooltip, Styling
 
 ### Community 460 - "Integration Checklist"
 Cohesion: 0.67
-Nodes (3): Example Integration, Integration Checklist, Ready to Integrate Into AppShell
+Nodes (3): 2. Real-time Notifications ✅, Component: RealtimeNotifications, Notification Types:
 
 ### Community 461 - "3. Saved Searches Management ✅"
 Cohesion: 0.67
@@ -1893,25 +1917,21 @@ Nodes (3): Current Limitations, Future Enhancements (Phase 6+), Known Limitation
 Cohesion: 0.67
 Nodes (3): No External Dependencies, Related Files, Resources
 
+### Community 481 - "4. Webhook Manager ✅"
+Cohesion: 0.16
+Nodes (13): Read/write access to company-scoped operational settings., Return the settings row for a company, or None when not configured., Create or replace the settings row for one company., SettingsRepository, LocalSettingsRepository, Excel-backed company settings repository for local development and tests., add_custom_role(), delete_custom_role() (+5 more)
+
 ### Community 483 - "CSS Enhancements ✅"
 Cohesion: 0.67
 Nodes (3): Components Styled, CSS Enhancements ✅, File: DevPortal.css (700+ lines)
 
-### Community 486 - "CounterWidget.test.jsx"
-Cohesion: 0.52
-Nodes (4): CounterWidget(), useCounter(), CSS_PATH, __dirname
+### Community 484 - "transcribe_audio"
+Cohesion: 0.67
+Nodes (3): No External Dependencies, Related Files, Resources
 
 ### Community 487 - "11. CSS Enhancements ✅"
-Cohesion: 0.52
-Nodes (6): getVisibleSettingTabs(), initialTab(), readCurrentUser(), responseStepLabel(), SETTING_TABS, Settings()
-
-### Community 488 - "13. Testing Checklist"
-Cohesion: 0.40
-Nodes (5): 1. Accessibility (WCAG AAA) ✅, Component Integration, CSS Enhancements, JavaScript Utilities (`src/utils/accessibility.js`), Status: 🟢 Complete
-
-### Community 490 - "1. WebSocket Infrastructure ✅"
-Cohesion: 0.67
-Nodes (3): 1. WebSocket Infrastructure ✅, Features:, Utility: websocket.js
+Cohesion: 0.43
+Nodes (7): AccordionSections(), getVisibleSettingTabs(), initialTab(), readCurrentUser(), responseStepLabel(), SETTING_TABS, Settings()
 
 ### Community 492 - "3. Activity Feed ✅"
 Cohesion: 0.67
@@ -1920,10 +1940,6 @@ Nodes (3): 3. Activity Feed ✅, Activity Types:, Component: ActivityFeed
 ### Community 493 - "4. Presence Indicators ✅"
 Cohesion: 0.67
 Nodes (3): 4. Presence Indicators ✅, Component: PresenceIndicator, Team Collaboration Component:
-
-### Community 494 - "9. WebSocket Connection Setup"
-Cohesion: 0.67
-Nodes (3): 9. WebSocket Connection Setup, For Local Development (Mock):, For Production:
 
 ### Community 495 - "Resources"
 Cohesion: 0.67
@@ -1977,10 +1993,6 @@ Nodes (3): Objective, Result, 📋 Session Overview
 Cohesion: 0.67
 Nodes (3): 5. Developer Portal Integration ✅, Components Available, Portal Structure
 
-### Community 511 - "6. CSS Enhancements ✅"
-Cohesion: 0.50
-Nodes (4): 6. CSS Enhancements ✅, Features, Files Created, Theme Support
-
 ### Community 512 - "Testing Checklist"
 Cohesion: 0.50
 Nodes (4): Browser DevTools, Manual Testing, Mobile Testing, Testing Checklist
@@ -1988,14 +2000,6 @@ Nodes (4): Browser DevTools, Manual Testing, Mobile Testing, Testing Checklist
 ### Community 513 - "Files Created/Modified"
 Cohesion: 0.67
 Nodes (3): Load Times, Memory Usage, Performance Metrics
-
-### Community 514 - "Known Limitations & Future Work"
-Cohesion: 0.67
-Nodes (3): Current Limitations, Future Enhancements, Known Limitations & Future Work
-
-### Community 515 - "Resources & Documentation"
-Cohesion: 0.67
-Nodes (3): External Libraries, Related Files, Resources & Documentation
 
 ### Community 522 - "Testing Checklist"
 Cohesion: 0.67
@@ -2005,6 +2009,10 @@ Nodes (3): Manual Testing, Testing Checklist, Webhook Testing
 Cohesion: 0.67
 Nodes (3): No External Dependencies, Related Files, Resources
 
+### Community 525 - "translations.js"
+Cohesion: 0.31
+Nodes (5): App(), defaultLanguageContext, LanguageContext, LanguageProvider(), translations
+
 ## Ambiguous Edges - Review These
 - `Evidence-Based Closure (Feature)` → `Spare-Part Requests (Feature)`  [AMBIGUOUS]
   public/assets/turbofix-whatsapp-brochure.png · relation: conceptually_related_to
@@ -2012,9 +2020,9 @@ Nodes (3): No External Dependencies, Related Files, Resources
   public/icons.svg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **2131 isolated node(s):** `GATEWAY_I18N`, `EXPLORE_LINKS`, `1. Package Installation`, `2. Design Token System`, `3. Locale Bridge System` (+2126 more)
+- **2138 isolated node(s):** `Home`, `WhyTurboFix`, `Platform`, `PlatformExperience`, `RecordsPlatform` (+2133 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **112 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **95 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -2023,12 +2031,12 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `Bluesky Icon (butterfly logo)` and `Social/Community Icon (person with badge/ribbon, purple stroke)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `react` connect `react` to `AI Records & Vault Management`, `PhotoCapture.jsx`, `asArray`, `table.jsx`, `badge.jsx`, `kaizenMetrics.js`, `SheetsMachineRecordRepository`, `useLanguage`, `check_inventory`, `.oxlintrc.json`, `useTheme.jsx`, `TestReports`, `QRGateway.jsx`, `ErrorBoundary`, `App.jsx`, `Tickets`, `AppShell.jsx`, `react`, `Machines.jsx`, `read_records`, `TicketRepository`, `test_worst_case_robustness.py`, `tabs.jsx`, `machine_record_service.py`, `extractMediaInfo`, `LocalSettingsRepository`, `useI18n`, `dashboardLayout.js`, `alert.jsx`, `button.jsx`, `i18n.js`, `LocalUserRepository`, `AntDNavigationLayout.jsx`, `AntDProvider.jsx`, `AdvancedAnalyticsBoard.jsx`, `MainLayout.jsx`, `CounterWidget.test.jsx`, `badge.jsx`, `11. CSS Enhancements ✅`, `15. Security Considerations`, `_factory_id_for_code`, `2. Real-time Notifications ✅`, `DashboardWidget.jsx`, `AntDModalsAndFeedback.jsx`, `test_supabase_machine_records.py`, `.get`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `AI Records & Vault Management`, `4. Performance Monitoring 📈 ✅`, `table.jsx`, `kaizenMetrics.js`, `translations.js`, `SheetsMachineRecordRepository`, `useLanguage`, `check_inventory`, `.oxlintrc.json`, `useTheme.jsx`, `TestReports`, `QRGateway.jsx`, `ErrorBoundary`, `App.jsx`, `Tickets`, `AppShell.jsx`, `react`, `_send_daily_digest`, `Machines.jsx`, `read_records`, `TicketRepository`, `test_worst_case_robustness.py`, `tabs.jsx`, `machine_record_service.py`, `conftest.py`, `LocalSettingsRepository`, `useI18n`, `run_predictive_maintenance_check`, `alert.jsx`, `dashboardLayout.js`, `button.jsx`, `i18n.js`, `LocalUserRepository`, `AntDNavigationLayout.jsx`, `AntDProvider.jsx`, `AdvancedAnalyticsBoard.jsx`, `MainLayout.jsx`, `badge.jsx`, `11. CSS Enhancements ✅`, `run_threshold_drift_check`, `_factory_id_for_code`, `DashboardWidget.jsx`, `AntDModalsAndFeedback.jsx`, `2. Theme System 🎨 ✅`, `test_supabase_machine_records.py`, `.get`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `package.json`, `workbox-window`, `react`, `react-router-dom`, `tw-animate-css`, `workbox-background-sync`, `workbox-strategies`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `react` connect `react` to `useI18n`, `CounterWidget.test.jsx`, `react`, `i18n.js`, `LocalUserRepository`, `dependencies`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `useI18n`, `react`, `i18n.js`, `LocalUserRepository`, `dependencies`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **Are the 32 inferred relationships involving `MachineRepository` (e.g. with `LocalEventRepository` and `LocalMachineRepository`) actually correct?**
   _`MachineRepository` has 32 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 13 inferred relationships involving `CurrentUser` (e.g. with `AssistantQuestion` and `KpiConfigIn`) actually correct?**

@@ -670,19 +670,19 @@ export default function ReportBreakdown() {
               <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
                 <span className="text-slate-400 font-medium">Availability Rate (A)</span>
                 <div className="text-xl font-mono font-black text-emerald-400 mt-1">91.4%</div>
-                <span className="text-[10px] text-slate-500">Unplanned Downtime: 4.2h</span>
+                <span className="text-[10px] text-slate-400">Unplanned Downtime: 4.2h</span>
               </div>
 
               <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
                 <span className="text-slate-400 font-medium">Performance Rate (P)</span>
                 <div className="text-xl font-mono font-black text-sky-400 mt-1">87.8%</div>
-                <span className="text-[10px] text-slate-500">Minor Stoppages &amp; Speed Loss</span>
+                <span className="text-[10px] text-slate-400">Minor Stoppages &amp; Speed Loss</span>
               </div>
 
               <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
                 <span className="text-slate-400 font-medium">Quality Rate (Q)</span>
                 <div className="text-xl font-mono font-black text-amber-400 mt-1">98.2%</div>
-                <span className="text-[10px] text-slate-500">Scrap / Startup Defect Rate</span>
+                <span className="text-[10px] text-slate-400">Scrap / Startup Defect Rate</span>
               </div>
             </div>
 

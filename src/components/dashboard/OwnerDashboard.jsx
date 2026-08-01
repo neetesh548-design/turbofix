@@ -14,10 +14,11 @@
 
 import React from 'react';
 import {
-  ShieldAlert, Wallet, TrendingDown, Factory, ArrowUpRight,
+  ShieldAlert, Wallet, TrendingDown, Factory, ArrowUpRight, CircleDollarSign, Activity, BadgeAlert,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars, StatusDonut } from './DashboardChart.jsx';
+import RoleFocusSection from './RoleFocusSection.jsx';
 import { formatInrCompact, formatPct } from '../../utils/dashboardMetrics.js';
 
 export default function OwnerDashboard({ metrics, loading = false, onDrilldown }) {
@@ -27,11 +28,66 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
   const fleet = metrics?.fleetHealth || {};
   const problems = Array.isArray(metrics?.problemMachines) ? metrics.problemMachines : [];
   const month = metrics?.month || {};
+  const criticalDown = fleet.grid?.critical?.down || 0;
+  const criticalIssues = fleet.grid?.critical?.issues || 0;
+  const criticalExposure = criticalDown + criticalIssues;
+  const activeAttentionMachines = valueAtRisk.machineCount || 0;
+  const uptimePct = fleet.total
+    ? Math.round((((fleet.byStatus?.running || 0) + (fleet.byStatus?.maintenance || 0)) / fleet.total) * 100)
+    : null;
+  const ownerFocus = criticalDown > 0
+    ? {
+      title: `${criticalDown} critical machine${criticalDown === 1 ? '' : 's'} are stopped`,
+      body: 'This is the first business risk to review. A stopped critical asset carries immediate production exposure and should dominate the morning conversation.',
+      pill: 'Production risk',
+      tone: 'danger',
+      href: 'machines.html',
+      cta: 'Open critical assets',
+    }
+    : downtime.cost > 0
+      ? {
+        title: `Production loss is visible this month at ${formatInrCompact(downtime.cost)}`,
+        body: 'Use this as the headline economic signal: what stoppages are costing and which assets are repeatedly pulling the plant backward.',
+        pill: 'Cost exposure',
+        tone: 'warning',
+        href: 'records.html',
+        cta: 'Review monthly loss',
+      }
+      : {
+        title: 'The plant is broadly stable right now',
+        body: 'No critical stopped machine is dominating the board. Use this window to keep preventive discipline strong and avoid drift back into reactive maintenance.',
+        pill: 'Stable',
+        tone: 'ok',
+        href: 'machines.html',
+        cta: 'Review fleet status',
+      };
 
   const drill = (key) => (onDrilldown ? () => onDrilldown(key) : undefined);
 
   return (
     <div className="rd-board rd-board-owner" data-testid="owner-dashboard" data-loading={loading ? 'true' : 'false'}>
+      <RoleFocusSection
+        ariaLabel="Owner start here"
+        tone={ownerFocus.tone}
+        title={ownerFocus.title}
+        body={ownerFocus.body}
+        pill={ownerFocus.pill}
+        meta={[
+          { icon: BadgeAlert, text: `${criticalExposure} critical asset${criticalExposure === 1 ? '' : 's'} at risk`, label: 'critical' },
+          { icon: CircleDollarSign, text: `${formatInrCompact(cost.total)} monthly maintenance cost`, label: 'cost' },
+          { icon: Activity, text: `Uptime proxy ${formatPct(uptimePct, '—')}`, label: 'uptime' },
+        ]}
+        actions={[
+          { href: ownerFocus.href, label: ownerFocus.cta },
+          { href: 'records.html', label: 'Open review records' },
+        ]}
+        priorities={[
+          { label: 'Critical exposure', value: criticalExposure, help: 'Critical assets needing attention', tone: criticalExposure ? 'danger' : '' },
+          { label: 'Production loss', value: formatInrCompact(downtime.cost), help: 'Estimated downtime cost this month', tone: downtime.cost > 0 ? 'warning' : '' },
+          { label: 'Machines in attention', value: activeAttentionMachines, help: 'Assets outside known-good state', tone: activeAttentionMachines ? 'info' : '' },
+        ]}
+      />
+
       <section className="rd-kpi-row" aria-label="Business KPIs">
         <DashboardKpiCard
           label="Money at risk"
@@ -76,6 +132,35 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
 
       <div className="rd-split">
         <DashboardChart
+          title="Morning review questions"
+          subtitle="What you should ask management first"
+          caption={`${Math.min(4, problems.length || 4)} focus areas`}
+        >
+          <div className="rd-tech-mini-list">
+            <a className={`rd-tech-mini ${criticalDown > 0 ? 'danger' : 'info'}`} href="machines.html">
+              <span className="rd-tech-mini-label">Critical stoppage</span>
+              <strong>{criticalDown} critical machine{criticalDown === 1 ? '' : 's'} down</strong>
+              <small>Ask which one is affecting output most right now and what decision is blocking recovery.</small>
+            </a>
+            <a className={`rd-tech-mini ${downtime.cost > 0 ? 'warning' : 'info'}`} href="records.html">
+              <span className="rd-tech-mini-label">Downtime loss</span>
+              <strong>{formatInrCompact(downtime.cost)} this month</strong>
+              <small>Ask whether the cost is concentrated in a few machines or spread across repeated inefficiency.</small>
+            </a>
+            <a className={`rd-tech-mini ${month.clearanceRatePct != null && month.clearanceRatePct < 100 ? 'warning' : 'info'}`} href="tickets.html">
+              <span className="rd-tech-mini-label">Closure pace</span>
+              <strong>{formatPct(month.clearanceRatePct, '—')} clearance rate</strong>
+              <small>Ask whether the team is closing work as fast as new issues are opening this month.</small>
+            </a>
+            <a className={`rd-tech-mini ${month.pmCompletionPct != null && month.pmCompletionPct < 90 ? 'warning' : 'info'}`} href="records.html">
+              <span className="rd-tech-mini-label">Preventive discipline</span>
+              <strong>{formatPct(month.pmCompletionPct, '—')} PM on-time</strong>
+              <small>Ask whether preventive work is slipping and setting up future breakdown risk.</small>
+            </a>
+          </div>
+        </DashboardChart>
+
+        <DashboardChart
           title="Machine status"
           subtitle="Current plant position"
           caption={`${fleet.total || 0} machines`}
@@ -88,6 +173,9 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
             <MiniStat label="New issues" value={month.opened ?? 0} />
             <MiniStat label="Issues closed" value={month.closed ?? 0} tone="ok" />
             <MiniStat label="Service completed" value={formatPct(month.pmCompletionPct, 'No data yet')} />
+            <MiniStat label="SLA health" value={formatPct(metrics?.sla?.pct, 'No data yet')} />
+            <MiniStat label="Clearance rate" value={formatPct(month.clearanceRatePct, 'No data yet')} />
+            <MiniStat label="Avg. resolution" value={month.avgResolutionHours != null ? `${month.avgResolutionHours}h` : 'No data yet'} />
           </div>
         </DashboardChart>
       </div>

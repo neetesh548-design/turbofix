@@ -255,12 +255,12 @@ export default function Login() {
                 </div>
               ))}
             </div>
-            <p className="mt-8 flex items-center gap-2 text-sm text-slate-500"><ShieldCheck size={16} className="text-emerald-400" /> Role-based access · Audit-ready workflows</p>
+            <p className="mt-8 flex items-center gap-2 text-sm text-slate-400"><ShieldCheck size={16} className="text-emerald-400" /> Role-based access · Audit-ready workflows</p>
           </section>
 
           <div className="w-full max-w-[460px] justify-self-center lg:justify-self-end bg-[#131922]/95 rounded-3xl shadow-2xl shadow-black/30 border border-slate-700/70 overflow-hidden backdrop-blur-xl transition-all">
           <div className="border-b border-slate-800/80 bg-slate-950/25 px-5 py-3.5 sm:px-8">
-            <div className="flex items-center justify-between text-xs font-medium text-slate-500"><span>TurboFix platform</span><span className="flex items-center gap-1.5 text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Protected access</span></div>
+            <div className="flex items-center justify-between text-xs font-medium text-slate-400"><span>TurboFix platform</span><span className="flex items-center gap-1.5 text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Protected access</span></div>
           </div>
           <div className="p-5 sm:p-8">
             <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 mb-6">
@@ -309,7 +309,7 @@ export default function Login() {
                         placeholder="e.g. owner@turbofix.co.in or 9876543210"
                         value={identifier}
                         onChange={(e) => { setIdentifier(e.target.value); setError(null); }}
-                        className="w-full min-h-11 pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
+                        className="w-full min-h-11 pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
                       />
                     </div>
                   </div>
@@ -327,7 +327,7 @@ export default function Login() {
                         placeholder="Enter password"
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                        className="w-full min-h-11 pl-10 pr-10 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all" 
+                        className="w-full min-h-11 pl-10 pr-10 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition-all"
                       />
                       <button
                         type="button"

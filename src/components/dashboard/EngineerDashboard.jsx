@@ -14,10 +14,11 @@
 
 import React from 'react';
 import {
-  Repeat, GaugeCircle, FileSearch, ListChecks, ArrowUpRight, BookOpen,
+  Repeat, GaugeCircle, FileSearch, ListChecks, ArrowUpRight, BookOpen, Siren, ShieldAlert, Wrench,
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars } from './DashboardChart.jsx';
+import RoleFocusSection from './RoleFocusSection.jsx';
 import { formatHours, formatPct, CAPA_STATUS_LABEL } from '../../utils/dashboardMetrics.js';
 
 const CAPA_FILTERS = [
@@ -38,6 +39,36 @@ export default function EngineerDashboard({ metrics, loading = false, isDemoData
   const visibleCapa = capaFilter === 'all'
     ? capaActions
     : capaActions.filter((action) => action.status === capaFilter);
+  const overdueCapa = capaActions.filter((action) => action.overdue);
+  const unownedHotspots = hotspots.filter((row) => row.owner === 'Unassigned' || row.capaStatus === 'Not started');
+  const topHotspot = hotspots[0] || null;
+  const topTrend = trending[0] || null;
+  const engineerFocus = overdueCapa[0]
+    ? {
+      title: `${overdueCapa[0].machineName} has overdue corrective action`,
+      body: `${overdueCapa[0].action} is still open and needs ownership closure before the same failure returns.`,
+      pill: `${overdueCapa.length} overdue CAPA`,
+      tone: 'danger',
+      href: 'support.html',
+      cta: 'Open CAPA tracker',
+    }
+    : topHotspot
+      ? {
+        title: `${topHotspot.machineName} is the strongest repeat-failure cluster`,
+        body: `${topHotspot.component} has failed ${topHotspot.failureCount} times. This is the first place to validate root cause and action quality.`,
+        pill: `${topHotspot.failureCount} repeats`,
+        tone: topHotspot.tone === 'danger' ? 'danger' : 'warning',
+        href: `machines.html?machine=${encodeURIComponent(topHotspot.machineId)}`,
+        cta: 'Inspect hotspot',
+      }
+      : {
+        title: 'Reliability is comparatively stable right now',
+        body: 'No repeat hotspot or overdue CAPA is dominating the board. Use this window to strengthen standards and document causes properly.',
+        pill: 'Stable',
+        tone: 'ok',
+        href: 'records.html',
+        cta: 'Review RCA records',
+      };
 
   return (
     <div className="rd-board rd-board-engineer" data-testid="engineer-dashboard" data-loading={loading ? 'true' : 'false'}>
@@ -46,6 +77,28 @@ export default function EngineerDashboard({ metrics, loading = false, isDemoData
           Showing sample reliability data — record root causes on closed tickets to see live numbers.
         </p>
       )}
+
+      <RoleFocusSection
+        ariaLabel="Engineer start here"
+        tone={engineerFocus.tone}
+        title={engineerFocus.title}
+        body={engineerFocus.body}
+        pill={engineerFocus.pill}
+        meta={[
+          { icon: ShieldAlert, text: `${hotspots.length} repeat clusters`, label: 'clusters' },
+          { icon: Siren, text: `${overdueCapa.length} overdue CAPA`, label: 'overdue' },
+          { icon: Wrench, text: `${unownedHotspots.length} not-started / unowned hotspots`, label: 'unowned' },
+        ]}
+        actions={[
+          { href: engineerFocus.href, label: engineerFocus.cta },
+          { href: 'records.html', label: 'Open RCA records' },
+        ]}
+        priorities={[
+          { label: 'Repeat hotspots', value: hotspots.length, help: 'Machine-component clusters repeating', tone: hotspots.length ? 'warning' : '' },
+          { label: 'Overdue CAPA', value: overdueCapa.length, help: 'Corrective actions behind schedule', tone: overdueCapa.length ? 'danger' : '' },
+          { label: 'RCA discipline', value: formatPct(reliability.rcaCompletionPct, '—'), help: 'Closed work with root cause logged', tone: reliability.rcaCompletionPct != null && reliability.rcaCompletionPct < 80 ? 'warning' : 'info' },
+        ]}
+      />
 
       <section className="rd-kpi-row" aria-label="Reliability KPIs">
         <DashboardKpiCard
@@ -89,6 +142,62 @@ export default function EngineerDashboard({ metrics, loading = false, isDemoData
           data-testid="kpi-rca-completion"
         />
       </section>
+
+      <div className="rd-split">
+        <DashboardChart
+          title="Immediate engineering actions"
+          subtitle="Where deeper technical work should start"
+          caption={`${Math.min(4, overdueCapa.length + hotspots.length)} priority items`}
+        >
+          {overdueCapa.length || hotspots.length || topTrend ? (
+            <div className="rd-tech-mini-list">
+              {overdueCapa.slice(0, 2).map((action) => (
+                <a key={`capa-${action.id}`} className="rd-tech-mini danger" href="support.html">
+                  <span className="rd-tech-mini-label">Overdue CAPA</span>
+                  <strong>{action.machineName}</strong>
+                  <small>{action.action}</small>
+                </a>
+              ))}
+              {hotspots.slice(0, 2).map((row) => (
+                <a key={`${row.machineId}-${row.component}`} className={`rd-tech-mini ${row.tone === 'danger' ? 'danger' : 'warning'}`} href={`machines.html?machine=${encodeURIComponent(row.machineId)}`}>
+                  <span className="rd-tech-mini-label">Repeat hotspot</span>
+                  <strong>{row.machineName} · {row.component}</strong>
+                  <small>{row.failureCount} failures · {row.capaStatus}</small>
+                </a>
+              ))}
+              {!overdueCapa.length && !hotspots.length && topTrend ? (
+                <a className="rd-tech-mini info" href="tickets.html?filter=repeat">
+                  <span className="rd-tech-mini-label">Emerging theme</span>
+                  <strong>{topTrend.issue}</strong>
+                  <small>{topTrend.count} cases across {topTrend.affectedMachines} machines</small>
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <p className="rd-empty">No immediate engineering exceptions are dominating the board.</p>
+          )}
+        </DashboardChart>
+
+        <DashboardChart
+          title="Weakest technical patterns"
+          subtitle="What keeps coming back"
+          caption={topTrend ? topTrend.suggestedAction : 'No issue trend'}
+        >
+          {trending.length ? (
+            <div className="rd-tech-mini-list">
+              {trending.slice(0, 4).map((row, index) => (
+                <a key={`${row.issue}-${index}`} className={`rd-tech-mini ${index === 0 ? 'danger' : 'info'}`} href="tickets.html?filter=repeat">
+                  <span className="rd-tech-mini-label">{index === 0 ? 'Strongest theme' : 'Recurring theme'}</span>
+                  <strong>{row.issue}</strong>
+                  <small>{row.count} cases · {row.affectedMachines} machines · {row.suggestedAction}</small>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="rd-empty">No issue theme is repeating enough yet to call a pattern.</p>
+          )}
+        </DashboardChart>
+      </div>
 
       <DashboardChart
         title="Repeat failure hotspots"
