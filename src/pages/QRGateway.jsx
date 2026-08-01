@@ -52,7 +52,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2 } from 'lucide-react';
+import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2, MessageCircle, Sparkles } from 'lucide-react';
 import { decryptUrlParams } from '../utils/urlEncryption';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 
@@ -109,6 +109,7 @@ const GATEWAY_I18N = {
     transcribing: 'समझ रहा हूँ...',
     listening: 'सुन रहा हूँ... बोलिए',
     troubleSpeaking: 'बोलने में समस्या? लिखकर दर्ज करें',
+    useMic: 'माइक इस्तेमाल करें',
     writeIssueTitle: 'समस्या का विवरण लिखें',
     issuePlaceholder: 'मशीन की समस्या लिखें (उदा. ऑइल लीक हो रहा है)',
     machineCondition: 'मशीन की स्थिति:',
@@ -175,6 +176,7 @@ const GATEWAY_I18N = {
     transcribing: 'ऐकलेले समजत आहे...',
     listening: 'ऐकत आहे... बोला',
     troubleSpeaking: 'बोलण्यात अडचण? लिहून कळवा',
+    useMic: 'माइक वापरा',
     writeIssueTitle: 'समस्येचे वर्णन लिहा',
     issuePlaceholder: 'मशीनची समस्या लिहा (उदा. तेल गळती होत आहे)',
     machineCondition: 'मशीनची स्थिती:',
@@ -242,6 +244,7 @@ const GATEWAY_I18N = {
     transcribing: 'Transcribing...',
     listening: 'Listening... Speak now',
     troubleSpeaking: 'Trouble speaking? Write here',
+    useMic: 'Use mic',
     writeIssueTitle: 'Write Issue Description',
     issuePlaceholder: 'e.g. Oil leak near gearbox or motor overheating',
     machineCondition: 'Machine Condition:',
@@ -349,6 +352,7 @@ export default function QRGateway() {
   const [otpError, setOtpError] = useState('');
   const [otpDebug, setOtpDebug] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const otpBoxRefs = useRef([]);
 
   useEffect(() => {
     const token = localStorage.getItem(QR_SESSION_KEY);
@@ -1351,6 +1355,47 @@ export default function QRGateway() {
     }
   };
 
+  const handleOtpBoxChange = (index, rawValue) => {
+    const digit = rawValue.replace(/\D/g, '').slice(-1);
+    const chars = otpInput.padEnd(6, ' ').split('');
+    chars[index] = digit || ' ';
+    setOtpInput(chars.join('').replace(/ /g, ''));
+    if (digit && index < 5) {
+      otpBoxRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpBoxKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!otpInput[index] && index > 0) {
+        e.preventDefault();
+        const chars = otpInput.padEnd(6, ' ').split('');
+        chars[index - 1] = ' ';
+        setOtpInput(chars.join('').replace(/ /g, ''));
+        otpBoxRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpBoxRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpBoxRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    e.preventDefault();
+    setOtpInput(pasted);
+    otpBoxRefs.current[Math.min(pasted.length, 5)]?.focus();
+  };
+
+  useEffect(() => {
+    if (otpStep === 'verify') {
+      const focusTimer = setTimeout(() => otpBoxRefs.current[0]?.focus(), 60);
+      return () => clearTimeout(focusTimer);
+    }
+  }, [otpStep]);
+
   const handleVerifyOTP = async () => {
     if (!otpInput.trim() || otpInput.trim().length !== 6) {
       setOtpError(t('otpPlaceholder'));
@@ -1636,12 +1681,13 @@ export default function QRGateway() {
                   placeholder={t('reporterNamePlaceholder')}
                   style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', fontSize: '0.95rem', color: 'white', boxSizing: 'border-box' }}
                 />
-                <button 
-                  type="button" 
-                  onClick={handleSendOTP} 
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
                   disabled={otpSending}
-                  style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', opacity: otpSending ? 0.7 : 1 }}
+                  style={{ width: '100%', padding: '12px', minHeight: '48px', background: 'var(--brand)', border: 'none', borderRadius: '12px', color: 'var(--primary-foreground)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', opacity: otpSending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
+                  <MessageCircle size={16} />
                   {otpSending ? t('sendingOtp') : t('sendOtp')}
                 </button>
               </>
@@ -1657,19 +1703,27 @@ export default function QRGateway() {
                   </div>
                 )}
 
-                <label htmlFor="qr-otp-input" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
+                <label htmlFor="qr-otp-box-0" style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>
                   {t('otpPlaceholder')}
                 </label>
-                <input
-                  id="qr-otp-input"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                  placeholder="• • • • • •"
-                  style={{ width: '100%', background: '#0b1118', border: '1px solid rgba(134,59,255,0.5)', borderRadius: '12px', padding: '12px', fontSize: '1.4rem', color: '#4ade80', letterSpacing: '8px', textAlign: 'center', fontWeight: 'bold', boxSizing: 'border-box' }}
-                />
+                <div role="group" aria-label={t('otpPlaceholder')} style={{ display: 'flex', gap: '6px', justifyContent: 'space-between' }}>
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <input
+                      key={index}
+                      id={`qr-otp-box-${index}`}
+                      ref={(el) => { otpBoxRefs.current[index] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={otpInput[index] || ''}
+                      onChange={(e) => handleOtpBoxChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpBoxKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
+                      aria-label={`OTP digit ${index + 1}`}
+                      style={{ flex: 1, minWidth: 0, minHeight: '52px', background: '#0b1118', border: `1px solid ${otpInput[index] ? 'var(--brand)' : 'rgba(255,255,255,0.18)'}`, borderRadius: '10px', padding: '0', fontSize: '1.3rem', color: '#4ade80', textAlign: 'center', fontWeight: 800, boxSizing: 'border-box', fontFamily: 'monospace' }}
+                    />
+                  ))}
+                </div>
 
                 <button 
                   type="button" 
@@ -1892,7 +1946,7 @@ export default function QRGateway() {
                 className="qr-gateway-secondary"
                 style={{ flex: 1, padding: '10px', minHeight: '44px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#e5edf6', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
               >
-                Use mic
+                {t('useMic')}
               </button>
               <button 
                 type="button" 
@@ -2033,7 +2087,12 @@ export default function QRGateway() {
             </>
           ) : (
             <>
-              <div style={{ textAlign: 'center', display: 'grid', gap: '4px' }}>
+              <div style={{ textAlign: 'center', display: 'grid', gap: '6px' }}>
+                {extractedInfo?.aiDraft && (
+                  <span style={{ justifySelf: 'center', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(37,211,102,0.14)', border: '1px solid rgba(37,211,102,0.35)', borderRadius: '999px', padding: '3px 10px', fontSize: '0.66rem', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                    <Sparkles size={11} /> AI Reviewed
+                  </span>
+                )}
                 <h2 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--foreground)' }}>
                   {t('reviewTitle')}
                 </h2>
