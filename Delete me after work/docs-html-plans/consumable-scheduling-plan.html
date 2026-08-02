@@ -1,0 +1,460 @@
+<title>TurboFix — Consumable Scheduling & Calendar Plan</title>
+<style>
+  :root {
+    --bg: #e9edf1; --grid: #d7dee6; --surface: #ffffff; --surface-2: #f4f7fa;
+    --ink: #14202b; --muted: #5a6b7b; --faint: #8496a6; --hair: #d0d9e2; --hair-strong: #b7c3ce;
+    --accent: #0f9d4f; --accent-ink: #0a6e37;
+    --ok: #1f9d55; --warn: #b9770a; --crit: #cf3b3b; --info: #2b6cb0;
+    --owner: #7c4dbd; --mnt: #2b6cb0; --sup: #b9770a;
+    --shadow: 0 1px 2px rgba(20,32,43,.06), 0 8px 24px rgba(20,32,43,.07);
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c1219; --grid: #172230; --surface: #131d27; --surface-2: #0f1822;
+      --ink: #e9eff5; --muted: #93a4b5; --faint: #64768a; --hair: #253340; --hair-strong: #33475a;
+      --accent: #25d366; --accent-ink: #7ef0a8; --ok: #3ddc84; --warn: #f5a623; --crit: #ff6060;
+      --info: #55a2e6; --owner: #b28be6; --mnt: #55a2e6; --sup: #f5a623;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #e9edf1; --grid: #d7dee6; --surface: #fff; --surface-2: #f4f7fa;
+    --ink: #14202b; --muted: #5a6b7b; --faint: #8496a6; --hair: #d0d9e2; --hair-strong: #b7c3ce;
+    --accent: #0f9d4f; --accent-ink: #0a6e37; --ok: #1f9d55; --warn: #b9770a; --crit: #cf3b3b;
+    --info: #2b6cb0; --owner: #7c4dbd; --mnt: #2b6cb0; --sup: #b9770a;
+    --shadow: 0 1px 2px rgba(20,32,43,.06), 0 8px 24px rgba(20,32,43,.07);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1219; --grid: #172230; --surface: #131d27; --surface-2: #0f1822;
+    --ink: #e9eff5; --muted: #93a4b5; --faint: #64768a; --hair: #253340; --hair-strong: #33475a;
+    --accent: #25d366; --accent-ink: #7ef0a8; --ok: #3ddc84; --warn: #f5a623; --crit: #ff6060;
+    --info: #55a2e6; --owner: #b28be6; --mnt: #55a2e6; --sup: #f5a623;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  .wrap {
+    font-family: var(--sans); color: var(--ink);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 28px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 28px 100%, var(--bg);
+    background-attachment: fixed; line-height: 1.55;
+    padding: clamp(16px, 4vw, 56px) clamp(14px, 4vw, 40px) 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet { max-width: 1080px; margin: 0 auto; }
+  .mono { font-family: var(--mono); }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  .titleblock { background: var(--surface); border: 1.5px solid var(--hair-strong); box-shadow: var(--shadow); border-radius: 4px; overflow: hidden; }
+  .tb-top { display: flex; flex-wrap: wrap; align-items: stretch; border-bottom: 1.5px solid var(--hair); }
+  .tb-mark { display: flex; align-items: center; gap: 12px; padding: 22px 26px; border-right: 1.5px solid var(--hair); flex: 1 1 320px; }
+  .logo { width: 42px; height: 42px; border-radius: 9px; flex: none; background: linear-gradient(135deg, #22a35a, #125c31); display: grid; place-items: center; box-shadow: 0 4px 14px rgba(18,92,49,.35); }
+  .tb-mark h1 { margin: 0; font-size: clamp(20px, 3.4vw, 27px); font-weight: 800; letter-spacing: -.01em; }
+  .tb-mark .sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .tb-meta { display: grid; grid-template-columns: 1fr 1fr; flex: 1 1 320px; }
+  .tb-cell { padding: 12px 18px; border-right: 1.5px solid var(--hair); border-bottom: 1.5px solid var(--hair); }
+  .tb-cell:nth-child(2n){ border-right: none; }
+  .tb-cell:nth-child(n+3){ border-bottom: none; }
+  .tb-cell .k { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+  .tb-cell .v { font-size: 13.5px; font-weight: 650; margin-top: 3px; }
+  .tb-scope { padding: 16px 26px; font-size: 14px; color: var(--muted); }
+  .tb-scope b { color: var(--ink); font-weight: 700; }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .03em; padding: 4px 9px; border-radius: 999px; border: 1.3px solid var(--hair-strong); color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chip.owner { color: var(--owner); border-color: color-mix(in srgb, var(--owner) 40%, transparent); }
+  .chip.mnt { color: var(--mnt); border-color: color-mix(in srgb, var(--mnt) 40%, transparent); }
+  .chip.sup { color: var(--sup); border-color: color-mix(in srgb, var(--sup) 40%, transparent); }
+  .chip.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .chip.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+  .chip.crit { color: var(--crit); border-color: color-mix(in srgb, var(--crit) 40%, transparent); }
+  .chip.accent { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+
+  .part-head { display: flex; align-items: baseline; gap: 14px; margin: 52px 0 6px; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .part-head .tag { font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent-ink); border: 1.5px solid var(--accent); border-radius: 4px; padding: 4px 10px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); white-space: nowrap; }
+  .part-head h2 { margin: 0; font-size: clamp(19px, 3vw, 25px); font-weight: 800; letter-spacing: -.01em; }
+  .part-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+  section.movement { margin-top: 20px; }
+  .card { background: var(--surface); border: 1.5px solid var(--hair-strong); border-radius: 5px; box-shadow: var(--shadow); overflow: hidden; }
+  .card-h { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1.5px solid var(--hair); background: var(--surface-2); }
+  .num { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--surface); background: var(--ink); width: 34px; height: 30px; border-radius: 5px; display: grid; place-items: center; flex: none; }
+  .card-h h3 { margin: 0; font-size: 16px; font-weight: 750; letter-spacing: -.01em; }
+  .card-h .kicker { margin-left: auto; }
+  .card-b { padding: 18px; }
+  .card-b p { margin: 0 0 12px; font-size: 14px; color: var(--ink); }
+  .card-b p.mut { color: var(--muted); }
+  .card-b p:last-child { margin-bottom: 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 760px){ .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+  .list { margin: 0; padding: 0; list-style: none; }
+  .list li { position: relative; padding: 7px 0 7px 24px; font-size: 13.5px; border-bottom: 1px dashed var(--hair); }
+  .list li:last-child { border-bottom: none; }
+  .list li::before { content: ""; position: absolute; left: 4px; top: 13px; width: 8px; height: 8px; border: 1.6px solid var(--accent); border-radius: 2px; transform: rotate(45deg); }
+  .list.good li::before { border-color: var(--ok); }
+  .list.bad li::before { border-color: var(--crit); border-radius: 50%; transform: none; }
+
+  h4.sub-h { font-size: 12px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 0 0 8px; }
+  .note { font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+  /* formula block */
+  .formula { background: var(--surface-2); border: 1.5px solid var(--hair); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 0 0 12px; }
+  .formula .eq { font-family: var(--mono); font-size: 14px; font-weight: 650; color: var(--ink); }
+  .formula .eq b { color: var(--accent-ink); }
+  .formula .gloss { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+  .formula:last-child { margin-bottom: 0; }
+
+  /* worked-example table */
+  .tablewrap { overflow-x: auto; border: 1.5px solid var(--hair-strong); border-radius: 5px; box-shadow: var(--shadow); }
+  table.fx { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 12.5px; background: var(--surface); }
+  table.fx th, table.fx td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--hair); vertical-align: middle; }
+  table.fx thead th { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); background: var(--surface-2); border-bottom: 1.5px solid var(--hair-strong); }
+  table.fx tbody tr:last-child td { border-bottom: none; }
+  table.fx td.feat { font-weight: 650; }
+  table.fx td .sub { color: var(--muted); font-size: 11px; display: block; margin-top: 1px; }
+  .num-cell { font-family: var(--mono); }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; letter-spacing: .02em; }
+  .pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--surface)); }
+  .pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, var(--surface)); }
+  .pill.crit { color: var(--crit); background: color-mix(in srgb, var(--crit) 15%, var(--surface)); }
+
+  /* calendar */
+  .cal { border: 1.5px solid var(--hair-strong); border-radius: 8px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+  .cal-bar { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1.5px solid var(--hair); background: var(--surface-2); }
+  .cal-bar .m { font-weight: 750; font-size: 14px; }
+  .cal-bar .leg { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-dow { font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; color: var(--faint); text-align: center; padding: 7px 0; border-bottom: 1px solid var(--hair); text-transform: uppercase; }
+  .cal-cell { min-height: 62px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); padding: 5px 6px; font-family: var(--mono); font-size: 10px; position: relative; }
+  .cal-cell:nth-child(7n){ border-right: none; }
+  .cal-cell .dn { color: var(--faint); font-size: 10px; }
+  .cal-cell.out .dn { opacity: .35; }
+  .cal-cell.today { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+  .cal-cell.today .dn { color: var(--accent-ink); font-weight: 700; }
+  .ev { display: block; margin-top: 3px; font-size: 9px; line-height: 1.25; padding: 2px 4px; border-radius: 3px; font-weight: 650; letter-spacing: .01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ev.order { background: color-mix(in srgb, var(--warn) 20%, var(--surface)); color: var(--warn); }
+  .ev.due { background: color-mix(in srgb, var(--info) 18%, var(--surface)); color: var(--info); }
+  .ev.crit { background: color-mix(in srgb, var(--crit) 18%, var(--surface)); color: var(--crit); }
+  .ev.recv { background: color-mix(in srgb, var(--ok) 18%, var(--surface)); color: var(--ok); }
+  .cal-cap { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 8px; text-align: center; letter-spacing: .04em; }
+
+  /* flow */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  @media (max-width: 820px){ .flow { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .flow { grid-template-columns: 1fr; } }
+  .step { border: 1.5px solid var(--hair-strong); border-radius: 6px; background: var(--surface); padding: 12px; position: relative; }
+  .step .sn { font-family: var(--mono); font-size: 10px; color: var(--accent-ink); font-weight: 700; letter-spacing: .1em; }
+  .step .st { font-weight: 700; font-size: 13px; margin: 4px 0 4px; }
+  .step .sd { font-size: 11.5px; color: var(--muted); }
+
+  .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 860px){ .phases { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .phases { grid-template-columns: 1fr; } }
+  .phase { border: 1.5px solid var(--hair-strong); border-radius: 5px; background: var(--surface); overflow: hidden; }
+  .phase .ph-h { padding: 10px 12px; border-bottom: 1.5px solid var(--hair); background: var(--surface-2); display: flex; align-items: center; gap: 8px; }
+  .phase .ph-h .n { font-family: var(--mono); font-weight: 700; color: var(--accent-ink); }
+  .phase .ph-h .t { font-weight: 750; font-size: 13.5px; }
+  .phase .ph-b { padding: 12px; font-size: 12.5px; color: var(--muted); }
+  .phase .ph-b b { color: var(--ink); font-weight: 650; }
+
+  .callout { border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); padding: 12px 16px; border-radius: 0 5px 5px 0; font-size: 13.5px; }
+  .callout b { font-weight: 700; }
+
+  .foot { margin-top: 46px; padding-top: 18px; border-top: 1.5px solid var(--hair); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+  .foot .mono { font-size: 11px; color: var(--faint); letter-spacing: .05em; }
+</style>
+
+<div class="wrap">
+<div class="sheet">
+
+  <!-- TITLE BLOCK -->
+  <div class="titleblock">
+    <div class="tb-top">
+      <div class="tb-mark">
+        <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b"/></svg></div>
+        <div>
+          <h1>Consumable Scheduling &amp; Calendar</h1>
+          <p class="sub">Never let a missing consumable stop the line</p>
+        </div>
+      </div>
+      <div class="tb-meta">
+        <div class="tb-cell"><div class="k">Feature</div><div class="v">Replenishment engine</div></div>
+        <div class="tb-cell"><div class="k">Surface</div><div class="v">Vault · Dashboard</div></div>
+        <div class="tb-cell"><div class="k">Drives from</div><div class="v">lead · buffer · history</div></div>
+        <div class="tb-cell"><div class="k">Rev / Date</div><div class="v mono">A · 2026-07-12</div></div>
+      </div>
+    </div>
+    <div class="tb-scope">
+      <b>Goal:</b> turn the consumable fields you already capture into a live schedule that tells each responsible person <b>what to order or replace, and by which date</b> — so a coolant tank, oil filter, or welding wire never runs dry mid-production.
+    </div>
+  </div>
+
+  <!-- WHAT WE HAVE -->
+  <section class="movement">
+    <div class="card">
+      <div class="card-h"><span class="eyebrow">Starting point — fields already captured per consumable</span></div>
+      <div class="card-b">
+        <p class="mut">Every consumable record today already stores the raw inputs a schedule needs. The gap is that nothing turns them into <b>dates and actions</b>.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px">
+          <span class="chip">stock on hand</span>
+          <span class="chip">unit</span>
+          <span class="chip">lead time (days)</span>
+          <span class="chip">buffer (days)</span>
+          <span class="chip">replacement schedule (days)</span>
+          <span class="chip">last replaced (date)</span>
+          <span class="chip accent">+ burn rate (new)</span>
+        </div>
+        <p class="note" style="margin-top:10px">The one missing input is <b>consumption rate</b> (how fast it's used up). We add it — entered directly, or better, <b>derived from replacement history</b> so it self-corrects.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART A — THE MODEL -->
+  <div class="part-head">
+    <span class="tag">Part A</span>
+    <div><h2>The scheduling model</h2><p>Two kinds of consumable, one set of dates the whole plant reads the same way.</p></div>
+  </div>
+
+  <section class="movement">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><span class="num">A1</span><h3>Two archetypes</h3></div>
+        <div class="card-b">
+          <p><b>Consumption-based</b> — burns down continuously: coolant, lubricant, welding wire, shielding gas. Driven by a <b>burn rate</b> → reaches a reorder point.</p>
+          <p><b>Time / cycle-based</b> — replaced on a cadence no matter what: oil change every 90&nbsp;days, air filters, belts. Driven by <b>last-replaced&nbsp;+&nbsp;frequency</b> → a due date.</p>
+          <p class="mut">Many items are both. The engine computes both dates and warns on whichever comes first.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="num">A2</span><h3>The four dates it computes</h3></div>
+        <div class="card-b">
+          <div class="formula"><div class="eq">Days of cover = <b>stock ÷ burn rate</b></div><div class="gloss">"At today's pace, N days of stock remain."</div></div>
+          <div class="formula"><div class="eq">Reorder point = burn rate × <b>(lead + buffer)</b></div><div class="gloss">Order the moment stock drops to this level.</div></div>
+          <div class="formula"><div class="eq">Order-by date = today + <b>(cover − lead − buffer)</b></div><div class="gloss">Last safe day to place the order.</div></div>
+          <div class="formula"><div class="eq">Replace-due = last replaced + <b>frequency</b></div><div class="gloss">For time-based items; order-by = due − lead − buffer.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- worked example -->
+  <section class="movement">
+    <div class="card">
+      <div class="card-h"><span class="num">A3</span><h3>Worked example — same math, four consumables</h3><span class="chip accent kicker">what the owner sees</span></div>
+      <div class="card-b">
+        <div class="tablewrap">
+          <table class="fx">
+            <thead>
+              <tr><th>Consumable</th><th>Stock</th><th>Burn / cadence</th><th>Lead + buf</th><th>Cover</th><th>Order-by</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="feat">Cutting coolant<span class="sub">consumption</span></td>
+                <td class="num-cell">180 L</td>
+                <td class="num-cell">6 L/day</td>
+                <td class="num-cell">7 + 3 d</td>
+                <td class="num-cell">30 d</td>
+                <td class="num-cell">in 20 d<span class="sub">02 Aug</span></td>
+                <td><span class="pill ok">OK</span></td>
+              </tr>
+              <tr>
+                <td class="feat">Hydraulic oil<span class="sub">time-based · 90 d</span></td>
+                <td class="num-cell">—</td>
+                <td class="num-cell">last: 70 d ago</td>
+                <td class="num-cell">14 + 3 d</td>
+                <td class="num-cell">due 20 d</td>
+                <td class="num-cell">in 3 d<span class="sub">15 Jul</span></td>
+                <td><span class="pill warn">ORDER SOON</span></td>
+              </tr>
+              <tr>
+                <td class="feat">Air filter<span class="sub">time-based · 60 d</span></td>
+                <td class="num-cell">2 pcs</td>
+                <td class="num-cell">last: 65 d ago</td>
+                <td class="num-cell">5 + 2 d</td>
+                <td class="num-cell">overdue 5 d</td>
+                <td class="num-cell">passed<span class="sub">07 Jul</span></td>
+                <td><span class="pill crit">OVERDUE</span></td>
+              </tr>
+              <tr>
+                <td class="feat">Welding wire<span class="sub">consumption</span></td>
+                <td class="num-cell">12 spools</td>
+                <td class="num-cell">0.5 /day</td>
+                <td class="num-cell">5 + 2 d</td>
+                <td class="num-cell">24 d</td>
+                <td class="num-cell">in 17 d<span class="sub">30 Jul</span></td>
+                <td><span class="pill ok">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:10px">Status is a simple traffic light off the order-by date: <span class="pill ok">OK</span> = comfortably ahead · <span class="pill warn">ORDER SOON</span> = inside the lead+buffer window · <span class="pill crit">OVERDUE</span> = order-by already passed / replacement overdue.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART B — CALENDAR & VIEWS -->
+  <div class="part-head">
+    <span class="tag">Part B</span>
+    <div><h2>The calendar &amp; views</h2><p>One glance answers "what has to happen this month, and when."</p></div>
+  </div>
+
+  <section class="movement">
+    <div class="card">
+      <div class="card-h"><span class="num">B1</span><h3>Replenishment calendar</h3></div>
+      <div class="card-b">
+        <div class="cal">
+          <div class="cal-bar">
+            <span class="m">July 2026</span>
+            <span class="leg">
+              <span class="chip warn"><span class="dot"></span>Order-by</span>
+              <span class="chip"><span class="dot" style="background:var(--info)"></span>Replace-due</span>
+              <span class="chip crit"><span class="dot"></span>Overdue</span>
+              <span class="chip ok"><span class="dot"></span>Received</span>
+            </span>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-dow">Mon</div><div class="cal-dow">Tue</div><div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div><div class="cal-dow">Sun</div>
+            <!-- week 1 -->
+            <div class="cal-cell out"><span class="dn">30</span></div>
+            <div class="cal-cell"><span class="dn">1</span></div>
+            <div class="cal-cell"><span class="dn">2</span></div>
+            <div class="cal-cell"><span class="dn">3</span></div>
+            <div class="cal-cell"><span class="dn">4</span></div>
+            <div class="cal-cell"><span class="dn">5</span></div>
+            <div class="cal-cell"><span class="dn">6</span></div>
+            <!-- week 2 -->
+            <div class="cal-cell"><span class="dn">7</span><span class="ev crit">Air filter overdue</span></div>
+            <div class="cal-cell"><span class="dn">8</span></div>
+            <div class="cal-cell"><span class="dn">9</span></div>
+            <div class="cal-cell"><span class="dn">10</span></div>
+            <div class="cal-cell"><span class="dn">11</span></div>
+            <div class="cal-cell"><span class="dn">12</span><span class="ev recv">Coolant recv</span></div>
+            <div class="cal-cell today"><span class="dn">12</span></div>
+            <!-- week 3 -->
+            <div class="cal-cell"><span class="dn">14</span></div>
+            <div class="cal-cell"><span class="dn">15</span><span class="ev order">Order oil</span></div>
+            <div class="cal-cell"><span class="dn">16</span></div>
+            <div class="cal-cell"><span class="dn">17</span></div>
+            <div class="cal-cell"><span class="dn">18</span></div>
+            <div class="cal-cell"><span class="dn">19</span></div>
+            <div class="cal-cell"><span class="dn">20</span></div>
+            <!-- week 4 -->
+            <div class="cal-cell"><span class="dn">21</span></div>
+            <div class="cal-cell"><span class="dn">22</span></div>
+            <div class="cal-cell"><span class="dn">23</span></div>
+            <div class="cal-cell"><span class="dn">24</span></div>
+            <div class="cal-cell"><span class="dn">25</span></div>
+            <div class="cal-cell"><span class="dn">26</span></div>
+            <div class="cal-cell"><span class="dn">27</span></div>
+            <!-- week 5 -->
+            <div class="cal-cell"><span class="dn">28</span></div>
+            <div class="cal-cell"><span class="dn">29</span></div>
+            <div class="cal-cell"><span class="dn">30</span><span class="ev order">Order wire</span></div>
+            <div class="cal-cell"><span class="dn">31</span></div>
+            <div class="cal-cell out"><span class="dn">1</span></div>
+            <div class="cal-cell out"><span class="dn">2</span><span class="ev order">Order coolant</span></div>
+            <div class="cal-cell out"><span class="dn">3</span></div>
+          </div>
+        </div>
+        <p class="cal-cap">Each marker = an action, not just an alert. Tap a day → "Order 200 L coolant from Supplier X · 7-day lead" with an Order / Snooze / Mark-done action. Month, week, and agenda-list views; the dashboard shows the next 7–14 days inline.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="movement">
+    <div class="grid3">
+      <div class="card">
+        <div class="card-h" style="background:color-mix(in srgb,var(--owner) 10%,var(--surface))"><span class="chip owner"><span class="dot"></span>Owner</span></div>
+        <div class="card-b"><p class="mut" style="font-size:12.5px">All machines, plant-wide.</p><ul class="list"><li>Full calendar across every machine</li><li>Sets lead / buffer / cadence / supplier / min-order qty</li><li>Sees cost of a stockout &amp; approves orders</li></ul></div>
+      </div>
+      <div class="card">
+        <div class="card-h" style="background:color-mix(in srgb,var(--mnt) 10%,var(--surface))"><span class="chip mnt"><span class="dot"></span>Mnt Head</span></div>
+        <div class="card-b"><p class="mut" style="font-size:12.5px">Operational owner of the schedule.</p><ul class="list"><li>Tunes schedules, confirms burn rates</li><li>Raises purchase suggestions</li><li>Assigns who replaces what</li></ul></div>
+      </div>
+      <div class="card">
+        <div class="card-h" style="background:color-mix(in srgb,var(--sup) 10%,var(--surface))"><span class="chip sup"><span class="dot"></span>Supervisor</span></div>
+        <div class="card-b"><p class="mut" style="font-size:12.5px">Assigned machines, on the floor.</p><ul class="list"><li>Logs "replaced today" / stock counts</li><li>Marks orders received</li><li>Gets the WhatsApp reminder for their machines</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART C — HISTORY / ADAPTIVE -->
+  <div class="part-head">
+    <span class="tag">Part C</span>
+    <div><h2>History makes it self-correcting</h2><p>Every logged replacement sharpens the next prediction — the schedule learns your plant.</p></div>
+  </div>
+
+  <section class="movement">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><span class="num">C1</span><h3>Burn rate from actuals</h3></div>
+        <div class="card-b">
+          <p>Each time someone logs a replacement or refill, we store the event. From the <b>interval between events and quantity used</b>, we recompute the real burn rate.</p>
+          <div class="formula"><div class="eq">burn = <b>qty used ÷ days since last refill</b></div><div class="gloss">Rolling average of the last 3–5 cycles, so it tracks reality, not the guess entered on day one.</div></div>
+          <p class="mut">If coolant was assumed to last 90 days but actually lasts 75, the order-by date quietly moves earlier — no one has to remember to fix it.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="num">C2</span><h3>Planned vs actual &amp; production link</h3></div>
+        <div class="card-b">
+          <ul class="list good">
+            <li><b>Planned vs actual</b> per consumable — surfaces the ones you consistently mis-estimate.</li>
+            <li><b>Production-linked burn</b> (optional): tie usage to units produced, so a busy month automatically pulls order dates in.</li>
+            <li><b>Supplier lead actuals</b>: measure real order→receive time and feed it back into "lead" so the buffer isn't a guess.</li>
+            <li><b>Seasonality</b>: flag items whose burn shifts with load, not just calendar.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART D — NOTIFICATIONS & PROCUREMENT -->
+  <div class="part-head">
+    <span class="tag">Part D</span>
+    <div><h2>From a date to an action</h2><p>The schedule reaches out on WhatsApp and closes the loop — reusing the escalation engine you already built.</p></div>
+  </div>
+
+  <section class="movement">
+    <div class="card">
+      <div class="card-h"><span class="num">D1</span><h3>Procurement loop</h3></div>
+      <div class="card-b">
+        <div class="flow">
+          <div class="step"><div class="sn">01 · SYSTEM</div><div class="st">Order-by nears</div><div class="sd">Stock hits reorder point or due date approaches → a purchase suggestion is raised.</div></div>
+          <div class="step"><div class="sn">02 · WHATSAPP</div><div class="st">Reminder sent</div><div class="sd">Responsible person is pinged: "Order 200 L coolant by 15 Jul." Ack / Snooze / Done.</div></div>
+          <div class="step"><div class="sn">03 · OWNER</div><div class="st">Approve &amp; order</div><div class="sd">Owner/Mnt Head approves; marking "ordered" starts the lead-time clock.</div></div>
+          <div class="step"><div class="sn">04 · SUPERVISOR</div><div class="st">Mark received</div><div class="sd">Stock is topped up, last-replaced resets, the calendar recomputes forward.</div></div>
+          <div class="step"><div class="sn">05 · ESCALATE</div><div class="st">If ignored</div><div class="sd">No ack before order-by? It escalates up — same timer used for breakdown tickets.</div></div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>Reuse, don't rebuild:</b> the ACK + escalation-timer infrastructure already shipped for breakdown tickets drives these reminders too — a due order that no one acknowledges escalates exactly like an unhandled machine fault.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROLLOUT -->
+  <div class="part-head">
+    <span class="tag">Rollout</span>
+    <div><h2>Ships in four steps</h2><p>Each phase is useful on its own.</p></div>
+  </div>
+
+  <section class="movement">
+    <div class="phases">
+      <div class="phase"><div class="ph-h"><span class="n">P1</span><span class="t">Compute &amp; status</span></div><div class="ph-b">Add <b>burn rate</b>, compute cover / reorder / order-by, show a <b>traffic-light status</b> on each consumable row. Pure math on existing fields.</div></div>
+      <div class="phase"><div class="ph-h"><span class="n">P2</span><span class="t">Calendar view</span></div><div class="ph-b">The <b>month / week / agenda calendar</b> with order-by, due, overdue, received markers. Role-scoped; next-14-days strip on the dashboard.</div></div>
+      <div class="phase"><div class="ph-h"><span class="n">P3</span><span class="t">Log &amp; learn</span></div><div class="ph-b"><b>Replacement / refill logging</b>, history store, adaptive burn rate, planned-vs-actual. The schedule starts self-correcting.</div></div>
+      <div class="phase"><div class="ph-h"><span class="n">P4</span><span class="t">Notify &amp; procure</span></div><div class="ph-b"><b>WhatsApp reminders + procurement loop</b> on the existing ACK/escalation engine. Purchase suggestions, approve, receive, escalate.</div></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span class="mono">TurboFix · Consumable Scheduling · Rev A</span>
+    <span class="note">Plan only — no code changed yet. Tell me a phase (P1 is the natural first) and I'll build it.</span>
+  </div>
+
+</div>
+</div>
