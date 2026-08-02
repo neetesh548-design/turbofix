@@ -36,7 +36,8 @@ export default function ContactCard() {
     <section className="marketing-section marketing-contact" id="contact">
       <div className="container marketing-contact-grid">
         <div className="marketing-contact-copy">
-          <span>What the walkthrough covers</span>
+          <span>What happens next</span>
+          <p>We map TurboFix to one representative machine so you can see the workflow before you commit to a full rollout.</p>
           <ul>{copy.contactPoints.map((item) => <li key={item}><Check />{item}</li>)}</ul>
         </div>
         <div className="marketing-lead-card">
@@ -44,7 +45,7 @@ export default function ContactCard() {
             <div className="marketing-success"><CheckCircle2 /><h3>{copy.successTitle}</h3><p>{copy.successBody}</p><button type="button" onClick={() => setFormSent(false)}>Send another request</button></div>
           ) : (
             <form onSubmit={handleLeadSubmit}>
-              <div className="marketing-form-heading"><span><Factory /></span><div><h3>{copy.formTitle}</h3><p>{copy.formNote}</p></div></div>
+                <div className="marketing-form-heading"><span><Factory /></span><div><h3>{copy.formTitle}</h3><p>{copy.formNote}</p></div></div>
               <div className="marketing-form-grid">
                 <label htmlFor="lead-name"><span>{copy.name}</span></label>
                 <input id="lead-name" name="name" type="text" placeholder="Rakesh Shah" autoComplete="name" required aria-required="true" />
@@ -61,7 +62,7 @@ export default function ContactCard() {
                 <label htmlFor="lead-challenge" className="marketing-form-wide"><span>{copy.challenge}</span></label>
                 <select id="lead-challenge" name="challenge" defaultValue="" className="marketing-form-wide"><option value="" disabled>{copy.challengePlaceholder}</option>{copy.challengeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select>
               </div>
-              <button className="marketing-btn marketing-btn-primary marketing-submit" type="submit">{copy.submit}<ArrowRight /></button>
+                <button className="marketing-btn marketing-btn-primary marketing-submit" type="submit">{copy.submit}<ArrowRight /></button>
               <small className="marketing-privacy"><LockKeyhole />{copy.formNote}</small>
             </form>
           )}

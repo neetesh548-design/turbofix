@@ -1,109 +1,132 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BrainCircuit, ClipboardCheck, Gauge, Layers3, Route as RouteIcon, Wrench } from 'lucide-react';
+import { ClipboardCheck, Factory, Layers3, MessageCircle, ShieldCheck, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import PageHero from '../../components/marketing/PageHero';
-import CapabilityStrip from '../../components/marketing/CapabilityStrip';
-import ProofBanner from '../../components/marketing/ProofBanner';
 import FeatureCard from '../../components/marketing/FeatureCard';
-import { contentByLanguage } from '../../data/marketingContent';
+import PublicPersonaMosaic from '../../components/marketing/PublicPersonaMosaic';
+
+const CHAOS = [
+  {
+    icon: MessageCircle,
+    title: 'Signals are split',
+    body: 'A breakdown may start in a call, move to WhatsApp, and end up in a notebook nobody checks.',
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'Ownership is unclear',
+    body: 'When the handoff is informal, nobody knows who owns the next move or the final closure.',
+  },
+  {
+    icon: Wrench,
+    title: 'History gets lost',
+    body: 'The useful repair detail disappears, so the next breakdown starts from scratch.',
+  },
+];
+
+const CHANGE = [
+  {
+    icon: Factory,
+    title: 'One visible owner',
+    body: 'Every job is assigned once, then tracked until it is either fixed or escalated.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'One proof trail',
+    body: 'Evidence and approval stay with the work, not in a separate chat thread.',
+  },
+  {
+    icon: Layers3,
+    title: 'One plant memory',
+    body: 'Approved work becomes reusable history for the next decision.',
+  },
+];
 
 export default function WhyTurboFix() {
   const { lang } = useLanguage();
-  const copy = contentByLanguage[lang] || contentByLanguage.en;
 
   useEffect(() => {
-    document.title = 'Why TurboFix — Replace Paper, Excel & WhatsApp Maintenance Chaos';
+    document.title = 'Why TurboFix | Why Plants Switch';
   }, []);
 
+  const heroTitle = lang === 'en' ? 'Why the old workflow fails' : 'Why the old workflow fails';
+  const heroBody = lang === 'en'
+    ? 'Paper, Excel, and WhatsApp split the job. TurboFix keeps the signal, the owner, and the proof together.'
+    : 'Paper, Excel, and WhatsApp split the job. TurboFix keeps the signal, the owner, and the proof together.';
+
   return (
-    <>
-      <div className="marketing-home">
-        <PageHero
-          icon={Layers3}
-          eyebrow="Why plants choose TurboFix"
-          title="One verified system instead of five disconnected habits."
-          body="Paper registers, Excel trackers, and WhatsApp groups all hold pieces of your maintenance story. TurboFix brings them together into one closed-loop system your whole team can trust."
-          primaryCta={{ label: copy.bookDemo, to: '/contact.html' }}
-          secondaryCta={{ label: copy.explore, to: '/login.html' }}
-        />
+    <div className="marketing-home">
+      <PageHero
+        icon={Layers3}
+        eyebrow="Why plants switch"
+        title={heroTitle}
+        body={heroBody}
+        primaryCta={{ label: 'Book a plant walkthrough', to: '/contact.html' }}
+        secondaryCta={{ label: 'Explore the live demo', to: '/demo.html' }}
+        visual={
+          <PublicPersonaMosaic
+            cards={[
+              {
+                src: `${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`,
+                alt: 'Factory owner looking over plant performance',
+                kicker: 'Owner',
+                title: 'See the cost of chaos',
+                body: 'When downtime is scattered across calls and chats, risk becomes harder to see.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`,
+                alt: 'Maintenance head reviewing work and proof',
+                kicker: 'Maintenance Head',
+                title: 'Keep work accountable',
+                body: 'The handoff stays clear when proof and approval live with the job.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/technician_shift_lead.jpg`,
+                alt: 'Technician preparing to work on a machine',
+                kicker: 'Technician',
+                title: 'Stop re-explaining jobs',
+                body: 'The next action is visible, so the team spends less time asking where things stand.',
+              },
+            ]}
+          />
+        }
+      />
 
-        <CapabilityStrip items={copy.strip} />
-        <ProofBanner />
-
-        <section className="marketing-section marketing-outcomes" id="transformation">
-          <div className="container">
-            <div className="marketing-outcomes-heading">
-              <div>
-                <span>One operating story</span>
-                <h2>From breakdown signal to verified closure—without the daily chase.</h2>
-              </div>
-              <p>Bring in old machine history, verify what is trustworthy, and then run daily maintenance from the same system instead of switching between records and execution.</p>
-            </div>
-            <div className="marketing-outcomes-grid">
-              <article>
-                <span>01</span>
-                <Gauge />
-                <h3>See operational risk</h3>
-                <p>Track open breakdowns, SLA risk, MTTR, downtime cost, and plant health from one owner-ready view.</p>
-                <strong>For plant owners</strong>
-              </article>
-              <article>
-                <span>02</span>
-                <ClipboardCheck />
-                <h3>Enforce accountable work</h3>
-                <p>Route every issue to an owner, require repair evidence, and close work only after verification.</p>
-                <strong>For maintenance heads</strong>
-              </article>
-              <article>
-                <span>03</span>
-                <BrainCircuit />
-                <h3>Build machine intelligence</h3>
-                <p>Turn approved records, repairs, spares, and root causes into trusted machine-specific knowledge.</p>
-                <strong>For long-term reliability</strong>
-              </article>
-            </div>
-            <div className="marketing-executive-proof">
-              <span><b>10 sec</b> QR breakdown reporting</span>
-              <span><b>4 steps</b> to verified closure</span>
-              <span><b>5-Why</b> structured root-cause analysis</span>
-              <span><b>100%</b> exportable plant data</span>
-            </div>
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Current chaos</span>
+            <h2>Where the status quo breaks</h2>
+            <p>The problem is not effort. It is fragmentation.</p>
           </div>
-        </section>
-
-        <section className="marketing-section">
-          <div className="container">
-            <div className="marketing-section-heading">
-              <span>Go deeper</span>
-              <h2>See the platform and the workflow that make this possible.</h2>
-              <p>This page is about why plants switch. The mechanics live on their own pages.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <FeatureCard
-                icon={Wrench}
-                title="Explore the full platform"
-                body="Every tool from breakdown dispatch to executive control room, in one connected system."
-                to="/platform.html"
-                ctaLabel="See the platform"
-              />
-              <FeatureCard
-                icon={RouteIcon}
-                title="See how it works"
-                body="The verified loop from operator QR scan to Maintenance Head sign-off, step by step."
-                to="/workflow.html"
-                ctaLabel="See the workflow"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {CHAOS.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="marketing-section" style={{ textAlign: 'center' }}>
-          <div className="container">
-            <Link className="marketing-btn marketing-btn-primary" to="/contact.html">{copy.bookDemo}</Link>
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Changed state</span>
+            <h2>What the plant gets instead</h2>
+            <p>TurboFix is narrow on purpose: one flow, one proof trail, one trusted history.</p>
           </div>
-        </section>
-      </div>
-    </>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {CHANGE.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section">
+        <div className="container text-center">
+          <h2 className="text-3xl font-black text-white">See the change on one representative machine.</h2>
+          <p className="mt-3 text-slate-300 max-w-2xl mx-auto">That is enough to show how the public workflow works before the team rolls anything wider.</p>
+          <div className="marketing-actions justify-center mt-6">
+            <Link className="marketing-btn marketing-btn-primary" to="/contact.html">Book a plant walkthrough</Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

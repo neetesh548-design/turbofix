@@ -47,8 +47,8 @@ function SearchMetadata() {
 
   const metadata = {
     '/': {
-      title: 'TurboFix | AI Maintenance Management Software for Manufacturing',
-      description: 'TurboFix helps manufacturing plants control breakdowns, preventive maintenance, machine history, spare parts, and technician work in one verified system.',
+      title: 'TurboFix | Verified Maintenance for Manufacturing',
+      description: 'TurboFix helps plants report breakdowns, assign work, verify repairs, and keep approved machine history in one system.',
     },
     '/admin.html': {
       title: 'TurboFix | Platform Operations Control Room',
@@ -59,32 +59,32 @@ function SearchMetadata() {
       description: 'TurboFix Platform Operations Control Room & Factory Machine Fleet Management',
     },
     '/why-turbofix.html': {
-      title: 'Why TurboFix | Maintenance Software Built for Manufacturing Plants',
-      description: 'See how TurboFix replaces paper logbooks and scattered messages with accountable maintenance workflows and machine-specific history.',
+      title: 'Why TurboFix | Why Plants Switch',
+      description: 'See how TurboFix replaces paper, spreadsheets, and WhatsApp handoffs with verified maintenance work.',
     },
     '/platform.html': {
-      title: 'Manufacturing Maintenance Platform | TurboFix',
-      description: 'Manage breakdowns, preventive maintenance, machine records, spare parts, shutdown planning, and plant reliability from TurboFix.',
+      title: 'TurboFix Platform | Maintenance Workflows',
+      description: 'See TurboFix for breakdown reporting, repair execution, records, and plant visibility.',
     },
     '/records-platform.html': {
-      title: 'AI Maintenance Records and Machine History | TurboFix',
-      description: 'Digitize handwritten maintenance registers, PDFs, spreadsheets, manuals, and job cards into reviewable machine history.',
+      title: 'TurboFix Records Platform',
+      description: 'Digitize handwritten and digital maintenance records into reviewable machine history.',
     },
     '/workflow.html': {
-      title: 'Breakdown and Repair Workflow for Manufacturing | TurboFix',
-      description: 'Follow every issue from QR report to technician work, repair evidence, supervisor verification, and root-cause analysis.',
+      title: 'TurboFix Workflow | Report to Verify',
+      description: 'Follow each issue from report to assignment, repair, and verified closure.',
     },
     '/demo.html': {
-      title: 'TurboFix Product Demo | Plant Maintenance Software',
-      description: 'See how operators, technicians, maintenance heads, and plant owners use TurboFix to reduce maintenance delays and repeat breakdowns.',
+      title: 'TurboFix Demo | See the Product in Action',
+      description: 'See one representative TurboFix scenario for operators, technicians, and plant leaders.',
     },
     '/pricing.html': {
-      title: 'TurboFix Pricing | Manufacturing Maintenance Software',
-      description: 'Explore transparent per-machine pricing for TurboFix maintenance management software and book a guided plant walkthrough.',
+      title: 'TurboFix Pricing | Per Machine Plans',
+      description: 'Explore per-machine pricing, onboarding, and what is included before you book a walkthrough.',
     },
     '/contact.html': {
       title: 'Book a TurboFix Plant Walkthrough',
-      description: 'Talk with TurboFix about breakdown control, preventive maintenance, machine history, and technician accountability for your plant.',
+      description: 'Book a guided TurboFix walkthrough for one representative machine in your plant.',
     },
   };
   const page = metadata[pathname] || null;

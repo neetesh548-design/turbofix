@@ -1,111 +1,109 @@
 import React, { useEffect } from 'react';
-import { Gauge, Route as RouteIcon } from 'lucide-react';
-import { useLanguage } from '../../LanguageContext';
+import { Link } from 'react-router-dom';
+import { Route as RouteIcon, ShieldCheck } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
-import CapabilityStrip from '../../components/marketing/CapabilityStrip';
-import ProofBanner from '../../components/marketing/ProofBanner';
-import { contentByLanguage } from '../../data/marketingContent';
+import PublicPersonaMosaic from '../../components/marketing/PublicPersonaMosaic';
+
+const STEPS = [
+  {
+    step: '01',
+    title: 'Report',
+    body: 'Capture the issue from the floor and make the problem visible right away.',
+  },
+  {
+    step: '02',
+    title: 'Assign',
+    body: 'Send the job to the right person so ownership is clear from the start.',
+  },
+  {
+    step: '03',
+    title: 'Repair',
+    body: 'Track the repair work, evidence, and notes while the job is open.',
+  },
+  {
+    step: '04',
+    title: 'Verify',
+    body: 'Approve the closure only after the repair is checked and accepted.',
+  },
+];
 
 export default function Workflow() {
-  const { lang } = useLanguage();
-  const copy = contentByLanguage[lang] || contentByLanguage.en;
-
   useEffect(() => {
-    document.title = 'How TurboFix Works — 4-Step Verified Maintenance Workflow';
+    document.title = 'TurboFix Workflow | Report to Verify';
   }, []);
 
   return (
-    <>
-      <div className="marketing-home">
-        <PageHero
-          icon={RouteIcon}
-          eyebrow={copy.workflowEyebrow}
-          title={copy.workflowTitle}
-          body={copy.workflowBody}
-          primaryCta={{ label: copy.bookDemo, to: '/contact.html' }}
-          secondaryCta={{ label: copy.explore, to: '/login.html' }}
-        />
+    <div className="marketing-home">
+      <PageHero
+        icon={RouteIcon}
+        eyebrow="How it works"
+        title="Report. Assign. Repair. Verify."
+        body="TurboFix keeps the public workflow short so teams can see the path from a breakdown signal to a closed job."
+        primaryCta={{ label: 'Book a plant walkthrough', to: '/contact.html' }}
+        secondaryCta={{ label: 'Explore the live demo', to: '/demo.html' }}
+        visual={
+          <PublicPersonaMosaic
+            cards={[
+              {
+                src: `${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`,
+                alt: 'Operator scanning a QR code on the machine',
+                kicker: 'Report',
+                title: 'Start with a signal',
+                body: 'The issue is captured from the floor before it gets buried in chat.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`,
+                alt: 'Technician handling a machine repair in the field',
+                kicker: 'Repair',
+                title: 'Move to the right person',
+                body: 'The job goes to the person who can act on it next.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`,
+                alt: 'Maintenance head approving repair closure',
+                kicker: 'Verify',
+                title: 'Close with proof',
+                body: 'The fix counts only after it is checked and accepted.',
+              },
+            ]}
+          />
+        }
+      />
 
-        <CapabilityStrip items={copy.strip} />
-        <ProofBanner />
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Four steps</span>
+            <h2>One sentence per step</h2>
+            <p>Each step is narrow on purpose. The user should be able to explain the flow after one read.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {STEPS.map(({ step, title, body }) => (
+              <article key={title} className="stitch-glass-tile p-5 rounded-2xl">
+                <span className="text-xs font-bold text-emerald-400">{step}</span>
+                <h3 className="mt-2 text-lg font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-slate-300">{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <section className="marketing-section marketing-workflow" id="how">
-          <div className="container">
-            <div className="marketing-section-heading">
-              <span>Verified 4-Step Loop</span>
-              <h2>From Operator QR Scan to Maintenance Head Sign-off</h2>
-              <p>Every step in TurboFix is backed by verified machine context, real-time WhatsApp dispatch, and audit-ready RCA records.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-10">
-              <div className="stitch-glass-tile overflow-hidden flex flex-col justify-between group rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Step 1: Operator 10-sec QR Breakdown Scan"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">01</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">1. 10-sec QR Report</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Operators scan the machine's physical QR tag with any phone. No app download needed.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden flex flex-col justify-between group rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Step 2: Technician AI Diagnosis & Field Repair"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">02</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">2. AI Diagnosis & Dispatch</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">WhatsApp automatically alerts the assigned technician with 5-Why root cause guidance.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden flex flex-col justify-between group rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/rca_team_collaboration.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Step 3: Team Collaboration & Spares Verification"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">03</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">3. Spares & Work Execution</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Technicians verify replacement parts, record downtime, and log root-cause repair actions.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden flex flex-col justify-between group rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Step 4: Maintenance Head Sign-off & Audit Closure"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-md">04</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">4. Verified Closure</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Maintenance Head approves closure. MTBF and MTTR metrics update live in executive dashboard.</p>
-              </div>
-            </div>
-
-            <div className="marketing-workflow-callout" style={{ marginTop: '2rem' }}>
-              <Gauge />
-              <div><strong>One visible next step</strong><small>Everyone knows what needs attention, who owns it, and what evidence closes it.</small></div>
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-workflow-callout">
+            <ShieldCheck />
+            <div>
+              <strong>Verified closure matters</strong>
+              <small>The job stays open until the plant has enough proof to trust the fix.</small>
             </div>
           </div>
-        </section>
-      </div>
-    </>
+          <div className="marketing-actions justify-center mt-6">
+            <Link className="marketing-btn marketing-btn-primary" to="/contact.html">Book a plant walkthrough</Link>
+            <Link className="marketing-btn marketing-btn-secondary" to="/platform.html">See the product</Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -21,13 +21,13 @@ export default function PricingCalculator() {
     <section className="marketing-section marketing-pricing-section" id="pricing">
       <div className="container">
         <div className="marketing-calculator-box">
-          <div className="marketing-calculator-header">
-            <div>
-              <strong>Estimate monthly investment for your plant</strong>
-              <p>Move slider to select the number of machines in your factory</p>
-            </div>
-            <div className="marketing-billing-toggle">
-              <span className={!isAnnual ? 'active' : ''}>Monthly</span>
+        <div className="marketing-calculator-header">
+          <div>
+              <strong>Estimate monthly investment</strong>
+              <p>Choose the number of machines you want to cover.</p>
+          </div>
+          <div className="marketing-billing-toggle">
+            <span className={!isAnnual ? 'active' : ''}>Monthly</span>
               <button
                 type="button"
                 className={`marketing-toggle-switch ${isAnnual ? 'annual' : ''}`}
@@ -77,11 +77,11 @@ export default function PricingCalculator() {
             </div>
             <p className="marketing-plan-desc">For small workshops. Minimum 5 machines.</p>
             <ul className="marketing-plan-features">
-              {['Up to 5 team members', 'Machine breakdown tickets', 'WhatsApp notifications', 'Basic maintenance records', 'Mobile-ready PWA'].map(f => (
+              {['Machine breakdown tickets', 'WhatsApp notifications', 'Basic maintenance records', 'Mobile-ready web app'].map(f => (
                 <li key={f}><CheckCircle2 size={14} />{f}</li>
               ))}
             </ul>
-            <Link to="/login.html" className="marketing-btn marketing-btn-ghost marketing-plan-cta">Start free trial <ArrowRight size={14} /></Link>
+            <Link to="/login.html" className="marketing-btn marketing-btn-ghost marketing-plan-cta">Start trial <ArrowRight size={14} /></Link>
           </div>
 
           <div className={`marketing-pricing-card growth ${machineCount >= 10 && machineCount < 50 ? 'recommended' : ''}`}>
@@ -97,11 +97,11 @@ export default function PricingCalculator() {
             </div>
             <p className="marketing-plan-desc">For growing plants. Minimum 10 machines.</p>
             <ul className="marketing-plan-features">
-              {['Up to 25 team members', 'Full ticket & SLA management', 'AI maintenance assistant', 'Shutdown planner', 'Kaizen improvement board', 'Inventory management', 'Records & document upload', 'MTTR / downtime reports', 'CSV data export'].map(f => (
+              {['Ticket and SLA management', 'AI maintenance assistant', 'Shutdown planning', 'Records upload', 'Downtime reports', 'CSV export'].map(f => (
                 <li key={f}><CheckCircle2 size={14} />{f}</li>
               ))}
             </ul>
-            <Link to="/login.html" className="marketing-btn marketing-btn-primary marketing-plan-cta">Start free trial <ArrowRight size={14} /></Link>
+            <Link to="/login.html" className="marketing-btn marketing-btn-primary marketing-plan-cta">Start trial <ArrowRight size={14} /></Link>
           </div>
 
           <div className={`marketing-pricing-card ${machineCount >= 50 ? 'recommended' : ''}`}>
@@ -116,7 +116,7 @@ export default function PricingCalculator() {
             </div>
             <p className="marketing-plan-desc">Starting price for 50+ machines on an annual contract.</p>
             <ul className="marketing-plan-features">
-              {['Unlimited team members', 'Multi-plant hierarchy', 'Dedicated onboarding', 'Custom SLA configuration', 'Priority support SLA', 'Data residency options', 'Bulk CSV asset import', 'Annual contract pricing'].map(f => (
+              {['Multi-plant hierarchy', 'Dedicated onboarding', 'Custom SLA setup', 'Priority support', 'Bulk CSV import', 'Annual contract pricing'].map(f => (
                 <li key={f}><CheckCircle2 size={14} />{f}</li>
               ))}
             </ul>

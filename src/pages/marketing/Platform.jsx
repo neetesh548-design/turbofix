@@ -1,148 +1,104 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Database, FileSearch, LockKeyhole, Wrench } from 'lucide-react';
-import { useLanguage } from '../../LanguageContext';
+import { ArchiveRestore, BrainCircuit, ClipboardCheck, Layers3, Wrench } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
-import CapabilityStrip from '../../components/marketing/CapabilityStrip';
-import ProofBanner from '../../components/marketing/ProofBanner';
 import FeatureCard from '../../components/marketing/FeatureCard';
-import { contentByLanguage, platformFeatures, roleCards } from '../../data/marketingContent';
+import PublicPersonaMosaic from '../../components/marketing/PublicPersonaMosaic';
+
+const CAPABILITIES = [
+  {
+    icon: Wrench,
+    title: 'Report',
+    body: 'Capture a breakdown quickly and route it to the right person.',
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'Repair',
+    body: 'Track evidence, notes, and progress until the job is verified.',
+  },
+  {
+    icon: ArchiveRestore,
+    title: 'Records',
+    body: 'Keep approved maintenance history attached to the machine.',
+  },
+];
 
 export default function Platform() {
-  const { lang } = useLanguage();
-  const copy = contentByLanguage[lang] || contentByLanguage.en;
-
   useEffect(() => {
-    document.title = 'TurboFix Platform — Breakdown, Records, Shutdown & Technician Tools in One System';
+    document.title = 'TurboFix Platform | Maintenance Workflows';
   }, []);
 
   return (
-    <>
-      <div className="marketing-home">
-        <PageHero
-          icon={Wrench}
-          eyebrow={copy.platformEyebrow}
-          title={copy.platformTitle}
-          body={copy.platformBody}
-          primaryCta={{ label: copy.explore, to: '/login.html' }}
-          secondaryCta={{ label: copy.bookDemo, to: '/contact.html' }}
-        />
+    <div className="marketing-home">
+      <PageHero
+        icon={Layers3}
+        eyebrow="Product"
+        title="Three capabilities. One plant flow."
+        body="TurboFix connects breakdown reporting, repair execution, and approved machine history without forcing a full-plant digitization project."
+        primaryCta={{ label: 'Book a plant walkthrough', to: '/contact.html' }}
+        secondaryCta={{ label: 'Explore the live demo', to: '/demo.html' }}
+        visual={
+          <PublicPersonaMosaic
+            cards={[
+              {
+                src: `${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`,
+                alt: 'Operator reporting a breakdown through QR scan',
+                kicker: 'Operator',
+                title: 'Breakdown reporting',
+                body: 'Capture the first signal quickly from the floor.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`,
+                alt: 'Technician working through a field repair',
+                kicker: 'Technician',
+                title: 'Repair execution',
+                body: 'Track the work while the job is open.',
+              },
+              {
+                src: `${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`,
+                alt: 'Owner and leadership dashboard showing plant control',
+                kicker: 'Owner',
+                title: 'Plant visibility',
+                body: 'See what is open, what is done, and what still needs attention.',
+              },
+            ]}
+          />
+        }
+      />
 
-        <CapabilityStrip items={copy.strip} />
-        <ProofBanner />
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Core capabilities</span>
+            <h2>What the platform does</h2>
+            <p>Keep the public story narrow. The product has more depth, but these three parts explain the value quickly.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {CAPABILITIES.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
+          </div>
+        </div>
+      </section>
 
-        <section className="marketing-section" id="platform">
-          <div className="container">
-            <div className="marketing-section-heading text-center mb-10">
-              <span className="text-emerald-400 font-extrabold uppercase text-xs tracking-wider">All-In-One Plant Operations Layer</span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-2">Unified Tools for Every Plant Role</h2>
-              <p className="text-sm text-slate-300 max-w-2xl mx-auto mt-2">From shopfloor operators to shift leads, maintenance heads, and plant owners—TurboFix connects breakdown reporting, repair execution, legacy records, and executive control in one seamless workflow.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-10">
-              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="10-sec QR Breakdown Dispatch"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 1</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">10-sec QR Dispatch</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">No app downloads. Operators scan machine QR tags to report failures with instant WhatsApp technician routing.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/technician_field_repair.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Technician 5-Why Repair AI"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 2</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">Technician AI Repair</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Technicians get 5-Why diagnostic recommendations, machine manual snippets, and verified spare part options.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/shutdown_overhaul_team.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Shutdown & Preventive Maintenance"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 3</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">Shutdown & Overhaul</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Plan preventive maintenance schedules, manage overhaul tasklists, and prevent unscheduled plant downtime.</p>
-              </div>
-
-              <div className="stitch-glass-tile overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 transition-all hover:border-emerald-500/50 hover:shadow-xl">
-                <div className="relative h-44 overflow-hidden rounded-xl mb-4">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/dashboard_executive_control.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Executive Control Room & Analytics"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">Pillar 4</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">Executive Control Room</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">Track plant MTBF, MTTR, SLA bottlenecks, and technician response times in real time across all lines.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {platformFeatures.map(({ icon, title, body }, index) => (
-                <FeatureCard key={title} icon={icon} title={title} body={body} badge={`0${index + 1}`} />
-              ))}
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Product view</span>
+            <h2>One workspace for the team</h2>
+            <p>Operators report. Technicians act. Maintenance heads verify. Owners see what is open, what is done, and what is still waiting.</p>
+          </div>
+          <div className="marketing-workflow-callout">
+            <BrainCircuit />
+            <div>
+              <strong>One machine record becomes the starting point</strong>
+              <small>TurboFix is easiest to understand when the team maps one real machine first.</small>
             </div>
           </div>
-        </section>
-
-        <section className="marketing-section marketing-knowledge-section">
-          <div className="container marketing-knowledge-grid">
-            <div className="marketing-knowledge-visual">
-              <div className="marketing-file-card marketing-file-card-back">
-                <FileSearch /><span>Service_Register_2019-2025.pdf</span><small>Handwritten scan • review completed</small>
-              </div>
-              <div className="marketing-file-card">
-                <Database /><span>HydraulicPress_MachineData.md</span><small>Manuals • BOM • maintenance history</small>
-                <div className="marketing-file-lines"><i /><i /><i /><i /></div>
-                <b><LockKeyhole />Plant-approved AI context</b>
-              </div>
-            </div>
-            <div className="marketing-knowledge-copy">
-              <span>{copy.knowledgeEyebrow}</span>
-              <h2>{copy.knowledgeTitle}</h2>
-              <p>{copy.knowledgeBody}</p>
-              <Link to="/records-platform.html" className="marketing-text-link">See the full records workflow <ArrowRight /></Link>
-            </div>
+          <div className="marketing-actions justify-center mt-6">
+            <Link className="marketing-btn marketing-btn-primary" to="/records-platform.html">See records platform</Link>
+            <Link className="marketing-btn marketing-btn-secondary" to="/workflow.html">See workflow</Link>
           </div>
-        </section>
-
-        <section className="marketing-section marketing-fit-section">
-          <div className="container">
-            <div className="marketing-section-heading">
-              <span>{copy.fitEyebrow}</span>
-              <h2>{copy.fitTitle}</h2>
-              <p>{copy.fitBody}</p>
-            </div>
-            <div className="marketing-role-grid">
-              {roleCards.map(({ icon: Icon, title, body }) => <article key={title}><Icon /><h3>{title}</h3><p>{body}</p></article>)}
-            </div>
-          </div>
-        </section>
-      </div>
-    </>
+        </div>
+      </section>
+    </div>
   );
 }

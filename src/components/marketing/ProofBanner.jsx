@@ -5,20 +5,20 @@ export default function ProofBanner() {
     <div className="marketing-proof-banner">
       <div className="container marketing-proof-grid">
         <div className="marketing-proof-item">
-          <strong>20+ SME Plants</strong>
-          <span>Monitored in MH & GJ</span>
+          <strong>One machine first</strong>
+          <span>Start small, then expand</span>
         </div>
         <div className="marketing-proof-item">
-          <strong>99.4% SLA Compliance</strong>
-          <span>Verified repair closure</span>
+          <strong>Verified closure</strong>
+          <span>Review before history is trusted</span>
         </div>
         <div className="marketing-proof-item">
-          <strong>&lt; 10 Seconds</strong>
-          <span>QR breakdown reporting</span>
+          <strong>QR reporting</strong>
+          <span>Report from any phone</span>
         </div>
         <div className="marketing-proof-item">
-          <strong>₹4.2 Lakhs/Yr</strong>
-          <span>Avg downtime savings</span>
+          <strong>Exportable records</strong>
+          <span>Keep plant data with you</span>
         </div>
       </div>
     </div>

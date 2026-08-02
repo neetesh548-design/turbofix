@@ -1,322 +1,237 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArchiveRestore,
   ArrowRight,
-  BrainCircuit,
-  CalendarClock,
-  CheckCircle2,
+  ArchiveRestore,
   ClipboardCheck,
   Factory,
-  Gauge,
-  IndianRupee,
+  Layers3,
   MessageCircle,
-  PhoneCall,
-  PlayCircle,
-  QrCode,
   Route as RouteIcon,
   ShieldCheck,
-  Sparkles,
-  TrendingUp,
   Wrench,
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
-import CapabilityStrip from '../components/marketing/CapabilityStrip';
-import ProofBanner from '../components/marketing/ProofBanner';
 import FeatureCard from '../components/marketing/FeatureCard';
-import RoiCalculator from '../components/marketing/RoiCalculator';
+import PublicPersonaMosaic from '../components/marketing/PublicPersonaMosaic';
 import QrDemoPreview from '../components/marketing/QrDemoPreview';
-import { contentByLanguage, HERO_SCENARIOS } from '../data/marketingContent';
+import { contentByLanguage } from '../data/marketingContent';
 
-const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
+const PROBLEMS = [
+  {
+    icon: MessageCircle,
+    title: 'Signals are scattered',
+    body: 'Breakdowns arrive through calls, WhatsApp, paper, and memory, so the next step gets delayed.',
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'Ownership gets fuzzy',
+    body: 'Work can move between people without a clear owner, evidence, or closure.',
+  },
+  {
+    icon: ArchiveRestore,
+    title: 'History disappears',
+    body: 'Useful repair details stay trapped in registers and spreadsheets instead of becoming plant memory.',
+  },
+];
 
-const EXPLORE_LINKS = [
-  { icon: Wrench, title: 'Platform', body: 'Breakdown, records, shutdown, technician, and control-board tools in one system.', to: '/platform.html' },
-  { icon: ArchiveRestore, title: 'Use old records', body: 'Turn paper logbooks and soft copies into approved machine knowledge.', to: '/records-platform.html' },
-  { icon: RouteIcon, title: 'How it works', body: 'The 4-step verified loop from operator scan to Maintenance Head sign-off.', to: '/workflow.html' },
-  { icon: PlayCircle, title: 'Product demo', body: 'Watch how operators, technicians, and maintenance heads use TurboFix.', to: '/demo.html' },
-  { icon: IndianRupee, title: 'Pricing', body: 'Simple per-machine pricing with a 30-day free trial.', to: '/pricing.html' },
-  { icon: PhoneCall, title: 'Get started', body: 'Book a 15-minute guided plant walkthrough.', to: '/contact.html' },
+const OUTCOMES = [
+  {
+    icon: RouteIcon,
+    title: 'Respond faster',
+    body: 'Report one issue, assign it, and keep the team aligned on the next visible action.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verify closure',
+    body: 'Repair proof and approval stay attached to the job before it counts as closed.',
+  },
+  {
+    icon: Factory,
+    title: 'Build machine history',
+    body: 'Every approved repair becomes cleaner context for the next decision.',
+  },
+];
+
+const WORKFLOW = [
+  { step: '01', title: 'Report', body: 'Capture a breakdown from the floor with one QR-based action.' },
+  { step: '02', title: 'Assign', body: 'Send the job to the right technician with clear ownership.' },
+  { step: '03', title: 'Repair', body: 'Track evidence, notes, and parts against the open job.' },
+  { step: '04', title: 'Verify', body: 'Approve the fix and keep the result in plant history.' },
+];
+
+const ROLES = [
+  {
+    icon: Factory,
+    title: 'Factory Owner',
+    body: 'See where downtime is happening and what the team is doing about it.',
+  },
+  {
+    icon: Wrench,
+    title: 'Maintenance Head',
+    body: 'Verify work, enforce accountability, and keep trusted machine history.',
+  },
+];
+
+const HOME_PERSONAS = [
+  {
+    src: `${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`,
+    alt: 'Factory owner reviewing plant performance and downtime visibility',
+    kicker: 'Factory Owner',
+    title: 'See downtime and risk clearly',
+    body: 'Get a quick read on where production is slipping and what is being done about it.',
+  },
+  {
+    src: `${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`,
+    alt: 'Maintenance head reviewing verified repair work',
+    kicker: 'Maintenance Head',
+    title: 'Verify repair and ownership',
+    body: 'Keep work accountable, approved, and attached to the right machine history.',
+  },
+  {
+    src: `${import.meta.env.BASE_URL}assets/technician_shift_lead.jpg`,
+    alt: 'Technician and shift lead working on a machine repair',
+    kicker: 'Technician',
+    title: 'Work with proof attached',
+    body: 'See the job, the evidence, and the next action in one place.',
+  },
+  {
+    src: `${import.meta.env.BASE_URL}assets/qr_scanner_breakdown.jpg`,
+    alt: 'Operator reporting a breakdown from the shop floor',
+    kicker: 'Operator',
+    title: 'Report the issue fast',
+    body: 'Capture the first signal from the floor before it gets lost in messages.',
+  },
 ];
 
 export default function Home() {
   const { lang } = useLanguage();
   const copy = contentByLanguage[lang] || contentByLanguage.en;
-  const [selectedScenario, setSelectedScenario] = useState(0);
-  const [showStickyCta, setShowStickyCta] = useState(false);
-
-  const activeScenario = HERO_SCENARIOS[selectedScenario] || HERO_SCENARIOS[0];
 
   useEffect(() => {
-    document.title = 'TurboFix — Zero Unplanned Downtime for Indian Manufacturing SMEs';
-  }, []);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-
-    const updateStickyState = () => {
-      setShowStickyCta(mediaQuery.matches && window.scrollY > 450);
-    };
-
-    updateStickyState();
-    window.addEventListener('scroll', updateStickyState, { passive: true });
-    window.addEventListener('resize', updateStickyState);
-
-    return () => {
-      window.removeEventListener('scroll', updateStickyState);
-      window.removeEventListener('resize', updateStickyState);
-    };
+    document.title = 'TurboFix | Verified Maintenance for Manufacturing';
   }, []);
 
   return (
-    <>
-      <div className="marketing-home">
-        {/* HERO SECTION */}
-        <section className="marketing-hero">
-          <div className="container marketing-hero-grid">
-            <div className="marketing-hero-copy">
-              <span className="marketing-eyebrow"><Sparkles />{copy.eyebrow}</span>
-              <h1>Zero Unplanned Downtime for Indian Manufacturing.</h1>
-              <p>Control breakdowns, track technician SLAs, digitize paper registers, and calculate plant financial downtime loss in one verified system.</p>
-              
-              <div className="marketing-actions">
-                <Link className="marketing-btn marketing-btn-primary" to="/contact.html">
-                  {copy.bookDemo}<ArrowRight />
-                </Link>
-                <Link className="marketing-btn marketing-btn-secondary" to="/login.html">
-                  {copy.explore}
-                </Link>
-              </div>
-
-              {/* Manufacturing Hub Badges */}
-              <div className="marketing-trust-row flex-wrap gap-2 mt-4 pt-4 border-t border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
-                  <Factory size={13} className="text-emerald-400" />
-                  Trusted by Industrial Hubs:
-                </span>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Pune Auto Cluster</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Surat Textiles</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Chennai OEMs</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Ludhiana Engineering</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">Gujarat Pharma</span>
-              </div>
-
-              {/* Compliance & Trust Badges */}
-              <div className="marketing-trust-row flex-wrap gap-2 mt-2">
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-semibold">
-                  <ShieldCheck size={12} /> MSME Registered
-                </span>
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-semibold">
-                  <CheckCircle2 size={12} /> GST Compliant Invoicing
-                </span>
-              </div>
+    <div className="marketing-home">
+      <section className="marketing-hero">
+        <div className="container marketing-hero-grid">
+          <div className="marketing-hero-copy">
+            <span className="marketing-eyebrow"><Layers3 />{copy.eyebrow}</span>
+            <h1>Turn maintenance signals into verified action.</h1>
+            <p>Start with one representative machine, then use TurboFix to report breakdowns, assign work, verify repair, and keep approved history in one place.</p>
+            <div className="marketing-actions">
+              <Link className="marketing-btn marketing-btn-primary" to="/contact.html">
+                {copy.bookDemo}<ArrowRight />
+              </Link>
+              <Link className="marketing-btn marketing-btn-secondary" to="/demo.html">
+                {copy.explore}
+              </Link>
             </div>
-
-            {/* PRODUCT PREVIEW SCENARIO WIDGET */}
-            <div className="marketing-product-preview" aria-label="TurboFix AI recommendation preview">
-              <div className="marketing-preview-top">
-                <span><span className="marketing-live-dot" />ACME3 LIVE</span>
-                <span className="marketing-preview-role">Maintenance head</span>
-              </div>
-              <div className="marketing-scenario-tabs" aria-label="Select machine preview scenario">
-                {HERO_SCENARIOS.map((scen, idx) => (
-                  <button
-                    key={scen.id}
-                    type="button"
-                    className={`marketing-scenario-tab ${selectedScenario === idx ? 'active' : ''}`}
-                    onClick={() => setSelectedScenario(idx)}
-                  >
-                    {scen.label.split(' ')[0]} {scen.label.split(' ')[1]}
-                  </button>
-                ))}
-              </div>
-              <div className="marketing-preview-question">
-                <span className="marketing-preview-icon"><BrainCircuit /></span>
-                <div>
-                  <small>{activeScenario.scope}</small>
-                  <strong>{activeScenario.question}</strong>
-                </div>
-              </div>
-              <div className="marketing-preview-answer">
-                <div className="marketing-preview-priority">
-                  <span>0{selectedScenario + 1}</span>
-                  <div><small>Priority recommendation</small><strong>{activeScenario.finding}</strong></div>
-                  <b className={`priority-badge-${activeScenario.priority.toLowerCase()}`}>{activeScenario.priority}</b>
-                </div>
-                <p>{activeScenario.reason}</p>
-                <div className="marketing-preview-metrics">
-                  <span><b>{activeScenario.estTime}</b> estimated work</span>
-                  <span><b>{activeScenario.spares}</b></span>
-                  <span><b>{activeScenario.sources}</b></span>
-                </div>
-                <button type="button">{activeScenario.action}<ArrowRight /></button>
-              </div>
-              <div className="marketing-preview-safe"><ShieldCheck />{activeScenario.safe}</div>
+            <div className="marketing-trust-row">
+              <span><ShieldCheck />One machine first</span>
+              <span><ShieldCheck />Human approval before AI use</span>
+              <span><ShieldCheck />Exportable plant history</span>
             </div>
           </div>
-        </section>
 
-        <CapabilityStrip items={copy.strip} />
-
-        {/* INTERACTIVE ROI & FINANCIAL DOWNTIME CALCULATOR */}
-        <section className="marketing-section py-4">
-          <div className="container">
-            <RoiCalculator />
-          </div>
-        </section>
-
-        {/* 10-SECOND PUBLIC QR BREAKDOWN DEMO */}
-        <section className="marketing-section py-4">
-          <div className="container">
-            <QrDemoPreview />
-          </div>
-        </section>
-
-        <ProofBanner />
-
-        {/* ROLE PERSONAS SECTION */}
-        <section className="marketing-section marketing-outcomes" id="transformation">
-          <div className="container">
-            <div className="marketing-outcomes-heading">
-              <div>
-                <span>One operating story</span>
-                <h2>Tailored for Every Role on the Indian Shop Floor</h2>
-              </div>
-              <p>Bring in old machine history, verify what is trustworthy, and run daily maintenance from the same system across Factory Owners, Maintenance Heads, Engineers, and Technicians.</p>
+          <div className="marketing-page-hero-visual">
+            <PublicPersonaMosaic cards={HOME_PERSONAS} />
+            <div className="marketing-preview-safe mt-4">
+              <ShieldCheck />
+              Every role sees one story, but each person gets the part that matters to them.
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
-                <div className="relative h-48 overflow-hidden rounded-t-xl">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/plant_owner_executive.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Plant Director & Factory Owner"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
-                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 backdrop-blur-md">
-                    For Factory Owners &amp; VPs
-                  </span>
-                </div>
-                <div className="p-5 flex-grow flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-2">"Real-time OEE &amp; downtime financial savings in ₹."</h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      "No more morning surprise breakdowns or hidden production losses. TurboFix gives me live executive control, multi-plant switching, and daily WhatsApp digest reports."
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-emerald-400">
-                    <span>Plant Director &amp; Owner View</span>
-                    <ArrowRight size={13} />
-                  </div>
-                </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Three problems</span>
+            <h2>What usually slows maintenance down</h2>
+            <p>TurboFix is built for plants where the problem is not lack of effort. It is lack of one clean path from signal to closure.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PROBLEMS.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Three outcomes</span>
+            <h2>What changes once the flow is clear</h2>
+            <p>Each outcome is practical. Shorter response time. Cleaner ownership. Better history for the next breakdown.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {OUTCOMES.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Four steps</span>
+            <h2>How work moves through TurboFix</h2>
+            <p>Keep the public story simple: report, assign, repair, and verify.</p>
+          </div>
+          <div className="marketing-workflow-callout" style={{ marginBottom: '1.25rem' }}>
+            <RouteIcon />
+            <div><strong>One visible next step</strong><small>Everyone sees what needs attention and who owns it.</small></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {WORKFLOW.map(({ step, title, body }) => (
+              <article key={title} className="stitch-glass-tile p-5 rounded-2xl">
+                <span className="text-xs font-bold text-emerald-400">{step}</span>
+                <h3 className="mt-2 text-lg font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-slate-300">{body}</p>
               </article>
-
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
-                <div className="relative h-48 overflow-hidden rounded-t-xl">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/maintenance_head_lead.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Maintenance Head & Reliability Lead"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
-                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 backdrop-blur-md">
-                    For Maintenance Heads
-                  </span>
-                </div>
-                <div className="p-5 flex-grow flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-2">"Work is closed only after verified photo proof."</h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      "Every repair requires mandatory photo evidence, 5-Why Ishikawa root-cause analysis, and my sign-off before AI integrates it into our trusted machine knowledge base."
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-sky-400">
-                    <span>Maintenance Head Sign-off</span>
-                    <ArrowRight size={13} />
-                  </div>
-                </div>
-              </article>
-
-              <article className="stitch-glass-tile overflow-hidden flex flex-col justify-between group hover:-translate-y-2 transition-transform duration-300">
-                <div className="relative h-48 overflow-hidden rounded-t-xl">
-                  <img
-                    src={`${import.meta.env.BASE_URL}assets/technician_shift_lead.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    alt="Shift Supervisor & Lead Technician"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-90" />
-                  <span className="absolute bottom-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 backdrop-blur-md">
-                    For Shift Techs &amp; Workers
-                  </span>
-                </div>
-                <div className="p-5 flex-grow flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-100 mb-2">"10-second QR scan &amp; voice-to-text logging."</h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      "Operators log defects with voice notes in Hindi/English ('बोलकर दर्ज करें'), 1-tap QR scan, and step-by-step visual checklists built for rugged factory floor use."
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-semibold text-amber-400">
-                    <span>Field Worker &amp; Tech Work Queue</span>
-                    <ArrowRight size={13} />
-                  </div>
-                </div>
-              </article>
-            </div>
-            <div className="marketing-executive-proof">
-              <span><b>10 sec</b> QR breakdown reporting</span>
-              <span><b>₹ Lakhs</b> calculated downtime savings</span>
-              <span><b>5-Why</b> structured root-cause analysis</span>
-              <span><b>100%</b> exportable plant data</span>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* EXPLORE FEATURES GRID */}
-        <section className="marketing-section">
-          <div className="container">
-            <div className="marketing-section-heading">
-              <span>Explore TurboFix</span>
-              <h2>See how each part of the system works.</h2>
-              <p>Dig into the platform, legacy records, workflow, live demo, pricing, or book a walkthrough.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {EXPLORE_LINKS.map(({ icon, title, body, to }) => (
-                <FeatureCard key={title} icon={icon} title={title} body={body} to={to} />
-              ))}
-            </div>
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>One proof block</span>
+            <h2>See one machine move through the workflow</h2>
+            <p>Use the QR demo to understand the public journey before you open the full product.</p>
           </div>
-        </section>
-      </div>
+          <QrDemoPreview />
+        </div>
+      </section>
 
-      {showStickyCta && (
-        <div className="marketing-mobile-sticky-bar">
-          <div className="sticky-bar-copy">
-            <strong>Protect Production Hours</strong>
-            <small>10-sec QR reporting &amp; 5-Why RCA</small>
+      <section className="marketing-section">
+        <div className="container">
+          <div className="marketing-section-heading">
+            <span>Built for two roles</span>
+            <h2>One story, two views</h2>
+            <p>Factory owners care about visibility and downtime. Maintenance heads care about ownership, proof, and trusted history.</p>
           </div>
-          <div className="sticky-bar-actions">
-            <a
-              href={`https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent('Hi, I want to know more about TurboFix for my factory.')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sticky-bar-whatsapp"
-              aria-label="Chat with TurboFix on WhatsApp"
-            >
-              <MessageCircle size={20} />
-            </a>
-            <Link to="/contact.html" className="marketing-btn marketing-btn-primary marketing-btn-sm">
-              Book Walkthrough <ArrowRight size={13} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {ROLES.map(({ icon, title, body }) => <FeatureCard key={title} icon={icon} title={title} body={body} />)}
+          </div>
+        </div>
+      </section>
+
+      <section className="marketing-section">
+        <div className="container text-center">
+          <h2 className="text-3xl font-black text-white">Start with one representative machine.</h2>
+          <p className="mt-3 text-slate-300 max-w-2xl mx-auto">That is enough to show the workflow, verify the process, and decide whether TurboFix fits your plant.</p>
+          <div className="marketing-actions justify-center mt-6">
+            <Link className="marketing-btn marketing-btn-primary" to="/contact.html">
+              {copy.bookDemo}<ArrowRight />
+            </Link>
+            <Link className="marketing-btn marketing-btn-secondary" to="/pricing.html">
+              View pricing
             </Link>
           </div>
         </div>
-      )}
-    </>
+      </section>
+    </div>
   );
 }

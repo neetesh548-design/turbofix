@@ -7914,8 +7914,8 @@ details.faq-item p {
   --marketing-line: #cbd5e1;
   --marketing-text: #0f172a;
   --marketing-muted: #475569;
-  --marketing-green: #0891b2;
-  --marketing-green-deep: #0e7490;
+  --marketing-green: #16a34a;
+  --marketing-green-deep: #15803d;
 
   color: #0f172a !important;
   background: #f8fafc !important;
@@ -7924,25 +7924,40 @@ details.faq-item p {
 [data-theme="light"] .marketing-hero,
 [data-theme="light"] .marketing-page-hero {
   background:
-    radial-gradient(circle at 78% 28%, rgba(8, 145, 178, 0.08), transparent 35%),
-    radial-gradient(circle at 12% 4%, rgba(245, 158, 11, 0.06), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    radial-gradient(circle at 78% 28%, rgba(16, 185, 129, 0.12), transparent 30%),
+    radial-gradient(circle at 12% 4%, rgba(14, 165, 233, 0.08), transparent 28%),
+    linear-gradient(180deg, #0b1220 0%, #111827 58%, #0f172a 100%) !important;
 }
 
 [data-theme="light"] .marketing-hero h1,
 [data-theme="light"] .marketing-page-hero h1 {
-  color: #0f172a !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  color: #f8fafc !important;
 }
 
 [data-theme="light"] .marketing-hero-copy > p,
 [data-theme="light"] .marketing-page-hero p {
-  color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .marketing-btn-primary {
+  color: #052e16 !important;
+  background: #22c55e !important;
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.24) !important;
+}
+
+[data-theme="light"] .marketing-btn-primary:hover {
+  background: #4ade80 !important;
+  color: #052e16 !important;
 }
 
 [data-theme="light"] .marketing-eyebrow {
   background: rgba(8, 145, 178, 0.08) !important;
   border-color: rgba(8, 145, 178, 0.25) !important;
-  color: #0891b2 !important;
+  color: #16a34a !important;
 }
 
 [data-theme="light"] .marketing-btn-secondary {
@@ -7975,6 +7990,13 @@ details.faq-item p {
 
 [data-theme="light"] .marketing-card,
 [data-theme="light"] .marketing-section,
+[data-theme="light"] .marketing-workflow,
+[data-theme="light"] .marketing-knowledge-section,
+[data-theme="light"] .marketing-fit-section,
+[data-theme="light"] .marketing-demo-section,
+[data-theme="light"] .marketing-faq,
+[data-theme="light"] .marketing-contact,
+[data-theme="light"] .marketing-footer,
 [data-theme="light"] .marketing-grid-card,
 [data-theme="light"] .marketing-story-card,
 [data-theme="light"] .marketing-workflow-card,
@@ -7989,6 +8011,20 @@ details.faq-item p {
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
   box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .marketing-section,
+[data-theme="light"] .marketing-workflow,
+[data-theme="light"] .marketing-knowledge-section,
+[data-theme="light"] .marketing-fit-section,
+[data-theme="light"] .marketing-demo-section,
+[data-theme="light"] .marketing-faq,
+[data-theme="light"] .marketing-contact,
+[data-theme="light"] .marketing-footer {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.04), transparent 26%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
+  border-color: #e2e8f0 !important;
 }
 
 [data-theme="light"] .marketing-trust-row span {
@@ -8017,6 +8053,143 @@ details.faq-item p {
 [data-theme="light"] .marketing-capability-strip span {
   border-color: #e2e8f0 !important;
   color: #334155 !important;
+}
+
+[data-theme="light"] .marketing-workflow-callout,
+[data-theme="light"] .marketing-contact-copy li,
+[data-theme="light"] .marketing-faq-list details {
+  border-color: #dbe4ee !important;
+}
+
+[data-theme="light"] .marketing-faq-list {
+  border-top-color: #dbe4ee !important;
+}
+
+[data-theme="light"] .marketing-faq-list details {
+  background: #ffffff !important;
+  border-bottom-color: #dbe4ee !important;
+}
+
+[data-theme="light"] .marketing-faq-list summary {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-faq-list summary:hover {
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .marketing-faq-list details[open] summary {
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .marketing-workflow-callout {
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .marketing-workflow-callout strong,
+[data-theme="light"] .marketing-contact-copy li,
+[data-theme="light"] .marketing-faq-list summary,
+[data-theme="light"] .marketing-faq-list details p {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-faq-list details p {
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .marketing-contact-copy li svg,
+[data-theme="light"] .marketing-faq-list summary span {
+  color: #16a34a !important;
+}
+
+[data-theme="light"] .marketing-lead-card {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 16px 40px -18px rgba(15, 23, 42, 0.16) !important;
+}
+
+[data-theme="light"] .marketing-lead-card input,
+[data-theme="light"] .marketing-lead-card select {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-footer {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-footer-brand > p,
+[data-theme="light"] .marketing-footer-note,
+[data-theme="light"] .marketing-footer-trust span {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .marketing-footer .brand-name,
+[data-theme="light"] .marketing-footer h4,
+[data-theme="light"] .marketing-footer a,
+[data-theme="light"] .marketing-footer-bottom p,
+[data-theme="light"] .marketing-footer-socials > span {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-footer .brand-name {
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-footer-contact a:not(.marketing-footer-whatsapp),
+[data-theme="light"] .marketing-footer .footer-links a {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .marketing-footer-social-link {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .marketing-footer-social-link:hover {
+  color: #0f172a !important;
+  background: rgba(226, 232, 240, 0.8) !important;
+}
+
+[data-theme="light"] .marketing-footer .brand-turbo {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .marketing-footer .brand-fix {
+  color: #d97706 !important;
+}
+
+[data-theme="light"] .marketing-footer-trust {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .marketing-footer-trust span {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile,
+[data-theme="light"] .marketing-hero .stitch-glass-tile {
+  background: linear-gradient(145deg, #111827, #0b1220) !important;
+  border-color: #334155 !important;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.38) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile h1,
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile h2,
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile h3,
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile h4,
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile p,
+[data-theme="light"] .marketing-page-hero-visual .stitch-glass-tile span,
+[data-theme="light"] .marketing-hero .stitch-glass-tile h1,
+[data-theme="light"] .marketing-hero .stitch-glass-tile h2,
+[data-theme="light"] .marketing-hero .stitch-glass-tile h3,
+[data-theme="light"] .marketing-hero .stitch-glass-tile h4,
+[data-theme="light"] .marketing-hero .stitch-glass-tile p,
+[data-theme="light"] .marketing-hero .stitch-glass-tile span {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
 }
 .marketing-footer-social-list {
   display: flex;

@@ -40,11 +40,11 @@ export default function Footer() {
   const year = new Date().getFullYear();
   const copy = {
     en: {
-      tagline: 'Turn existing maintenance records into trusted AI knowledge—from old paper history to verified work.',
-      product: 'Explore', platform: 'Platform', records: 'Use old records', workflow: 'How it works', demo: 'Product demo', faq: 'Questions', contact: 'Get started', book: 'Book a guided demo', signIn: 'Staff sign in', chat: 'Talk on WhatsApp',
+      tagline: 'Turn scattered maintenance signals into verified action.',
+      product: 'Product', platform: 'Platform', records: 'Records platform', workflow: 'How it works', demo: 'Demo', faq: 'Why TurboFix', contact: 'Contact', book: 'Book a plant walkthrough', signIn: 'Staff sign in', chat: 'Talk on WhatsApp',
       socialTitle: 'Connect with Us',
-      trust: ['Handwritten and digital records', 'Maintenance Head approval before AI use', 'Exportable plant-owned backup'],
-      note: 'TurboFix supports the workflow layer. Analytics stays underneath, and authorized plant personnel remain responsible for safety, approval, and execution.',
+      trust: ['Start with one machine', 'Human approval before AI use', 'Exportable plant history'],
+      note: 'TurboFix supports the workflow layer. Authorized plant personnel remain responsible for safety, approval, and execution.',
       rights: 'All rights reserved.',
     },
     hi: {
@@ -85,10 +85,10 @@ export default function Footer() {
         <div className="footer-links">
           <h4>{copy.product}</h4>
           <Link to="/platform.html">{copy.platform}</Link>
-          <Link to="/records-platform.html">{copy.records}</Link>
           <Link to="/workflow.html">{copy.workflow}</Link>
           <Link to="/demo.html">{copy.demo}</Link>
-          <Link to="/pricing.html">Pricing & ROI</Link>
+          <Link to="/pricing.html">Pricing</Link>
+          <Link to="/records-platform.html">{copy.records}</Link>
           <Link to="/why-turbofix.html">{copy.faq}</Link>
         </div>
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ArchiveRestore,
   ArrowRight,
   ChevronDown,
   Grid,
@@ -21,20 +20,16 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [appLauncherOpen, setAppLauncherOpen] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
   const [{ authed: isAuth, user }, setAuth] = useState(readAuth);
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
 
   const navItems = [
-    { path: '/platform.html', label: t('menu.platform'), description: t('menu.platformDesc'), icon: Layers3 },
-    { path: '/workflow.html', label: t('menu.how'), description: t('menu.howDesc'), icon: Route },
-    { path: '/pricing.html', label: 'Pricing', description: 'Plans & cost', icon: Grid },
-  ];
-  const resourceItems = [
-    { path: '/records-platform.html', label: t('menu.records'), description: t('menu.recordsDesc'), icon: ArchiveRestore },
-    { path: '/demo.html', label: t('menu.demo'), description: t('menu.demoDesc'), icon: PlayCircle },
+    { path: '/platform.html', label: 'Product', description: 'What TurboFix does', icon: Layers3 },
+    { path: '/workflow.html', label: 'How It Works', description: 'Report, assign, verify', icon: Route },
+    { path: '/pricing.html', label: 'Pricing', description: 'Plans and onboarding', icon: Grid },
+    { path: '/demo.html', label: 'Demo', description: 'See one live scenario', icon: PlayCircle },
   ];
   const showMarketingCta = !isAuth;
 
@@ -58,7 +53,6 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsOpen(false);
-    setResourcesOpen(false);
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
@@ -136,14 +130,6 @@ export default function Navbar() {
             <div className="public-nav-mobile-heading">{t('menu.explore')}</div>
             <div className="public-nav-primary">
               {navItems.map(sectionLink)}
-              <div className={`public-nav-resources ${resourcesOpen ? 'open' : ''}`}>
-                <button type="button" className={`public-nav-resources-trigger ${resourceItems.some((item) => activeHash === item.path) ? 'active' : ''}`} onClick={() => setResourcesOpen((open) => !open)} aria-expanded={resourcesOpen}>
-                  <span>Resources</span><ChevronDown aria-hidden="true" />
-                </button>
-                <div className="public-nav-resources-menu">
-                  {resourceItems.map(sectionLink)}
-                </div>
-              </div>
               <div className="public-nav-language-wrapper">
                 <label className="public-nav-language">
                   <span className="sr-only">{t('menu.language')}</span>
@@ -172,7 +158,7 @@ export default function Navbar() {
             <div className="public-nav-desktop-account">{accountLink}</div>
             {showMarketingCta && (
               <a href="/contact.html" className={`public-nav-demo ${activeHash === '/contact.html' ? 'active' : ''}`} onClick={scrollToContact}>
-                <span>{t('menu.start')}</span>
+                <span>Book a Plant Walkthrough</span>
                 <ArrowRight />
               </a>
             )}

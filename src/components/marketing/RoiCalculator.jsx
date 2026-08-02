@@ -7,18 +7,9 @@ export default function RoiCalculator() {
   const [breakdownsPerMonth, setBreakdownsPerMonth] = useState(6);
   const [avgRepairHours, setAvgRepairHours] = useState(3);
 
-  // Financial calculations
   const totalMonthlyDowntimeHours = breakdownsPerMonth * avgRepairHours;
   const currentMonthlyLoss = totalMonthlyDowntimeHours * hourlyCost;
-  
-  // TurboFix typical impact: 45% reduction in MTTR & response delay
-  const hoursSavedPerMonth = totalMonthlyDowntimeHours * 0.45;
-  const monthlySavingsInr = hoursSavedPerMonth * hourlyCost;
-  const annualSavingsInr = monthlySavingsInr * 12;
-
-  // Payback period (assuming avg ₹299/machine/mo)
   const estimatedPlatformCostMonthly = machines * 299;
-  const paybackDays = Math.max(2, Math.round((estimatedPlatformCostMonthly / (monthlySavingsInr / 30))));
 
   const formatInr = (val) => {
     if (val >= 10000000) {
@@ -33,17 +24,17 @@ export default function RoiCalculator() {
   return (
     <div className="stitch-glass-tile p-6 sm:p-8 rounded-2xl relative overflow-hidden border border-emerald-500/30 my-10 shadow-2xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-800/80">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 mb-2">
-            <TrendingUp size={14} />
-            <span>Plant Owner &amp; Financial ROI Calculator</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Calculate Unplanned Downtime Cost Loss in ₹
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-            See how much your factory saves monthly by switching from paper registers and WhatsApp groups to TurboFix's 10-second QR breakdown workflow.
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 mb-2">
+              <TrendingUp size={14} />
+            <span>Plant downtime estimate</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Estimate unplanned downtime exposure in ₹
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+            Use the sliders to see a simple monthly cost view for the machines you want to cover.
+            </p>
         </div>
         <div className="flex items-center gap-2 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800 text-xs text-slate-300">
           <ShieldCheck className="text-emerald-400 size-4" />
@@ -149,24 +140,24 @@ export default function RoiCalculator() {
 
             <div className="bg-emerald-950/40 border border-emerald-500/30 p-4 rounded-xl space-y-2">
               <span className="text-[11px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
-                <Zap size={13} className="text-emerald-400" /> Projected Savings with TurboFix
+                <Zap size={13} className="text-emerald-400" /> Monthly exposure
               </span>
               <div className="text-3xl font-black text-emerald-300">
-                {formatInr(monthlySavingsInr)} <small className="text-xs text-emerald-400 font-normal">/ month</small>
+                {formatInr(currentMonthlyLoss)} <small className="text-xs text-emerald-400 font-normal">/ month</small>
               </div>
               <p className="text-[11px] text-slate-300">
-                Annual financial recovery: <strong className="text-white font-bold">{formatInr(annualSavingsInr)}</strong>
+                This is the downtime cost implied by the sliders you set.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-center pt-2">
               <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Hours Recovered</span>
-                <span className="text-base font-extrabold text-sky-400">{hoursSavedPerMonth.toFixed(1)} hrs/mo</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Downtime hours</span>
+                <span className="text-base font-extrabold text-sky-400">{totalMonthlyDowntimeHours.toFixed(1)} hrs/mo</span>
               </div>
               <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Payback Period</span>
-                <span className="text-base font-extrabold text-emerald-400">{paybackDays} Days</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Plan estimate</span>
+                <span className="text-base font-extrabold text-emerald-400">{formatInr(estimatedPlatformCostMonthly)}/mo</span>
               </div>
             </div>
 
