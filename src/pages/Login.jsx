@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { safeRedirectPath } from '../utils/auth';
 import { apiFetch } from '../lib/api';
-import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Wrench, Building2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Building2, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [view, setView] = useState('login'); // 'login' or 'register'
@@ -25,15 +25,6 @@ export default function Login() {
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  // Quick demo logins for 5 Real Factory Agent Personas (Exide Energy Industries - Lead Acid Battery Division)
-  const demoAccounts = [
-    { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', icon: Building2, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', icon: ShieldCheck, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', icon: ShieldCheck, color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20' },
-    { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', icon: Wrench, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' },
-    { role: 'EHS & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', icon: CheckCircle, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20' },
-  ];
-
   const performPostLoginRedirect = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryRedirect = searchParams.get('redirect') || searchParams.get('returnUrl') || searchParams.get('next');
@@ -44,30 +35,6 @@ export default function Login() {
     localStorage.removeItem('tf_post_login_redirect');
 
     navigate(safeRedirectPath(rawTarget, import.meta.env.BASE_URL), { replace: true });
-  };
-
-  const handleDemoLogin = (demo) => {
-    setLoading(true);
-    setError(null);
-    let role = 'owner';
-    if (demo.role.includes('Supervisor')) role = 'supervisor';
-    else if (demo.role.includes('Engineer')) role = 'maintenance_engineer';
-    else if (demo.role.includes('Technician')) role = 'technician';
-    else if (demo.role.includes('Safety') || demo.role.includes('Inspector')) role = 'quality_inspector';
-    else if (demo.role.includes('Owner')) role = 'owner';
-
-    localStorage.setItem('tf_token', `demo:${role}`);
-    localStorage.setItem('tf_user', JSON.stringify({
-      user_id: `demo-${role}`,
-      name: demo.name,
-      role,
-      company_code: demo.company,
-      company_name: 'Apex Precision Auto Components Ltd',
-      inventory_mode: 'demo',
-      email: demo.email,
-    }));
-    window.dispatchEvent(new Event('authChanged'));
-    performPostLoginRedirect();
   };
 
   const handleLogin = async (e) => {
@@ -366,9 +333,6 @@ export default function Login() {
                   <button type="button" onClick={() => { setView('register'); setError(null); setSuccess(null); }} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-emerald-400 hover:underline">
                     New factory? Register your company
                   </button>
-                  <a href={`${import.meta.env.BASE_URL}demo-login.html`} className="text-xs text-amber-400/90 hover:text-amber-300 font-semibold transition-colors pt-1">
-                    Exploring TurboFix? Switch to Demo Login &rarr;
-                  </a>
                 </div>
               </>
             ) : (

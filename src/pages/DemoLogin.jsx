@@ -11,12 +11,12 @@ export default function DemoLogin() {
   const CARD_TONE = 'bg-slate-900/40 text-slate-300 border-slate-700/60 hover:text-cyan-300 hover:bg-cyan-500/5 hover:border-cyan-400/40 hover:shadow-cyan-950/30';
 
   const demoAccounts = [
-    { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', desc: 'Full plant executive view, MTBF/MTTR analytics & SLA control', icon: Building2, color: CARD_TONE },
-    { role: 'Maintenance Head', email: 'maintenancehead@exidebattery.in', name: 'Suresh Iyer', company: 'exidebattery', desc: 'Authority queue, SLA exceptions, repeat-failure sign-offs & spare budget', icon: Gauge, color: CARD_TONE },
-    { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: CARD_TONE },
-    { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why RCA root cause analysis, PM schedules & machine health', icon: ShieldCheck, color: CARD_TONE },
-    { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: CARD_TONE },
-    { role: 'EHS & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Safety audit logs, compliance records & 5S quality checks', icon: CheckCircle, color: CARD_TONE },
+    { role: 'Factory Owner', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian', company: 'exidebattery', desc: 'Full plant executive view, breakdown analytics & SLA control', icon: Building2, color: CARD_TONE },
+    { role: 'Maintenance Manager', email: 'maintenancehead@exidebattery.in', name: 'Suresh Iyer', company: 'exidebattery', desc: 'Authority queue, SLA exceptions, repeat-failure sign-offs & spare budget', icon: Gauge, color: CARD_TONE },
+    { role: 'Shift Supervisor', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: CARD_TONE },
+    { role: 'Maintenance Engineer', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why root cause analysis, preventive schedules & machine health', icon: ShieldCheck, color: CARD_TONE },
+    { role: 'Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: CARD_TONE },
+    { role: 'Safety & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Safety audit logs, compliance records & 5S quality checks', icon: CheckCircle, color: CARD_TONE },
   ];
 
   const performPostLoginRedirect = () => {
@@ -34,12 +34,12 @@ export default function DemoLogin() {
   const handleDemoLogin = (demo) => {
     setLoading(true);
     let role = 'owner';
-    if (demo.role.includes('Maintenance Head')) role = 'maintenance_head';
-    else if (demo.role.includes('Supervisor') || demo.role.includes('Shift Lead')) role = 'supervisor';
-    else if (demo.role.includes('Engineer') || demo.role.includes('Reliability')) role = 'maintenance_engineer';
+    if (demo.role.includes('Maintenance Manager')) role = 'maintenance_head';
+    else if (demo.role.includes('Supervisor')) role = 'supervisor';
+    else if (demo.role.includes('Maintenance Engineer')) role = 'maintenance_engineer';
     else if (demo.role.includes('Technician')) role = 'technician';
     else if (demo.role.includes('Safety') || demo.role.includes('Quality')) role = 'quality_inspector';
-    else if (demo.role.includes('VP') || demo.role.includes('Owner')) role = 'owner';
+    else if (demo.role.includes('Owner')) role = 'owner';
 
     localStorage.setItem('tf_token', `demo:${role}`);
     localStorage.setItem('tf_user', JSON.stringify({

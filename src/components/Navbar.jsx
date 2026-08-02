@@ -86,7 +86,19 @@ export default function Navbar() {
     return <Link key={path} to={path} className={className} onClick={() => setIsOpen(false)}>{children}</Link>;
   };
 
-  const accountLink = (
+  // On the staff sign-in page itself, the account corner would otherwise just
+  // link back to the page you're already on. Repurpose it as the one way in
+  // to the demo workspace instead of a second, separately-labelled link.
+  const isLoginPage = location.pathname === '/login.html';
+  const accountLink = isLoginPage && !isAuth ? (
+    <Link className="public-nav-account" to="/demo-login.html" onClick={() => setIsOpen(false)}>
+      <span className="public-nav-avatar"><PlayCircle /></span>
+      <span className="public-nav-account-text">
+        <small>NO ACCOUNT NEEDED</small>
+        <strong>Try a Live Demo</strong>
+      </span>
+    </Link>
+  ) : (
     <Link className="public-nav-account" to={isAuth ? '/dashboard.html' : '/login.html'} onClick={() => setIsOpen(false)}>
       <span className="public-nav-avatar">{isAuth ? (user?.name?.charAt(0) || 'S').toUpperCase() : <LogIn />}</span>
       <span className="public-nav-account-text">
