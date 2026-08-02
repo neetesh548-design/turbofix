@@ -37,6 +37,7 @@ import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx
 import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
 import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
 import OperationsBoard from '../components/dashboard/OperationsBoard.jsx';
+import StakeholderLens from '../components/dashboard/StakeholderLens.jsx';
 import CmmsKpiStrip from '../components/dashboard/CmmsKpiStrip.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
@@ -437,6 +438,8 @@ export default function Dashboard() {
             <span>{heading.lead}</span>
           </div>
         </div>
+
+        <StakeholderLens role={specialistRole || appRole} />
 
         {canSeeActionBoard && (
           <div className="dashboard-view-tabs" role="tablist" aria-label="Dashboard view">
