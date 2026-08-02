@@ -16,7 +16,7 @@ export default function DemoLogin() {
     { role: 'Shift Supervisor', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: CARD_TONE },
     { role: 'Maintenance Engineer', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why root cause analysis, preventive schedules & machine health', icon: ShieldCheck, color: CARD_TONE },
     { role: 'Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: CARD_TONE },
-    { role: 'Safety & Quality Manager', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Safety audit logs, compliance records & 5S quality checks', icon: CheckCircle, color: CARD_TONE },
+    { role: 'Quality Inspector', email: 'safety@exidebattery.in', name: 'Sneha Kulkarni', company: 'exidebattery', desc: 'Repair evidence review, compliance records & 5S quality checks', icon: CheckCircle, color: CARD_TONE },
   ];
 
   const performPostLoginRedirect = () => {

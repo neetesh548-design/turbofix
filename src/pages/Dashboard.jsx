@@ -37,7 +37,6 @@ import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx
 import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
 import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
 import OperationsBoard from '../components/dashboard/OperationsBoard.jsx';
-import StakeholderLens from '../components/dashboard/StakeholderLens.jsx';
 import CmmsKpiStrip from '../components/dashboard/CmmsKpiStrip.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
@@ -97,31 +96,57 @@ const ROLE_HEROES = {
     badge: 'Plant & Machine Operator Station',
     title: 'Monitor machine health, scan QR breakdown codes instantly, and track technician response in real time.',
     body: 'Keep production moving safely with 1-tap reporting, clear shift safety checklists, and live callout status.',
+    image: 'qr_scanner_breakdown.jpg',
+    imageAlt: 'Operator reporting a breakdown from the shop floor',
   },
   [DASHBOARD_ROLES.OWNER]: {
     badge: 'Plant VP & Factory Owner View',
     title: 'Real-time visibility into every machine breakdown, SLA timer, and financial downtime risk across all shifts.',
     body: 'Stay ahead of production bottlenecks. Track open breakdowns, maintenance head sign-offs, and critical replacement alerts live from your plant dashboard.',
+    image: 'plant_owner_executive.jpg',
+    imageAlt: 'Factory owner reviewing plant performance and downtime visibility',
   },
   [DASHBOARD_ROLES.TECHNICIAN]: {
     badge: 'Technician Daily Workspace',
     title: 'Start the right job first, see what is slipping, and close work without hunting through the system.',
     body: 'Your queue, machine responsibility, blocked spares, and quick reporting are brought into one simple view designed for constant daily use.',
+    image: 'technician_field_repair.jpg',
+    imageAlt: 'Technician completing a field repair with evidence capture',
   },
   [DASHBOARD_ROLES.SUPERVISOR]: {
     badge: 'Supervisor Control View',
     title: 'Spot overload, assign faster, and remove blockers before tickets turn into escalations.',
     body: 'Keep the team balanced, monitor SLA risk, and direct action across technicians and machines without extra clicks.',
+    image: 'supervisor_shift_control.jpg',
+    imageAlt: 'Shift supervisor reviewing the team dashboard on the production floor',
   },
   [DASHBOARD_ROLES.ENGINEER]: {
     badge: 'Reliability Engineering View',
     title: 'Focus on repeat failures, weak components, and corrective action quality before the same issue returns.',
     body: 'Use reliability signals to drive better fixes, stronger root cause control, and fewer recurring breakdowns.',
+    image: 'maintenance_engineer_diagnostics.jpg',
+    imageAlt: 'Maintenance engineer reviewing a repeat-failure root cause chart',
   },
   maintenance_head: {
     badge: 'Maintenance Head & Plant Operations',
     title: 'Strategic oversight across plant lines, high-impact exception approvals, and spare parts financial budget.',
     body: 'Control downtime exposure, approve critical repair overrides, and manage reliability across every shift.',
+    image: 'maintenance_head_lead.jpg',
+    imageAlt: 'Maintenance head reviewing verified repair work',
+  },
+  quality_inspector: {
+    badge: 'Quality Assurance View',
+    title: 'Verify repair evidence, release completed jobs, and catch compliance gaps before they recur.',
+    body: 'Focus on inspection queues, evidence review, and quality sign-off across every completed repair.',
+    image: 'records_ocr_digitization.jpg',
+    imageAlt: 'Quality inspector reviewing digitized compliance records',
+  },
+  safety_officer: {
+    badge: 'Safety & Compliance View',
+    title: 'Track unsafe conditions, restart checks, and missing safety evidence before they become incidents.',
+    body: 'Keep Lockout-Tagout discipline, safety audits, and compliance records current across every shift.',
+    image: 'safety_officer_compliance.jpg',
+    imageAlt: 'Safety officer reviewing a Lockout-Tagout compliance checklist',
   },
 };
 
@@ -392,6 +417,11 @@ export default function Dashboard() {
           <>
             <section className="dashboard-shell-hero" data-testid="dashboard-role-hero">
               <div className="dashboard-shell-copy">
+                {hero.image && (
+                  <div className="dashboard-shell-image">
+                    <img src={`${import.meta.env.BASE_URL}assets/${hero.image}`} alt={hero.imageAlt} loading="lazy" />
+                  </div>
+                )}
                 <span className="dashboard-shell-badge">{hero.badge}</span>
                 <h2>{hero.title}</h2>
                 <p>{hero.body}</p>
@@ -438,8 +468,6 @@ export default function Dashboard() {
             <span>{heading.lead}</span>
           </div>
         </div>
-
-        <StakeholderLens role={specialistRole || appRole} />
 
         {canSeeActionBoard && (
           <div className="dashboard-view-tabs" role="tablist" aria-label="Dashboard view">
