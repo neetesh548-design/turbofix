@@ -1,41 +1,27 @@
-# Verification & Audit Report — August 2nd Plan
+# Walkthrough — Mobile Viewport & Layout Optimization
 
-A verification audit was conducted to confirm the correctness of all post-login pages and utilities audited under [`PLAN_OF_2ND_AUGUST.md`](file:///Users/nkumarsoni/TurboFix/docs/PLAN_OF_2ND_AUGUST.md).
-
----
-
-## Audit Checklist Verification Summary
-
-| Target Area | Audit Scope | Result | Details |
-|---|---|---|---|
-| **Linter Compliance** | `oxlint` across 315 files | **PASSED** (0 Errors) | Zero blocking syntax or semantic errors across the entire codebase. |
-| **Production Build** | `npm run build` (Vite + PWA) | **PASSED** (0 Errors) | Clean HTML & JavaScript bundle output under `dist/` with valid service worker manifest injection. |
-| **Unit Test Suite** | `npx vitest run` | **PASSED** (1,192 / 1,192) | 39 test files passed with 0 test failures or regressions. |
-| **`Machines.jsx` Audit** | Fake charts, static role badges, quota gates | **VERIFIED** | 0 hardcoded decorative charts (`Stitch*Chart`); dynamic tenant isolation via `visibleMachinesForUser` & `filterRowsForUserCompany`. |
-| **`Tickets.jsx` Audit** | SLA summary, capability gating | **VERIFIED** | Headline numbers driven by `summarizeTickets()`; action controls gated via `can(role, CAPABILITIES.*)`. |
-| **`QRGateway.jsx` Audit** | Scan queues, offline fallbacks, OTP gate | **VERIFIED** | Connected to live report submissions with local draft persistence and encrypted parameter decryption. |
-| **`AdminPortal.jsx` Audit** | Multi-tenant control room, Edge function integration | **VERIFIED** | Auth token checking and security honeypot defense active. |
+All pages across the TurboFix web app (`Dashboard`, `Machines`, `Tickets`, `Inventory`, `Kaizen`, `RCA`, `ReportBreakdown`, `QRGateway`, `AdminPortal`, `Settings`, `Records`) have been audited and optimized for mobile screens (375px–768px viewports) with zero content or textual changes.
 
 ---
 
-## Detailed Test & Build Evidence
+## Completed Mobile Optimizations Summary
 
-### 1. Unit Tests (`vitest`)
-```text
- Test Files  39 passed (39)
-      Tests  1192 passed (1192)
-   Duration  11.43s
-```
-Key covered test suites:
-- `ticketSla.test.js` & `ticketLifecycle.test.js`
-- `dashboardMetrics.test.js` & `inventoryMetrics.test.js`
-- `tenantIsolation.test.js` & `machineVisibility.test.js`
-- `worstCaseRobustness.test.js`
+| Module / Page | Responsive Layout Behavior | Touch & Ergonomics Improvements |
+|---|---|---|
+| **Global Reset & Tables (`index.css`)** | `html, body, #root, .app-shell` clamped to `max-width: 100vw` with `overflow-x: hidden`; added `.tf-table-responsive` touch horizontal scroll container wrapper for data tables. | Minimum touch target height `min-height: 44px` enforced for buttons, input fields, and select dropdowns under `@media (max-width: 768px)`. |
+| **`Dashboard.jsx` & `Dashboard.css`** | `CmmsKpiStrip` stacks into 2-column or single-column tiles on mobile (`< 640px`); `ActionBoard` kanban swimlanes adapt into responsive stacked cards; `OperationsBoard` transforms into a single-column layout. | Touch-friendly status cards and action buttons with 44px tap areas. |
+| **`Machines.jsx` & `Machines.css`** | Fleet card grid (`.machine-board`) converts to single-column card layout (`1fr`) on mobile; detail drawer overlay spans 100% viewport width with sticky bottom action controls. | Search bar input and dropdown selects expanded to 46px touch height. |
+| **`Tickets.jsx` & Ticket Components** | `TicketKpiBar` converts to 2-column touch grid; ticket table converts to single-card stacked layout with full line-clamp readability and tap actions on mobile. | Touch-friendly action buttons (`44px × 44px`) and search input. |
+| **`Inventory.jsx`, `Kaizen.jsx`, `RCA.jsx`** | Stock health tiles, Kaizen category pills, and 5-Why analysis step cards stack into responsive single-column layouts. | Responsive table wrappers with smooth `-webkit-overflow-scrolling: touch`. |
+| **`QRGateway.jsx` & `AdminPortal.jsx`** | Scanner viewports, microphone voice controls, photo upload previews, and multi-tenant control room tables scale smoothly on handheld screens. | Large touch targets for voice report trigger and camera buttons. |
 
-### 2. Static Analysis (`oxlint`)
-- Executed on 315 source files with 91 rules.
-- **0 errors found**.
+---
 
-### 3. Production Build
-- Bundle generated cleanly in `dist/`.
-- Entry points properly mapped for PWA caching and route handlers.
+## Verification Results
+
+### Production Build (`npm run build`)
+- **Result**: Passed (0 errors)
+- **Output**: Clean Vite production bundle compiled under `dist/` with PWA service worker injection.
+
+### Unit Test Suite (`npx vitest run`)
+- **Result**: Passed (39 test files passed, 1,192 tests passed cleanly)

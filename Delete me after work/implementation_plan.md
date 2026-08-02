@@ -1,74 +1,66 @@
-# Implementation Plan — 2nd August Audit & Polish
+# Implementation Plan — Mobile Responsiveness & Layout Optimization
 
-Based on [`PLAN_OF_2ND_AUGUST.md`](file:///Users/nkumarsoni/TurboFix/docs/PLAN_OF_2ND_AUGUST.md), this plan outlines the systematic audit, cleanup, and verification of post-login pages (`Machines.jsx`, `Tickets.jsx`, `QRGateway.jsx`, `AdminPortal.jsx`) to eliminate hardcoded fake data, fix static role badges, enforce role-based access control, and complete visual QA.
+This plan outlines the systematic mobile UI optimization across all web app pages in TurboFix (`src/pages/*.jsx` and `src/components/*.jsx`) without altering any text, feature, or content.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - **Git Commit Permission**: Task 0 recommends staging and committing current working tree changes. We will proceed with staging clean project files when ready.
-> - **Data Integrity Rule**: All fake/decorative charts and static role text will either be wired to real data utilities (`ticketSla.js`, `dashboardMetrics.js`, `roles.js`, `inventoryMetrics.js`) or rendered with clean empty/zero states (`0`, `'—'`).
+> - **Zero Content Alteration**: All text, buttons, fields, metrics, icons, and workflow steps remain 100% identical. Only layout presentation, grid/flex wrapping, touch target sizing, overflow management, and CSS breakpoints (`@media (max-width: 768px)` and `@media (max-width: 480px)`) will be updated.
+> - **Touch Ergonomics & Accessibility**: Interactive elements (buttons, inputs, select fields, tabs) will enforce a minimum 44px touch height on mobile devices to prevent accidental mis-taps.
+
+---
 
 ## Proposed Changes
 
----
+### Core & Global Styling
 
-### Task 0: Working Tree Verification & Cleanup
+#### [MODIFY] [index.css](file:///Users/nkumarsoni/TurboFix/src/index.css)
+- Add mobile viewport resets (`box-sizing: border-box`, `max-width: 100vw`, `overflow-x: hidden` on root page wrappers).
+- Enforce minimum touch target heights (`min-height: 44px`) for inputs, buttons, and select dropdowns under `@media (max-width: 768px)`.
+- Implement responsive table wrappers (`.tf-table-responsive`) with `-webkit-overflow-scrolling: touch` to prevent viewport horizontal scrolling.
 
-Check current git tree status and ensure baseline builds and test suites (`npm run build` & `npx vitest run`) remain 100% green before proceeding.
-
----
-
-### Task 1: Audit & Polish `src/pages/Machines.jsx`
-
-#### [MODIFY] [Machines.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Machines.jsx)
-
-- Scan for hardcoded demo arrays or fake chart data (`StitchDonutChart`, `StitchBarChart`, `StitchPieChart`).
-- Audit static role badge elements (`View</span>`) and replace with standard `getRoleLabel(user?.role)` calls.
-- Align machine KPI summary tiles with `CmmsKpiStrip` calculations to avoid metric discrepancies.
-- Verify `AdvancedFeaturesDrilldown` wrapper and capability gates (`CAPABILITIES`).
+#### [MODIFY] [AppShell.jsx](file:///Users/nkumarsoni/TurboFix/src/components/AppShell.jsx)
+- Ensure top navigation header, role badge, and navigation drawer render cleanly on mobile viewports (375px–430px width).
+- Optimize mobile sidebar overlay and bottom action navigation bar.
 
 ---
 
-### Task 2: Deepen `src/pages/Tickets.jsx` & Component Audit
+### Page-by-Page Mobile Layout Optimizations
 
-#### [MODIFY] [Tickets.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Tickets.jsx)
-#### [MODIFY] [TicketKpiBar.jsx](file:///Users/nkumarsoni/TurboFix/src/components/tickets/TicketKpiBar.jsx)
-#### [MODIFY] [TicketToolbar.jsx](file:///Users/nkumarsoni/TurboFix/src/components/tickets/TicketToolbar.jsx)
-#### [MODIFY] [TicketRow.jsx](file:///Users/nkumarsoni/TurboFix/src/components/tickets/TicketRow.jsx)
-#### [MODIFY] [TicketDetailPanel.jsx](file:///Users/nkumarsoni/TurboFix/src/components/tickets/TicketDetailPanel.jsx)
+#### [MODIFY] [Dashboard.css](file:///Users/nkumarsoni/TurboFix/src/pages/Dashboard.css) / [Dashboard.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Dashboard.jsx)
+- `CmmsKpiStrip`: Stack KPI tiles into 2-column or single-column responsive grids on screens `< 640px`.
+- `ActionBoard`: Adapt ticket kanban lanes into touch-swipeable or stacked accordions for single-column mobile viewports.
+- `OperationsBoard`: Convert multi-column metrics and fleet activity feeds into responsive single-column stacks.
 
-- Perform fake-data audit on `Tickets.jsx` and child ticket components under `src/components/tickets/`.
-- Ensure `TicketKpiBar` metrics strictly derive from `summarizeTickets()` in `src/utils/ticketSla.js`.
-- Verify role-gated bulk actions and assignment controls using `can(role, CAPABILITIES.*)`.
+#### [MODIFY] [Machines.css](file:///Users/nkumarsoni/TurboFix/src/pages/Machines.css) / [Machines.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Machines.jsx)
+- Convert machine grid cards (`.machine-card-grid`) to single-column responsive layout (`1fr`) under `< 768px`.
+- Responsive filter toolbar (`MachineFilterBar`) with touch-friendly select dropdowns and search inputs.
+- Full-width mobile detail drawer overlay with fixed bottom CTA buttons.
 
----
+#### [MODIFY] [Tickets.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Tickets.jsx) & [TicketKpiBar.jsx](file:///Users/nkumarsoni/TurboFix/src/components/tickets/TicketKpiBar.jsx)
+- `TicketKpiBar`: Convert horizontal KPI cards to touch scroll container or 2-column grid under `< 640px`.
+- Ticket table / card view: Wrap bulk action toolbar and list rows in touch-responsive cards with clear tap areas.
 
-### Task 3: Audit `src/pages/QRGateway.jsx` & `src/pages/AdminPortal.jsx`
+#### [MODIFY] [Inventory.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Inventory.jsx) & [Kaizen.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Kaizen.jsx)
+- Wrap inventory parts tables and stock health summary cards in responsive touch-scroll containers.
+- Stack Kaizen category pills and idea submission forms for single-column mobile viewports.
 
-#### [MODIFY] [QRGateway.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/QRGateway.jsx)
-#### [MODIFY] [AdminPortal.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/AdminPortal.jsx)
+#### [MODIFY] [RCA.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/RCA.jsx), [ReportBreakdown.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/ReportBreakdown.jsx) & [QRGateway.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/QRGateway.jsx)
+- Adapt 5-Why analysis step cards and fishbone diagram displays for vertical mobile reading.
+- Optimize voice report microphone button, photo upload preview, and camera viewports for handheld mobile use.
 
-- Audit `QRGateway.jsx` for fake scan queues or un-wired demo charts.
-- Audit `AdminPortal.jsx` to ensure cross-company metrics, tenant counts, and usage stats reflect actual database/system query results.
-- Replace static role headers with dynamic `getRoleLabel` calls.
-
----
-
-### Task 4: Visual QA & Theme Validation
-
-- Run `scripts/capture-light-theme-visuals.js` / visual inspection.
-- Check 375px mobile viewport rendering for `CmmsKpiStrip`, `ActionBoard`, and modified pages.
-- Ensure light (`[data-theme="light"]`) and dark theme contrast compliance.
+#### [MODIFY] [AdminPortal.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/AdminPortal.jsx), [Settings.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Settings.jsx) & [Records.jsx](file:///Users/nkumarsoni/TurboFix/src/pages/Records.jsx)
+- Responsive layout for multi-tenant control room tables, company quota cards, and settings forms.
 
 ---
 
 ## Verification Plan
 
-### Automated Tests
-- `npm run build`: Verify Vite production bundle compiles with 0 errors.
-- `npx vitest run`: Verify all 1,192 tests across 39 test files continue to pass without regressions.
+### Automated Build & Test Verification
+- `npm run build`: Confirm zero Vite compilation errors.
+- `npx vitest run`: Confirm 100% pass rate across all 1,192 unit tests.
 
-### Manual Verification
-- Sign in across multiple demo personas (`maintenance_head`, `technician`, `owner`).
-- Verify no console errors on `machines.html`, `tickets.html`, `qr-gateway.html`, and `admin.html`.
-- Confirm role labels dynamically reflect logged-in user role.
+### Responsive Visual Inspection
+- Execute visual audit script on mobile viewport dimensions (375px × 812px iPhone X/12/13/14 and 412px × 915px Pixel 7).
+- Verify zero horizontal page scrolling or clipped text across all routes.
+- Confirm touch target dimensions (>= 44px) across interactive buttons and form inputs.
