@@ -95,6 +95,24 @@ export const DEMO_PM_LOGS = Object.freeze([
   { on_time: false }, { on_time: true }, { on_time: true },
 ]);
 
+export function buildDemoPmSchedules(now = Date.now()) {
+  return [
+    { id: 'demo-pm-1', machine_id: 'DEMO-M002', title: 'Hydraulic seal inspection & fluid flush', active: true, assigned_technician_id: 'demo-tech-2', next_due_at: daysAgo(2, now) },
+    { id: 'demo-pm-2', machine_id: 'DEMO-M004', title: 'Compressor filter replacement', active: true, assigned_technician_id: 'demo-tech-2', next_due_at: hoursAgo(6, now) },
+    { id: 'demo-pm-3', machine_id: 'DEMO-M001', title: 'Spindle calibration & coolant check', active: true, assigned_technician_id: 'demo-tech-1', next_due_at: daysAgo(-3, now) },
+    { id: 'demo-pm-4', machine_id: 'DEMO-M003', title: 'Grinding wheel dressing & guard check', active: true, assigned_technician_id: 'demo-tech-3', next_due_at: daysAgo(-12, now) },
+  ];
+}
+
+export function buildDemoParts(now = Date.now()) {
+  return [
+    { id: 'demo-part-1', machine_id: 'DEMO-M002', part_name: 'Hydraulic seal kit', stock_qty: 1, reorder_level: 4, unit: 'kit', unit_price: 4850 },
+    { id: 'demo-part-2', machine_id: 'DEMO-M004', part_name: 'Compressor intake filter', stock_qty: 0, reorder_level: 3, unit: 'pcs', unit_price: 1250 },
+    { id: 'demo-part-3', machine_id: 'DEMO-M001', part_name: 'CNC coolant', stock_qty: 12, reorder_level: 5, unit: 'L', unit_price: 320 },
+    { id: 'demo-part-4', machine_id: 'DEMO-M005', part_name: 'Conveyor belt tensioner', stock_qty: 2, reorder_level: 2, unit: 'pcs', unit_price: 2100 },
+  ];
+}
+
 /**
  * No machines AND no tickets means Supabase is unreachable, empty, or timed
  * out — not that the plant has nothing. Every board falls back to the demo

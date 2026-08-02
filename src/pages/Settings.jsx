@@ -53,7 +53,6 @@ const SETTING_TABS = [
   { key: 'ai-data', label: 'AI & Machine Data', icon: <BrainCircuit className="w-4 h-4" /> },
   { key: 'escalation', label: 'Breakdown Alerts', icon: <Shield className="w-4 h-4" /> },
   { key: 'roles', label: 'Roles & Access', icon: <Users className="w-4 h-4" /> },
-  { key: 'smart-modules', label: 'Smart Modules', icon: <Settings2 className="w-4 h-4" /> },
   { key: 'security', label: 'Security & Encryption', icon: <KeyRound className="w-4 h-4" /> },
   { key: 'audit-log', label: 'Activity Audit Log', icon: <History className="w-4 h-4" /> },
 ];
@@ -330,12 +329,12 @@ export default function Settings() {
             </div>
             <div className="flex-1 space-y-2">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold border border-teal-500/20">
-                <span>Plant Director &amp; IT Security View</span>
+                <span>{getRoleLabel(currentUser.role)} view</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-100 leading-snug">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug">
                 "Configure plant-wide SLA escalation matrix, role access privileges, and offline AI encryption keys with total audit transparency."
               </h2>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 Seamlessly tune automatic data refresh rates, background AI enrichment permissions, custom team roles, and immutable system audit logs.
               </p>
             </div>
@@ -809,53 +808,6 @@ export default function Settings() {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Smart Modules Tab */}
-                    {tab.key === 'smart-modules' && (
-                      <div className="max-w-4xl space-y-6">
-                        <div className="space-y-1">
-                          <Title level={2} className="!mb-0 flex items-center gap-2 !text-slate-900 dark:!text-white">
-                            <Settings2 className="h-5 w-5 text-teal-500" />
-                            Smart modules
-                          </Title>
-                          <Text className="text-slate-500 dark:text-slate-400">
-                            Optional overlays; leave off unless the plant is ready for them.
-                          </Text>
-                        </div>
-
-                        <div className="space-y-3">
-                          {[
-                            { id: 'iot', name: 'IoT Predictive Power-Signature', desc: 'Predict motor wear using electrical current data overlay.' },
-                            { id: 'cv', name: 'Visual Spare Part Deduction', desc: 'Auto-verify replaced components via AI camera snapshot.' },
-                            { id: 'erp', name: 'Dynamic Supply-Chain Sync', desc: 'Synchronize inventory reorder triggers with enterprise ERP.' },
-                            { id: 'mesh', name: 'Opportunistic Mesh Syncing', desc: 'Peer-to-peer sync between technician phones in offline zones.' },
-                            { id: 'loc', name: 'Location Handshake Verification', desc: 'Require NFC/Bluetooth proximity validation before starting jobs.' }
-                          ].map((mod) => (
-                            <div
-                              key={mod.id}
-                              className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700/60 dark:bg-slate-800/40"
-                            >
-                              <div>
-                                <Text className="text-sm font-semibold text-slate-900 dark:text-white block">
-                                  {mod.name}
-                                </Text>
-                                <Text className="text-xs text-slate-500 dark:text-slate-400">
-                                  {mod.desc}
-                                </Text>
-                              </div>
-                              <Select
-                                defaultValue="disabled"
-                                className="w-32"
-                                options={[
-                                  { value: 'disabled', label: 'Disabled' },
-                                  { value: 'enabled', label: 'Enabled' },
-                                ]}
-                              />
-                            </div>
-                          ))}
                         </div>
                       </div>
                     )}

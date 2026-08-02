@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, Square, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { getRoleLabel } from '../lib/roles';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
@@ -385,7 +386,7 @@ export default function Technician() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold border border-cyan-500/20">
-              <span>Lead Maintenance Technician View</span>
+              <span>{getRoleLabel(user?.role)} view</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
               "Clear repair checklists, voice note uploads, and mandatory photo evidence before supervisor closure sign-off."
@@ -403,10 +404,13 @@ export default function Technician() {
               title="My Assigned Repairs &amp; Work Orders"
               subtitle="Daily Workload Breakdown"
               data={[
-                { label: 'Open / Assigned', value: tickets.filter(t => (work[t.ticket_id]?.status || 'assigned') === 'assigned').length || 2, color: '#FBBF24' },
-                { label: 'In Progress', value: tickets.filter(t => work[t.ticket_id]?.status === 'in_progress').length || 1, color: '#50FFAB' },
-                { label: 'Pending Verification', value: tickets.filter(t => work[t.ticket_id]?.status === 'submitted').length || 0, color: '#60A5FA' },
-                { label: 'Verified / Closed Today', value: 3, color: '#38BDF8' },
+                { label: 'Open / Assigned', value: tickets.filter(t => (work[t.ticket_id]?.status || 'assigned') === 'assigned').length, color: '#FBBF24' },
+                { label: 'In Progress', value: tickets.filter(t => work[t.ticket_id]?.status === 'in_progress').length, color: '#50FFAB' },
+                { label: 'Pending Verification', value: tickets.filter(t => work[t.ticket_id]?.status === 'submitted').length, color: '#60A5FA' },
+                { label: 'Verified / Closed Today', value: tickets.filter(t => {
+                  const closed = t.verified_at || t.resolved_at;
+                  return closed && new Date(closed).toDateString() === new Date().toDateString();
+                }).length, color: '#38BDF8' },
               ]}
               centerLabel="Jobs"
             />

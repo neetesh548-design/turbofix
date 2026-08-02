@@ -47,6 +47,19 @@ function readSignedInUser() {
 }
 
 /**
+ * The queue a role should land on, not just what they're capable of seeing.
+ * A technician's first question is "what's mine"; a maintenance head or
+ * supervisor's is "what's breached and needs my authority"; everyone else
+ * gets the plain open-work view. Only applies when no `?activeFilter=` is
+ * already in the URL (a deep link always wins).
+ */
+function defaultQueueForRole(role) {
+  if (role === 'maintenance_technician' || role === 'technician') return 'mine';
+  if (role === 'maintenance_head' || role === 'supervisor') return 'breached';
+  return 'open';
+}
+
+/**
  * Tickets — the Work Order Control Board.
  *
  * A single surface for dispatch, monitoring and analytics:
@@ -73,7 +86,10 @@ export default function Tickets() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [activeFilter, setActiveFilter] = useState(() => getParam('activeFilter', 'all'));
+  const signedInUser = useMemo(readSignedInUser, []);
+  const appRole = normalizeRole(signedInUser?.role);
+
+  const [activeFilter, setActiveFilter] = useState(() => getParam('activeFilter', defaultQueueForRole(appRole)));
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState('priority');
   const [sortDir, setSortDir] = useState('desc');
@@ -95,9 +111,7 @@ export default function Tickets() {
   // Ticking clock so age and SLA bars stay live without a full refetch.
   const [now, setNow] = useState(() => new Date());
 
-  const signedInUser = useMemo(readSignedInUser, []);
   const currentUserId = signedInUser?.user_id || signedInUser?.id || null;
-  const appRole = normalizeRole(signedInUser?.role);
   const permissions = useMemo(() => ({
     select: can(signedInUser?.role, CAPABILITIES.BULK_TICKET_ACTIONS),
     assign: can(signedInUser?.role, CAPABILITIES.ASSIGN_TICKET),

@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ArrowLeft, BadgeInfo, CheckCircle2, Lock, Send, ShieldAlert, Sparkles } from 'lucide-react';
+import { ArrowLeft, BadgeInfo, CheckCircle2, Lock, Send, ShieldAlert } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { StitchPieChart } from '../components/ui/StitchVisualCharts';
+import { getRoleLabel } from '../lib/roles';
 import { supabase } from '../supabaseClient';
 import { DEMO_MACHINES } from '../utils/demoMachines';
 import { DEMO_TICKETS } from '../utils/demoTickets';
@@ -232,7 +232,7 @@ export default function RCA() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold border border-purple-500/20">
-              <span>Maintenance Head &amp; Reliability Lead View</span>
+              <span>{getRoleLabel(user?.role)} view</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
               "Never repeat the same breakdown twice — drill down through 5-Why Ishikawa categories to find the root cause."
@@ -265,20 +265,6 @@ export default function RCA() {
               </div>
             </section>
 
-            {/* Visual Ishikawa RCA Distribution Pie Chart */}
-            <div className="mb-4">
-              <StitchPieChart
-                title="Plant-Wide Failure Category Distribution"
-                subtitle="Historical Ishikawa Analysis"
-                data={[
-                  { label: 'Machine / Bearing Wear', value: 40, color: '#F87171' },
-                  { label: 'Material / Spare Defect', value: 25, color: '#FBBF24' },
-                  { label: 'Method / Procedure', value: 20, color: '#60A5FA' },
-                  { label: 'Environment / Heat', value: 15, color: '#50FFAB' },
-                ]}
-              />
-            </div>
-
             {/* ── Ticket context ── */}
             {ticket && (
               <section className="rd-panel" style={{ marginBottom: 14 }}>
@@ -299,26 +285,7 @@ export default function RCA() {
               {/* ── 5-Why RCA form ── */}
               <section className="rd-panel" id="rca">
                 <span className="eyebrow eyebrow-light">RCA — 5-Why Method</span>
-                <div className="flex items-center justify-between">
-                  <h2>Trace the root cause</h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFailureMode(ticket?.issue_text || `${machine?.name || 'Machine'} unexpected thermal shutdown`);
-                      setFishboneCategory('machine');
-                      setWhys([
-                        'Vibration & thermal telemetry threshold exceeded limits (FFT > 4.5 mm/s).',
-                        'Bearing lubricant film degraded under high continuous production load.',
-                        'Automatic grease line nozzle was partially restricted with debris.',
-                        'Scheduled preventive maintenance overhaul interval was delayed by 14 days.',
-                        'Shift pre-start checklist lacked mandatory grease nozzle flow verification.'
-                      ]);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold hover:bg-purple-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-purple-400" /> AI Auto-Build 5-Why Tree
-                  </button>
-                </div>
+                <h2>Trace the root cause</h2>
                 <p className="rd-hint" style={{ marginTop: 6, marginBottom: 16 }}>
                   Start with the symptom and ask "Why?" up to 5 times until you reach the true system cause.
                 </p>

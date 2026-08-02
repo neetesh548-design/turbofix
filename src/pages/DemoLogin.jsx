@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { safeRedirectPath } from '../utils/auth';
-import { ShieldCheck, Wrench, Building2, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { ShieldCheck, Wrench, Building2, CheckCircle, ArrowRight, Sparkles, Gauge } from 'lucide-react';
 
 export default function DemoLogin() {
   const [loading, setLoading] = useState(false);
@@ -12,6 +12,7 @@ export default function DemoLogin() {
 
   const demoAccounts = [
     { role: 'Plant VP (Exide)', email: 'owner@exidebattery.in', name: 'Anil Subrahmanian (VP)', company: 'exidebattery', desc: 'Full plant executive view, MTBF/MTTR analytics & SLA control', icon: Building2, color: CARD_TONE },
+    { role: 'Maintenance Head', email: 'maintenancehead@exidebattery.in', name: 'Suresh Iyer', company: 'exidebattery', desc: 'Authority queue, SLA exceptions, repeat-failure sign-offs & spare budget', icon: Gauge, color: CARD_TONE },
     { role: 'Battery Shift Lead', email: 'supervisor@exidebattery.in', name: 'Ramesh Chander', company: 'exidebattery', desc: 'Shift breakdown triage, technician assignments & downtime logs', icon: ShieldCheck, color: CARD_TONE },
     { role: 'Reliability Lead', email: 'engineer@exidebattery.in', name: 'Dr. Arindam Banerjee', company: 'exidebattery', desc: '5-Why RCA root cause analysis, PM schedules & machine health', icon: ShieldCheck, color: CARD_TONE },
     { role: 'Lead Technician', email: 'technician@exidebattery.in', name: 'Manoj Mukherjee', company: 'exidebattery', desc: 'Field repair tasklists, spare parts verification & closure logs', icon: Wrench, color: CARD_TONE },
@@ -33,7 +34,8 @@ export default function DemoLogin() {
   const handleDemoLogin = (demo) => {
     setLoading(true);
     let role = 'owner';
-    if (demo.role.includes('Supervisor') || demo.role.includes('Shift Lead')) role = 'supervisor';
+    if (demo.role.includes('Maintenance Head')) role = 'maintenance_head';
+    else if (demo.role.includes('Supervisor') || demo.role.includes('Shift Lead')) role = 'supervisor';
     else if (demo.role.includes('Engineer') || demo.role.includes('Reliability')) role = 'maintenance_engineer';
     else if (demo.role.includes('Technician')) role = 'technician';
     else if (demo.role.includes('Safety') || demo.role.includes('Quality')) role = 'quality_inspector';

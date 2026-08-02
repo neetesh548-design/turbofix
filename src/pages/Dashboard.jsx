@@ -28,16 +28,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppShell from '../components/AppShell';
 import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
-import DreamzCMMSFeatureSuite from '../components/cmms/DreamzCMMSFeatureSuite';
 import QuickReportDialog from '../components/QuickReportDialog';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
-import { StitchDonutChart, StitchBarChart } from '../components/ui/StitchVisualCharts';
 import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
 import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
 import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
 import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
 import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
+import OperationsBoard from '../components/dashboard/OperationsBoard.jsx';
+import CmmsKpiStrip from '../components/dashboard/CmmsKpiStrip.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -51,6 +51,8 @@ import {
   DEMO_MACHINES,
   DEMO_PM_LOGS,
   buildDemoTickets,
+  buildDemoPmSchedules,
+  buildDemoParts,
   shouldUseDemoFleet,
   shouldUseDemoTeam,
   shouldUseDemoReliability,
@@ -135,13 +137,15 @@ function fetchWithTimeout(promise, ms = 3000) {
  * fetchDashboardData(), which returns the pre-derived legacy shape.
  */
 async function fetchRoleSources(user) {
-  const [machinesRes, ticketsRes, teamRes, pmLogsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
+  const [machinesRes, ticketsRes, teamRes, pmLogsRes, shiftRosterRes, shiftAssignmentRes, pmSchedulesRes, partsRes] = await Promise.all([
     fetchWithTimeout(supabase.from('machines').select('*')),
     fetchWithTimeout(supabase.from('tickets').select('*')),
     fetchWithTimeout(supabase.from('users').select('user_id,name,email,role')),
     fetchWithTimeout(supabase.from('pm_logs').select('on_time')),
     fetchWithTimeout(supabase.from('shift_rosters').select('*')),
     fetchWithTimeout(supabase.from('machine_shift_assignments').select('*')),
+    fetchWithTimeout(supabase.from('pm_schedules').select('*')),
+    fetchWithTimeout(supabase.from('parts').select('*')),
   ]);
 
   const rawMachines = machinesRes.data || [];
@@ -159,34 +163,47 @@ async function fetchRoleSources(user) {
   const team = rawTeam.length > 0 ? rawTeam : DEMO_TEAM;
   const pmLogs = pmLogsRes.data || DEMO_PM_LOGS;
 
-  return { machines, tickets, team, pmLogs };
+  // pm_schedules/parts carry no company_code of their own — scope them to
+  // this company's machines the same way the shift-visibility filters do,
+  // rather than trusting an unfiltered select() across tenants.
+  const machineIds = new Set(machines.map((m) => m.id || m.machine_id));
+  const pmSchedules = (pmSchedulesRes.data || []).filter((row) => machineIds.has(row.machine_id));
+  const parts = (partsRes.data || []).filter((row) => machineIds.has(row.machine_id));
+
+  return { machines, tickets, team, pmLogs, pmSchedules, parts };
 }
 
 export default function Dashboard() {
   const [user, setUser] = useState(() => readStoredUser());
-  const [sources, setSources] = useState({ machines: [], tickets: [], team: [], pmLogs: [] });
+  const [sources, setSources] = useState({ machines: [], tickets: [], team: [], pmLogs: [], pmSchedules: [], parts: [] });
   const [legacyData, setLegacyData] = useState(fallback);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quickReportOpen, setQuickReportOpen] = useState(false);
-  const [activeDashboardTab, setActiveDashboardTab] = useState('plant-status');
-  const [selectedRoleView, setSelectedRoleView] = useState(null);
+  const [dashboardView, setDashboardView] = useState('overview');
 
   // One cache per mount. Recomputing the fleet on every render is wasteful;
   // a 5-minute TTL is well inside how fast a maintenance board needs to move.
   const cacheRef = useRef(null);
   if (cacheRef.current === null) cacheRef.current = createMetricsCache();
 
-  const defaultRole = useMemo(() => resolveDashboardRole(user?.role), [user]);
-  const defaultAppRole = normalizeRole(user?.role);
-  
-  const currentRole = selectedRoleView || defaultRole;
-  const role = currentRole;
-  const appRole = selectedRoleView ? selectedRoleView : defaultAppRole;
-  
+  // The board is always the signed-in user's own role — previewing another
+  // role's dashboard here used to be possible via a chip switcher, which let
+  // any signed-in user render financial figures (e.g. OwnerDashboard's cost
+  // KPIs) gated to roles with CAPABILITIES.VIEW_FINANCIALS. Removed rather
+  // than fixed: nobody needs to browse someone else's board from their own
+  // login.
+  const role = useMemo(() => resolveDashboardRole(user?.role), [user]);
+  const appRole = normalizeRole(user?.role);
+
   const specialistRole = ['maintenance_head', 'quality_inspector', 'safety_officer'].includes(appRole)
     ? appRole
     : null;
+
+  // Operators and technicians already get a single-queue, "your next job"
+  // board — the cross-fleet action board is for the roles that otherwise
+  // have to jump into Tickets to see what needs a decision.
+  const canSeeActionBoard = appRole !== 'operator' && can(user?.role, CAPABILITIES.VIEW_ALL_TICKETS);
 
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
@@ -214,6 +231,8 @@ export default function Dashboard() {
         tickets: buildDemoTickets(),
         team: DEMO_TEAM,
         pmLogs: DEMO_PM_LOGS,
+        pmSchedules: buildDemoPmSchedules(),
+        parts: buildDemoParts(),
       });
       setLegacyData(fallback);
       setLoading(false);
@@ -281,7 +300,6 @@ export default function Dashboard() {
     // Cache key changes whenever the inputs that move a number move.
     const key = [
       role,
-      selectedRoleView || 'default',
       isDemo ? 'demo' : 'live',
       input.machines?.length ?? 0,
       input.tickets?.length ?? 0,
@@ -299,7 +317,7 @@ export default function Dashboard() {
       displayMachines: input.machines,
       displayTickets: input.tickets,
     }));
-  }, [role, selectedRoleView, sources, user, isDemo, noFleetData, demoSession]);
+  }, [role, sources, user, isDemo, noFleetData, demoSession]);
 
   const specialistHeadings = {
     maintenance_head: { kicker: 'Exceptions', lead: 'Safety, technical and high-impact decisions requiring your authority.' },
@@ -307,11 +325,8 @@ export default function Dashboard() {
     safety_officer: { kicker: 'Safety control', lead: 'Unsafe conditions, restart checks and missing safety evidence.' },
   };
   const heading = specialistHeadings[specialistRole] || ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
-  const hero = ROLE_HEROES[role] || ROLE_HEROES[DASHBOARD_ROLES.OWNER];
+  const hero = ROLE_HEROES[specialistRole] || ROLE_HEROES[role] || ROLE_HEROES[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
-  const activeBreakdownCount = metrics?.displayTickets?.filter(
-    (t) => ['critical', 'high'].includes(String(t.urgency || '').toLowerCase()),
-  ).length || 0;
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
   const roleSummaryTitle = role === DASHBOARD_ROLES.TECHNICIAN
     ? 'Technician operational status'
@@ -335,66 +350,7 @@ export default function Dashboard() {
     return () => document.removeEventListener('open-quick-report', openQuickReport);
   }, [openQuickReport]);
 
-  const [timeRange, setTimeRange] = useState('shift');
-
-  const openTicketCount = metrics?.displayTickets?.filter(
-    (t) => String(t.status || '').toLowerCase() === 'open',
-  ).length || 0;
-
-  const dashboardTabs = [
-    {
-      id: 'plant-status',
-      label: 'Plant Operational Control & Role Hub',
-      kicker: 'TAB 01 · OPERATIONS',
-      badge: `${openTicketCount} Open Work Orders`,
-      badgeTone: openTicketCount > 0 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    },
-    {
-      id: 'machine-status',
-      label: 'Machine Fleet Telemetry & Downtime',
-      kicker: 'TAB 02 · TELEMETRY',
-      badge: `${metrics?.fleetHealth?.total || 0} Assets Registered`,
-      badgeTone: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    },
-    {
-      id: 'command-center',
-      label: 'Enterprise CMMS Command Center & RCA',
-      kicker: 'TAB 03 · RELIABILITY',
-      badge: 'Full CMMS Suite',
-      badgeTone: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-    },
-  ];
-
-  const shellMetrics = [
-    {
-      href: 'machines.html',
-      label: 'Fleet machines',
-      value: metrics?.fleetHealth?.total || 0,
-      tone: 'ok',
-      detail: 'Live machine register',
-    },
-    {
-      href: 'tickets.html',
-      label: 'Open tickets',
-      value: openTicketCount,
-      tone: 'warning',
-      detail: 'Current work orders',
-    },
-    {
-      href: 'tickets.html?urgency=critical',
-      label: 'Active breakdowns',
-      value: activeBreakdownCount,
-      tone: activeBreakdownCount > 0 ? 'danger' : 'ok',
-      detail: 'Critical + high urgency',
-    },
-    {
-      href: 'records.html',
-      label: 'SLA health',
-      value: metrics?.sla?.pct != null ? `${metrics.sla.pct}%` : '—',
-      tone: metrics?.sla?.pct != null && metrics.sla.pct < 85 ? 'warning' : 'info',
-      detail: 'On-time closure trend',
-    },
-  ];
+  const canViewCost = can(user?.role, CAPABILITIES.VIEW_FINANCIALS);
 
   return (
     <AppShell active="overview">
@@ -452,15 +408,7 @@ export default function Dashboard() {
               </aside>
             </section>
 
-            <section className="dashboard-shell-kpis" data-testid="at-a-glance-summary" aria-label="At a glance summary">
-              {shellMetrics.map((item) => (
-                <a key={item.label} href={item.href} className={`dashboard-shell-kpi ${item.tone}`}>
-                  <span className="dashboard-shell-kpi-label">{item.label}</span>
-                  <strong className="dashboard-shell-kpi-value">{item.value}</strong>
-                  <small className="dashboard-shell-kpi-detail">{item.detail}</small>
-                </a>
-              ))}
-            </section>
+            <CmmsKpiStrip metrics={metrics} tickets={sources.tickets} machines={sources.machines} canViewCost={canViewCost} />
           </>
         )}
 
@@ -488,84 +436,44 @@ export default function Dashboard() {
             <strong>{specialistRole ? specialistRole.replaceAll('_', ' ') : role.replaceAll('_', ' ')}</strong>
             <span>{heading.lead}</span>
           </div>
-          <div className="dashboard-role-chips" aria-label="Available role views">
-            {[
-              { id: 'operator', label: 'Operator' },
-              { id: DASHBOARD_ROLES.OWNER, label: 'Owner' },
-              { id: 'maintenance_head', label: 'Maintenance Head' },
-              { id: DASHBOARD_ROLES.SUPERVISOR, label: 'Supervisor' },
-              { id: DASHBOARD_ROLES.ENGINEER, label: 'Engineer' },
-              { id: DASHBOARD_ROLES.TECHNICIAN, label: 'Technician' },
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`dashboard-role-chip ${appRole === item.id || (role === item.id && !specialistRole) ? 'is-active' : ''}`}
-                onClick={() => setSelectedRoleView(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div className="splunk-dashboard-control-bar my-6 p-4 rounded-2xl bg-[#0b1326] border border-slate-800 shadow-2xl backdrop-blur-xl">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-cyan-400">Splunk Control Board v4</span>
-              <span className="text-xs text-slate-500">|</span>
-              <span className="text-xs text-slate-300 font-medium">{companyName} Manufacturing Control Room</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400 font-semibold hidden sm:inline">Time Window:</span>
-              <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-                {[
-                  { id: 'shift', label: 'Shift' },
-                  { id: 'today', label: 'Today' },
-                  { id: '7d', label: '7 Days' },
-                  { id: '30d', label: '30 Days' },
-                ].map(range => (
-                  <button
-                    key={range.id}
-                    type="button"
-                    onClick={() => setTimeRange(range.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
-                      timeRange === range.id
-                        ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {canSeeActionBoard && (
+          <div className="dashboard-view-tabs" role="tablist" aria-label="Dashboard view">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={dashboardView === 'overview'}
+              className={`dashboard-view-tab ${dashboardView === 'overview' ? 'is-active' : ''}`}
+              onClick={() => setDashboardView('overview')}
+            >
+              Overview
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={dashboardView === 'action'}
+              className={`dashboard-view-tab ${dashboardView === 'action' ? 'is-active' : ''}`}
+              onClick={() => setDashboardView('action')}
+            >
+              Action board
+            </button>
           </div>
+        )}
 
-          <div className="splunk-subtabs-grid" role="tablist" aria-label="Dashboard operational sections">
-            {dashboardTabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={activeDashboardTab === tab.id}
-                className={`splunk-subtab-card ${activeDashboardTab === tab.id ? 'is-active' : ''}`}
-                onClick={() => setActiveDashboardTab(tab.id)}
-              >
-                <div className="flex items-center justify-between mb-2 w-full">
-                  <span className="splunk-kicker">{tab.kicker}</span>
-                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md border ${tab.badgeTone}`}>{tab.badge}</span>
-                </div>
-                <span className="splunk-title block truncate">{tab.label}</span>
-              </button>
-            ))}
+        {!loading && canSeeActionBoard && dashboardView === 'action' && (
+          <div className="dashboard-tab-panel" role="region" aria-label="What needs action right now">
+            <OperationsBoard
+              tickets={sources.tickets}
+              machines={sources.machines}
+              pmSchedules={sources.pmSchedules}
+              parts={sources.parts}
+              loading={loading}
+            />
           </div>
-        </div>
+        )}
 
-        {(loading || activeDashboardTab === 'plant-status') && (
-          loading ? (
+        {(!canSeeActionBoard || dashboardView === 'overview') && (loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
             {[1, 2, 3].map(i => (
               <div key={i} className="h-44 bg-slate-900/60 rounded-2xl border border-slate-800/80 p-5 animate-pulse flex flex-col justify-between">
@@ -575,8 +483,8 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          ) : (
-          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Plant Operational Status">
+        ) : (
+          <div className="dashboard-tab-panel" role="region" aria-label="Plant operational status">
             {appRole === 'operator' && (
               <OperatorDashboard metrics={metrics} user={user} loading={loading} onQuickReport={openQuickReport} />
             )}
@@ -618,78 +526,7 @@ export default function Dashboard() {
               <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
             )}
           </div>
-          )
-        )}
-
-        {!loading && activeDashboardTab === 'machine-status' && (
-          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Machine Status">
-            <div className="dashboard-machine-summary" data-testid="machine-status-summary">
-              <div className="dashboard-machine-summary-head">
-                <div>
-                  <h2>Machine status</h2>
-                  <p>
-                    Fleet health, live breakdown exposure, and weekly line downtime in one place.
-                  </p>
-                </div>
-                <a href="machines.html">Open machine register</a>
-              </div>
-
-              <section className="dashboard-shell-kpis" aria-label="Machine status summary">
-                <div className="dashboard-shell-kpi ok">
-                  <span className="dashboard-shell-kpi-label">Fleet machines</span>
-                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.total || 0}</strong>
-                  <small className="dashboard-shell-kpi-detail">Total registered assets</small>
-                </div>
-                <div className="dashboard-shell-kpi ok">
-                  <span className="dashboard-shell-kpi-label">Running</span>
-                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.running || 0}</strong>
-                  <small className="dashboard-shell-kpi-detail">Healthy operating assets</small>
-                </div>
-                <div className="dashboard-shell-kpi warning">
-                  <span className="dashboard-shell-kpi-label">Issues</span>
-                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.issues || 0}</strong>
-                  <small className="dashboard-shell-kpi-detail">Need attention soon</small>
-                </div>
-                <div className="dashboard-shell-kpi danger">
-                  <span className="dashboard-shell-kpi-label">Down</span>
-                  <strong className="dashboard-shell-kpi-value">{metrics?.fleetHealth?.byStatus?.down || 0}</strong>
-                  <small className="dashboard-shell-kpi-detail">Production-impacting assets</small>
-                </div>
-              </section>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StitchDonutChart
-                  title="Plant Fleet Health Distribution"
-                  subtitle="Live Machine Status"
-                  data={[
-                    { label: 'Running (Optimal)', value: metrics?.fleetHealth?.byStatus?.running || 0, color: '#50FFAB' },
-                    { label: 'Minor Issues', value: metrics?.fleetHealth?.byStatus?.issues || 0, color: '#FBBF24' },
-                    { label: 'Breakdown / Down', value: metrics?.fleetHealth?.byStatus?.down || 0, color: '#F87171' },
-                    { label: 'Scheduled PM', value: metrics?.fleetHealth?.byStatus?.maintenance || 0, color: '#60A5FA' },
-                  ]}
-                  centerLabel="Fleet"
-                />
-
-                <StitchBarChart
-                  title="Downtime Hours by Production Line"
-                  subtitle="Weekly Downtime Analysis"
-                  items={[
-                    { label: 'Grid Casting Line 1', value: 3.5, max: 10, unit: 'hrs', color: '#F87171' },
-                    { label: 'Plate Pasting Line 2', value: 1.8, max: 10, unit: 'hrs', color: '#FBBF24' },
-                    { label: 'COS Assembly Line 3', value: 0.5, max: 10, unit: 'hrs', color: '#50FFAB' },
-                    { label: 'Formation Charging Line 4', value: 0.2, max: 10, unit: 'hrs', color: '#60A5FA' },
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!loading && activeDashboardTab === 'command-center' && (
-          <div className="dashboard-tab-panel" role="tabpanel" aria-label="Enterprise Asset and Maintenance Command Center">
-            <DreamzCMMSFeatureSuite />
-          </div>
-        )}
+        ))}
 
         <QuickReportDialog
           open={quickReportOpen}

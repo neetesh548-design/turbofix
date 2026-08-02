@@ -348,6 +348,141 @@
   background-color: #f1f5f9 !important;
 }
 
+/* Light Mode Overrides for Hardcoded Components & Specific Utility Classes */
+[data-theme="light"] .tickets-heading h1,
+[data-theme="light"] .machines-board-head h1,
+[data-theme="light"] .tickets-kpi-value,
+[data-theme="light"] .tickets-machine,
+[data-theme="light"] .machine-card-titles h3,
+[data-theme="light"] .machine-metric-value strong {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .tickets-kpi-label,
+[data-theme="light"] .tickets-heading p,
+[data-theme="light"] .machines-board-head p,
+[data-theme="light"] .tickets-kpi-hint,
+[data-theme="light"] .tickets-list-header,
+[data-theme="light"] .tickets-issue,
+[data-theme="light"] .tickets-ai,
+[data-theme="light"] .tickets-age,
+[data-theme="light"] .tickets-assignee-name {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .tickets-kpi {
+  background: #ffffff !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .tickets-toolbar {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .tickets-search input {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .tickets-segment {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .tickets-segment button {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .tickets-segment button.is-active {
+  background: rgba(8, 145, 178, 0.12) !important;
+  color: #0891b2 !important;
+  box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.3) !important;
+}
+
+[data-theme="light"] .tickets-select,
+[data-theme="light"] .tickets-icon-btn {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+  color-scheme: light !important;
+}
+
+[data-theme="light"] .tickets-row {
+  background: #ffffff !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .tickets-empty {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+/* Floating controls & header theme toggle in light mode */
+[data-theme="light"] .fixed.bottom-4.left-4 button,
+[data-theme="light"] button[aria-label*="help"],
+[data-theme="light"] button[title*="Help"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+}
+
+[data-theme="light"] header button.bg-slate-800,
+[data-theme="light"] .theme-toggle-btn {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Page Containers and Ant Design Components in Light Mode */
+[data-theme="light"] .settings-page,
+[data-theme="light"] .records-page,
+[data-theme="light"] .planner-page,
+[data-theme="light"] .shutdown-page,
+[data-theme="light"] .tickets-board,
+[data-theme="light"] .machines-board,
+[data-theme="light"] .app-content,
+[data-theme="light"] main {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ant-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ant-typography,
+[data-theme="light"] .ant-typography h1,
+[data-theme="light"] .ant-typography h2,
+[data-theme="light"] .ant-typography h3,
+[data-theme="light"] .ant-typography h4 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ant-tabs-tab-btn {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #0891b2 !important;
+  font-weight: 700 !important;
+}
+
+/* Public Hero Sections Light Mode Contrast Fix */
+[data-theme="light"] .public-hero,
+[data-theme="light"] section[class*="bg-[#0b0f17]"],
+[data-theme="light"] section[class*="bg-[#0f172a]"] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
 /* ===========================================================
    TurboFix demo site — design tokens
    =========================================================== */

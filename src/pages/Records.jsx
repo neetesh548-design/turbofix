@@ -29,6 +29,7 @@ import {
   Info, Plus, Search, ShieldCheck, Sparkles, Trash2, TriangleAlert, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { getRoleLabel } from '../lib/roles';
 import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
 
@@ -546,14 +547,17 @@ export default function Records() {
     }
 
     try {
-      const [{ data: machinesData, error: machinesError }, recordsResponse] = await Promise.all([
-        supabase.from('machines').select('id,name,location,status').order('name'),
+      const [{ data: machinesData }, recordsResponse] = await Promise.all([
+        supabase.from('machines').select('*'),
         apiFetch('/vault/records'),
       ]);
-      if (machinesError) throw machinesError;
-      if (!recordsResponse.ok) throw new Error(await responseMessage(recordsResponse, 'Machine records could not be loaded.'));
-      const machineData = (machinesData || []).map(m => ({ machine_id: m.id, machine_name: m.name, location: m.location }));
-      const recordData = await recordsResponse.json();
+      if (recordsResponse && !recordsResponse.ok) throw new Error(await responseMessage(recordsResponse, 'Machine records could not be loaded.'));
+      const machineData = (machinesData || []).map(m => ({
+        machine_id: m.machine_id || m.id,
+        machine_name: m.machine_name || m.name || m.machine_id || m.id,
+        location: m.location || ''
+      }));
+      const recordData = recordsResponse.ok ? await recordsResponse.json() : [];
       if (requestId !== loadRequest.current) return;
       setMachines(machineData);
       if (initialMachineId && !machineData.some((machine) => machine.machine_id === initialMachineId)) setMachineFilter('all');
@@ -667,12 +671,12 @@ export default function Records() {
         </div>
         <div className="flex-1 space-y-2">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold border border-cyan-500/20">
-            <span>Maintenance Head &amp; AI Gatekeeper View</span>
+            <span>{getRoleLabel(user?.role)} view</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-100 leading-snug">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug">
             "Convert 10 years of paper logbooks, PDFs, and OEM wiring diagrams into approved AI machine intelligence."
           </h2>
-          <p className="text-xs text-slate-300 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
             Every record passes through an interactive OCR verification workspace — and becomes active knowledge only after explicit Maintenance Head sign-off.
           </p>
         </div>
@@ -688,10 +692,10 @@ export default function Records() {
             title="Knowledge Base Source Document Types"
             subtitle="Document &amp; Manual Breakdown"
             data={[
-              { label: 'OEM Manuals & Diagrams', value: records.filter(r => r.record_type === 'manual').length || 8, color: '#50FFAB' },
-              { label: 'Service & Maintenance Logs', value: records.filter(r => r.record_type === 'service_log').length || 12, color: '#60A5FA' },
-              { label: 'Handwritten Registers', value: records.filter(r => r.source_kind === 'handwritten').length || 4, color: '#FBBF24' },
-              { label: 'BOM & Spare Part Catalogues', value: records.filter(r => r.record_type === 'bom').length || 5, color: '#38BDF8' },
+              { label: 'OEM Manuals & Diagrams', value: records.filter(r => r.record_type === 'manual').length, color: '#50FFAB' },
+              { label: 'Service & Maintenance Logs', value: records.filter(r => r.record_type === 'service_log').length, color: '#60A5FA' },
+              { label: 'Handwritten Registers', value: records.filter(r => r.source_kind === 'handwritten').length, color: '#FBBF24' },
+              { label: 'BOM & Spare Part Catalogues', value: records.filter(r => r.record_type === 'bom').length, color: '#38BDF8' },
             ]}
             centerLabel="Docs"
           />

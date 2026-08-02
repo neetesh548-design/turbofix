@@ -31,7 +31,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { StitchBarChart } from '../components/ui/StitchVisualCharts';
+import { getRoleLabel } from '../lib/roles';
 import OperatorKaizen from '../components/kaizen/OperatorKaizen.jsx';
 import SupervisorKaizen from '../components/kaizen/SupervisorKaizen.jsx';
 import ManagerKaizen from '../components/kaizen/ManagerKaizen.jsx';
@@ -298,7 +298,7 @@ export default function Kaizen() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-semibold border border-amber-500/20">
-              <span>Production Engineer &amp; Operator View</span>
+              <span>{getRoleLabel(user?.role)} view</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
               "Empower shopfloor technicians to submit low-cost fixture improvements and track realized rupee savings."
@@ -308,22 +308,6 @@ export default function Kaizen() {
             </p>
           </div>
         </div>
-
-        {/* Visual Kaizen Realized Savings Bar Chart */}
-        {!loading && (
-          <div className="mb-6">
-            <StitchBarChart
-              title="Continuous Improvement Realized Savings (₹)"
-              subtitle="Cost Reduction Impact by Category"
-              items={[
-                { label: 'Cycle Time Reduction (Assembly)', value: 125000, max: 200000, unit: '₹', color: '#50FFAB' },
-                { label: 'Lubrication Routine Optimization', value: 85000, max: 200000, unit: '₹', color: '#60A5FA' },
-                { label: 'Tool Changeover SMED Kaizen', value: 64000, max: 200000, unit: '₹', color: '#FBBF24' },
-                { label: 'Scrap Rate Reduction (Casting)', value: 42000, max: 200000, unit: '₹', color: '#38BDF8' },
-              ]}
-            />
-          </div>
-        )}
 
         {error && (
           <div className="decision-alert">

@@ -338,7 +338,7 @@ export default function Machines() {
 
       const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
         machinesQuery,
-        supabase.from('tickets').select('id,machine_id,company_code,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
+        supabase.from('tickets').select('id,machine_id,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
         supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),

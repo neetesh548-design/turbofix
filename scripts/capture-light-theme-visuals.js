@@ -79,9 +79,12 @@ async function runVisualCapture() {
     console.log(`🔎 Auditing visual layout & capturing screenshot for: ${pageInfo.name} (${pageInfo.path})...`);
     const page = await context.newPage();
 
-    // Set light theme before loading
+    // Set light theme and demo auth before loading
     await page.addInitScript(() => {
+      localStorage.setItem('tf_theme', 'light');
       localStorage.setItem('theme', 'light');
+      localStorage.setItem('tf_token', 'demo:owner');
+      localStorage.setItem('tf_user', JSON.stringify({ role: 'owner', name: 'Plant Manager', email: 'owner@turbofix.co.in' }));
       document.documentElement.setAttribute('data-theme', 'light');
     });
 

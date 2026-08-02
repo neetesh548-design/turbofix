@@ -32,10 +32,11 @@ import {
   Search, SlidersHorizontal, Shield, Package, Wallet, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { getRoleLabel } from '../lib/roles';
 import StoreManagerInventory from '../components/inventory/StoreManagerInventory.jsx';
 import SupervisorInventory from '../components/inventory/SupervisorInventory.jsx';
 import FinanceInventory from '../components/inventory/FinanceInventory.jsx';
-import { StitchDonutChart, StitchBarChart } from '../components/ui/StitchVisualCharts';
+import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import {
   INVENTORY_ROLES,
   STOCK_STATUS,
@@ -443,7 +444,7 @@ export default function Inventory() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-              <span>Inventory &amp; Purchase Manager View</span>
+              <span>{getRoleLabel(user?.role)} view</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
               "Never hold up a critical repair — auto-generated POs, supplier lead time tracking, and instant stockout warnings."
@@ -456,27 +457,16 @@ export default function Inventory() {
 
         {/* Visual Inventory Charts */}
         {!loading && canViewInventory && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="mb-6">
             <StitchDonutChart
               title="Stock Level Distribution"
               subtitle="Reorder Risk Analysis"
               data={[
-                { label: 'Optimal Stock', value: metrics?.optimalCount || 14, color: '#50FFAB' },
-                { label: 'Reorder Warning', value: metrics?.reorderCount || 3, color: '#FBBF24' },
-                { label: 'Critical Out of Stock', value: metrics?.outOfStockCount || 1, color: '#F87171' },
+                { label: 'Optimal Stock', value: metrics?.health?.healthy || 0, color: '#50FFAB' },
+                { label: 'Reorder Warning', value: metrics?.health?.atRisk || 0, color: '#FBBF24' },
+                { label: 'Critical Out of Stock', value: metrics?.health?.critical || 0, color: '#F87171' },
               ]}
               centerLabel="SKUs"
-            />
-
-            <StitchBarChart
-              title="Spare Parts Consumption Value (₹)"
-              subtitle="Monthly Usage by Line"
-              items={[
-                { label: 'Bearings & Seals', value: 45000, max: 80000, unit: '₹', color: '#60A5FA' },
-                { label: 'Motors & Drives', value: 32000, max: 80000, unit: '₹', color: '#50FFAB' },
-                { label: 'Hydraulic Oils', value: 18000, max: 80000, unit: '₹', color: '#FBBF24' },
-                { label: 'Sensors & PLC Relays', value: 12000, max: 80000, unit: '₹', color: '#38BDF8' },
-              ]}
             />
           </div>
         )}

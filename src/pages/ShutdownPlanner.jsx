@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
+import { getRoleLabel } from '../lib/roles';
 import { supabase } from '@/supabaseClient';
 import { DEMO_MACHINES } from '@/utils/demoMachines';
+
+function readSignedInUser() {
+  try { return JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch { return null; }
+}
 
 const priorityRank = { Critical: 0, Recommended: 1, Preventive: 2 };
 const estimationStorageKey = 'tf_shutdown_estimation_rules';
@@ -49,6 +54,7 @@ function calculateEstimate(issueCount, rules) {
 }
 
 export default function ShutdownPlanner() {
+  const user = useMemo(readSignedInUser, []);
   const [machines, setMachines] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -191,12 +197,12 @@ export default function ShutdownPlanner() {
       </div>
       <div className="flex-1 space-y-2">
         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-          <span>Maintenance Head &amp; Production Head View</span>
+          <span>{getRoleLabel(user?.role)} view</span>
         </div>
-        <h2 className="text-lg font-bold text-slate-100 leading-snug">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug">
           "Zero schedule overruns — compare available window hours against preventive maintenance tasks and open work orders."
         </h2>
-        <p className="text-xs text-slate-300 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
           Align maintenance, production, and plant management on upcoming Sunday overhauls with real-time Gantt schedule tracking.
         </p>
       </div>

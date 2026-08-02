@@ -37,6 +37,7 @@
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: var(--ink);
 }
 
 .machines-board-head p {

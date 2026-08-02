@@ -36,6 +36,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, Send, Siren, Zap } from 'lucide-react';
 import AppShell from '../components/AppShell';
+import { getRoleLabel } from '../lib/roles';
 import MachineSelector from '../components/breakdown/MachineSelector.jsx';
 import IssueCapture from '../components/breakdown/IssueCapture.jsx';
 import PhotoCapture from '../components/breakdown/PhotoCapture.jsx';
@@ -541,7 +542,7 @@ export default function ReportBreakdown() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-semibold border border-amber-500/20">
-              <span>Machine Operator &amp; Technician View</span>
+              <span>{getRoleLabel(user?.role)} view</span>
             </div>
             <h2 className="text-lg font-bold text-slate-100 leading-snug">
               "No dropdown menus or paper forms — scan the machine tag, record voice notes, and notify shift leads instantly."
@@ -651,66 +652,6 @@ export default function ReportBreakdown() {
               </div>
             )}
           </aside>
-
-          {/* Equipment OEE & 6 Big Losses Pareto Breakdown Analyzer */}
-          <div className="brk-main col-span-full mt-6 stitch-glass-tile p-6 rounded-3xl border border-amber-500/30 bg-slate-950 text-slate-100">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-              <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">
-                  Industrial CMMS OEE Analytics
-                </span>
-                <h3 className="text-lg font-black text-white">Equipment OEE &amp; 6 Big Losses Pareto Breakdown</h3>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
-                Plant Pareto 80/20 Rule
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-xs">
-              <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
-                <span className="text-slate-400 font-medium">Availability Rate (A)</span>
-                <div className="text-xl font-mono font-black text-emerald-400 mt-1">91.4%</div>
-                <span className="text-[10px] text-slate-400">Unplanned Downtime: 4.2h</span>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
-                <span className="text-slate-400 font-medium">Performance Rate (P)</span>
-                <div className="text-xl font-mono font-black text-sky-400 mt-1">87.8%</div>
-                <span className="text-[10px] text-slate-400">Minor Stoppages &amp; Speed Loss</span>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
-                <span className="text-slate-400 font-medium">Quality Rate (Q)</span>
-                <div className="text-xl font-mono font-black text-amber-400 mt-1">98.2%</div>
-                <span className="text-[10px] text-slate-400">Scrap / Startup Defect Rate</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                Top 4 Downtime Loss Contributors (Pareto Distribution)
-              </span>
-
-              <div className="space-y-2 text-xs">
-                <div className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 flex items-center justify-between">
-                  <span className="text-white font-semibold">1. Unplanned Equipment Breakdown (Hydraulic / Spindle)</span>
-                  <span className="font-mono text-rose-400 font-bold">48% of total downtime (18.4h)</span>
-                </div>
-                <div className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 flex items-center justify-between">
-                  <span className="text-white font-semibold">2. Tool Changeover &amp; Setup Adjustments</span>
-                  <span className="font-mono text-amber-400 font-bold">24% of total downtime (9.2h)</span>
-                </div>
-                <div className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 flex items-center justify-between">
-                  <span className="text-white font-semibold">3. Minor Stoppages &amp; Sensor Misalignments</span>
-                  <span className="font-mono text-sky-400 font-bold">16% of total downtime (6.1h)</span>
-                </div>
-                <div className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 flex items-center justify-between">
-                  <span className="text-white font-semibold">4. Startup Warmup &amp; Scrap Defect Rework</span>
-                  <span className="font-mono text-emerald-400 font-bold">12% of total downtime (4.6h)</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div className="brk-submit-bar">
             <div className="brk-submit-status">
