@@ -43,6 +43,43 @@ CREATE INDEX IF NOT EXISTS machine_shift_assignments_engineer_idx ON public.mach
 ALTER TABLE public.shift_rosters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.machine_shift_assignments ENABLE ROW LEVEL SECURITY;
 
+-- get_auth_role() only ever returns 'owner', 'supervisor', or 'technician' —
+-- it RETURNS the legacy user_role enum (CREATE TYPE user_role AS ENUM
+-- ('owner','supervisor','technician'), see 20260711171614_add_tenancy_and_
+-- roles.sql), and its own CASE logic collapses every other real role
+-- (including maintenance_head) down to 'technician'. The policies below
+-- originally compared it against 'maintenance_head', which isn't even a
+-- valid label of that enum — Postgres rejects the literal-to-enum cast at
+-- CREATE POLICY time, before the policy is ever evaluated, which blocked
+-- this migration outright.
+--
+-- get_current_role_text() (pulled forward from the later
+-- 20260729130000_role_safe_ticket_actions.sql, which redefines it
+-- identically — CREATE OR REPLACE makes that a no-op) returns the real
+-- text role value and recognizes the full role set, the same identity
+-- fallback used by get_current_company_id().
+CREATE OR REPLACE FUNCTION public.get_current_role_text()
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT coalesce(
+    (SELECT role::text FROM public.profiles WHERE user_id = auth.uid() LIMIT 1),
+    (
+      SELECT role::text
+      FROM public.users
+      WHERE id = auth.uid()
+         OR lower(coalesce(email, '')) = lower(coalesce(auth.jwt()->>'email', ''))
+         OR regexp_replace(coalesce(phone, ''), '\D', '', 'g') =
+            regexp_replace(split_part(coalesce(auth.jwt()->>'email', ''), '@', 1), '\D', '', 'g')
+      ORDER BY CASE WHEN id = auth.uid() THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+  );
+$$;
+
 DROP POLICY IF EXISTS "Company members can view shift rosters" ON public.shift_rosters;
 CREATE POLICY "Company members can view shift rosters"
 ON public.shift_rosters
@@ -57,11 +94,11 @@ FOR ALL
 TO authenticated
 USING (
   company_id = public.get_current_company_id()
-  AND public.get_auth_role() IN ('owner', 'maintenance_head', 'supervisor')
+  AND public.get_current_role_text() IN ('owner', 'maintenance_head', 'supervisor')
 )
 WITH CHECK (
   company_id = public.get_current_company_id()
-  AND public.get_auth_role() IN ('owner', 'maintenance_head', 'supervisor')
+  AND public.get_current_role_text() IN ('owner', 'maintenance_head', 'supervisor')
 );
 
 DROP POLICY IF EXISTS "Company members can view shift assignments" ON public.machine_shift_assignments;
@@ -78,9 +115,9 @@ FOR ALL
 TO authenticated
 USING (
   company_id = public.get_current_company_id()
-  AND public.get_auth_role() IN ('owner', 'maintenance_head', 'supervisor')
+  AND public.get_current_role_text() IN ('owner', 'maintenance_head', 'supervisor')
 )
 WITH CHECK (
   company_id = public.get_current_company_id()
-  AND public.get_auth_role() IN ('owner', 'maintenance_head', 'supervisor')
+  AND public.get_current_role_text() IN ('owner', 'maintenance_head', 'supervisor')
 );

@@ -735,9 +735,9 @@
     "semantic_hash": "cef436808aae8fd6a9b1520d23e6e875"
   },
   "src/lib/api.js": {
-    "mtime": 1785444132.3892443,
-    "ast_hash": "6bf7f5dfb04278189e29d947d50a547a",
-    "semantic_hash": "6bf7f5dfb04278189e29d947d50a547a"
+    "mtime": 1785782935.1236682,
+    "ast_hash": "bed6d6506b55168a1bfba0ba57cd9168",
+    "semantic_hash": ""
   },
   "src/lib/dashboardLayout.js": {
     "mtime": 1784640506.5563838,
@@ -795,8 +795,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785770803.0541449,
-    "ast_hash": "e2b81e446df17a487af2a395e87b9545",
+    "mtime": 1785782971.2818086,
+    "ast_hash": "aa06d3d0f7f4d28990c5a399d42b104e",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {

@@ -488,6 +488,7 @@
   "486": "CSS Enhancements ✅",
   "487": "Known Limitations & Future Work",
   "488": "4. Presence Indicators ✅",
+  "489": "Performance Metrics",
   "490": "Integration Checklist",
   "491": "Files Created",
   "492": "Known Limitations & Future Work",
@@ -508,6 +509,8 @@
   "507": "archive/README.md",
   "508": "task.md",
   "509": "test-puppeteer.js",
+  "510": "Resources",
+  "511": "FormInput.jsx",
   "514": "3. Activity Feed ✅",
   "517": "Known Limitations & Future Enhancements"
 }
