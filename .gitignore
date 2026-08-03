@@ -47,3 +47,7 @@ playwright-report/
 test-results/
 test-results.json
 test-results.xml
+
+# Graphify runtime coordination files
+graphify-out/.rebuild.lock
+graphify-out/.pending_changes
