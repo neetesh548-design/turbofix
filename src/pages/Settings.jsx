@@ -119,9 +119,22 @@ export default function Settings() {
     if (showLoader) setLoading(true);
     setError('');
     try {
-      const { data: machines, error: machErr } = await supabase.from('machines').select('id,name');
+      // Both queries below used to run with no company filter at all —
+      // every company's machine count and document set, platform-wide,
+      // landed in this company's quota/knowledge-coverage tiles. Resolve
+      // this company's own id first, the same way Machines.jsx/Team.jsx do.
+      const companyCode = currentUser.company_code;
+      const compRes = companyCode
+        ? await supabase.from('companies').select('id').ilike('domain', companyCode).maybeSingle()
+        : { data: null };
+      const companyId = compRes.data?.id || null;
+
+      let machinesQuery = supabase.from('machines').select('id,name');
+      if (companyId) machinesQuery = machinesQuery.eq('company_id', companyId);
+      const { data: machines, error: machErr } = await machinesQuery;
       if (machErr) throw new Error(machErr.message);
       const machineCount = (machines || []).length;
+      const machineIds = new Set((machines || []).map((m) => m.id));
 
       setCompanyInfo({
         name: currentUser.company_name || currentUser.factory_name || 'TurboFix Plant',
@@ -139,8 +152,11 @@ export default function Settings() {
       ]);
       setEscalationDirty(false);
 
+      // documents carries no company_id of its own, only machine_id — scope
+      // it through this company's own machines instead of trusting an
+      // unfiltered select() across every company's uploaded manuals.
       const { data: docs } = await supabase.from('documents').select('id,machine_id');
-      const machinesWithDocs = new Set((docs || []).map(d => d.machine_id));
+      const machinesWithDocs = new Set((docs || []).filter((d) => machineIds.has(d.machine_id)).map(d => d.machine_id));
       setKnowledgeStats({
         total: machineCount,
         ready: machinesWithDocs.size,

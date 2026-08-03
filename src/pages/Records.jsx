@@ -547,8 +547,19 @@ export default function Records() {
     }
 
     try {
+      // machines carries no company filter here by default — resolve this
+      // company's own id first (same lookup Machines.jsx/Settings.jsx use)
+      // so the machine count/list isn't every company's machines platform-wide.
+      const companyCode = user?.company_code;
+      const compRes = companyCode
+        ? await supabase.from('companies').select('id').ilike('domain', companyCode).maybeSingle()
+        : { data: null };
+      const companyId = compRes.data?.id || null;
+      let machinesQuery = supabase.from('machines').select('*');
+      if (companyId) machinesQuery = machinesQuery.eq('company_id', companyId);
+
       const [{ data: machinesData }, recordsResponse] = await Promise.all([
-        supabase.from('machines').select('*'),
+        machinesQuery,
         apiFetch('/vault/records'),
       ]);
       if (recordsResponse && !recordsResponse.ok) throw new Error(await responseMessage(recordsResponse, 'Machine records could not be loaded.'));
