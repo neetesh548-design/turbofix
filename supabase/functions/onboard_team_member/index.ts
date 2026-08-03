@@ -18,10 +18,17 @@ const maskEmail = (value: string) => {
   return `${local.slice(0, 1)}***@${domain}`
 }
 
-const INVITE_ROLES: Record<string, string[]> = {
-  owner: ['director', 'maintenance_head', 'maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
-  director: ['maintenance_head', 'maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
-  maintenance_head: ['maintenance_engineer', 'engineer', 'supervisor', 'maintenance_technician', 'technician'],
+// Any owner/director/maintenance_head can grant any role except another
+// owner, and only an owner/director can grant maintenance_head — mirrors
+// src/pages/Team.jsx's inviteableRoles. The old fixed per-manager allow-list
+// only ever named 7 built-in role values, so Operator, Quality Inspector,
+// Safety Officer, Vendor, and every custom role created in Settings were
+// rejected here with "You cannot invite someone at this role level" even
+// though the frontend's own Role dropdown already offered them.
+const canGrantRole = (callerRole: string, targetRole: string) => {
+  if (targetRole === 'owner') return false
+  if (targetRole === 'maintenance_head') return callerRole === 'owner' || callerRole === 'director'
+  return ['owner', 'director', 'maintenance_head'].includes(callerRole)
 }
 
 const logInvitation = async (admin: any, payload: Record<string, unknown>) => {
@@ -189,7 +196,7 @@ serve(async (req) => {
     if (!name) return reply({ error: 'Team member name is required.' }, 400)
     const { data: target } = await admin.from('users').select('id,company_id,role').eq('id', targetId).eq('company_id', owner.company_id).maybeSingle()
     if (!target) return reply({ error: 'Team member was not found in your company.' }, 404)
-    if (targetId !== owner.id && !INVITE_ROLES[callerRole]?.includes(role)) {
+    if (targetId !== owner.id && !canGrantRole(callerRole, role)) {
       return reply({ error: 'You cannot assign that role from your position.' }, 403)
     }
     if (target.role === 'owner' && role !== 'owner') return reply({ error: 'The company owner role cannot be changed here.' }, 400)
@@ -315,7 +322,7 @@ serve(async (req) => {
   const portalAccess = body.portal_access !== false
   if (!name) return reply({ error: 'Full name is required.' }, 400)
   if (role === 'owner') return reply({ error: 'Another owner cannot be created here.' }, 400)
-  if (!INVITE_ROLES[callerRole]?.includes(role)) return reply({ error: 'You cannot invite someone at this role level.' }, 403)
+  if (!canGrantRole(callerRole, role)) return reply({ error: 'You cannot invite someone at this role level.' }, 403)
   if (portalAccess && !email) return reply({ error: 'An email address is required so the person can create their own password.' }, 400)
 
   // RLS (get_auth_factory_id) reads public.profiles, so every portal user needs a
