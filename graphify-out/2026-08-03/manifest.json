@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785660505.9321883,
-    "ast_hash": "72f423ba7f28c72fe652a3c2da90514f",
+    "mtime": 1785744179.5897017,
+    "ast_hash": "f7eb269d319b786b9f07b6f7052a34a6",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -1295,9 +1295,9 @@
     "semantic_hash": "8a7097fc6f498a836ffdb2ce4b86d23b"
   },
   "tests/machine-card.spec.js": {
-    "mtime": 1785389713.9207578,
-    "ast_hash": "8493468dcbcac33f6488d2b96e2715e2",
-    "semantic_hash": "8493468dcbcac33f6488d2b96e2715e2"
+    "mtime": 1785743421.7257833,
+    "ast_hash": "f7f49d3d86e648dbf08791ed1f33f4ee",
+    "semantic_hash": ""
   },
   "tests/qr-gateway.spec.ts": {
     "mtime": 1785001667.5256982,

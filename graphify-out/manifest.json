@@ -600,8 +600,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785615115.5038064,
-    "ast_hash": "a36c89cd3b794c1fa5876d04b5fae8d8",
+    "mtime": 1785745441.9582222,
+    "ast_hash": "6a8e9babd1eefde573668d3eec1313fa",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785744179.5897017,
-    "ast_hash": "f7eb269d319b786b9f07b6f7052a34a6",
+    "mtime": 1785745861.607441,
+    "ast_hash": "f932bd4579e3fe08dd12a7a927205896",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -835,14 +835,14 @@
     "semantic_hash": ""
   },
   "src/pages/Support.jsx": {
-    "mtime": 1785444127.738893,
-    "ast_hash": "554290db04363b4db48844ecb596d446",
-    "semantic_hash": "554290db04363b4db48844ecb596d446"
+    "mtime": 1785745385.2671168,
+    "ast_hash": "d7460219de9a6234e4a47e6744f1e07b",
+    "semantic_hash": ""
   },
   "src/pages/Team.jsx": {
-    "mtime": 1785386123.483571,
-    "ast_hash": "60e966f0107476245b6a5664bfa4be92",
-    "semantic_hash": "60e966f0107476245b6a5664bfa4be92"
+    "mtime": 1785745385.5503438,
+    "ast_hash": "d3c210123ebe0fe6f7ab263d391122c8",
+    "semantic_hash": ""
   },
   "src/pages/Technician.jsx": {
     "mtime": 1785675116.0616384,
@@ -1485,8 +1485,8 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1785594188.320086,
-    "ast_hash": "27c29d6bd7584f4071c54bed63bed67d",
+    "mtime": 1785745349.4211264,
+    "ast_hash": "547f4ffb89537302dfa94667a8aeb717",
     "semantic_hash": ""
   },
   "public/llms.txt": {
