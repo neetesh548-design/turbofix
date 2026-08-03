@@ -1066,6 +1066,12 @@
   .md-charts-row { grid-template-columns: 1fr; }
   .md-dashboard .decision-columns { grid-template-columns: 1fr; }
   .md-pulse { padding: 10px 14px; }
+  /* .dashboard-shell-side's minmax(280px, ...) column claims nearly the
+     whole grid track on a phone, squeezing .dashboard-shell-copy's title
+     and body text into a sliver. Stack instead of splitting the row. */
+  .dashboard-shell-hero { grid-template-columns: 1fr; }
+  .dashboard-shell-copy { padding: 16px 18px; }
+  .dashboard-shell-copy h2 { max-width: none; }
 }
 
 /* ============================================================
