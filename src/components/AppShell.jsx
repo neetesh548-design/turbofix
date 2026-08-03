@@ -429,7 +429,7 @@ export default function AppShell({ children, active }) {
       {railOpen && <div className="app-scrim" onClick={() => setRailOpen(false)} />}
 
       <div className="app-body">
-        <header className="app-topbar sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-2.5 bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/90 shadow-sm dark:shadow-lg transition-colors">
+        <header className="app-topbar sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-2 bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/90 shadow-sm dark:shadow-lg transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
@@ -450,7 +450,7 @@ export default function AppShell({ children, active }) {
 
             {/* Current Active Workspace Indicator Pill */}
             {active && (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-semibold border border-emerald-500/30 flex-shrink-0 shadow-sm">
+              <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-semibold border border-emerald-500/30 flex-shrink-0 shadow-sm">
                 <span aria-hidden="true" className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#50ffab] animate-pulse shadow-[0_0_8px_#10b981]" />
                 <span className="capitalize">{active.replace('-', ' ')}</span>
               </div>
@@ -506,7 +506,7 @@ export default function AppShell({ children, active }) {
         </header>
 
         {/* Ultra-Clean Stitch Module Tab Bar */}
-        <nav className="bg-slate-100/95 dark:bg-[#0e121a]/95 border-b border-slate-200 dark:border-slate-800/90 px-4 py-1.5 overflow-x-auto flex items-center gap-1.5 scrollbar-none text-xs font-semibold backdrop-blur-xl sticky top-[53px] z-30 shadow-sm dark:shadow-md transition-colors">
+        <nav className="bg-slate-100/95 dark:bg-[#0e121a]/95 border-b border-slate-200 dark:border-slate-800/90 px-4 py-1 overflow-x-auto flex items-center gap-2 scrollbar-none text-xs font-semibold backdrop-blur-xl sticky top-[64px] z-30 shadow-sm dark:shadow-md transition-colors">
           {visibleAppNavItems(user?.role).map((item) => {
             const Icon = item.Icon;
             const isActive = active === item.id;
@@ -606,9 +606,9 @@ export default function AppShell({ children, active }) {
             aria-live="polite"
             style={{
               background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
-              color: '#1c1917', padding: '7px 16px',
+              color: '#1c1917', padding: '6px 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 10, fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.01em',
+              gap: 10, fontSize: '0.84rem', fontWeight: 600, letterSpacing: '0.01em',
               boxShadow: 'none',
             }}
           >

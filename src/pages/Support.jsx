@@ -32,7 +32,6 @@ export default function Support() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [activeSummary, setActiveSummary] = useState('needs');
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const user = useMemo(() => { try { return JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch { return null; } }, []);
 
   const load = async () => {
@@ -95,21 +94,50 @@ export default function Support() {
     finally { setBusyId(''); }
   };
 
-  return <AppShell active="support"><div className="support-page">
-    <div className="decision-heading"><div><span className="eyebrow eyebrow-light">Resolve together</span><h1>Support</h1><p>{roleContribution(user?.role)}</p></div><a className="btn btn-ghost btn-sm" href="assistant.html">Ask TurboFix</a></div>
+  return <AppShell active="support"><div className="support-page workspace-page">
+    <section className="workspace-page-heading">
+      <div className="support-hero-grid">
+        <div>
+          <span className="eyebrow eyebrow-light">Resolve together</span>
+          <h1>Support</h1>
+          <p>{roleContribution(user?.role)}</p>
+        </div>
+        <div className="support-hero-actions">
+          <a className="btn btn-ghost btn-sm" href="assistant.html">Ask TurboFix</a>
+          <a className="btn btn-primary btn-sm" href="mailto:turbofixsolution@gmail.com">Email support</a>
+        </div>
+      </div>
+    </section>
     <div className="support-principle"><HeartHandshake /><div><strong>Contact support</strong><span>Email: turbofixsolution@gmail.com · Phone: +91 96374 38044 · Available: Mon-Fri, 9 AM - 6 PM IST</span></div></div>
     {error && <div className="decision-alert">{error}</div>}{message && <div className="technician-alert success"><CheckCircle2 />{message}</div>}
 
-    <div style={{ maxWidth: '600px', margin: '32px auto' }}>
+    <section className="postlogin-summary support-kpi-row" aria-label="Support status overview">
+      <button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}>
+        <span>Needs your contribution</span>
+        <strong>{visible.length}</strong>
+        <small>Open decisions or technical help requests</small>
+      </button>
+      <button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}>
+        <span>Repeat-failure signals</span>
+        <strong>{repeated.length}</strong>
+        <small>Machines with three or more recent issues</small>
+      </button>
+      <button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}>
+        <span>Resolved exceptions</span>
+        <strong>{resolved.length}</strong>
+        <small>Closed decisions and verified support work</small>
+      </button>
+    </section>
+
+    <div style={{ maxWidth: '720px', margin: '28px auto 0' }}>
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
         <a href="mailto:turbofixsolution@gmail.com" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Email support</a>
         <a href="tel:+919637438044" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Call +91 96374 38044</a>
       </div>
-      <button type="button" className="btn btn-ghost" onClick={() => setShowMoreOptions(!showMoreOptions)} style={{ width: '100%' }}>More options</button>
     </div>
 
-    {showMoreOptions && <>
-      <section className="support-summary" aria-label="Support summary filters" style={{ marginTop: '32px' }}><button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span><em>View details →</em></button><button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span><em>View machines →</em></button><button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}><ShieldCheck /><strong>{resolved.length}</strong><span>exceptions resolved</span><em>View history →</em></button></section>
+    <>
+      <section className="support-summary" aria-label="Support summary filters" style={{ marginTop: '20px' }}><button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span><em>View details →</em></button><button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span><em>View machines →</em></button><button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}><ShieldCheck /><strong>{resolved.length}</strong><span>exceptions resolved</span><em>View history →</em></button></section>
       <div id="support-details" className="support-details" tabIndex="-1">
       {activeSummary === 'needs' && <><div className="decision-section-label">Needs your contribution</div>
       <section className="support-list">
@@ -128,6 +156,6 @@ export default function Support() {
       {activeSummary === 'repeat' && <><div className="decision-section-label">Repeat-failure signals</div><section className="support-list">{repeated.length ? repeated.map(({ machineId, count }) => <article className="support-card compact" key={machineId}><div className="support-card-icon"><Search /></div><div className="support-card-main"><span>Pattern detected</span><h2>{machineMap[machineId]?.name || machineId}</h2><p>{count} issues in the last 30 days. Investigate the system cause instead of repeating the repair.</p><small>This is a machine-level signal. It is not attributed to an employee.</small></div><div className="support-card-actions"><a className="primary" href={`assistant.html?machine_id=${encodeURIComponent(machineId)}`}>{['maintenance_engineer', 'maintenance_head'].includes(user?.role) ? 'Start root-cause review' : 'View machine context'}</a></div></article>) : <div className="support-empty"><CheckCircle2 /><strong>No repeat-failure pattern detected</strong><span>Machines with three or more issues in 30 days will appear here.</span></div>}</section></>}
       {activeSummary === 'resolved' && <details className="support-history" open><summary><span>Resolved exceptions</span><em>{resolved.length} in history</em></summary><div className="decision-section-label">Resolved exceptions</div><section className="support-list">{resolved.length ? resolved.map((item) => { const machine = machineMap[item.machine_id]; return <article className="support-card compact" key={item.id}><div className="support-card-icon resolved"><CheckCircle2 /></div><div className="support-card-main"><span>{typeLabel(item.intervention_type)}</span><h2>{machine?.name || item.machine_id}</h2><p>{item.decision === 'approved' ? 'Repair verified and issue closed.' : item.decision || item.reason || 'Exception resolved.'}</p><small>{item.resolved_at ? `Resolved ${new Date(item.resolved_at).toLocaleString()}` : 'Resolution recorded'}</small></div><div className="support-card-actions"><a href={`assistant.html?machine_id=${encodeURIComponent(item.machine_id)}`}>View machine context</a></div></article>; }) : <div className="support-empty"><ShieldCheck /><strong>No resolved exceptions yet</strong><span>Completed support and approval decisions will appear here.</span></div>}</section></details>}
       </div>
-    </>}
+    </>
   </div></AppShell>;
 }

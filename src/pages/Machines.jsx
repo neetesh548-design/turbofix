@@ -25,6 +25,7 @@ import { visibleMachinesForUser } from '../utils/machineVisibility';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
 import { formatSupabaseError } from '../utils/errorFormatting';
 import { filterRowsForUserCompany } from '../utils/tenant';
+import { readAuth } from '../utils/auth';
 import './Machines.css';
 
 
@@ -285,15 +286,31 @@ export default function Machines() {
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
 
-  let signedInUser = null;
-  try { signedInUser = JSON.parse(window.localStorage.getItem('tf_user') || 'null'); } catch {}
+  let signedInUser = readAuth().user;
+  try {
+    signedInUser = signedInUser || JSON.parse(window.localStorage.getItem('tf_user') || 'null');
+  } catch {
+    signedInUser = signedInUser || null;
+  }
+  const token = (() => {
+    try {
+      return window.localStorage.getItem('tf_token') || '';
+    } catch {
+      return '';
+    }
+  })();
+  const demoSession = signedInUser?.inventory_mode === 'demo' || token.startsWith('demo:');
   const isOwner = signedInUser?.role === 'owner';
 
 
   useEffect(() => {
     document.title = 'Machines | TurboFix';
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!signedInUser && !demoSession) return;
+    fetchData();
+  }, [signedInUser?.user_id, signedInUser?.company_code, demoSession]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -475,8 +492,11 @@ export default function Machines() {
 
       // Sample machines belong only to an explicit demo session. Empty live
       // workspaces must remain honest so setup and connection gaps are visible.
-      const useDemo = signedInUser?.inventory_mode === 'demo';
-      const displayedMachines = useDemo ? visibleMachinesForUser(DEMO_MACHINES, signedInUser) : visibleMachines;
+      const useDemo = demoSession;
+      const demoMachines = visibleMachinesForUser(DEMO_MACHINES, signedInUser);
+      const displayedMachines = useDemo
+        ? (demoMachines.length > 0 ? demoMachines : DEMO_MACHINES)
+        : visibleMachines;
       setShowingDemo(useDemo);
       setMachines(displayedMachines);
       if (directoryUnavailable && !useDemo) setError('Team assignments are temporarily unavailable. Machine details are still available.');
@@ -519,7 +539,7 @@ export default function Machines() {
         { role: 'maintenance_technician', label: 'Maintenance Technician', threshold_hours: 2 }
       ]);
     } catch (err) {
-      if (signedInUser?.inventory_mode === 'demo') {
+      if (demoSession) {
         setShowingDemo(true);
         setMachines(DEMO_MACHINES);
         setError('');

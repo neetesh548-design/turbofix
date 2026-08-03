@@ -3,7 +3,7 @@ import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import ContactReveal from '../components/ContactReveal';
 import EmptyState from '../components/EmptyState';
-import { Users } from 'lucide-react';
+import { BellRing, ShieldCheck, UserPlus2, Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { defaultRoles, getRoleLabel } from '@/lib/roles';
 import { DEMO_TEAM } from '@/utils/demoMachines';
@@ -216,16 +216,45 @@ export default function Team() {
   return (
     <AppShell active="team">
       <div className="vault-wrap workspace-page team-page" style={{ maxWidth: '1000px', padding: '20px 24px 80px' }}>
-        <div className="workspace-page-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <div>
-            <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>Team Directory</h1>
-            <p style={{ color: 'var(--slate)', fontSize: '0.9rem', margin: '4px 0 0' }}>See who's assigned to what now. Quick reassign or view more options.</p>
+        <section className="workspace-page-heading team-hero">
+          <div className="team-hero-copy">
+            <span className="eyebrow eyebrow-light">Field-ready roster</span>
+            <h1>Team Directory</h1>
+            <p>See who owns which machines right now, who can receive alerts, and who still needs portal access.</p>
           </div>
-
-        </div>
+          {canManageTeam && (
+            <button type="button" className="vault-btn vault-btn-primary" onClick={() => setShowAddForm(true)}>
+              <UserPlus2 size={16} />
+              <span>Onboard member</span>
+            </button>
+          )}
+        </section>
 
         {error && <div className="vault-error show" style={{ marginBottom: '16px' }}>{error}</div>}
         {success && <div className="vault-success" style={{ background: '#065f46', color: '#d1fae5', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{success}</div>}
+
+        <section className="postlogin-summary" aria-label="Team status overview">
+          <button type="button" className={activeFilter === 'all' ? 'active' : ''} onClick={() => setActiveFilter('all')}>
+            <span>Total team</span>
+            <strong>{team.length}</strong>
+            <small>Everyone currently listed in this plant roster</small>
+          </button>
+          <button type="button" className={activeFilter === 'technicians' ? 'active' : ''} onClick={() => setActiveFilter('technicians')}>
+            <span>Technicians</span>
+            <strong>{techniciansCount}</strong>
+            <small>Hands-on maintenance staff assigned to equipment</small>
+          </button>
+          <button type="button" className={activeFilter === 'portal' ? 'active' : ''} onClick={() => setActiveFilter('portal')}>
+            <span>Portal access</span>
+            <strong>{portalCount}</strong>
+            <small>People who can sign in to TurboFix directly</small>
+          </button>
+          <button type="button" className={activeFilter === 'alerts' ? 'active' : ''} onClick={() => setActiveFilter('alerts')}>
+            <span>Alert-ready</span>
+            <strong>{responseCount}</strong>
+            <small>People currently set to receive plant notifications</small>
+          </button>
+        </section>
 
         {/* CORE WORKFLOW - Current Team Assignments Only */}
         {loading ? (
@@ -252,7 +281,7 @@ export default function Team() {
                       />
                     </td>
                   </tr>
-                ) : team.map((u) => (
+                ) : visibleTeam.map((u) => (
                   <tr key={u.user_id}>
                     <td>
                       <div style={{ fontWeight: '600' }}>{u.name}</div>
@@ -379,6 +408,19 @@ export default function Team() {
             </div>
           )}
         </AdvancedFeaturesDrilldown>
+
+        <section className="team-trust-strip">
+          <article className="vault-card">
+            <span className="team-trust-icon"><ShieldCheck size={18} /></span>
+            <strong>Assignment clarity</strong>
+            <p>Every person shown here maps back to a live reporting line, so reassignment stays traceable.</p>
+          </article>
+          <article className="vault-card">
+            <span className="team-trust-icon"><BellRing size={18} /></span>
+            <strong>Alert readiness</strong>
+            <p>Use the alert-ready filter before a shutdown or breakdown escalation so the right people are reachable.</p>
+          </article>
+        </section>
       </div>
     </AppShell>
   );
