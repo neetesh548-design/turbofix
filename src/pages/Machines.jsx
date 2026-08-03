@@ -353,13 +353,23 @@ export default function Machines() {
         machinesQuery = machinesQuery.eq('company_id', companyId);
       }
 
-      const [machinesRes, ticketsRes, directoryRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
+      // supabase.functions.invoke() is deliberately not bundled into the
+      // Promise.all below with the other four .from() queries. When it was,
+      // this call consistently came back with an auth error (readable as
+      // directoryRes.error / a 401 "session expired" from the function
+      // itself) even seconds after a fresh, verified-valid login — while
+      // the identical call succeeds every time on its own (see Team.jsx's
+      // fetchData, which awaits it standalone and has never shown this).
+      // Firing it as one of five concurrent requests appears to race the
+      // supabase-js client's session/token handling; awaiting it
+      // separately avoids that entirely.
+      const [machinesRes, ticketsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
         machinesQuery,
         supabase.from('tickets').select('id,machine_id,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
-        supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } }),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
       ]);
+      const directoryRes = await supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } });
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
