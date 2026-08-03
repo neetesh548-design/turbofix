@@ -40,6 +40,28 @@ export default function Login() {
     }
   };
 
+  const toLoginEmail = (rawIdentifier) => (
+    rawIdentifier.includes('@') ? rawIdentifier.trim() : `${rawIdentifier.trim()}@phone.turbofix.co.in`
+  );
+
+  // The backend's own JWT (tf_token) is all the FastAPI routes need, but
+  // every direct-from-browser Supabase call — supabase.functions.invoke(),
+  // RLS-scoped supabase.from() reads — is authenticated separately, off
+  // whatever session the Supabase JS client itself is holding. Without
+  // this, that client never has one, so it silently sends the anon key as
+  // the bearer token; server-side, that fails auth.getUser() and comes
+  // back as "Your session has expired" on the very first Team/Inventory/
+  // Edge Function call after a login that, from the user's side, worked.
+  const establishSupabaseSession = async (rawIdentifier) => {
+    try {
+      await supabase.auth.signInWithPassword({ email: toLoginEmail(rawIdentifier), password });
+    } catch {
+      // Best-effort — accounts that only exist in the backend's own store
+      // (not yet provisioned into Supabase Auth) simply won't get a
+      // session here, same as before this call existed.
+    }
+  };
+
   const performPostLoginRedirect = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryRedirect = searchParams.get('redirect') || searchParams.get('returnUrl') || searchParams.get('next');
@@ -73,6 +95,7 @@ export default function Login() {
             const companyId = await resolveCompanyId(resData.user.company_code);
             localStorage.setItem('tf_token', resData.access_token);
             localStorage.setItem('tf_user', JSON.stringify({ ...resData.user, company_id: companyId }));
+            await establishSupabaseSession(identifier);
             window.dispatchEvent(new Event('authChanged'));
 
             if (resData.user.must_change_password) {
@@ -97,7 +120,7 @@ export default function Login() {
       }
 
       // 2. Secondary Fallback Path: Direct Supabase Client Auth
-      const loginEmail = identifier.includes('@') ? identifier.trim() : `${identifier.trim()}@phone.turbofix.co.in`;
+      const loginEmail = toLoginEmail(identifier);
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
       if (signInError || !data?.user || !data.session?.access_token) {
         throw new Error('Invalid credentials. Check your phone/email and password, or use Quick Demo Access.');
