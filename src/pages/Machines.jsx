@@ -1056,9 +1056,9 @@ export default function Machines() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    const quota = companyQuota || 5;
+    const currentCount = (machines || []).length;
     try {
-      const quota = companyQuota || 5;
-      const currentCount = (machines || []).length;
       if (!showingDemo && currentCount >= quota) {
         throw new Error(`Machine limit reached: Your account is permitted up to ${quota} machines (${currentCount} currently registered). Contact your administrator to increase your quota.`);
       }
@@ -1097,7 +1097,7 @@ export default function Machines() {
         maintenance_head_user_id: headUserId || null,
         company_id: companyId,
       }).select().single();
-      if (insertErr) throw new Error(formatSupabaseError(insertErr, 'Machine onboarding failed.', companyQuota));
+      if (insertErr) throw new Error(formatSupabaseError(insertErr, 'Machine onboarding failed.', { current: currentCount, quota }));
 
       if (onboardPhotoFile) {
         await uploadMachinePhoto(onboardPhotoFile, newRow.id);
@@ -1110,7 +1110,7 @@ export default function Machines() {
       setOnboardPhotoFile(null);
       fetchData();
     } catch (err) {
-      setError(formatSupabaseError(err, 'Machine could not be onboarded.', companyQuota));
+      setError(formatSupabaseError(err, 'Machine could not be onboarded.', { current: currentCount, quota }));
     }
 
   };
@@ -1177,8 +1177,11 @@ export default function Machines() {
     if (!selectedMachine) return;
     setPartsLoading(true);
     try {
-      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
-      const factoryId = factoryRows?.[0]?.id;
+      // parts is scoped through machine_id (see src/utils/tenant.js), not
+      // factory_id — that legacy tenancy column isn't read anywhere for
+      // tenant isolation anymore, so populating it from an arbitrary "first
+      // row in factories" was dead weight (and wrong for every company that
+      // isn't literally first in that table).
       const { error: insertErr } = await supabase.from('parts').insert({
         machine_id: selectedMachine.machine_id,
         part_name: newPartName,
@@ -1188,7 +1191,6 @@ export default function Machines() {
         reorder_level: parseFloat(newPartReorder) || 0,
         lead_time_days: 7,
         unit_price: parseFloat(newPartPrice) || 0,
-        factory_id: factoryId,
       });
       if (insertErr) throw new Error(insertErr.message);
       setNewPartName(''); setNewPartNum(''); setNewPartQty(''); setNewPartReorder(''); setNewPartPrice('');
@@ -1292,8 +1294,8 @@ export default function Machines() {
     if (!selectedMachine) return;
     setConsumablesLoading(true);
     try {
-      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
-      const factoryId = factoryRows?.[0]?.id;
+      // consumables is scoped through machine_id, not factory_id — see the
+      // same note in handleAddPart above.
       const { error: insertErr } = await supabase.from('consumables').insert({
         machine_id: selectedMachine.machine_id,
         name: newConsName,
@@ -1304,7 +1306,6 @@ export default function Machines() {
         buffer_days: parseInt(newConsBuffer) || 3,
         frequency_days: parseInt(newConsFreq) || 30,
         last_replaced_at: newConsLastRep || null,
-        factory_id: factoryId,
       });
       if (insertErr) throw new Error(insertErr.message);
       setNewConsName(''); setNewConsQty('');
@@ -1335,13 +1336,12 @@ export default function Machines() {
     if (!selectedMachine || !pmTitle.trim()) return;
     setPmSaving(true);
     try {
-      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
-      const factoryId = selectedMachine.factory_id || factoryRows?.[0]?.id || null;
+      // pm_schedules is scoped through machine_id, not factory_id — see the
+      // same note in handleAddPart above.
       const checklist = pmChecklist.split('\n').map((line) => line.trim()).filter(Boolean)
         .map((label) => ({ label, mandatory: true }));
       const { error: insertErr } = await supabase.from('pm_schedules').insert({
         machine_id: selectedMachine.machine_id,
-        factory_id: factoryId,
         title: pmTitle.trim(),
         trigger_type: pmTrigger,
         frequency_days: pmTrigger === 'calendar' ? (parseInt(pmFrequency, 10) || 30) : null,

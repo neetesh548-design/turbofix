@@ -125,7 +125,7 @@ export default function Settings() {
       // this company's own id first, the same way Machines.jsx/Team.jsx do.
       const companyCode = currentUser.company_code;
       const compRes = companyCode
-        ? await supabase.from('companies').select('id').ilike('domain', companyCode).maybeSingle()
+        ? await supabase.from('companies').select('id,machine_quota').ilike('domain', companyCode).maybeSingle()
         : { data: null };
       const companyId = compRes.data?.id || null;
 
@@ -139,7 +139,11 @@ export default function Settings() {
       setCompanyInfo({
         name: currentUser.company_name || currentUser.factory_name || 'TurboFix Plant',
         code: currentUser.company_code || 'PLANT-01',
-        quota: currentUser.machine_quota || 50,
+        // currentUser.machine_quota never existed on the stored session
+        // object (tf_user only carries user_id/name/role/company_code/
+        // company_id) — always fell back to the hardcoded 50, disagreeing
+        // with Machines.jsx which reads the real quota from companies.
+        quota: compRes.data?.machine_quota ?? 50,
         machinesUsed: machineCount,
       });
 

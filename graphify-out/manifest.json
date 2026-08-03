@@ -815,8 +815,8 @@
     "semantic_hash": ""
   },
   "src/pages/Records.jsx": {
-    "mtime": 1785675146.9181263,
-    "ast_hash": "e504a814b7d052a23b3af177599ab035",
+    "mtime": 1785779649.805708,
+    "ast_hash": "aa425207a6f5584c3990b16412b92932",
     "semantic_hash": ""
   },
   "src/pages/ResetPassword.jsx": {
@@ -825,8 +825,8 @@
     "semantic_hash": "55d52b41eadf9e286ee9d64a2de4e74e"
   },
   "src/pages/Settings.jsx": {
-    "mtime": 1785675075.3155987,
-    "ast_hash": "1369762da41f18622757cf4b3e7a89f4",
+    "mtime": 1785778119.974982,
+    "ast_hash": "42351397b2b8ca599873818113d153c4",
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
