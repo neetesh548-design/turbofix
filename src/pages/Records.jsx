@@ -32,6 +32,7 @@ import AppShell from '../components/AppShell';
 import { getRoleLabel } from '../lib/roles';
 import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
+import { apiFetch } from '../lib/api';
 
 import { DEMO_MACHINES } from '../utils/demoMachines';
 
