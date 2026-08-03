@@ -1,0 +1,33 @@
+-- The factory_id-based tenancy layer (20260711171614_add_tenancy_and_
+-- roles.sql) was superseded by the company_id-based model months ago —
+-- every other part of this codebase (frontend queries, the newer RLS
+-- policies on tickets/work_order_parts from 20260722193000, this
+-- session's application-level fixes) already scopes exclusively through
+-- company_id. But the ORIGINAL factory-based SELECT/ALL policies on
+-- machines and tickets were never dropped when their company-based
+-- replacements were added, so both sets of policies stayed active side
+-- by side — Postgres RLS ORs every permissive policy together, so every
+-- query against these tables was paying for BOTH.
+--
+-- That wasn't just redundant: get_auth_factory_id() is expensive (a
+-- GROUP BY/ORDER BY aggregate over machines, which itself calls
+-- get_current_company_id() again internally). For any account that
+-- doesn't match on `id = auth.uid()` directly and needs the identity-
+-- fallback path in get_current_company_id() (20260804010000 — a real,
+-- currently-live scenario), this compounded per-row across a table with
+-- any real volume of data.
+--
+-- Reproduced live: an authenticated `select` on tickets timed out
+-- completely (8+ seconds, Postgres error 57014 "canceling statement due
+-- to statement timeout") for exactly this account shape, which broke
+-- Machines.jsx's team-directory fetch by proxy (that query throwing
+-- aborted fetchData() before the team list was ever processed, so the
+-- "Add machine" form's technician dropdown looked empty even though
+-- nothing was wrong with the team-fetch code itself). Dropping the dead
+-- factory-based policies here — the company-based ones already fully
+-- cover the same access, confirmed by every real test this session —
+-- removes the compounding cost entirely rather than trying to make
+-- get_auth_factory_id() itself faster.
+DROP POLICY IF EXISTS "Factory members can view machines" ON public.machines;
+DROP POLICY IF EXISTS "Supervisors/Owners can insert/update machines" ON public.machines;
+DROP POLICY IF EXISTS "Factory members can view tickets" ON public.tickets;

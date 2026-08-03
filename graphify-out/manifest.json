@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785781485.0409515,
-    "ast_hash": "05a2d30e4bd534ea1ce87b0258f65a1f",
+    "mtime": 1785795062.0664656,
+    "ast_hash": "50782729eaf109d91a092244b902544e",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -2189,11 +2189,6 @@
     "ast_hash": "2ba73fd2ae3597353f68d72e3aadd75f",
     "semantic_hash": "2ba73fd2ae3597353f68d72e3aadd75f"
   },
-  "supabase/migrations/20260727_setup_demo_auth_users.sql": {
-    "mtime": 1785139121.4384966,
-    "ast_hash": "c4e66c3662f4fa7548780238e71445c0",
-    "semantic_hash": "c4e66c3662f4fa7548780238e71445c0"
-  },
   "src/__tests__/auth.test.js": {
     "mtime": 1785231446.5613153,
     "ast_hash": "bfb052b1a4c5ad5e72b85edbf4fc5eb2",
@@ -2335,9 +2330,9 @@
     "semantic_hash": "d5df7b12c19ab1ed7815c22c705cf2ff"
   },
   "supabase/migrations/20260728000100_shift_rosters.sql": {
-    "mtime": 1785234478.0982304,
-    "ast_hash": "1385e2897e397d6862c97879726037fa",
-    "semantic_hash": "1385e2897e397d6862c97879726037fa"
+    "mtime": 1785792807.4923038,
+    "ast_hash": "a0ed6acdfcdd696a6f05b666fdc7d342",
+    "semantic_hash": ""
   },
   "src/components/marketing/CapabilityStrip.jsx": {
     "mtime": 1785240902.436742,
@@ -2498,11 +2493,6 @@
     "mtime": 1785392555.999124,
     "ast_hash": "ba1960f288b0d2ff0bd9d8bf597d0302",
     "semantic_hash": "ba1960f288b0d2ff0bd9d8bf597d0302"
-  },
-  "supabase/migrations/20260729100000_qr_otp_challenges.sql": {
-    "mtime": 1785315551.0554652,
-    "ast_hash": "6c38bb3163a12ed5263966b65aebf562",
-    "semantic_hash": "6c38bb3163a12ed5263966b65aebf562"
   },
   "supabase/migrations/20260729110000_whatsapp_role_memory.sql": {
     "mtime": 1785321086.06143,
@@ -3957,6 +3947,21 @@
   "docs/SK_PVT_LTD_CREDENTIALS_AND_ONBOARDING.md": {
     "mtime": 1785764267.4278247,
     "ast_hash": "d501388318c429b5a204180a3b542008",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260727120000_setup_demo_auth_users.sql": {
+    "mtime": 1785786706.4826915,
+    "ast_hash": "2e4dafc27958c3a509537823826304e2",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260729100500_qr_otp_challenges.sql": {
+    "mtime": 1785315551.0554652,
+    "ast_hash": "6c38bb3163a12ed5263966b65aebf562",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260804010000_fix_company_id_identity_fallback_empty_match.sql": {
+    "mtime": 1785786004.1910462,
+    "ast_hash": "e4736cc66d8c1bdb6676b68835b4068d",
     "semantic_hash": ""
   }
 }

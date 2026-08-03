@@ -1,0 +1,26 @@
+-- get_current_company_id() and get_current_role_text() (see
+-- 20260804010000_fix_company_id_identity_fallback_empty_match.sql and
+-- 20260722193000_auth_identity_scope_fallback.sql) match a signed-in user
+-- by id = auth.uid() first, falling back to lower(email) = jwt email and
+-- regexp_replace(phone, '\D', '', 'g') = regexp_replace(jwt phone/email
+-- local-part, ...) for accounts whose auth.uid() doesn't match their
+-- public.users.id (a real, currently-live case).
+--
+-- idx_users_email / idx_users_phone (20260729000000_add_performance_
+-- indexes.sql) index the raw columns, not these transformed expressions,
+-- so they're useless for the fallback branches. For any account that
+-- never matches on id — which never uses the fast, indexed id lookup at
+-- all — every one of these RLS-gated queries forced a full sequential
+-- scan of public.users re-running lower()/regexp_replace() per row.
+--
+-- Reproduced live: an authenticated tickets query timed out completely
+-- (8+ seconds, Postgres error 57014) for exactly this account shape,
+-- which also silently broke the Machines page's team-directory fetch
+-- (that query throwing aborted fetchData() before the team list ever
+-- got processed) — so this blocked machine onboarding by proxy, not
+-- because of anything wrong with the team-fetch code itself.
+--
+-- regexp_replace() with a literal pattern/flags and lower() are both
+-- IMMUTABLE, so both are safe to index directly.
+CREATE INDEX IF NOT EXISTS idx_users_email_lower ON public.users (lower(email));
+CREATE INDEX IF NOT EXISTS idx_users_phone_digits ON public.users (regexp_replace(coalesce(phone, ''), '\D', '', 'g'));
