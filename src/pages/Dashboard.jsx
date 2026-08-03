@@ -61,7 +61,7 @@ import { supabase } from '@/supabaseClient';
 import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
 import { can, CAPABILITIES, normalizeRole } from '../lib/roles';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
-import { filterRowsForUserCompany } from '../utils/tenant';
+import { filterRowsForUserCompany, isRealFactoryUser } from '../utils/tenant';
 import './Dashboard.css';
 
 const ROLE_HEADINGS = {
@@ -178,21 +178,29 @@ async function fetchRoleSources(user) {
   const rawTickets = ticketsRes.data || [];
   const rawTeam = teamRes.data || [];
 
-  const machines = rawMachines.length > 0
-    ? applyCurrentShiftAssignments(filterRowsForUserCompany(rawMachines, user), shiftRosterRes.data || [], shiftAssignmentRes.data || [])
-    : DEMO_MACHINES;
+  // A real, signed-in factory user must never be handed sample data as if
+  // it were their own plant — an empty table means 0, honestly, the same
+  // principle Machines.jsx already follows ("empty live workspaces must
+  // remain honest"). The DEMO_* substitutions below are for demo/TFDEMO
+  // and signed-out sessions only, where showing a populated example plant
+  // is the point.
+  const isReal = isRealFactoryUser(user);
+
+  const machines = (!isReal && rawMachines.length === 0)
+    ? DEMO_MACHINES
+    : applyCurrentShiftAssignments(filterRowsForUserCompany(rawMachines, user), shiftRosterRes.data || [], shiftAssignmentRes.data || []);
 
   // tickets/pm_schedules/parts carry no company_code (or company_id) of
   // their own, only machine_id — scope them to this company's own machines
   // rather than trusting an unfiltered select() across tenants.
   const machineIds = new Set(machines.map((m) => m.id || m.machine_id));
 
-  const tickets = rawTickets.length > 0
-    ? filterRowsForUserCompany(rawTickets, user, { validMachineIds: machineIds })
-    : buildDemoTickets();
+  const tickets = (!isReal && rawTickets.length === 0)
+    ? buildDemoTickets()
+    : filterRowsForUserCompany(rawTickets, user, { validMachineIds: machineIds });
 
-  const team = rawTeam.length > 0 ? rawTeam : DEMO_TEAM;
-  const pmLogs = pmLogsRes.data || DEMO_PM_LOGS;
+  const team = (!isReal && rawTeam.length === 0) ? DEMO_TEAM : rawTeam;
+  const pmLogs = (!isReal && !pmLogsRes.data?.length) ? DEMO_PM_LOGS : (pmLogsRes.data || []);
 
   const pmSchedules = (pmSchedulesRes.data || []).filter((row) => machineIds.has(row.machine_id));
   const parts = (partsRes.data || []).filter((row) => machineIds.has(row.machine_id));
