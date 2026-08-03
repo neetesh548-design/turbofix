@@ -599,18 +599,17 @@ export default function AppShell({ children, active }) {
           onOpenQuickReport={() => { window.location.href = REPORT_BREAKDOWN_URL; }}
         />
 
-        {/* Demo Mode Sticky Banner */}
+        {/* Demo mode banner stays in normal document flow. */}
         {user?.inventory_mode === 'demo' && (
           <div
             role="status"
             aria-live="polite"
             style={{
-              position: 'sticky', top: 0, zIndex: 80,
               background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
               color: '#1c1917', padding: '7px 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               gap: 10, fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.01em',
-              boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+              boxShadow: 'none',
             }}
           >
             <span>🧪</span>
