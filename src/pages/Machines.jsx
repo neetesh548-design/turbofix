@@ -393,6 +393,9 @@ export default function Machines() {
       rawTickets = filterRowsForUserCompany(rawTickets, signedInUser);
 
       const directoryUnavailable = Boolean(directoryRes.error || directoryRes.data?.error);
+      if (directoryUnavailable) {
+        console.error('Machines.jsx: onboard_team_member list failed', directoryRes.error, directoryRes.data);
+      }
       const directoryMembers = directoryUnavailable ? [] : (directoryRes.data?.members || []);
       const machineAssignments = directoryUnavailable ? {} : (directoryRes.data?.machine_assignments || {});
 
