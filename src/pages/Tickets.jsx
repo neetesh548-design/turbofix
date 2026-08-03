@@ -192,7 +192,19 @@ export default function Tickets() {
       if (machinesRes.error) throw new Error(machinesRes.error.message);
 
       let rawMachines = (machinesRes.data || []).map((m) => ({ ...m, company_code: signedInUser?.company_code, company_id: companyId }));
-      let rawTickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || signedInUser?.company_code }));
+      const companyMachineIds = new Set(rawMachines.map((m) => m.id || m.machine_id));
+
+      // tickets carries no company_code/company_id of its own, only
+      // machine_id — the old `company_code: t.company_code || signedInUser
+      // .company_code` stamp forced every row to match the signed-in
+      // user's own company before filterRowsForUserCompany ever saw it,
+      // making that filter a no-op and leaking every company's tickets to
+      // whoever was signed in. Scope through this company's own machines
+      // (already correctly scoped above by the server-side company_id
+      // query) instead of trusting an unfiltered select() across tenants.
+      let rawTickets = (ticketsRes.data || [])
+        .filter((t) => companyMachineIds.has(t.machine_id))
+        .map((t) => ({ ...t, company_code: signedInUser?.company_code }));
 
       // Merge local & QR Gateway submitted tickets
       try {

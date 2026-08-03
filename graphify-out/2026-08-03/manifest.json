@@ -600,8 +600,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785745441.9582222,
-    "ast_hash": "6a8e9babd1eefde573668d3eec1313fa",
+    "mtime": 1785757967.246923,
+    "ast_hash": "968de6d4ef61079c0477f368425032e1",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -780,8 +780,8 @@
     "semantic_hash": "822d28f4dd469dfa12264fe250a45d53"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785705359.4553537,
-    "ast_hash": "05dd3ae911cd9b7a8a79cc2a0c9482a1",
+    "mtime": 1785756603.158226,
+    "ast_hash": "acefff7e5e9dce4d3ef822577d6d9a87",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -1950,23 +1950,23 @@
     "semantic_hash": "3da90b92f71884741dde9790a3d43231"
   },
   "src/components/dashboard/EngineerDashboard.jsx": {
-    "mtime": 1785581284.0735698,
-    "ast_hash": "0b80121de7205c9fff59ce562a11f602",
+    "mtime": 1785752630.2677243,
+    "ast_hash": "ffed6fdebdfeb3b259b2fc2a5fa6759e",
     "semantic_hash": ""
   },
   "src/components/dashboard/OwnerDashboard.jsx": {
-    "mtime": 1785581319.7766564,
-    "ast_hash": "d31f01b34bacd3ce7902e62eb3fec87a",
+    "mtime": 1785752630.2697585,
+    "ast_hash": "7a1d9c3d75a30a8a646f72ee2551c720",
     "semantic_hash": ""
   },
   "src/components/dashboard/SupervisorDashboard.jsx": {
-    "mtime": 1785581269.307006,
-    "ast_hash": "4eadf2c1f8a1b713e824ba26c7401167",
+    "mtime": 1785752630.2705917,
+    "ast_hash": "2785d6fb4d2e427a56eedd90a10c81c4",
     "semantic_hash": ""
   },
   "src/components/dashboard/TechnicianDashboard.jsx": {
-    "mtime": 1785581255.1376567,
-    "ast_hash": "780b817d2ec1874ac1043d669005bc27",
+    "mtime": 1785756544.5398076,
+    "ast_hash": "623aa555d3c44f35b37cea62b52142c8",
     "semantic_hash": ""
   },
   "src/lib/dashboardData.js": {
@@ -2295,9 +2295,9 @@
     "semantic_hash": "1f806db52f92ab96d6b3d8baaece7d80"
   },
   "src/lib/navigation.jsx": {
-    "mtime": 1785231866.1519022,
-    "ast_hash": "877300e29310d227ecc4f87977fbf7b2",
-    "semantic_hash": "877300e29310d227ecc4f87977fbf7b2"
+    "mtime": 1785759518.1138506,
+    "ast_hash": "9acaa6cfb7222f63ccf1331f427c9ea5",
+    "semantic_hash": ""
   },
   "src/pages/NotFound.jsx": {
     "mtime": 1785231445.160397,
@@ -3740,13 +3740,13 @@
     "semantic_hash": ""
   },
   "src/components/dashboard/MaintenanceHeadDashboard.jsx": {
-    "mtime": 1785581305.0076475,
-    "ast_hash": "e23bcfb98b435d57d5156820c310f40a",
+    "mtime": 1785756533.824563,
+    "ast_hash": "5eeec241d80cb1870966a34a81846464",
     "semantic_hash": ""
   },
   "src/components/dashboard/RoleFocusSection.jsx": {
-    "mtime": 1785581233.6308897,
-    "ast_hash": "7f4a9f6114dc252bbaf1ee13cefc0cd2",
+    "mtime": 1785756519.7412753,
+    "ast_hash": "782de69c3ab0d98557878b6e2a0bde09",
     "semantic_hash": ""
   },
   "design/command-center-dashboards/engineer.html": {
@@ -3795,8 +3795,8 @@
     "semantic_hash": ""
   },
   "artifacts/screenshots/01-tab1-operations-owner.png": {
-    "mtime": 1785615657.4474654,
-    "ast_hash": "736f24751d4952ffad448ad2c5402ac1",
+    "mtime": 1785757302.5821376,
+    "ast_hash": "dabef062fc32318b2fcebc86ab154c14",
     "semantic_hash": ""
   },
   "artifacts/screenshots/02-tab1-operations-operator.png": {
@@ -3830,8 +3830,8 @@
     "semantic_hash": ""
   },
   "artifacts/screenshots/08-mobile-dashboard.png": {
-    "mtime": 1785615664.3368928,
-    "ast_hash": "f8039e92eb009fba41c551b5201f47fd",
+    "mtime": 1785757304.8359656,
+    "ast_hash": "1124289941f5ee9bdb27fcac2f7800fb",
     "semantic_hash": ""
   },
   "artifacts/screenshots/public-01-home.png": {
@@ -3932,6 +3932,11 @@
   "public/assets/supervisor_shift_control.jpg": {
     "mtime": 1785705359.452639,
     "ast_hash": "40aa75ae9664c91b6b818b447a6b518b",
+    "semantic_hash": ""
+  },
+  "src/components/dashboard/DashboardTabs.jsx": {
+    "mtime": 1785750761.1990507,
+    "ast_hash": "c3a640e1fa989a8cdc888a4ffecfbe8c",
     "semantic_hash": ""
   }
 }

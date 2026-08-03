@@ -365,7 +365,19 @@ export default function Machines() {
       if (ticketsRes.error) throw new Error(`Machine status could not be loaded: ${ticketsRes.error.message}`);
 
       let rawMachines = (machinesRes.data || []).map((m) => ({ ...m, company_code: signedInUser?.company_code, company_id: companyId }));
-      let rawTickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || signedInUser?.company_code }));
+      const companyMachineIds = new Set(rawMachines.map((m) => m.id || m.machine_id));
+
+      // tickets carries no company_code/company_id of its own, only
+      // machine_id — the old `company_code: t.company_code || signedInUser
+      // .company_code` stamp forced every row to match the signed-in
+      // user's own company before filterRowsForUserCompany ever saw it,
+      // making that filter a no-op and leaking every company's tickets to
+      // whoever was signed in. Scope through this company's own machines
+      // (already correctly scoped above by the server-side company_id
+      // query) instead of trusting an unfiltered select() across tenants.
+      let rawTickets = (ticketsRes.data || [])
+        .filter((t) => companyMachineIds.has(t.machine_id))
+        .map((t) => ({ ...t, company_code: signedInUser?.company_code }));
 
       rawMachines = filterRowsForUserCompany(rawMachines, signedInUser);
       rawTickets = filterRowsForUserCompany(rawTickets, signedInUser);
@@ -1051,10 +1063,11 @@ export default function Machines() {
         throw new Error(`Machine limit reached: Your account is permitted up to ${quota} machines (${currentCount} currently registered). Contact your administrator to increase your quota.`);
       }
 
-      const { data: factoryRows } = await supabase.from('factories').select('id').limit(1);
-      const factoryId = factoryRows?.[0]?.id;
-      if (!factoryId) throw new Error('No factory found. Please set up a factory first.');
-
+      const compRes = signedInUser?.company_code
+        ? await supabase.from('companies').select('id').ilike('domain', signedInUser.company_code).maybeSingle()
+        : { data: null };
+      const companyId = compRes.data?.id || null;
+      if (!companyId) throw new Error('No company found for your account. Please contact your administrator.');
 
       const { data: newRow, error: insertErr } = await supabase.from('machines').insert({
         name, location,
@@ -1082,7 +1095,7 @@ export default function Machines() {
         supervisor_id: supervisorUserId || null,
         engineer_user_id: engineerUserId || null,
         maintenance_head_user_id: headUserId || null,
-        factory_id: factoryId,
+        company_id: companyId,
       }).select().single();
       if (insertErr) throw new Error(formatSupabaseError(insertErr, 'Machine onboarding failed.', companyQuota));
 

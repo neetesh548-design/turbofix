@@ -780,8 +780,8 @@
     "semantic_hash": "822d28f4dd469dfa12264fe250a45d53"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1785756603.158226,
-    "ast_hash": "acefff7e5e9dce4d3ef822577d6d9a87",
+    "mtime": 1785767163.0410898,
+    "ast_hash": "c57d38e68d7977393ffd5fbc094db3e5",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -790,18 +790,18 @@
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
-    "mtime": 1785674971.8475738,
-    "ast_hash": "db7b24cc5a7438605c6292c9875e1b2e",
+    "mtime": 1785766750.036744,
+    "ast_hash": "f91ee23e8bd706b06a9922c98d9c31cb",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785678647.9703696,
-    "ast_hash": "1c209bec82a7e33a095c6ebd9f232e49",
+    "mtime": 1785766896.9325802,
+    "ast_hash": "54ac3209733b5d703c0ae27315773a96",
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785745861.607441,
-    "ast_hash": "f932bd4579e3fe08dd12a7a927205896",
+    "mtime": 1785767306.817157,
+    "ast_hash": "d381cf1835f290eacce1a22c8b860520",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tickets.jsx": {
-    "mtime": 1785672374.4411585,
-    "ast_hash": "89037940f0705fe3cef40741ac288e87",
+    "mtime": 1785767206.8619754,
+    "ast_hash": "927d7ea2a34f400ed525cb11777fd5d7",
     "semantic_hash": ""
   },
   "src/supabaseClient.js": {
@@ -1970,9 +1970,9 @@
     "semantic_hash": ""
   },
   "src/lib/dashboardData.js": {
-    "mtime": 1785402729.4346437,
-    "ast_hash": "a8de0d85e787ed8fc44cff70df4977e7",
-    "semantic_hash": "a8de0d85e787ed8fc44cff70df4977e7"
+    "mtime": 1785767285.036964,
+    "ast_hash": "958682afa870c8e023943f17a61d435d",
+    "semantic_hash": ""
   },
   "src/utils/dashboardMetrics.js": {
     "mtime": 1785614007.8099363,
@@ -2295,9 +2295,9 @@
     "semantic_hash": "1f806db52f92ab96d6b3d8baaece7d80"
   },
   "src/lib/navigation.jsx": {
-    "mtime": 1785231866.1519022,
-    "ast_hash": "877300e29310d227ecc4f87977fbf7b2",
-    "semantic_hash": "877300e29310d227ecc4f87977fbf7b2"
+    "mtime": 1785759518.1138506,
+    "ast_hash": "9acaa6cfb7222f63ccf1331f427c9ea5",
+    "semantic_hash": ""
   },
   "src/pages/NotFound.jsx": {
     "mtime": 1785231445.160397,
@@ -2585,9 +2585,9 @@
     "semantic_hash": "22b2bf3b31ea28b977a50ccaa7634600"
   },
   "src/utils/tenant.js": {
-    "mtime": 1785402789.7354426,
-    "ast_hash": "f63c00848ab42455589c778ef12e2952",
-    "semantic_hash": "f63c00848ab42455589c778ef12e2952"
+    "mtime": 1785767144.011525,
+    "ast_hash": "4127e46b74fdab89ff8cfcc7feb416c6",
+    "semantic_hash": ""
   },
   "docs/security-audit-prompts-learning.md": {
     "mtime": 1785418788.5302598,
@@ -3937,6 +3937,26 @@
   "src/components/dashboard/DashboardTabs.jsx": {
     "mtime": 1785750761.1990507,
     "ast_hash": "c3a640e1fa989a8cdc888a4ffecfbe8c",
+    "semantic_hash": ""
+  },
+  "scripts/deploy_sk_pvt_ltd.py": {
+    "mtime": 1785764212.035602,
+    "ast_hash": "6ed9d352d3630b6f869ecf72ea0b20f1",
+    "semantic_hash": ""
+  },
+  "scripts/onboard_sk_pvt_ltd.py": {
+    "mtime": 1785763969.917043,
+    "ast_hash": "f57af020c8fe0e6767dd45854066106b",
+    "semantic_hash": ""
+  },
+  "SK_PVT_LTD_CREDENTIALS.md": {
+    "mtime": 1785764271.4781353,
+    "ast_hash": "bcd90e82944b41354d82b1cf66527345",
+    "semantic_hash": ""
+  },
+  "docs/SK_PVT_LTD_CREDENTIALS_AND_ONBOARDING.md": {
+    "mtime": 1785764267.4278247,
+    "ast_hash": "d501388318c429b5a204180a3b542008",
     "semantic_hash": ""
   }
 }

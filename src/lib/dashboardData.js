@@ -15,7 +15,7 @@
  */
 
 import { supabase } from '@/supabaseClient';
-import { filterRowsForUserCompany } from '@/utils/tenant';
+import { filterRowsForUserCompany, isRealFactoryUser } from '@/utils/tenant';
 
 export const fallback = {
   company_name: 'TurboFix',
@@ -558,7 +558,18 @@ export async function fetchDashboardData() {
   ]);
 
   let machines = (machinesRes.data || []).map((m) => ({ ...m, company_code: userComp, company_id: companyId }));
-  let tickets = (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || userComp }));
+  const machineIds = new Set(machines.map((m) => m.id || m.machine_id));
+
+  // tickets carries no company_code/company_id of its own, only machine_id —
+  // ticketsQuery above has no company filter, so the old
+  // `company_code: t.company_code || userComp` stamp forced every row to
+  // match the signed-in user's own company before filterRowsForUserCompany
+  // ever saw it, making that filter a no-op and leaking every company's
+  // tickets to whoever was signed in. Scope through this company's own
+  // (already server-side company_id-scoped) machines instead.
+  let tickets = isRealFactoryUser(signedInUser)
+    ? (ticketsRes.data || []).filter((t) => machineIds.has(t.machine_id)).map((t) => ({ ...t, company_code: userComp }))
+    : (ticketsRes.data || []).map((t) => ({ ...t, company_code: t.company_code || userComp }));
 
   machines = filterRowsForUserCompany(machines, signedInUser);
   tickets = filterRowsForUserCompany(tickets, signedInUser);

@@ -51,6 +51,7 @@ import {
   readStoredUser,
   resolveInventoryRole,
 } from '../utils/inventoryMetrics.js';
+import { isRealFactoryUser } from '../utils/tenant';
 import { supabase } from '../supabaseClient';
 // Dashboard.css carries the shared design system — the md-* tokens and the
 // rd-* KPI / panel / table primitives every role board is built from.
@@ -93,19 +94,66 @@ function fetchWithTimeout(promise, ms = 3000) {
   ]).catch(() => ({ data: [] }));
 }
 
-async function fetchInventorySources() {
-  const [parts, consumables, pos, suppliers] = await Promise.all([
+/**
+ * parts/consumables/purchase_orders/suppliers carry no company_code of
+ * their own (only machine_id, or nothing at all) — this used to trust RLS
+ * alone and return every company's stock to whoever was signed in.
+ * `company_id` is resolved the same verified way Machines.jsx's own
+ * fetchData() does (a companies.domain lookup — filterRowsForUserCompany's
+ * generic company_id fallback never fires here because the logged-in user
+ * object never carries a company_id, only company_code), then everything
+ * is scoped through this company's own machines so a newly registered (or
+ * misconfigured) company can never see another company's shelf.
+ */
+async function fetchInventorySources(user) {
+  const isReal = isRealFactoryUser(user);
+  const compRes = isReal
+    ? await supabase.from('companies').select('id').ilike('domain', user.company_code).maybeSingle()
+    : { data: null };
+  const companyId = compRes.data?.id || null;
+
+  const [machinesRes, parts, consumables, pos, suppliers] = await Promise.all([
+    fetchWithTimeout(supabase.from('machines').select('id,machine_id,company_id')),
     fetchWithTimeout(supabase.from('parts').select('*').order('part_name')),
     fetchWithTimeout(supabase.from('consumables').select('*').order('name')),
     fetchWithTimeout(supabase.from('purchase_orders').select('*').order('created_at', { ascending: false })),
     fetchWithTimeout(supabase.from('suppliers').select('*')),
   ]);
 
+  const companyMachines = isReal
+    ? (machinesRes.data || []).filter((row) => companyId && row.company_id === companyId)
+    : (machinesRes.data || []);
+  const machineIds = new Set(companyMachines.map((m) => m.id || m.machine_id));
+
+  const scopedParts = isReal
+    ? (parts.data || []).filter((row) => machineIds.has(row.machine_id))
+    : (parts.data || []);
+  const scopedConsumables = isReal
+    ? (consumables.data || []).filter((row) => machineIds.has(row.machine_id))
+    : (consumables.data || []);
+
+  // Neither table carries machine_id, so scope them off the parts we just
+  // proved belong to this company rather than trusting the legacy
+  // (largely unset) factory_id column.
+  const supplierIds = new Set(scopedParts.map((p) => p.supplier_id).filter(Boolean));
+  const partIdentifiers = new Set(
+    scopedParts.flatMap((p) => [p.part_number, p.part_name]).filter(Boolean),
+  );
+
+  const scopedSuppliers = isReal
+    ? (suppliers.data || []).filter((row) => supplierIds.has(row.id))
+    : (suppliers.data || []);
+  const scopedPurchaseOrders = isReal
+    ? (pos.data || []).filter((po) => (po.items || []).some(
+      (line) => partIdentifiers.has(line.part_number) || partIdentifiers.has(line.name),
+    ))
+    : (pos.data || []);
+
   return {
-    parts: parts.data || [],
-    consumables: consumables.data || [],
-    purchaseOrders: pos.data || [],
-    suppliers: suppliers.data || [],
+    parts: scopedParts,
+    consumables: scopedConsumables,
+    purchaseOrders: scopedPurchaseOrders,
+    suppliers: scopedSuppliers,
   };
 }
 
@@ -156,7 +204,7 @@ export default function Inventory() {
 
   useEffect(() => {
     let mounted = true;
-    fetchInventorySources()
+    fetchInventorySources(user)
       .then((next) => {
         if (!mounted) return;
         cacheRef.current.clear();
@@ -165,7 +213,7 @@ export default function Inventory() {
       .catch((err) => { if (mounted) setError(err?.message || 'Could not load inventory'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
-  }, []);
+  }, [user]);
 
   // Fetch assigned machines if signed in user is a technician
   useEffect(() => {

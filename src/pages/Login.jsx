@@ -25,6 +25,21 @@ export default function Login() {
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  // Every tenant-scoping check downstream (Dashboard, Tickets, Inventory,
+  // Machines) filters rows against user.company_id, but neither login path
+  // below has ever set it — only company_code. Resolve it once here so the
+  // rest of the app can actually tell this company's machines/parts/tickets
+  // apart from every other company's, instead of relying on RLS alone.
+  const resolveCompanyId = async (companyCode) => {
+    if (!companyCode) return null;
+    try {
+      const { data } = await supabase.from('companies').select('id').ilike('domain', companyCode).maybeSingle();
+      return data?.id || null;
+    } catch {
+      return null;
+    }
+  };
+
   const performPostLoginRedirect = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryRedirect = searchParams.get('redirect') || searchParams.get('returnUrl') || searchParams.get('next');
@@ -55,8 +70,9 @@ export default function Login() {
         if (apiResp.ok) {
           const resData = await apiResp.json();
           if (resData.access_token && resData.user) {
+            const companyId = await resolveCompanyId(resData.user.company_code);
             localStorage.setItem('tf_token', resData.access_token);
-            localStorage.setItem('tf_user', JSON.stringify(resData.user));
+            localStorage.setItem('tf_user', JSON.stringify({ ...resData.user, company_id: companyId }));
             window.dispatchEvent(new Event('authChanged'));
 
             if (resData.user.must_change_password) {
@@ -88,11 +104,13 @@ export default function Login() {
       }
       const authUser = data.user;
       const meta = authUser.user_metadata || {};
+      const companyId = await resolveCompanyId(meta.company_code);
       const appUser = {
         user_id: meta.user_id || authUser.id,
         name: meta.name || meta.full_name || loginEmail.split('@')[0],
         role: meta.role || 'owner',
         company_code: meta.company_code || '',
+        company_id: companyId,
         email: authUser.email,
       };
 

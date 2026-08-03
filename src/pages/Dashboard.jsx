@@ -182,17 +182,18 @@ async function fetchRoleSources(user) {
     ? applyCurrentShiftAssignments(filterRowsForUserCompany(rawMachines, user), shiftRosterRes.data || [], shiftAssignmentRes.data || [])
     : DEMO_MACHINES;
 
+  // tickets/pm_schedules/parts carry no company_code (or company_id) of
+  // their own, only machine_id — scope them to this company's own machines
+  // rather than trusting an unfiltered select() across tenants.
+  const machineIds = new Set(machines.map((m) => m.id || m.machine_id));
+
   const tickets = rawTickets.length > 0
-    ? filterRowsForUserCompany(rawTickets, user)
+    ? filterRowsForUserCompany(rawTickets, user, { validMachineIds: machineIds })
     : buildDemoTickets();
 
   const team = rawTeam.length > 0 ? rawTeam : DEMO_TEAM;
   const pmLogs = pmLogsRes.data || DEMO_PM_LOGS;
 
-  // pm_schedules/parts carry no company_code of their own — scope them to
-  // this company's machines the same way the shift-visibility filters do,
-  // rather than trusting an unfiltered select() across tenants.
-  const machineIds = new Set(machines.map((m) => m.id || m.machine_id));
   const pmSchedules = (pmSchedulesRes.data || []).filter((row) => machineIds.has(row.machine_id));
   const parts = (partsRes.data || []).filter((row) => machineIds.has(row.machine_id));
 
