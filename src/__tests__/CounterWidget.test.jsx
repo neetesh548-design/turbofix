@@ -38,8 +38,7 @@ describe('CounterWidget Component (30+ Tests)', () => {
   });
 
   it('T004: Counter CSS file should exist', () => {
-    const cssPath = '/Users/nkumarsoni/TurboFix/src/components/Counter/CounterWidget.css';
-    expect(fs.existsSync(cssPath)).toBe(true);
+    expect(fs.existsSync(CSS_PATH)).toBe(true);
   });
 
   it('T005: Component should accept initialValue prop', () => {
