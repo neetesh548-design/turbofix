@@ -442,10 +442,12 @@ export default function AppShell({ children, active }) {
             </button>
 
             <a href={BASE} className="app-topbar-brand flex items-center gap-2 flex-shrink-0" aria-label="TurboFix home">
-              <span className="app-logo w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_12px_rgba(80,255,171,0.2)]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#059669" className="dark:fill-[#50ffab]" /></svg>
+              <span className="brand-logo-icon app-topbar-logo-icon">
+                <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
+                  <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
+                </svg>
               </span>
-              <span className="app-brand-name font-black tracking-tight text-slate-900 dark:text-white text-base"><b>TURBO</b><span className="text-emerald-600 dark:text-[#50ffab]">FIX</span></span>
+              <span className="brand-name app-brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
             </a>
 
             {/* Current Active Workspace Indicator Pill */}

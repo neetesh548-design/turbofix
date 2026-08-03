@@ -6740,6 +6740,18 @@ details.faq-item p {
   flex: none;
 }
 
+/* Same mark as the public site's .brand-logo-icon/.bolt-icon, sized down for
+   the denser post-login topbar rather than a different icon or palette. */
+.app-topbar-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+.app-topbar-logo-icon .bolt-icon {
+  width: 17px;
+  height: 17px;
+}
+
 .app-logo {
   width: 34px; height: 34px; border-radius: 9px; flex: none;
   display: grid; place-items: center;

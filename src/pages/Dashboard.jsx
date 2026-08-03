@@ -354,13 +354,6 @@ export default function Dashboard() {
   const hero = ROLE_HEROES[specialistRole] || ROLE_HEROES[role] || ROLE_HEROES[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
-  const roleSummaryTitle = role === DASHBOARD_ROLES.TECHNICIAN
-    ? 'Technician operational status'
-    : role === DASHBOARD_ROLES.SUPERVISOR
-      ? 'Supervisor operational status'
-      : role === DASHBOARD_ROLES.ENGINEER
-        ? 'Reliability operational status'
-        : 'Plant operational status';
   const roleSummaryLine = role === DASHBOARD_ROLES.TECHNICIAN
     ? 'Your active workload, SLA pressure, and assigned machines are summarized below. Open a job and get moving.'
     : role === DASHBOARD_ROLES.SUPERVISOR
@@ -397,10 +390,8 @@ export default function Dashboard() {
 
         {loading ? (
           <div className="dashboard-shell-skeleton" aria-hidden="true">
-            <div className="dashboard-shell-hero dashboard-shell-hero-loading">
+            <div className="rd-hero-strip rd-hero-strip-loading">
               <div className="dashboard-skeleton dashboard-skeleton-pill" />
-              <div className="dashboard-skeleton dashboard-skeleton-title" />
-              <div className="dashboard-skeleton dashboard-skeleton-body" />
               <div className="dashboard-skeleton dashboard-skeleton-body short" />
             </div>
             <div className="dashboard-shell-kpis">
@@ -415,28 +406,15 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <section className="dashboard-shell-hero" data-testid="dashboard-role-hero">
-              <div className="dashboard-shell-copy">
-                {hero.image && (
-                  <div className="dashboard-shell-image">
-                    <img src={`${import.meta.env.BASE_URL}assets/${hero.image}`} alt={hero.imageAlt} loading="lazy" />
-                  </div>
-                )}
-                <span className="dashboard-shell-badge">{hero.badge}</span>
-                <h2>{hero.title}</h2>
-                <p>{hero.body}</p>
+            <section className="rd-hero-strip" data-testid="dashboard-role-hero">
+              <span className="rd-hero-badge">{hero.badge}</span>
+              <p className="rd-hero-line">
+                Welcome, <strong>{user?.name || 'Staff'}</strong>. {roleSummaryLine}
+              </p>
+              <div className="rd-hero-actions">
+                <a href="tickets.html">Open tickets</a>
+                <a href="machines.html">Machine register</a>
               </div>
-              <aside className="dashboard-shell-side">
-                <span className="dashboard-shell-side-label">Today</span>
-                <strong>{roleSummaryTitle}</strong>
-                <p>
-                  Welcome, <span>{user?.name || 'Staff'}</span>. {roleSummaryLine}
-                </p>
-                <div className="dashboard-shell-actions">
-                  <a href="tickets.html">Open tickets</a>
-                  <a href="machines.html">Machine register</a>
-                </div>
-              </aside>
             </section>
 
             <CmmsKpiStrip metrics={metrics} tickets={sources.tickets} machines={sources.machines} canViewCost={canViewCost} />
@@ -460,14 +438,6 @@ export default function Dashboard() {
             No live machines or tickets are available yet. Add a machine or check the workspace connection.
           </p>
         )}
-
-        <div className="dashboard-role-strip" data-testid="dashboard-role-strip">
-          <div className="dashboard-role-copy">
-            <span className="dashboard-role-label">Active dashboard</span>
-            <strong>{specialistRole ? specialistRole.replaceAll('_', ' ') : role.replaceAll('_', ' ')}</strong>
-            <span>{heading.lead}</span>
-          </div>
-        </div>
 
         {canSeeActionBoard && (
           <div className="dashboard-view-tabs" role="tablist" aria-label="Dashboard view">
