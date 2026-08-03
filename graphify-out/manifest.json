@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "src/pages/Machines.jsx": {
-    "mtime": 1785767306.817157,
-    "ast_hash": "d381cf1835f290eacce1a22c8b860520",
+    "mtime": 1785781485.0409515,
+    "ast_hash": "05a2d30e4bd534ea1ce87b0258f65a1f",
     "semantic_hash": ""
   },
   "src/pages/QRGateway.jsx": {
@@ -825,8 +825,8 @@
     "semantic_hash": "55d52b41eadf9e286ee9d64a2de4e74e"
   },
   "src/pages/Settings.jsx": {
-    "mtime": 1785778119.974982,
-    "ast_hash": "42351397b2b8ca599873818113d153c4",
+    "mtime": 1785780805.6269553,
+    "ast_hash": "9ccc4811736a11bfc256055dcfc08a3f",
     "semantic_hash": ""
   },
   "src/pages/ShutdownPlanner.jsx": {
@@ -2445,9 +2445,9 @@
     "semantic_hash": "2d2884f11b409f10f9c598b37297a4a0"
   },
   "src/utils/errorFormatting.js": {
-    "mtime": 1785301713.8568144,
-    "ast_hash": "bac24cfd51d3b6828461f4ee9f842e89",
-    "semantic_hash": "bac24cfd51d3b6828461f4ee9f842e89"
+    "mtime": 1785781339.0304792,
+    "ast_hash": "89fbe57af30916cc58d6f123a6deccd0",
+    "semantic_hash": ""
   },
   "backend/app/infrastructure/whatsapp_bridge_client.py": {
     "mtime": 1785305470.2593477,

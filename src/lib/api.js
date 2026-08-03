@@ -32,17 +32,42 @@ export async function apiFetch(path, options = {}) {
       signal: controller.signal,
     });
 
+    // Every thrown error below carries a `.status` so callers can branch on
+    // the real HTTP status instead of matching against this generic message
+    // text — Login.jsx used to string-match for "pending approval" against
+    // whatever ended up here, which silently never matched the backend's
+    // actual wording ("pending TurboFix admin approval") and let unapproved
+    // companies log in anyway through the Supabase fallback path.
     if (resp.status === 401) {
       localStorage.removeItem('tf_token');
       localStorage.removeItem('tf_user');
       window.dispatchEvent(new Event('authChanged'));
       window.location.href = BASE + 'login.html';
-      throw new Error('Session expired. Please sign in again.');
+      const err = new Error('Session expired. Please sign in again.');
+      err.status = 401;
+      throw err;
     }
-    if (resp.status === 403) throw new Error('You do not have permission to perform this action.');
-    if (resp.status === 404) throw new Error('Resource not found.');
-    if (resp.status === 429) throw new Error('Too many requests. Please wait a moment and try again.');
-    if (resp.status >= 500) throw new Error('Server error. Please try again shortly or contact turbofixsolution@gmail.com.');
+    if (resp.status === 403) {
+      const body = await resp.clone().json().catch(() => ({}));
+      const err = new Error(body.detail || 'You do not have permission to perform this action.');
+      err.status = 403;
+      throw err;
+    }
+    if (resp.status === 404) {
+      const err = new Error('Resource not found.');
+      err.status = 404;
+      throw err;
+    }
+    if (resp.status === 429) {
+      const err = new Error('Too many requests. Please wait a moment and try again.');
+      err.status = 429;
+      throw err;
+    }
+    if (resp.status >= 500) {
+      const err = new Error('Server error. Please try again shortly or contact turbofixsolution@gmail.com.');
+      err.status = resp.status;
+      throw err;
+    }
 
     return resp;
   } catch (err) {

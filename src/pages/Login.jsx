@@ -81,6 +81,8 @@ export default function Login() {
     try {
       // 1. Primary Authentication Path: Backend REST API (/auth/login)
       try {
+        // apiFetch throws for every non-2xx status (with a `.status` on the
+        // error), so reaching this line at all means the login succeeded.
         const apiResp = await apiFetch('/auth/login', {
           method: 'POST',
           body: JSON.stringify({
@@ -89,34 +91,37 @@ export default function Login() {
           }),
         });
 
-        if (apiResp.ok) {
-          const resData = await apiResp.json();
-          if (resData.access_token && resData.user) {
-            const companyId = await resolveCompanyId(resData.user.company_code);
-            localStorage.setItem('tf_token', resData.access_token);
-            localStorage.setItem('tf_user', JSON.stringify({ ...resData.user, company_id: companyId }));
-            await establishSupabaseSession(identifier);
-            window.dispatchEvent(new Event('authChanged'));
+        const resData = await apiResp.json();
+        if (resData.access_token && resData.user) {
+          const companyId = await resolveCompanyId(resData.user.company_code);
+          localStorage.setItem('tf_token', resData.access_token);
+          localStorage.setItem('tf_user', JSON.stringify({ ...resData.user, company_id: companyId }));
+          await establishSupabaseSession(identifier);
+          window.dispatchEvent(new Event('authChanged'));
 
-            if (resData.user.must_change_password) {
-              navigate(`${import.meta.env.BASE_URL}reset-password.html?must_change=true`, { replace: true });
-              return;
-            }
-
-            performPostLoginRedirect();
+          if (resData.user.must_change_password) {
+            navigate(`${import.meta.env.BASE_URL}reset-password.html?must_change=true`, { replace: true });
             return;
           }
-        } else {
-          const errPayload = await apiResp.json().catch(() => ({}));
-          if (apiResp.status === 403) {
-            throw new Error(errPayload.detail || 'Your company registration is pending approval.');
-          }
+
+          performPostLoginRedirect();
+          return;
         }
       } catch (backendErr) {
-        if (backendErr.message && backendErr.message.includes('pending approval')) {
+        // A 403 from /auth/login means exactly one thing (see
+        // auth_router.py): the company is registered but an admin hasn't
+        // approved it yet. That's a hard stop — falling through to the
+        // Supabase fallback below would let an unapproved company log in
+        // anyway, since GoTrue has no concept of company approval. This
+        // used to be checked by string-matching the error message for
+        // "pending approval", which never matched the backend's actual
+        // wording ("pending TurboFix admin approval") and silently let
+        // every unapproved company straight through.
+        if (backendErr.status === 403) {
           throw backendErr;
         }
-        // Proceed to Supabase fallback if backend fails
+        // Otherwise (invalid credentials, network error, timeout, 5xx) —
+        // proceed to the Supabase fallback, same as before.
       }
 
       // 2. Secondary Fallback Path: Direct Supabase Client Auth
