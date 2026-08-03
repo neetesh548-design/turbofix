@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity, BookOpen, Bot, CalendarDays, ChevronRight, ChevronDown, ChevronUp, CircleAlert,
   ClipboardList, Droplets, FileCheck2, MapPin, PackageSearch, Phone, QrCode,
-  ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus, Wrench,
+  ShieldCheck, Upload, Users, Pencil, Mic, Square, CheckCircle2, Sparkles, Plus,
   UserPlus, Download, X,
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
@@ -552,11 +552,7 @@ export default function Machines() {
     setSelectedMachine(machine);
     setWsTab(tab);
     setShowMoreOptions(tab !== 'info');
-  };
-
-  const openMachineTool = (tab) => {
-    setWsTab(tab);
-    setShowMoreOptions(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   };
 
   /** Launch the voice/text report modal against any machine. */
@@ -2382,16 +2378,16 @@ export default function Machines() {
           <div className="machine-workspace-page">
             <nav className="machine-workspace-breadcrumbs" aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--slate)', marginBottom: '20px', fontFamily: 'Outfit, -apple-system, sans-serif', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
               <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: 'var(--brand)', cursor: 'pointer', font: 'inherit', textDecoration: 'none' }} onClick={() => setSelectedMachine(null)}>
-                Machines
+                ← Back to machines
               </button>
               <span>/</span>
               <span style={{ color: '#fff' }}>{selectedMachine.machine_name}</span>
             </nav>
 
             <div className="machine-workspace-shell">
-              <header className="machine-workspace-hero" style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <header className="machine-workspace-hero">
                 {machinePhoto ? (
-                  <div style={{ position: 'relative', width: '90px', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+                  <div className="machine-workspace-photo" style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
                     <img src={machinePhoto} alt={selectedMachine.machine_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#25D366', textAlign: 'center', fontSize: '0.62rem', padding: '3px 0', cursor: 'pointer', fontFamily: 'sans-serif', fontWeight: 'bold' }}>
                       CHANGE
@@ -2399,7 +2395,7 @@ export default function Machines() {
                     </label>
                   </div>
                 ) : (
-                  <label style={{ width: '90px', height: '90px', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: '#94a3b8', background: 'rgba(255,255,255,0.02)' }}>
+                  <label className="machine-workspace-photo" style={{ borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: '#94a3b8', background: 'rgba(255,255,255,0.02)' }}>
                     <Upload size={18} style={{ marginBottom: '4px' }} />
                     <span style={{ fontSize: '0.68rem' }}>Add photo</span>
                     <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadMachinePhoto(e.target.files[0]); }} disabled={photoSaving} />
@@ -2418,8 +2414,8 @@ export default function Machines() {
                 <div className="machine-workspace-actions">
                   {isOwner && <button type="button" className="machine-action secondary" onClick={openMachineEdit}><Pencil />Edit details</button>}
                   <button type="button" className="machine-action secondary" onClick={() => setWsTab('docs')}><Upload />Add document</button>
-                  <a className="machine-action secondary" href={`records.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}&upload=1`}><FileCheck2 />Add old records</a>
-                  <a className="machine-action primary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Get help</a>
+                  <a className="machine-action secondary" href={`assistant.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><Bot />Get help</a>
+                  <a className="machine-action primary" href={`report-breakdown.html?machine_id=${encodeURIComponent(selectedMachine.machine_id)}`}><CircleAlert />Report issue</a>
                 </div>
               </header>
 
@@ -2539,45 +2535,31 @@ export default function Machines() {
                 <div className={machineData?.missing_sections?.length ? 'warning' : 'good'}><span><ShieldCheck /></span><p><small>AI knowledge</small><strong>{machineDataLoading ? 'Checking…' : machineData?.missing_sections?.length ? `${machineData.missing_sections.length} data gap${machineData.missing_sections.length === 1 ? '' : 's'}` : 'Ready for decisions'}</strong></p></div>
               </section>
 
-              {/* Start from the client's task; expose the full register only on request. */}
               {!showMoreOptions ? (
-                <div className="machine-task-menu" aria-label="What do you need to do?">
-                  <button type="button" onClick={() => openMachineTool('info')}>
-                    <Wrench size={18} aria-hidden="true" />
-                    <span><strong>Fix an issue</strong><small>Status, people and open work</small></span>
-                    <ChevronRight size={16} aria-hidden="true" />
-                  </button>
-                  <button type="button" onClick={() => openMachineTool('pm')}>
-                    <CalendarDays size={18} aria-hidden="true" />
-                    <span><strong>Plan maintenance</strong><small>PM schedule and calendar</small></span>
-                    <ChevronRight size={16} aria-hidden="true" />
-                  </button>
-                  <button type="button" onClick={() => openMachineTool('docs')}>
-                    <BookOpen size={18} aria-hidden="true" />
-                    <span><strong>Machine information</strong><small>Documents, parts and QR tag</small></span>
-                    <ChevronRight size={16} aria-hidden="true" />
-                  </button>
-                  <button type="button" className="machine-all-tools" onClick={() => setShowMoreOptions(true)}>
-                    More options
-                  </button>
-                </div>
-              ) : (
-                <nav className="machine-workspace-tabs" aria-label={`${selectedMachine.machine_name} workspace sections`}>
+                <nav className="machine-workspace-tabs" aria-label={`${selectedMachine.machine_name} tools`}>
                   {WORKSPACE_TABS.map(({ id, label, hint, Icon }) => {
                     const count = id === 'docs' ? docs.length : id === 'parts' ? parts.length : id === 'consumables' ? consumables.length : null;
-                    return <button key={id} type="button" className={wsTab === id ? 'active' : ''} onClick={() => setWsTab(id)}>
+                    return <button key={id} type="button" onClick={() => { setWsTab(id); setShowMoreOptions(true); }}>
                       <span className="machine-tab-icon"><Icon /></span>
                       <span><strong>{label}</strong><small>{hint}</small></span>
                       {count !== null && <b>{count}</b>}
                     </button>;
                   })}
                 </nav>
+              ) : (
+                <div className="machine-tool-header">
+                  <button type="button" onClick={() => setShowMoreOptions(false)}>← Back to all machine tools</button>
+                  <div>
+                    <small>Machine workspace</small>
+                    <strong>{WORKSPACE_TABS.find((tab) => tab.id === wsTab)?.label}</strong>
+                  </div>
+                </div>
               )}
 
               {/* Workspace Contents */}
 
               {/* MVP: TAB 1: MACHINE OVERVIEW (Always visible) - show by default only if wsTab is 'info' OR if not showMoreOptions */}
-              {(wsTab === 'info' || !showMoreOptions) && (
+              {showMoreOptions && wsTab === 'info' && (
                 <div className="machine-overview-grid">
                   <section className="machine-overview-main">
                     {/* MVP: Compact Machine Status */}
@@ -2848,7 +2830,7 @@ export default function Machines() {
               {/* ADVANCED FEATURES: Additional workspace tabs - only visible in "More options" mode */}
               {showMoreOptions && <AdvancedFeaturesDrilldown isOpen={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)}>
                 {/* TAB 2: MANUALS & DOCUMENTS */}
-                {wsTab === 'docs' && (
+                {showMoreOptions && wsTab === 'docs' && (
                 <div>
                   <div style={{ marginBottom: '16px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(37, 211, 102, 0.25)', background: 'rgba(37, 211, 102, 0.06)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2914,7 +2896,7 @@ export default function Machines() {
               )}
 
               {/* TAB 3: SPARE PARTS (BOM) */}
-              {wsTab === 'parts' && (
+              {showMoreOptions && wsTab === 'parts' && (
                 <div>
                   <div className="machine-workspace-section-intro"><span><PackageSearch /></span><div><h3>Spare parts</h3><p>Keep the parts this machine depends on close at hand.</p></div><strong>{parts.length} part{parts.length === 1 ? '' : 's'} tracked</strong></div>
                   <form onSubmit={handleAddPart} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'end', gap: '12px', marginBottom: '16px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -3030,7 +3012,7 @@ export default function Machines() {
               )}
 
               {/* TAB 4: CONSUMABLES */}
-              {wsTab === 'consumables' && (
+              {showMoreOptions && wsTab === 'consumables' && (
                 <div>
                   <div className="machine-workspace-section-intro"><span><Droplets /></span><div><h3>Consumables</h3><p>Add only the few supply items this machine depends on.</p></div><strong>{consumables.length} item{consumables.length === 1 ? '' : 's'} tracked</strong></div>
                   <form onSubmit={handleAddConsumable} className="consumables-form-shell">
@@ -3142,7 +3124,7 @@ export default function Machines() {
               )}
 
               {/* TAB: PREVENTIVE MAINTENANCE SCHEDULER (§3.5) */}
-              {wsTab === 'pm' && (
+              {showMoreOptions && wsTab === 'pm' && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
                     <div>
@@ -3279,7 +3261,7 @@ export default function Machines() {
               )}
 
               {/* TAB: RELIABILITY — Repeat failures → RCA → CAPA → PM revision (P2) */}
-              {wsTab === 'reliability' && (
+              {showMoreOptions && wsTab === 'reliability' && (
                 <div>
                   <div style={{ marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, color: 'white', fontFamily: 'Outfit, sans-serif', textTransform: 'uppercase' }}>Reliability improvement</h3>
@@ -3442,7 +3424,7 @@ export default function Machines() {
               )}
 
               {/* TAB 8: KAIZEN OPPORTUNITIES */}
-              {wsTab === 'kaizen' && (
+              {showMoreOptions && wsTab === 'kaizen' && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
@@ -3527,7 +3509,7 @@ export default function Machines() {
               )}
 
               {/* TAB 5: CONSUMABLE REPLENISHMENT CALENDAR */}
-              {wsTab === 'calendar' && (
+              {showMoreOptions && wsTab === 'calendar' && (
                 <div>
                   <div className="cal">
                     <div className="cal-bar">
@@ -3574,7 +3556,7 @@ export default function Machines() {
               )}
 
               {/* TAB 6: QR CODE */}
-              {wsTab === 'qr' && (
+              {showMoreOptions && wsTab === 'qr' && (
                 <div className="printable-sticker-tag" style={{ textAlign: 'center', padding: '20px 0' }}>
                   <div className="sticker-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '14px' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 0 3px rgba(245,158,11,0.6))' }}><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H12l1-8z" fill="#f59e0b" /></svg>

@@ -165,8 +165,6 @@ test.describe('Machines health board', () => {
     await page.locator('[data-machine-id="M001"]').getByTestId('machine-view-details').click();
     await expect(page.locator('.machine-workspace-page')).toBeVisible();
 
-    await page.getByRole('button', { name: /More options/ }).click();
-
     const tabsToTest = [
       { name: 'Overview', markerText: 'Machine profile' },
       { name: 'Documents', markerText: 'Machine knowledge file' },
@@ -179,12 +177,17 @@ test.describe('Machines health board', () => {
       { name: 'QR tag', markerText: 'CNC Lathe 1 Tag' },
     ];
 
-    for (const tab of tabsToTest) {
+    for (const [index, tab] of tabsToTest.entries()) {
       const tabButton = page.locator('.machine-workspace-tabs button', { hasText: tab.name }).first();
       await expect(tabButton).toBeVisible();
       await tabButton.click();
-      await expect(tabButton).toHaveClass(/active/);
+      await expect(page.locator('.machine-workspace-tabs')).toBeHidden();
+      await expect(page.locator('.machine-tool-header')).toContainText(tab.name);
       await expect(page.locator(`text=${tab.markerText}`).first()).toBeVisible({ timeout: 5000 });
+      if (index < tabsToTest.length - 1) {
+        await page.getByRole('button', { name: /Back to all machine tools/ }).click();
+        await expect(page.locator('.machine-workspace-tabs')).toBeVisible();
+      }
     }
   });
 
