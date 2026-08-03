@@ -578,6 +578,7 @@ export default function Records() {
     } catch (err) {
       if (requestId === loadRequest.current) {
         // Safe fallback to sample demo records if API call is unauthenticated or fails
+        console.error('Records.jsx load() failed, falling back to demo data:', err);
         const demoMachinesList = DEMO_MACHINES.map((m) => ({
           machine_id: m.machine_id,
           machine_name: m.machine_name,
