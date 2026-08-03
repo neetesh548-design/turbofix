@@ -190,14 +190,21 @@ export default function Team() {
     ...defaultRoles,
     ...customRoles.map((r) => ({ value: r.role_name, label: r.role_label }))
   ];
+  // Anyone who can manage the team can hand out any role except another
+  // owner (matches the backend's own rule — auth_router.py's add_supervisor
+  // rejects role === "owner"), and only an owner/director can grant
+  // maintenance_head. The old hardcoded per-manager allow-list only ever
+  // named 4-5 built-in role values, so Quality Inspector / Safety Officer /
+  // Vendor — and every custom role created in Settings — silently never
+  // appeared here since their value could never be in that static list.
   const inviteableRoles = useMemo(() => {
-    const roleMap = {
-      owner: ['maintenance_head', 'maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
-      director: ['maintenance_head', 'maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
-      maintenance_head: ['maintenance_engineer', 'supervisor', 'maintenance_technician', 'operator'],
-    };
-    const allowed = roleMap[currentUser?.role] || [];
-    return allAvailableRoles.filter((item) => allowed.includes(item.value));
+    if (!['owner', 'director', 'maintenance_head'].includes(currentUser?.role)) return [];
+    const canGrantHead = currentUser?.role === 'owner' || currentUser?.role === 'director';
+    return allAvailableRoles.filter((item) => {
+      if (item.value === 'owner') return false;
+      if (item.value === 'maintenance_head') return canGrantHead;
+      return true;
+    });
   }, [allAvailableRoles, currentUser]);
 
   const eligibleManagers = useMemo(() => {
