@@ -3963,5 +3963,15 @@
     "mtime": 1785786004.1910462,
     "ast_hash": "e4736cc66d8c1bdb6676b68835b4068d",
     "semantic_hash": ""
+  },
+  "supabase/migrations/20260804020000_add_identity_fallback_indexes.sql": {
+    "mtime": 1785795502.1227834,
+    "ast_hash": "a9c5708dd367b82e71279dccf145f162",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260804030000_drop_stale_factory_policies.sql": {
+    "mtime": 1785795760.773563,
+    "ast_hash": "7e5c2e86d8f16546fe93bafba5b77452",
+    "semantic_hash": ""
   }
 }
