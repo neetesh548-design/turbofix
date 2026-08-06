@@ -130,7 +130,7 @@ export default function Home() {
         {/* Full-bleed banner image — matches screenshot banner with dashboard visual */}
         <div style={{ width: '100%', overflow: 'hidden', background: '#080d14' }}>
           <img
-            src={`${import.meta.env.BASE_URL}turbofix-hero-banner.png?v=2`}
+            src={`${import.meta.env.BASE_URL}turbofix-hero-banner.png?v=3`}
             alt="TurboFix — Less Downtime. Better Profits."
             style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
           />
