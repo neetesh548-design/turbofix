@@ -24,12 +24,22 @@ import {
 
 export const contentByLanguage = {
   en: {
-    eyebrow: 'Maintenance workflow for modern manufacturing',
-    heroTitle: 'Turn maintenance signals into verified action.',
-    heroBody: 'TurboFix keeps breakdown reporting, assignment, approval, and history in one place.',
+    companyName: 'TurboFix Technologies',
+    slogan: "We Don't Maintain Machines. We Prevent Downtime.",
+    valueProposition: 'Helping manufacturers reduce machine downtime, improve reliability, and protect production through intelligent maintenance.',
+    pillars: 'Less Downtime • More Production • Better Profits',
+    founderName: 'Nitesh Kumar Soni',
+    founderTitle: 'Founder & CEO',
+    email: 'info@turbofix.co.in',
+    website: 'www.turbofix.co.in',
+    eyebrow: "We Don't Maintain Machines. We Prevent Downtime.",
+    heroTitle: 'Less Downtime • More Production • Better Profits',
+    heroBody: 'TurboFix Technologies helps manufacturers reduce machine downtime, improve reliability, and protect ' +
+      'production through intelligent maintenance. Recover 30+ hours of lost production every month with 10-second ' +
+      'QR reporting and photo-verified repairs.',
     bookDemo: 'Book a plant walkthrough',
     explore: 'Explore the live demo',
-    trust: ['One machine first', 'Human approval before AI use', 'Exportable plant history'],
+    trust: ['30+ Lost Hours Recovered', 'Human Approval Before AI Use', 'Factory Live in 24 Hours'],
     previewQuestion: 'Which critical machine needs Sunday maintenance?',
     previewScope: 'Plant-wide scan • 12 machines monitored',
     previewFinding: 'Hydraulic Press 250T (P1-PRS-HYD-250-002)',
