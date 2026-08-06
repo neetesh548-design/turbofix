@@ -650,9 +650,9 @@
     "semantic_hash": "f85c6471d7ed02b62a721c085bf0b1a5"
   },
   "src/components/ThemeToggle.jsx": {
-    "mtime": 1784572659.1975985,
-    "ast_hash": "5be3e1ebbd960bebf704158e5f5b1deb",
-    "semantic_hash": "5be3e1ebbd960bebf704158e5f5b1deb"
+    "mtime": 1786045017.5036767,
+    "ast_hash": "50ad27ab899853eb1eaa454bce55c818",
+    "semantic_hash": ""
   },
   "src/components/Tooltip.jsx": {
     "mtime": 1785001667.5087037,
@@ -725,9 +725,9 @@
     "semantic_hash": "511fa7f711ae2f6225ab5e3e15dfea0d"
   },
   "src/layouts/MainLayout.jsx": {
-    "mtime": 1784460199.6780965,
-    "ast_hash": "cef436808aae8fd6a9b1520d23e6e875",
-    "semantic_hash": "cef436808aae8fd6a9b1520d23e6e875"
+    "mtime": 1786045014.0794225,
+    "ast_hash": "d9d497c2967cfd122393d8a904194684",
+    "semantic_hash": ""
   },
   "src/lib/api.js": {
     "mtime": 1785782935.1236682,
@@ -780,8 +780,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1786036836.4409049,
-    "ast_hash": "95e8ac622b637b889700cee54449a6ff",
+    "mtime": 1786045014.9650075,
+    "ast_hash": "d533ead0c1949a2157821b35d0226c44",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -3635,8 +3635,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/contact-chromium.png": {
-    "mtime": 1785574559.8896613,
-    "ast_hash": "a5a8dbaf79d5888e76f6b0d7361e5b61",
+    "mtime": 1786044827.4779809,
+    "ast_hash": "b1edc1f56abf3fe5e5285545ba3e66b4",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/contact-mobile-chrome.png": {
@@ -3645,8 +3645,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/demo-chromium.png": {
-    "mtime": 1785574548.0493162,
-    "ast_hash": "027617f5f55bbda9e9793b9ba1ceb5ba",
+    "mtime": 1786044967.4484825,
+    "ast_hash": "11ba8d18b97877d2ea4612cc593f08db",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/demo-mobile-chrome.png": {
@@ -3655,8 +3655,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/home-chromium.png": {
-    "mtime": 1785574509.5870628,
-    "ast_hash": "b0ffb3ae9b7565f525e29e87edcd1e75",
+    "mtime": 1786044797.4234686,
+    "ast_hash": "13ad2980c0701b8502ee031a891bd415",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/home-mobile-chrome.png": {
@@ -3685,8 +3685,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/pricing-chromium.png": {
-    "mtime": 1785574554.3555973,
-    "ast_hash": "5441cf0101819e1a1722f02a230a361f",
+    "mtime": 1786045007.2542226,
+    "ast_hash": "744b1b1c4f1283f90f8662e29d246c44",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/pricing-mobile-chrome.png": {
@@ -3695,8 +3695,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/records-platform-chromium.png": {
-    "mtime": 1785574536.375845,
-    "ast_hash": "db0e453eefccc12d67e319c20ff9d7fb",
+    "mtime": 1786045023.4929993,
+    "ast_hash": "a130813d8294e7bdc2cc2705702b3a0e",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/records-platform-mobile-chrome.png": {
@@ -3705,8 +3705,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/why-turbofix-chromium.png": {
-    "mtime": 1785574516.2147276,
-    "ast_hash": "c3cdf1b66c4bd221f2735e2b76b3a879",
+    "mtime": 1786044831.2012198,
+    "ast_hash": "fb104b5fd49f2bc00c5499566cb87451",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/why-turbofix-mobile-chrome.png": {
@@ -3715,8 +3715,8 @@
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/workflow-chromium.png": {
-    "mtime": 1785574542.0793765,
-    "ast_hash": "66dfbb0f687d1439d949bb322f9866f7",
+    "mtime": 1786044798.5905344,
+    "ast_hash": "13d0706413b8cd750fb47824dad5b7e2",
     "semantic_hash": ""
   },
   "tests/ux-audit/marketing-audit-output/workflow-mobile-chrome.png": {
@@ -4067,6 +4067,11 @@
   "public/turbofix-hero-banner-backup.png": {
     "mtime": 1786038002.2057884,
     "ast_hash": "cf619f37cfa29db3600b86b5c6bbb854",
+    "semantic_hash": ""
+  },
+  "src/components/PublicSiteDebugMonitor.jsx": {
+    "mtime": 1786045013.9044852,
+    "ast_hash": "8acb547e305c1f862f319e6ca8d5b154",
     "semantic_hash": ""
   }
 }
