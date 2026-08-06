@@ -237,9 +237,7 @@ export default function ResetPassword() {
             throw new Error(errData.detail || 'Incorrect or expired OTP code.');
           }
         } catch (err) {
-          if (err.message && err.message.includes('Incorrect')) throw err;
-          // Fallback if backend API call is unreachable: proceed to step reset for fallback submit
-          verifiedOk = true;
+          throw err;
         }
 
         if (verifiedOk) {

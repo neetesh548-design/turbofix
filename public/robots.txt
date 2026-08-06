@@ -44,4 +44,4 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
-Sitemap: https://turbofix.co.in/sitemap.xml
+Sitemap: https://www.turbofix.co.in/sitemap.xml

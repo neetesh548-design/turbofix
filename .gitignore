@@ -24,6 +24,9 @@ google key/
 *.key
 service-account*.json
 gcp-*.json
+*_CREDENTIALS.md
+Delete me after work/
+TurboFix-Tracker.xlsx
 
 # Python (backend) build/cache & virtualenvs
 **/.venv/

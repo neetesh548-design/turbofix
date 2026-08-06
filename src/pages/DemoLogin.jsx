@@ -50,6 +50,7 @@ export default function DemoLogin() {
       company_name: 'Exide Energy Industries Ltd',
       inventory_mode: 'demo',
       email: demo.email,
+      is_demo: true,
     }));
     window.dispatchEvent(new Event('authChanged'));
     performPostLoginRedirect();

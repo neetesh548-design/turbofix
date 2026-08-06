@@ -43,28 +43,28 @@ export function StitchDonutChart({
         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">{title}</h3>
       </div>
 
-      <div className="flex items-center gap-6 my-2">
-        <div className="relative w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-md dark:shadow-[0_0_20px_rgba(0,0,0,0.5)]" style={backgroundStyle}>
+      <div className="flex items-center gap-3 sm:gap-4 my-2 overflow-hidden">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-md dark:shadow-[0_0_20px_rgba(0,0,0,0.5)]" style={backgroundStyle}>
           {/* Inner cutout for Donut effect */}
-          <div className="w-20 h-20 bg-slate-50 dark:bg-[#0f141d] rounded-full flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800/80 shadow-inner">
-            <span className="font-mono font-extrabold text-xl text-slate-900 dark:text-white leading-none">{total}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase mt-0.5">{centerLabel}</span>
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 dark:bg-[#0f141d] rounded-full flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800/80 shadow-inner">
+            <span className="font-mono font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white leading-none">{total}</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{centerLabel}</span>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="flex-1 space-y-2 text-xs">
+        <div className="flex-1 min-w-0 space-y-2 text-xs">
           {data.map((item) => {
             const pct = total ? Math.round((item.value / total) * 100) : 0;
             return (
-              <div key={item.label} className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color, boxShadow: `0 0 6px ${item.color}` }} />
-                  <span className="text-slate-700 dark:text-slate-300 truncate font-medium">{item.label}</span>
+              <div key={item.label} className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full flex-shrink-0" style={{ background: item.color, boxShadow: `0 0 6px ${item.color}` }} />
+                  <span className="text-slate-700 dark:text-slate-300 truncate font-semibold text-[11px] sm:text-xs">{item.label}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 font-mono">
+                <div className="flex items-center gap-1 flex-shrink-0 font-mono text-[11px] sm:text-xs">
                   <span className="text-slate-900 dark:text-white font-bold">{item.value}</span>
-                  <span className="text-slate-500 dark:text-slate-400 text-[10px]">({pct}%)</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[10px] font-medium">({pct}%)</span>
                 </div>
               </div>
             );

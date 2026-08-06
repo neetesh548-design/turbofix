@@ -36,6 +36,7 @@ import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
 import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
 import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
 import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
+import MasterTabbedDashboard from '../components/dashboard/MasterTabbedDashboard.jsx';
 import OperationsBoard from '../components/dashboard/OperationsBoard.jsx';
 import CmmsKpiStrip from '../components/dashboard/CmmsKpiStrip.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
@@ -154,7 +155,7 @@ const ROLE_HEROES = {
 function fetchWithTimeout(promise, ms = 3000) {
   return Promise.race([
     promise,
-    new Promise((resolve) => setTimeout(() => resolve({ data: [] }), ms)),
+    new Promise((resolve) => setTimeout(() => resolve({ data: [], _timedOut: true }), ms)),
   ]).catch(() => ({ data: [] }));
 }
 
@@ -397,93 +398,13 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {loading ? (
-          <div className="dashboard-shell-skeleton" aria-hidden="true">
-            <div className="rd-hero-strip rd-hero-strip-loading">
-              <div className="dashboard-skeleton dashboard-skeleton-pill" />
-              <div className="dashboard-skeleton dashboard-skeleton-body short" />
-            </div>
-            <div className="dashboard-shell-kpis">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="dashboard-shell-kpi dashboard-shell-kpi-loading">
-                  <div className="dashboard-skeleton dashboard-skeleton-label" />
-                  <div className="dashboard-skeleton dashboard-skeleton-value" />
-                  <div className="dashboard-skeleton dashboard-skeleton-detail" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            <section className="rd-hero-strip" data-testid="dashboard-role-hero">
-              <span className="rd-hero-badge">{hero.badge}</span>
-              <p className="rd-hero-line">
-                Welcome, <strong>{user?.name || 'Staff'}</strong>. {roleSummaryLine}
-              </p>
-              <div className="rd-hero-actions">
-                <a href="tickets.html">Open tickets</a>
-                <a href="machines.html">Machine register</a>
-              </div>
-            </section>
-
-            <CmmsKpiStrip metrics={metrics} tickets={sources.tickets} machines={sources.machines} canViewCost={canViewCost} />
-          </>
-        )}
-
         {error && (
           <div className="decision-alert">
             {error}. Showing a safe empty-state until the API is available.
           </div>
         )}
 
-        {!loading && demoSession && (
-          <p className="rd-demo-banner" data-testid="dashboard-demo-banner">
-            Demo Mode — every number below is sample data, not your plant.
-          </p>
-        )}
-
-        {!loading && noFleetData && !demoSession && (
-          <p className="rd-demo-banner" data-testid="dashboard-demo-banner">
-            No live machines or tickets are available yet. Add a machine or check the workspace connection.
-          </p>
-        )}
-
-        {canSeeActionBoard && (
-          <div className="dashboard-view-tabs" role="tablist" aria-label="Dashboard view">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={dashboardView === 'overview'}
-              className={`dashboard-view-tab ${dashboardView === 'overview' ? 'is-active' : ''}`}
-              onClick={() => setDashboardView('overview')}
-            >
-              Overview
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={dashboardView === 'action'}
-              className={`dashboard-view-tab ${dashboardView === 'action' ? 'is-active' : ''}`}
-              onClick={() => setDashboardView('action')}
-            >
-              Action board
-            </button>
-          </div>
-        )}
-
-        {!loading && canSeeActionBoard && dashboardView === 'action' && (
-          <div className="dashboard-tab-panel" role="region" aria-label="What needs action right now">
-            <OperationsBoard
-              tickets={sources.tickets}
-              machines={sources.machines}
-              pmSchedules={sources.pmSchedules}
-              parts={sources.parts}
-              loading={loading}
-            />
-          </div>
-        )}
-
-        {(!canSeeActionBoard || dashboardView === 'overview') && (loading ? (
+        {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
             {[1, 2, 3].map(i => (
               <div key={i} className="h-44 bg-slate-900/60 rounded-2xl border border-slate-800/80 p-5 animate-pulse flex flex-col justify-between">
@@ -494,49 +415,16 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="dashboard-tab-panel" role="region" aria-label="Plant operational status">
-            {appRole === 'operator' && (
-              <OperatorDashboard metrics={metrics} user={user} loading={loading} onQuickReport={openQuickReport} />
-            )}
-
-            {specialistRole === 'maintenance_head' && appRole !== 'operator' && (
-              <MaintenanceHeadDashboard tickets={sources.tickets} metrics={metrics} loading={loading} />
-            )}
-
-            {specialistRole && specialistRole !== 'maintenance_head' && appRole !== 'operator' && (
-              <SpecialistDashboard role={specialistRole} tickets={sources.tickets} loading={loading} />
-            )}
-
-            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.OWNER && (
-              <OwnerDashboard metrics={metrics} loading={loading} />
-            )}
-
-            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.TECHNICIAN && (
-              <TechnicianDashboard
-                metrics={metrics}
-                user={user}
-                loading={loading}
-                onQuickReport={openQuickReport}
-              />
-            )}
-
-            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.SUPERVISOR && (
-              <>
-                <SupervisorDashboard metrics={metrics} loading={loading} isDemoData={usingDemoTeam && !noFleetData} />
-                <ClosedLoopControlCard
-                  openWorkCount={legacyData.open_work_count || 0}
-                  loopGapCount={legacyData.loop_gap_count || 0}
-                  loopGaps={legacyData.loop_gaps || []}
-                  onTakeAction={() => { window.location.href = 'tickets.html'; }}
-                />
-              </>
-            )}
-
-            {!specialistRole && appRole !== 'operator' && role === DASHBOARD_ROLES.ENGINEER && (
-              <EngineerDashboard metrics={metrics} loading={loading} isDemoData={usingDemoReliability && !noFleetData} />
-            )}
-          </div>
-        ))}
+          <MasterTabbedDashboard
+            metrics={metrics}
+            tickets={sources.tickets}
+            machines={sources.machines}
+            pmSchedules={sources.pmSchedules}
+            parts={sources.parts}
+            loading={loading}
+            onQuickReport={openQuickReport}
+          />
+        )}
 
         <QuickReportDialog
           open={quickReportOpen}

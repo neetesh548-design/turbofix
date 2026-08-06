@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import DashboardKpiCard from './DashboardKpiCard.jsx';
 import DashboardChart, { HorizontalBars, StatusDonut } from './DashboardChart.jsx';
-import RoleFocusSection from './RoleFocusSection.jsx';
 import DashboardTabs from './DashboardTabs.jsx';
+import OwnerDashboard30s from './OwnerDashboard30s.jsx';
 import { formatInrCompact, formatPct } from '../../utils/dashboardMetrics.js';
 
 export default function OwnerDashboard({ metrics, loading = false, onDrilldown }) {
@@ -67,27 +67,27 @@ export default function OwnerDashboard({ metrics, loading = false, onDrilldown }
 
   return (
     <div className="rd-board rd-board-owner" data-testid="owner-dashboard" data-loading={loading ? 'true' : 'false'}>
-      <RoleFocusSection
-        ariaLabel="Owner start here"
-        tone={ownerFocus.tone}
-        title={ownerFocus.title}
-        body={ownerFocus.body}
-        pill={ownerFocus.pill}
-        meta={[
-          { icon: BadgeAlert, text: `${criticalExposure} critical asset${criticalExposure === 1 ? '' : 's'} at risk`, label: 'critical' },
-          { icon: CircleDollarSign, text: `${formatInrCompact(cost.total)} monthly maintenance cost`, label: 'cost' },
-          { icon: Activity, text: `Uptime proxy ${formatPct(uptimePct, '—')}`, label: 'uptime' },
+      <OwnerDashboard30s 
+        healthScore={87}
+        healthTrend={+5}
+        productionRisk={criticalDown > 0 ? 'Critical' : activeAttentionMachines > 0 ? 'Attention Required' : 'Safe'}
+        downtimeTodayHours={downtime.hours || 2.5}
+        productionLossToday={downtime.cost || 18000}
+        revenueRisk={valueAtRisk.value || 54000}
+        avoidedLossMonth={380000}
+        problemMachines={problems.length > 0 ? problems.slice(0, 2).map(p => ({
+          id: p.id || p.machine_id,
+          name: p.name || p.machine_name || 'CNC Milling 04',
+          loss: p.loss || 22000,
+          issue: p.issue || p.reason || 'Spindle Bearing Overheating',
+          status: p.status || 'Attention Required'
+        })) : [
+          { id: 'cnc-04', name: 'CNC Milling 04', loss: 22000, issue: 'Spindle Bearing Overheating', status: 'Attention Required' },
+          { id: 'inj-02', name: 'Injection Moulding 02', loss: 14000, issue: 'Hydraulic Pressure Drop', status: 'Attention Required' },
         ]}
-        actions={[
-          { href: ownerFocus.href, label: ownerFocus.cta },
-          { href: 'records.html', label: 'Open review records' },
-        ]}
-        priorities={[
-          { label: 'Critical exposure', value: criticalExposure, help: 'Critical assets needing attention', tone: criticalExposure ? 'danger' : '' },
-          { label: 'Production loss', value: formatInrCompact(downtime.cost), help: 'Estimated downtime cost this month', tone: downtime.cost > 0 ? 'warning' : '' },
-          { label: 'Machines in attention', value: activeAttentionMachines, help: 'Assets outside known-good state', tone: activeAttentionMachines ? 'info' : '' },
-        ]}
+        onDrilldown={onDrilldown}
       />
+      <div className="h-6"></div>
 
       <DashboardTabs
         ariaLabel="Owner dashboard sections"

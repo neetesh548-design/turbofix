@@ -12,7 +12,11 @@ export function DashboardGrid({ widgets, onLayoutChange, editable = false }) {
 
   useEffect(() => {
     if (!editable) return;
-    localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+    try {
+      localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+    } catch (e) {
+      console.error('Failed to save layout to localStorage', e);
+    }
     onLayoutChange?.(layout);
   }, [editable, layout, onLayoutChange]);
 

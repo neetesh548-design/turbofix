@@ -1,14 +1,19 @@
-# TurboFix — AI Maintenance Control System for Manufacturing SMEs
+# TurboFix Technologies — Intelligent Maintenance & Downtime Prevention Platform
 
-> TurboFix is the AI-assisted maintenance control and breakdown decision platform built specifically for Indian manufacturing plants and SMEs. It eliminates unplanned machine downtime, repeat breakdowns, and paper logbook chaos through 10-second QR breakdown reporting, photo-verified repair closure, and 5-Why Root Cause Analysis (RCA).
+> **We Don't Maintain Machines. We Prevent Downtime.**
+> Helping manufacturers reduce machine downtime, improve reliability, and protect production through intelligent maintenance.
+> **Less Downtime • More Production • Better Profits**
 
 ## Key Information
-- **Category**: Industrial AI, Plant Reliability Software, Maintenance Management, CMMS
+- **Company**: TurboFix Technologies
+- **Founder & CEO**: Nitesh Kumar Soni
+- **Email**: info@turbofix.co.in
+- **Website**: https://www.turbofix.co.in/
+- **Category**: Industrial AI, Plant Reliability Software, Downtime Prevention, Maintenance Management
 - **Target Audience**: Factory Owners, Plant Directors, Maintenance Heads, Shift Supervisors, and Technicians
 - **Primary Markets**: Indian Manufacturing SMEs (Auto-ancillary, Engineering, Plastics, Textile, Pharma, Chemical)
 - **Deployment**: Cloud-native PWA, AWS Mumbai (ap-south-1) Data Residency
 - **Pricing**: Simple per-machine monthly plans starting at ₹499 to ₹699 / machine / month (15% annual discount)
-- **Website**: https://turbofix.co.in/
 
 ## Core Platform Capabilities
 

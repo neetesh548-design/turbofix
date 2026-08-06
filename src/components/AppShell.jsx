@@ -16,6 +16,7 @@ import { microphoneErrorMessage } from '@/utils/mediaErrors';
 import { readAuth, safeRedirectPath } from '@/utils/auth';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcutsModal';
 import { visibleAppNavItems } from '@/lib/navigation';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -775,6 +776,7 @@ export default function AppShell({ children, active }) {
       </Tooltip>
 
       <KeyboardShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <MobileBottomNav />
     </div>
       </ErrorBoundary>
     </ThemeProvider>

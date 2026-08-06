@@ -40,27 +40,30 @@ export default function Footer() {
   const year = new Date().getFullYear();
   const copy = {
     en: {
-      tagline: 'Turn scattered maintenance signals into verified action.',
+      tagline: "We Don't Maintain Machines. We Prevent Downtime.",
+      subtagline: 'Less Downtime • More Production • Better Profits',
       product: 'Product', platform: 'Platform', records: 'Records platform', workflow: 'How it works', demo: 'Demo', faq: 'Why TurboFix', contact: 'Contact', book: 'Book a plant walkthrough', signIn: 'Staff sign in', chat: 'Talk on WhatsApp',
       socialTitle: 'Connect with Us',
       trust: ['Start with one machine', 'Human approval before AI use', 'Exportable plant history'],
-      note: 'TurboFix supports the workflow layer. Authorized plant personnel remain responsible for safety, approval, and execution.',
+      note: 'TurboFix Technologies supports the workflow layer. Authorized plant personnel remain responsible for safety, approval, and execution.',
       rights: 'All rights reserved.',
     },
     hi: {
-      tagline: 'पुराने मेंटेनेंस रिकॉर्ड को विश्वसनीय AI ज्ञान में बदलें—इतिहास से सत्यापित कार्य तक।',
+      tagline: 'हम मशीनों का रखरखाव नहीं करते। हम डाउनटाइम रोकते हैं।',
+      subtagline: 'कम डाउनटाइम • अधिक उत्पादन • बेहतर लाभ',
       product: 'देखें', platform: 'प्लेटफॉर्म', records: 'पुराने रिकॉर्ड', workflow: 'कैसे काम करता है', demo: 'प्रोडक्ट डेमो', faq: 'सवाल', contact: 'शुरू करें', book: 'गाइडेड डेमो बुक करें', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp पर बात करें',
       socialTitle: 'हमसे जुड़ें',
       trust: ['हस्तलिखित और डिजिटल रिकॉर्ड', 'AI उपयोग से पहले Maintenance Head मंज़ूरी', 'Export योग्य प्लांट बैकअप'],
-      note: 'TurboFix मेंटेनेंस के workflow में सहायता करता है। Analytics नीचे रहता है, और सुरक्षा, मंजूरी और काम की जिम्मेदारी अधिकृत प्लांट टीम की रहती है।',
+      note: 'TurboFix Technologies मेंटेनेंस के workflow में सहायता करता है।',
       rights: 'सर्वाधिकार सुरक्षित।',
     },
     mr: {
-      tagline: 'जुने मेंटेनन्स रेकॉर्ड विश्वसनीय AI ज्ञानात बदला—इतिहासापासून पडताळलेल्या कामापर्यंत.',
+      tagline: 'आम्ही मशीन दुरुस्त करत नाही, आम्ही डाऊनटाइम थांबवतो.',
+      subtagline: 'कमी डाऊनटाइम • जास्त उत्पादन • उत्तम नफा',
       product: 'पाहा', platform: 'प्लॅटफॉर्म', records: 'जुने रेकॉर्ड', workflow: 'कसे काम करते', demo: 'प्रॉडक्ट डेमो', faq: 'प्रश्न', contact: 'सुरू करा', book: 'मार्गदर्शित डेमो बुक करा', signIn: 'स्टाफ साइन इन', chat: 'WhatsApp वर बोला',
       socialTitle: 'आमच्याशी जोडा',
       trust: ['हस्तलिखित आणि डिजिटल रेकॉर्ड', 'AI वापरापूर्वी Maintenance Head मंजुरी', 'Export करता येणारा प्लांट बॅकअप'],
-      note: 'TurboFix मेंटेनन्सच्या workflow ला सहाय्य करते. Analytics खाली राहते, आणि सुरक्षा, मंजुरी आणि अंमलबजावणीची जबाबदारी अधिकृत प्लांट टीमची राहते.',
+      note: 'TurboFix Technologies मेंटेनन्सच्या workflow ला सहाय्य करते.',
       rights: 'सर्व हक्क राखीव.',
     },
   }[lang] || {};
@@ -76,9 +79,10 @@ export default function Footer() {
               <circle cx="50" cy="50" r="12" fill="#0f172a" />
               <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
             </svg>
-            <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+            <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span> <span style={{ fontSize: '0.65em', opacity: 0.85, fontWeight: 500 }}>Technologies</span></span>
           </Link>
-          <p>{copy.tagline}</p>
+          <p style={{ fontWeight: 700, color: '#f8fafc', marginBottom: '4px' }}>{copy.tagline}</p>
+          <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600, marginBottom: '12px' }}>{copy.subtagline}</p>
           <span className="marketing-footer-note"><ShieldCheck aria-hidden="true" />{copy.note}</span>
         </div>
 
@@ -94,6 +98,8 @@ export default function Footer() {
 
         <div className="footer-links marketing-footer-contact">
           <h4>{copy.contact}</h4>
+          <a href="mailto:info@turbofix.co.in" style={{ color: '#38bdf8', fontSize: '0.88rem', fontWeight: 500 }}>📧 info@turbofix.co.in</a>
+          <a href="https://www.turbofix.co.in" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', fontSize: '0.85rem' }}>🌐 www.turbofix.co.in</a>
           <Link to="/contact.html">{copy.book}</Link>
           <Link to="/login.html">{copy.signIn}</Link>
           <a className="marketing-footer-whatsapp" href={`https://wa.me/${SALES_WHATSAPP}`} target="_blank" rel="noopener noreferrer" aria-label="Contact TurboFix Sales on WhatsApp"><MessageCircle aria-hidden="true" />{copy.chat}</a>
@@ -129,7 +135,7 @@ export default function Footer() {
       </div>
 
       <div className="container footer-bottom marketing-footer-bottom">
-        <p>&copy; {year} TurboFix. {copy.rights}</p>
+        <p>&copy; {year} TurboFix Technologies. {copy.rights}</p>
       </div>
     </footer>
   );

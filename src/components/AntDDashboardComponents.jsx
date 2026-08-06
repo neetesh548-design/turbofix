@@ -143,7 +143,8 @@ export const AntDMachineListItem = ({
   downtime,
   onClick,
 }) => {
-  const statusColor = status === 'Online' ? '#52C41A' : status === 'Maintenance' ? '#FAAD14' : '#D9D9D9';
+  const normalizedStatus = String(status || '').toLowerCase();
+  const statusColor = normalizedStatus === 'online' ? '#52C41A' : normalizedStatus === 'maintenance' ? '#FAAD14' : '#D9D9D9';
 
   return (
     <div

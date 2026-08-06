@@ -86,6 +86,14 @@ function SearchMetadata() {
       title: 'Book a TurboFix Plant Walkthrough',
       description: 'Book a guided TurboFix walkthrough for one representative machine in your plant.',
     },
+    '/platform-experience.html': {
+      title: 'TurboFix | Platform Experience',
+      description: 'Experience how TurboFix unifies your plant maintenance workflow in one seamless platform.',
+    },
+    '/experience.html': {
+      title: 'TurboFix | Experience',
+      description: 'See the TurboFix difference and learn how to optimize your manufacturing downtime.',
+    },
   };
   const page = metadata[pathname] || null;
 
@@ -108,14 +116,14 @@ function SearchMetadata() {
     );
     document.querySelector('link[rel="canonical"]')?.setAttribute(
       'href',
-      `https://turbofix.co.in${isPublicMarketingPage ? (pathname === '/' ? '/' : pathname) : pathname}`,
+      `https://www.turbofix.co.in${isPublicMarketingPage ? (pathname === '/' ? '/' : pathname) : pathname}`,
     );
     if (page) {
       document.title = page.title;
       document.querySelector('meta[name="description"]')?.setAttribute('content', page.description);
       document.querySelector('meta[property="og:title"]')?.setAttribute('content', page.title);
       document.querySelector('meta[property="og:description"]')?.setAttribute('content', page.description);
-      document.querySelector('meta[property="og:url"]')?.setAttribute('content', `https://turbofix.co.in${pathname === '/' ? '/' : pathname}`);
+      document.querySelector('meta[property="og:url"]')?.setAttribute('content', `https://www.turbofix.co.in${pathname === '/' ? '/' : pathname}`);
     }
   }, [pathname, page]);
 

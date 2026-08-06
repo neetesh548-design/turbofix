@@ -28,7 +28,6 @@ import {
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
 const TOKEN_KEY = 'tf_supabase_admin_token';
-const SECRET_ACCESS_KEY = 'TurboFixSecure2026';
 
 export default function AdminPortal() {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || '');
@@ -36,12 +35,9 @@ export default function AdminPortal() {
   const [loginErr, setLoginErr] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
-  // Check if URL has secret access key or if already authenticated
+  // Check if already authenticated
   const isAuthorizedPath = useMemo(() => {
-    if (token) return true;
-    const params = new URLSearchParams(window.location.search);
-    const key = params.get('key') || params.get('access_key') || params.get('secret');
-    return key === SECRET_ACCESS_KEY;
+    return !!token;
   }, [token]);
 
   // Honeypot trap state
