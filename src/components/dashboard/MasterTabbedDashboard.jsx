@@ -209,6 +209,8 @@ export default function MasterTabbedDashboard({
             productionLossToday={metrics?.productionLoss ?? 0}
             revenueRisk={metrics?.revenueRisk ?? 0}
             avoidedLossMonth={metrics?.avoidedLoss ?? 0}
+            uptimePercent={metrics?.uptimePercent ?? 0}
+            pmDiscipline={metrics?.pmOnTimeRate ?? 0}
             problemMachines={problemMachinesFromData}
             onDrilldown={() => setActiveTab(2)}
           />
@@ -309,18 +311,18 @@ export default function MasterTabbedDashboard({
               </div>
 
               <div className="space-y-2 text-xs">
-                {parts.filter(p => p.quantity <= (p.reorder_level || 5)).slice(0, 2).map((part, idx) => (
+                {parts.filter(p => (p.stock_qty ?? p.quantity) <= (p.reorder_level || 5)).slice(0, 2).map((part, idx) => (
                   <div key={part.id || idx} className="bg-[#111827]/80 border border-slate-800/90 p-2.5 rounded-lg flex justify-between items-center">
                     <div>
-                      <div className="font-bold text-white text-xs">{part.name || 'Unknown Part'}</div>
-                      <div className="text-[10px] text-slate-400">{part.quantity} units (₹{part.cost || 0}) • {part.location || 'Store'}</div>
+                      <div className="font-bold text-white text-xs">{part.part_name || part.name || 'Unknown Part'}</div>
+                      <div className="text-[10px] text-slate-400">{(part.stock_qty ?? part.quantity)} units (₹{part.unit_cost || part.cost || 0}) • {part.location || part.store_location || 'Store'}</div>
                     </div>
                     <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded text-[9px] font-bold">
                       Low Stock
                     </span>
                   </div>
                 ))}
-                {parts.filter(p => p.quantity <= (p.reorder_level || 5)).length === 0 && (
+                {parts.filter(p => (p.stock_qty ?? p.quantity) <= (p.reorder_level || 5)).length === 0 && (
                   <div className="text-[10px] text-slate-400 p-2 text-center">No parts at reorder level</div>
                 )}
               </div>
@@ -355,6 +357,7 @@ export default function MasterTabbedDashboard({
       <WhatsAppMalikDigestModal
         open={whatsappOpen}
         onClose={() => setWhatsappOpen(false)}
+        metrics={metrics}
         problemMachines={problemMachinesFromData}
       />
     </div>

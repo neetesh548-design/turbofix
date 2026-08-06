@@ -37,6 +37,8 @@ export default function OwnerDashboard30s({
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [showBachatBreakdown, setShowBachatBreakdown] = useState(false);
 
+  const formatLakh = (v) => v >= 100000 ? `₹${(v/100000).toFixed(1)} Lakh` : `₹${v.toLocaleString('en-IN')}`;
+
   const getRiskBadge = (risk) => {
     switch (risk) {
       case 'Critical':
@@ -220,14 +222,14 @@ export default function OwnerDashboard30s({
               <span className="text-emerald-300 font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Bachat (Money Saved)
               </span>
-              <span className="font-black text-emerald-400 text-xs font-mono">₹3.8 Lakh ▾</span>
+              <span className="font-black text-emerald-400 text-xs font-mono">{formatLakh(avoidedLossMonth)} ▾</span>
             </button>
 
             {showBachatBreakdown && (
               <div className="bg-[#0B0F19] p-2 rounded border border-emerald-500/30 text-[10px] space-y-0.5 font-mono text-emerald-300 animate-in fade-in">
-                <div>• Preventive PM Bachat: ₹1,40,000</div>
-                <div>• MTTR Repair Speed Bachat: ₹1,60,000</div>
-                <div>• Spare Part Re-use Bachat: ₹80,000</div>
+                <div>• Preventive PM Bachat: ₹{Math.round(avoidedLossMonth * 0.37).toLocaleString('en-IN')}</div>
+                <div>• MTTR Repair Speed Bachat: ₹{Math.round(avoidedLossMonth * 0.42).toLocaleString('en-IN')}</div>
+                <div>• Spare Part Re-use Bachat: ₹{Math.round(avoidedLossMonth * 0.21).toLocaleString('en-IN')}</div>
               </div>
             )}
           </div>
@@ -273,6 +275,17 @@ export default function OwnerDashboard30s({
       <WhatsAppMalikDigestModal
         open={whatsappOpen}
         onClose={() => setWhatsappOpen(false)}
+        metrics={{
+          downtimeHours: downtimeTodayHours,
+          productionLoss: productionLossToday,
+          revenueRisk,
+          avoidedLoss: avoidedLossMonth,
+          healthScore,
+          healthTrend,
+          uptimePercent,
+          pmOnTimeRate: pmDiscipline,
+          avgRepairMins: 0,
+        }}
         problemMachines={problemMachines}
       />
     </div>

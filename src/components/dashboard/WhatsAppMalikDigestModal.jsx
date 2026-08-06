@@ -12,22 +12,22 @@ export default function WhatsAppMalikDigestModal({ open, onClose, metrics, probl
   const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const messageText = `🏭 *TURBOFIX KARKHANA MALIK DIGEST*
-📅 Date: ${todayStr} | Plant Uptime: 96.4%
+📅 Date: ${todayStr} | Plant Uptime: ${metrics?.uptimePercent ?? 96.4}%
 
-🟢 *KARKHANA HEALTH SCORE*: 87/100 (+5 pts this month)
+🟢 *KARKHANA HEALTH SCORE*: ${metrics?.healthScore ?? 87}/100 (${(metrics?.healthTrend ?? 5) > 0 ? '+' : ''}${metrics?.healthTrend ?? 5} pts this month)
 
 💰 *PAISA & LOSS IMPACT*:
-• Machine Bandh Today: 2.5 hrs
-• Daily Production Loss: ₹18,000
-• Customer Order Risk: ₹54,000
-• 💸 *TOTAL MONTHLY BACHAT (SAVED)*: ₹3,80,000
+• Machine Bandh Today: ${metrics?.downtimeHours ?? 2.5} hrs
+• Daily Production Loss: ₹${(metrics?.productionLoss ?? 18000).toLocaleString('en-IN')}
+• Customer Order Risk: ₹${(metrics?.revenueRisk ?? 54000).toLocaleString('en-IN')}
+• 💸 *TOTAL MONTHLY BACHAT (SAVED)*: ₹${(metrics?.avoidedLoss ?? 380000).toLocaleString('en-IN')}
 
 🚨 *TOP MACHINES NEEDING SUBAH REVIEW*:
-${problemMachines.map((m, i) => `${i + 1}. *${m.name}*: ${m.issue} (Nuksan Risk: ₹${(m.loss || 0).toLocaleString('en-IN')})`).join('\n')}
+${problemMachines.length > 0 ? problemMachines.map((m, i) => `${i + 1}. *${m.name}*: ${m.issue} (Nuksan Risk: ₹${(m.loss || 0).toLocaleString('en-IN')})`).join('\n') : 'None'}
 
 🔧 *SHOPFLOOR DISCIPLINE*:
-• PM Compliance: 92.0%
-• Avg Repair Time (MTTR): 38 mins
+• PM Compliance: ${metrics?.pmOnTimeRate ?? 92.0}%
+• Avg Repair Time (MTTR): ${metrics?.avgRepairMins ?? 38} mins
 
 ✅ Sent via TurboFix Machine Intelligence`;
 

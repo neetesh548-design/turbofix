@@ -27,18 +27,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppShell from '../components/AppShell';
-import ClosedLoopControlCard from '../components/ClosedLoopControlCard';
 import QuickReportDialog from '../components/QuickReportDialog';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
-import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
-import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
-import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
-import SpecialistDashboard from '../components/dashboard/SpecialistDashboard.jsx';
-import MaintenanceHeadDashboard from '../components/dashboard/MaintenanceHeadDashboard.jsx';
-import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
 import MasterTabbedDashboard from '../components/dashboard/MasterTabbedDashboard.jsx';
-import OperationsBoard from '../components/dashboard/OperationsBoard.jsx';
-import CmmsKpiStrip from '../components/dashboard/CmmsKpiStrip.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -343,16 +334,57 @@ export default function Dashboard() {
       user?.user_id || user?.email || 'anon',
     ].join(':');
 
-    return cacheRef.current.resolve(key, () => ({
-      ...buildRoleMetrics(role, input),
-      // The KPI strip/donut above render outside the per-role dashboards but
-      // still need to agree with them — reuse the same demo-normalized
-      // machines/tickets `buildRoleMetrics` was built from instead of the
-      // raw (non-demo-aware) `sources`, which used to show a different
-      // machine count and an absurd ticket-count-as-machine-count donut.
-      displayMachines: input.machines,
-      displayTickets: input.tickets,
-    }));
+    return cacheRef.current.resolve(key, () => {
+      const raw = buildRoleMetrics(role, input);
+
+      // ------------------------------------------------------------------
+      // Bridge: translate buildRoleMetrics owner output into the flat field
+      // names that MasterTabbedDashboard / OwnerDashboard30s expect.
+      // ------------------------------------------------------------------
+      const fleet = raw.fleetHealth || {};
+      const total = fleet.total || 0;
+      const running = (fleet.byStatus?.running || 0) + (fleet.byStatus?.maintenance || 0);
+      const uptimePercent = total ? Math.round((running / total) * 1000) / 10 : 0;
+      const criticalDown = fleet.grid?.critical?.down || 0;
+
+      // Health score: weighted composite of uptime, PM discipline, and SLA
+      const slaPct = raw.sla?.pct ?? 100;
+      const pmPct = raw.month?.pmCompletionPct ?? 100;
+      const healthScore = Math.round(uptimePercent * 0.5 + slaPct * 0.25 + pmPct * 0.25);
+
+      // Production risk label
+      const productionRisk = criticalDown > 0
+        ? 'Critical'
+        : (fleet.byStatus?.down || 0) > 0 || (raw.valueAtRisk?.machineCount || 0) > 2
+          ? 'Attention Required'
+          : 'Safe';
+
+      // Average repair time in minutes from average resolution hours
+      const avgRepairMins = raw.month?.avgResolutionHours != null
+        ? Math.round(raw.month.avgResolutionHours * 60)
+        : 0;
+
+      // Avoided loss estimate: sum of repair costs on closed tickets this month
+      // (represents value of work that prevented further loss)
+      const avoidedLoss = (raw.maintenanceCost?.repair || 0) * 2;
+
+      return {
+        ...raw,
+        // Flat fields for MasterTabbedDashboard / OwnerDashboard30s
+        healthScore,
+        healthTrend: 0, // requires historical data; honest zero
+        productionRisk,
+        downtimeHours: raw.downtime?.hours || 0,
+        productionLoss: raw.downtime?.cost || 0,
+        revenueRisk: raw.valueAtRisk?.value || 0,
+        avoidedLoss,
+        uptimePercent,
+        pmOnTimeRate: raw.month?.pmCompletionPct ?? 0,
+        avgRepairMins,
+        displayMachines: input.machines,
+        displayTickets: input.tickets,
+      };
+    });
   }, [role, sources, user, isDemo, noFleetData, demoSession]);
 
   const specialistHeadings = {
