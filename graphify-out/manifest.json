@@ -780,8 +780,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1786060068.0957568,
-    "ast_hash": "766a91f0d662ebc64134c74be88dd2e3",
+    "mtime": 1786060285.068432,
+    "ast_hash": "898b3a814516189441b895860a7acb65",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "public/turbofix-hero-banner.png": {
-    "mtime": 1786059964.119639,
-    "ast_hash": "18982befedd378182dff555642db860c",
+    "mtime": 1786060281.8802583,
+    "ast_hash": "33afd6306e0e9e3365e80a01905c08e2",
     "semantic_hash": ""
   },
   "public/turbofix-linkedin-avatar.png": {

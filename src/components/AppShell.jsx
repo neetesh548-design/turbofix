@@ -17,6 +17,7 @@ import { readAuth, safeRedirectPath } from '@/utils/auth';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcutsModal';
 import { visibleAppNavItems } from '@/lib/navigation';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import BrandLogo from '@/components/BrandLogo';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -442,13 +443,8 @@ export default function AppShell({ children, active }) {
               <Grid className="w-5 h-5" />
             </button>
 
-            <a href={BASE} className="app-topbar-brand flex items-center gap-2 flex-shrink-0" aria-label="TurboFix home">
-              <span className="brand-logo-icon app-topbar-logo-icon">
-                <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
-                  <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
-                </svg>
-              </span>
-              <span className="brand-name app-brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
+            <a href={BASE} className="app-topbar-brand flex items-center flex-shrink-0" aria-label="TurboFix home">
+              <BrandLogo size="md" />
             </a>
 
             {/* Current Active Workspace Indicator Pill */}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Factory, LockKeyhole, MessageCircle, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
+import BrandLogo from './BrandLogo';
 
 const SALES_WHATSAPP = import.meta.env.VITE_SALES_WHATSAPP || '919637438044';
 
@@ -72,14 +73,8 @@ export default function Footer() {
     <footer className="footer marketing-footer" aria-label="Site footer">
       <div className="container marketing-footer-main">
         <div className="footer-brand marketing-footer-brand">
-          <Link to="/" className="brand" aria-label="TurboFix home">
-            <svg className="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect width="100" height="100" rx="20" fill="url(#brand-grad-footer)" />
-              <defs><linearGradient id="brand-grad-footer" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stopColor="#22a35a" /><stop offset="100%" stopColor="#125c31" /></linearGradient></defs>
-              <circle cx="50" cy="50" r="12" fill="#0f172a" />
-              <path d="M 53 32 L 38 52 L 48 52 L 44 68 L 62 46 L 50 46 Z" fill="#f59e0b" />
-            </svg>
-            <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span> <span style={{ fontSize: '0.65em', opacity: 0.85, fontWeight: 500 }}>Technologies</span></span>
+          <Link to="/" className="brand flex items-center mb-3" aria-label="TurboFix home">
+            <BrandLogo size="lg" tag="Technologies" />
           </Link>
           <p style={{ fontWeight: 700, color: '#f8fafc', marginBottom: '4px' }}>{copy.tagline}</p>
           <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600, marginBottom: '12px' }}>{copy.subtagline}</p>

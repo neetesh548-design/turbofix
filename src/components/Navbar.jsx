@@ -15,6 +15,7 @@ import { useLanguage } from '../LanguageContext';
 import MicrosoftAppLauncher from './MicrosoftAppLauncher';
 import { ThemeToggle } from './ThemeToggle';
 import { readAuth } from '../utils/auth';
+import BrandLogo from './BrandLogo';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -126,15 +127,7 @@ export default function Navbar() {
             )}
 
             <Link to="/" className="brand public-nav-brand" onClick={() => setIsOpen(false)} aria-label="TurboFix home">
-              <div className="brand-logo-icon">
-                <svg viewBox="0 0 24 24" className="bolt-icon" fill="currentColor" aria-hidden="true">
-                  <path d="M13 2L3 14h8l-1 8 11-12h-9l1-8z" />
-                </svg>
-              </div>
-              <span className="public-nav-brand-copy">
-                <span className="brand-name"><span className="brand-turbo">TURBO</span><span className="brand-fix">FIX</span></span>
-                <small className="public-nav-brand-sub">WORKFLOW LAYER</small>
-              </span>
+              <BrandLogo size="md" tag="WORKFLOW LAYER" />
             </Link>
           </div>
 
