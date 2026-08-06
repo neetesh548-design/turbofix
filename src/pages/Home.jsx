@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTheme } from '../hooks/useTheme';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -86,7 +87,33 @@ const WORKFLOW = [
 
 export default function Home() {
   const { lang } = useLanguage();
+  const { theme } = useTheme();
   const copy = contentByLanguage[lang] || contentByLanguage.en;
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7301/ingest/17a095ee-d2f1-472e-988e-145f532e93e3', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '4431f1',
+      },
+      body: JSON.stringify({
+        sessionId: '4431f1',
+        runId: 'pre-fix',
+        hypothesisId: 'H1',
+        location: 'Home.jsx:mount',
+        message: 'home mounted with theme context',
+        data: {
+          theme,
+          htmlDataTheme: document.documentElement.getAttribute('data-theme'),
+          usesInlineDarkWrapper: true,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  }, [theme]);
 
   useEffect(() => {
     document.title = 'TurboFix | Verified Maintenance for Manufacturing';
