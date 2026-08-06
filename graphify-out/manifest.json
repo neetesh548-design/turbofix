@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "public/turbofix-hero-banner.png": {
-    "mtime": 1786033589.5564134,
-    "ast_hash": "cf619f37cfa29db3600b86b5c6bbb854",
+    "mtime": 1786038005.4729047,
+    "ast_hash": "18982befedd378182dff555642db860c",
     "semantic_hash": ""
   },
   "public/turbofix-linkedin-avatar.png": {
@@ -4062,6 +4062,11 @@
   "public/turbofix-linkedin-logo.png": {
     "mtime": 1785951550.6611602,
     "ast_hash": "ac808f0a0f1119b26386faca6c936ead",
+    "semantic_hash": ""
+  },
+  "public/turbofix-hero-banner-backup.png": {
+    "mtime": 1786038002.2057884,
+    "ast_hash": "cf619f37cfa29db3600b86b5c6bbb854",
     "semantic_hash": ""
   }
 }
