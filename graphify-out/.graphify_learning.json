@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T13:42:58.001993+00:00",
+  "generated_at": "2026-08-07T14:06:45.855860+00:00",
   "nodes": {
     "docs_archive_checklist_frontend_react_vite": {
       "code_fingerprint": "8a1507d0761dba976c07ddb140d0412842923b9e8e7c627a705f4f45c7a3326e",
@@ -12,13 +12,13 @@
           "q": "best framework to optimize the website turbofix"
         }
       ],
-      "score": 0.876427102,
+      "score": 0.876092516,
       "source_file": "docs/archive/checklist.md",
       "status": "tentative",
       "uses": 1
     },
     "src_app": {
-      "code_fingerprint": "21633cb6af679171bad8121085158973e37f5cde9fc264620c5152dae4e53c99",
+      "code_fingerprint": "8937c2863327dee2757cf3ed0d8b4962fab166c8e13abeca8c495a9140a2fbc2",
       "label": "App.jsx",
       "last": "2026-08-01T20:42:15.960148+00:00",
       "provenance": [
@@ -28,7 +28,7 @@
           "q": "best framework to optimize the website turbofix"
         }
       ],
-      "score": 0.876427102,
+      "score": 0.876092516,
       "source_file": "src/App.jsx",
       "status": "tentative",
       "uses": 1
@@ -44,7 +44,7 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/components/marketing/ProofBanner.jsx",
       "status": "tentative",
       "uses": 1
@@ -60,13 +60,13 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/data/marketingContent.js",
       "status": "tentative",
       "uses": 1
     },
     "src_pages_home": {
-      "code_fingerprint": "0850d6c6e726d8c83b3a0434e03e9f5bee2d6fbc2795545dfb3fe23569ef8e0b",
+      "code_fingerprint": "816f60afe692768502bc6bd7a31e78d2edec6ba4a94141cbf8589ae99ab220a4",
       "label": "Home.jsx",
       "last": "2026-08-01T20:44:07.637571+00:00",
       "provenance": [
@@ -76,13 +76,13 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/pages/Home.jsx",
       "status": "tentative",
       "uses": 1
     },
     "src_pages_marketing_demo_demo": {
-      "code_fingerprint": "ffb2db6853240fe2782b6aa2cc7ec9c6205360b317872ac5f83cd8f4da7787f1",
+      "code_fingerprint": "b9cb90223d8cc4626317d3633e02ccc94b2a0be710942ba53227473fbb0e770c",
       "label": "Demo()",
       "last": "2026-08-01T20:44:07.637571+00:00",
       "provenance": [
@@ -92,13 +92,13 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/pages/marketing/Demo.jsx",
       "status": "tentative",
       "uses": 1
     },
     "src_pages_marketing_pricing_pricing": {
-      "code_fingerprint": "985e76ee0e7f13e3077e047ed05939775f63adec5e61921093beee71739de4a8",
+      "code_fingerprint": "dd2e01c351acc1b45dd05013bdddf17562125ca48ede83bfc737bd72d98f2ae1",
       "label": "Pricing()",
       "last": "2026-08-01T20:44:07.637571+00:00",
       "provenance": [
@@ -108,13 +108,13 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/pages/marketing/Pricing.jsx",
       "status": "tentative",
       "uses": 1
     },
     "src_pages_marketing_workflow_workflow": {
-      "code_fingerprint": "cfc45824e249cd1184f8fa8b03e3ac7cd02d52f7740ac4f3cb8258174fecd81c",
+      "code_fingerprint": "3399fbc25ab70d2414ab9a6ce845f71b7c39dd743c3d0f741085d1e83783e0c0",
       "label": "Workflow()",
       "last": "2026-08-01T20:44:07.637571+00:00",
       "provenance": [
@@ -124,7 +124,7 @@
           "q": "Create a Pareto framework to reduce overinformation on the TurboFix public website"
         }
       ],
-      "score": 0.876453276,
+      "score": 0.876118681,
       "source_file": "src/pages/marketing/Workflow.jsx",
       "status": "tentative",
       "uses": 1
@@ -140,7 +140,7 @@
           "q": "best framework to optimize the website turbofix"
         }
       ],
-      "score": 0.876427102,
+      "score": 0.876092516,
       "source_file": "src/utils/performance.jsx",
       "status": "tentative",
       "uses": 1
@@ -156,7 +156,7 @@
           "q": "best framework to optimize the website turbofix"
         }
       ],
-      "score": 0.876427102,
+      "score": 0.876092516,
       "source_file": "tests/public-website-light-audit.spec.js",
       "status": "tentative",
       "uses": 1

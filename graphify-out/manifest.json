@@ -540,8 +540,8 @@
     "semantic_hash": "81bd7b0af60d5948f04d7c1e1c81d318"
   },
   "package.json": {
-    "mtime": 1785776700.116713,
-    "ast_hash": "8c266d14ec5e41bf9592c25f80a89ee3",
+    "mtime": 1786110837.5812867,
+    "ast_hash": "844739fe53ef0b7bace48e10aeb3f4fc",
     "semantic_hash": ""
   },
   "playwright.config.ts": {
@@ -555,8 +555,8 @@
     "semantic_hash": "f1b779a5c7ea84f579f4d46936485a6a"
   },
   "src/App.jsx": {
-    "mtime": 1786032513.6169045,
-    "ast_hash": "8f92cf49c7ab6142bd18c6fb8bd26577",
+    "mtime": 1786110674.6214485,
+    "ast_hash": "77c1b5b4614882a63290a170edbf7d49",
     "semantic_hash": ""
   },
   "src/LanguageContext.jsx": {
@@ -780,8 +780,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1786109051.7347355,
-    "ast_hash": "c52e26fbf070ea6d73a1b2ea76ab604f",
+    "mtime": 1786110709.6369517,
+    "ast_hash": "99699ed2301e3c74c84c42e5d79b7c16",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -1475,8 +1475,8 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1786059313.0009727,
-    "ast_hash": "3ea3e1029c8d0939033947ed191ec284",
+    "mtime": 1786110919.7262702,
+    "ast_hash": "c152649d70ab048773061312071bf4fe",
     "semantic_hash": ""
   },
   "public/llms.txt": {
@@ -2360,38 +2360,38 @@
     "semantic_hash": ""
   },
   "src/pages/marketing/Contact.jsx": {
-    "mtime": 1785654110.7976348,
-    "ast_hash": "9d44a5ed5edfa24a2daee7a19f77f378",
+    "mtime": 1786110782.1013381,
+    "ast_hash": "251598cc450c7bf24f01c8ae2385bd25",
     "semantic_hash": ""
   },
   "src/pages/marketing/Demo.jsx": {
-    "mtime": 1785654093.3447294,
-    "ast_hash": "77e8890fe8c763a3503d6f30c740e02c",
+    "mtime": 1786110785.17305,
+    "ast_hash": "97607020278541ccafb17c9e8a706a23",
     "semantic_hash": ""
   },
   "src/pages/marketing/Platform.jsx": {
-    "mtime": 1785654057.2854655,
-    "ast_hash": "40e51c13121589b615e4c8b5bed06217",
+    "mtime": 1786110780.943512,
+    "ast_hash": "0763d7ec52f320d1fce9f71dcb9c808b",
     "semantic_hash": ""
   },
   "src/pages/marketing/Pricing.jsx": {
-    "mtime": 1785654102.46251,
-    "ast_hash": "47314a5dd69d1f9e6c511e3f43ec0788",
+    "mtime": 1786110780.753114,
+    "ast_hash": "087d506dbff2282e86f1b590eccabf9e",
     "semantic_hash": ""
   },
   "src/pages/marketing/RecordsPlatform.jsx": {
-    "mtime": 1785654070.7429824,
-    "ast_hash": "49e7d631add5d6e6fe0e3bcccf2c59aa",
+    "mtime": 1786110782.558575,
+    "ast_hash": "9ae1e42a6b7cf772584c9e14b0b3db5a",
     "semantic_hash": ""
   },
   "src/pages/marketing/WhyTurboFix.jsx": {
-    "mtime": 1785654046.1404085,
-    "ast_hash": "fa9644ff55c42170871a87d9f25ec4b9",
+    "mtime": 1786110783.6736453,
+    "ast_hash": "fd6af636995f74856378f7a3c036d431",
     "semantic_hash": ""
   },
   "src/pages/marketing/Workflow.jsx": {
-    "mtime": 1785654080.029834,
-    "ast_hash": "ce4af1bd054d8a0f7f6b6443e739e730",
+    "mtime": 1786110785.182107,
+    "ast_hash": "031ef7319cd34bce25125a2beca95c83",
     "semantic_hash": ""
   },
   "tests/admin-data-audit.spec.js": {
@@ -4072,6 +4072,16 @@
   "src/components/dashboard/LimbleCmmsDashboard.jsx": {
     "mtime": 1786061739.7389998,
     "ast_hash": "1d9f195623b43f60ac1963906b69123c",
+    "semantic_hash": ""
+  },
+  "scripts/apply-seo-meta.mjs": {
+    "mtime": 1786110821.7352486,
+    "ast_hash": "b31a9208bb160d0aff7591f368e6bd19",
+    "semantic_hash": ""
+  },
+  "src/data/seoMeta.js": {
+    "mtime": 1786110649.7052329,
+    "ast_hash": "b01f71046bab7a5a4b769dc29f4e5274",
     "semantic_hash": ""
   }
 }
