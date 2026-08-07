@@ -595,8 +595,8 @@
     "semantic_hash": "263da6cb0d452bd2310a2da4476e0bda"
   },
   "src/components/AppShell.jsx": {
-    "mtime": 1785866581.6528852,
-    "ast_hash": "518c2c401c352547c3f51ee930c3464a",
+    "mtime": 1786060412.239107,
+    "ast_hash": "69be1638f0b1eef4a652cdc6547f1c84",
     "semantic_hash": ""
   },
   "src/components/ContactReveal.jsx": {
@@ -615,8 +615,8 @@
     "semantic_hash": "f09afb88aea175bef943453bc7622b7f"
   },
   "src/components/Footer.jsx": {
-    "mtime": 1785948861.8225951,
-    "ast_hash": "3432fc72ab39bd69a7e06078d56bebb5",
+    "mtime": 1786060422.8832166,
+    "ast_hash": "e4bec9af6bbf71bebfd49881f3fcca2f",
     "semantic_hash": ""
   },
   "src/components/LanguageGate.jsx": {
@@ -630,8 +630,8 @@
     "semantic_hash": "88ffb2a9cdb73d8c4f284fbe22ed3815"
   },
   "src/components/Navbar.jsx": {
-    "mtime": 1785678693.3350608,
-    "ast_hash": "d836963bc3ab734e3a0c45f9813f7f02",
+    "mtime": 1786060399.195315,
+    "ast_hash": "d25a69aa60904451a65380e8658275e8",
     "semantic_hash": ""
   },
   "src/components/NotificationCenter.jsx": {
@@ -1320,8 +1320,8 @@
     "semantic_hash": "94f2b6814f55abb5c407013ebd815639"
   },
   "vite.config.js": {
-    "mtime": 1785594125.384318,
-    "ast_hash": "fb727a711e31f1e3fff7c8971f7003d0",
+    "mtime": 1786060458.9760475,
+    "ast_hash": "7d38c46b44ccb3401189d1807134a53a",
     "semantic_hash": ""
   },
   "vitest.config.js": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "public/turbofix-hero-banner.png": {
-    "mtime": 1786060281.8802583,
-    "ast_hash": "33afd6306e0e9e3365e80a01905c08e2",
+    "mtime": 1786060454.125259,
+    "ast_hash": "c21a0ef68060ae13df6ec83a2533b477",
     "semantic_hash": ""
   },
   "public/turbofix-linkedin-avatar.png": {
@@ -4067,6 +4067,11 @@
   "src/components/PublicSiteDebugMonitor.jsx": {
     "mtime": 1786045013.9044852,
     "ast_hash": "8acb547e305c1f862f319e6ca8d5b154",
+    "semantic_hash": ""
+  },
+  "src/components/BrandLogo.jsx": {
+    "mtime": 1786060433.687743,
+    "ast_hash": "2bd1180abf57029988279d7792ab2517",
     "semantic_hash": ""
   }
 }
