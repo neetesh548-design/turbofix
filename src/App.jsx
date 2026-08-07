@@ -6,6 +6,7 @@ import AntDProvider from './components/AntDProvider';
 import { ViewModeProvider } from './ViewModeContext';
 import { MachineProvider } from './MachineContext';
 import { registerServiceWorker, setupTouchGestures } from './utils/pwa';
+import { PAGE_META, PUBLIC_MARKETING_PATHS, SITE_URL } from './data/seoMeta';
 
 const Home = lazy(() => import('./pages/Home'));
 const WhyTurboFix = lazy(() => import('./pages/marketing/WhyTurboFix'));
@@ -44,88 +45,25 @@ import { ThemeProvider } from './hooks/useTheme';
 
 function SearchMetadata() {
   const { pathname } = useLocation();
-
-  const metadata = {
-    '/': {
-      title: 'TurboFix | Verified Maintenance for Manufacturing',
-      description: 'TurboFix helps plants report breakdowns, assign work, verify repairs, and keep approved machine history in one system.',
-    },
-    '/admin.html': {
-      title: 'TurboFix | Platform Operations Control Room',
-      description: 'TurboFix Platform Operations Control Room & Factory Machine Fleet Management',
-    },
-    '/admin': {
-      title: 'TurboFix | Platform Operations Control Room',
-      description: 'TurboFix Platform Operations Control Room & Factory Machine Fleet Management',
-    },
-    '/why-turbofix.html': {
-      title: 'Why TurboFix | Why Plants Switch',
-      description: 'See how TurboFix replaces paper, spreadsheets, and WhatsApp handoffs with verified maintenance work.',
-    },
-    '/platform.html': {
-      title: 'TurboFix Platform | Maintenance Workflows',
-      description: 'See TurboFix for breakdown reporting, repair execution, records, and plant visibility.',
-    },
-    '/records-platform.html': {
-      title: 'TurboFix Records Platform',
-      description: 'Digitize handwritten and digital maintenance records into reviewable machine history.',
-    },
-    '/workflow.html': {
-      title: 'TurboFix Workflow | Report to Verify',
-      description: 'Follow each issue from report to assignment, repair, and verified closure.',
-    },
-    '/demo.html': {
-      title: 'TurboFix Demo | See the Product in Action',
-      description: 'See one representative TurboFix scenario for operators, technicians, and plant leaders.',
-    },
-    '/pricing.html': {
-      title: 'TurboFix Pricing | Per Machine Plans',
-      description: 'Explore per-machine pricing, onboarding, and what is included before you book a walkthrough.',
-    },
-    '/contact.html': {
-      title: 'Book a TurboFix Plant Walkthrough',
-      description: 'Book a guided TurboFix walkthrough for one representative machine in your plant.',
-    },
-    '/platform-experience.html': {
-      title: 'TurboFix | Platform Experience',
-      description: 'Experience how TurboFix unifies your plant maintenance workflow in one seamless platform.',
-    },
-    '/experience.html': {
-      title: 'TurboFix | Experience',
-      description: 'See the TurboFix difference and learn how to optimize your manufacturing downtime.',
-    },
-  };
-  const page = metadata[pathname] || null;
+  const page = PAGE_META[pathname] || null;
+  const isPublicMarketingPage = PUBLIC_MARKETING_PATHS.includes(pathname);
 
   useEffect(() => {
-    const isPublicMarketingPage = [
-      '/',
-      '/why-turbofix.html',
-      '/platform.html',
-      '/records-platform.html',
-      '/workflow.html',
-      '/demo.html',
-      '/pricing.html',
-      '/contact.html',
-    ].includes(pathname);
     document.querySelector('meta[name="robots"]')?.setAttribute(
       'content',
       isPublicMarketingPage
         ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
         : 'noindex, nofollow',
     );
-    document.querySelector('link[rel="canonical"]')?.setAttribute(
-      'href',
-      `https://www.turbofix.co.in${isPublicMarketingPage ? (pathname === '/' ? '/' : pathname) : pathname}`,
-    );
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', `${SITE_URL}${pathname}`);
     if (page) {
       document.title = page.title;
       document.querySelector('meta[name="description"]')?.setAttribute('content', page.description);
       document.querySelector('meta[property="og:title"]')?.setAttribute('content', page.title);
       document.querySelector('meta[property="og:description"]')?.setAttribute('content', page.description);
-      document.querySelector('meta[property="og:url"]')?.setAttribute('content', `https://www.turbofix.co.in${pathname === '/' ? '/' : pathname}`);
+      document.querySelector('meta[property="og:url"]')?.setAttribute('content', `${SITE_URL}${pathname}`);
     }
-  }, [pathname, page]);
+  }, [pathname, page, isPublicMarketingPage]);
 
   return null;
 }

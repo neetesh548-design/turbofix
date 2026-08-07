@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardCheck, Factory, Layers3, MessageCircle, ShieldCheck, Wrench } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
@@ -44,10 +44,6 @@ const CHANGE = [
 
 export default function WhyTurboFix() {
   const { lang } = useLanguage();
-
-  useEffect(() => {
-    document.title = 'Why TurboFix | Why Plants Switch';
-  }, []);
 
   const heroTitle = lang === 'en' ? 'Why the old workflow fails' : 'Why the old workflow fails';
   const heroBody = lang === 'en'

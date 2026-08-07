@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Route as RouteIcon, ShieldCheck } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
@@ -28,10 +28,6 @@ const STEPS = [
 ];
 
 export default function Workflow() {
-  useEffect(() => {
-    document.title = 'TurboFix Workflow | Report to Verify';
-  }, []);
-
   return (
     <div className="marketing-home">
       <PageHero

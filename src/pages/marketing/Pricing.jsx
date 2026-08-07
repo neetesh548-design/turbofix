@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { IndianRupee, ShieldCheck, Settings, Users } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
 import FeatureCard from '../../components/marketing/FeatureCard';
@@ -25,10 +25,6 @@ const INCLUSIONS = [
 ];
 
 export default function Pricing() {
-  useEffect(() => {
-    document.title = 'TurboFix Pricing | Per Machine Plans';
-  }, []);
-
   return (
     <div className="marketing-home">
       <PageHero

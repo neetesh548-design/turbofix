@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArchiveRestore, CheckCircle2, FileSearch, Layers3, ShieldCheck, Upload } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
@@ -42,10 +42,6 @@ const OUTCOMES = [
 ];
 
 export default function RecordsPlatform() {
-  useEffect(() => {
-    document.title = 'TurboFix Records Platform';
-  }, []);
-
   return (
     <div className="marketing-home">
       <PageHero

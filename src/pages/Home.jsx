@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -87,12 +87,6 @@ const WORKFLOW = [
 export default function Home() {
   const { lang } = useLanguage();
   const copy = contentByLanguage[lang] || contentByLanguage.en;
-
-  useEffect(() => {
-    document.title = 'TurboFix | Verified Maintenance for Manufacturing';
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'TurboFix helps manufacturers prevent breakdowns, assign work instantly, and verify every repair — from shopfloor to sign-off.');
-  }, []);
 
   return (
     <div style={{ background: '#0b1118', color: '#e2e8f0', fontFamily: "'Inter', 'Montserrat', sans-serif" }}>

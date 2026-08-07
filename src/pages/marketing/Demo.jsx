@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, PlayCircle, Factory, Wrench, ShieldCheck } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
@@ -26,10 +26,6 @@ const VIEWS = [
 export default function Demo() {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const videoRef = useRef(null);
-
-  useEffect(() => {
-    document.title = 'TurboFix Demo | See the Product in Action';
-  }, []);
 
   const handlePlay = () => {
     videoRef.current?.play();

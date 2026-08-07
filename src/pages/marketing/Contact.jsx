@@ -1,14 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { PhoneCall } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
 import ContactCard from '../../components/marketing/ContactCard';
 import PublicPersonaMosaic from '../../components/marketing/PublicPersonaMosaic';
 
 export default function Contact() {
-  useEffect(() => {
-    document.title = 'Book a TurboFix Plant Walkthrough';
-  }, []);
-
   return (
     <div className="marketing-home">
       <PageHero

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArchiveRestore, BrainCircuit, ClipboardCheck, Layers3, Wrench } from 'lucide-react';
 import PageHero from '../../components/marketing/PageHero';
@@ -24,10 +24,6 @@ const CAPABILITIES = [
 ];
 
 export default function Platform() {
-  useEffect(() => {
-    document.title = 'TurboFix Platform | Maintenance Workflows';
-  }, []);
-
   return (
     <div className="marketing-home">
       <PageHero
