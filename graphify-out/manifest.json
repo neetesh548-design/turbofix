@@ -650,8 +650,8 @@
     "semantic_hash": "f85c6471d7ed02b62a721c085bf0b1a5"
   },
   "src/components/ThemeToggle.jsx": {
-    "mtime": 1786045017.5036767,
-    "ast_hash": "50ad27ab899853eb1eaa454bce55c818",
+    "mtime": 1786109011.6652648,
+    "ast_hash": "0e6eae4fccd3f20bb0a56b8e35267732",
     "semantic_hash": ""
   },
   "src/components/Tooltip.jsx": {
@@ -725,8 +725,8 @@
     "semantic_hash": "511fa7f711ae2f6225ab5e3e15dfea0d"
   },
   "src/layouts/MainLayout.jsx": {
-    "mtime": 1786045014.0794225,
-    "ast_hash": "d9d497c2967cfd122393d8a904194684",
+    "mtime": 1786109001.5711164,
+    "ast_hash": "cef436808aae8fd6a9b1520d23e6e875",
     "semantic_hash": ""
   },
   "src/lib/api.js": {
@@ -780,8 +780,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1786060285.068432,
-    "ast_hash": "898b3a814516189441b895860a7acb65",
+    "mtime": 1786109051.7347355,
+    "ast_hash": "c52e26fbf070ea6d73a1b2ea76ab604f",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -1385,9 +1385,9 @@
     "semantic_hash": "703619a0367deabab63f0ce54f63adee"
   },
   ".github/workflows/pages.yml": {
-    "mtime": 1785387910.2637897,
-    "ast_hash": "5472c522d0c41c7225867dad75ec2725",
-    "semantic_hash": "5472c522d0c41c7225867dad75ec2725"
+    "mtime": 1786109082.0513852,
+    "ast_hash": "d734b6fc21851a887c665b82dd2bbfc7",
+    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1784356737.3245437,
@@ -2345,8 +2345,8 @@
     "semantic_hash": ""
   },
   "src/components/marketing/PricingCalculator.jsx": {
-    "mtime": 1785617886.6236842,
-    "ast_hash": "14e12e9216c58f2dcf31e7752e26bba5",
+    "mtime": 1786109687.2211094,
+    "ast_hash": "1b4453289a4e93c507a353e023d5cda9",
     "semantic_hash": ""
   },
   "src/components/marketing/ProofBanner.jsx": {
@@ -3985,8 +3985,8 @@
     "semantic_hash": ""
   },
   "src/components/marketing/HeroLeadForm.jsx": {
-    "mtime": 1786032686.3863559,
-    "ast_hash": "f37b1d13f40bf4705cb7a33f6e7f1d7c",
+    "mtime": 1786109071.4061167,
+    "ast_hash": "8af19fc6a156c33134a3578dc3af90cb",
     "semantic_hash": ""
   },
   "src/components/marketing/IconFeatureGrid.jsx": {
@@ -4005,8 +4005,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/20260806000000_create_leads.sql": {
-    "mtime": 1786036670.8561966,
-    "ast_hash": "5cf612b770a1d363c4407b739aec526e",
+    "mtime": 1786109626.746577,
+    "ast_hash": "4f68c308b4cab08a2e2c5353bb1ec566",
     "semantic_hash": ""
   },
   "tests/find_element.spec.ts": {
@@ -4062,11 +4062,6 @@
   "public/turbofix-hero-banner-backup.png": {
     "mtime": 1786038002.2057884,
     "ast_hash": "cf619f37cfa29db3600b86b5c6bbb854",
-    "semantic_hash": ""
-  },
-  "src/components/PublicSiteDebugMonitor.jsx": {
-    "mtime": 1786045013.9044852,
-    "ast_hash": "8acb547e305c1f862f319e6ca8d5b154",
     "semantic_hash": ""
   },
   "src/components/BrandLogo.jsx": {

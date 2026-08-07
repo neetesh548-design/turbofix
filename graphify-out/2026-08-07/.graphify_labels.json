@@ -534,5 +534,9 @@
   "532": "9. WebSocket Connection Setup",
   "533": "DowntimeSalesCalculator.jsx",
   "534": "badge.jsx",
-  "535": "dashboard-framework.spec.js"
+  "535": "dashboard-framework.spec.js",
+  "536": "seed_demo.py",
+  "537": "DashboardWidget.jsx",
+  "538": "button.jsx",
+  "539": "lay-owner-dashboard.spec.js"
 }
