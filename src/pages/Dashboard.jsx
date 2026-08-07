@@ -30,6 +30,11 @@ import AppShell from '../components/AppShell';
 import QuickReportDialog from '../components/QuickReportDialog';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
 import MasterTabbedDashboard from '../components/dashboard/MasterTabbedDashboard.jsx';
+import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
+import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
+import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
+import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
+import LimbleCmmsDashboard from '../components/dashboard/LimbleCmmsDashboard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
   DASHBOARD_ROLES,
@@ -411,8 +416,6 @@ export default function Dashboard() {
     return () => document.removeEventListener('open-quick-report', openQuickReport);
   }, [openQuickReport]);
 
-  const canViewCost = can(user?.role, CAPABILITIES.VIEW_FINANCIALS);
-
   return (
     <AppShell active="overview">
       <div className="decision-page md-dashboard rd-page" data-role={specialistRole || role} data-testid="dashboard-page">
@@ -447,7 +450,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <MasterTabbedDashboard
+          <LimbleCmmsDashboard
             metrics={metrics}
             tickets={sources.tickets}
             machines={sources.machines}
@@ -455,6 +458,8 @@ export default function Dashboard() {
             parts={sources.parts}
             loading={loading}
             onQuickReport={openQuickReport}
+            user={user}
+            role={role}
           />
         )}
 

@@ -100,10 +100,10 @@ export default function OwnerDashboard30s({
         <div>
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-400 font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#50ffab]" />
-            STITCH MCP POWERED • 30-SECOND MALIK DIGEST
+            PLANT OVERVIEW • 30-SECOND SUMMARY
           </div>
           <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
-            Machine Bandh & Production Loss Protection
+            Machine Breakdown & Daily Loss Tracking
           </h2>
         </div>
 
@@ -120,7 +120,7 @@ export default function OwnerDashboard30s({
       {/* 3 CORE SECTIONS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 relative z-10">
         
-        {/* SECTION 1: KARKHANA HEALTH SCORE */}
+        {/* SECTION 1: FACTORY HEALTH SCORE */}
         <div className="bg-[#111827]/80 backdrop-blur-md border border-slate-800/90 hover:border-emerald-500/40 rounded-xl p-3.5 relative overflow-hidden flex flex-col justify-between transition-all group">
           <div className="absolute top-2 right-2 text-slate-800 group-hover:text-emerald-500/10 transition-colors pointer-events-none">
             <Shield className="w-20 h-20 opacity-20" />
@@ -129,7 +129,7 @@ export default function OwnerDashboard30s({
           <div>
             <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5 font-mono">
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              SECTION 1 • KARKHANA HEALTH SCORE
+              SECTION 1 • FACTORY HEALTH SCORE
             </div>
             <div className="flex items-baseline gap-2 my-0.5">
               <span className="text-4xl md:text-5xl font-black text-white tracking-tight font-mono drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
@@ -159,7 +159,7 @@ export default function OwnerDashboard30s({
               <span className="text-slate-100 font-bold">{uptimePercent}%</span>
             </div>
             <div className="flex justify-between">
-              <span>PM Discipline (Service On-Time)</span>
+              <span>Machine Servicing (PM On-Time)</span>
               <span className="text-slate-100 font-bold">{pmDiscipline}%</span>
             </div>
             <div className="flex justify-between">
@@ -169,24 +169,24 @@ export default function OwnerDashboard30s({
           </div>
         </div>
 
-        {/* SECTION 2: FLEET STATUS (STITCH DONUT CHART) */}
+        {/* SECTION 2: FLEET STATUS */}
         <div className="bg-[#111827]/80 backdrop-blur-md border border-slate-800/90 hover:border-indigo-500/40 rounded-xl p-3 flex flex-col justify-between transition-all">
           <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1.5 font-mono">
             <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-            SECTION 2 • PLANT FLEET STATUS
+            SECTION 2 • MACHINE STATUS
           </div>
 
           <div className="my-auto">
             <StitchDonutChart
               title="Machine Status Split"
-              subtitle="Live Plant Telemetry"
+              subtitle="Live Plant Status"
               data={machineStatusData}
               centerLabel="Machines"
             />
           </div>
         </div>
 
-        {/* SECTION 3: PAISA & LOSS IMPACT */}
+        {/* SECTION 3: DAILY LOSS & SAVINGS */}
         <div className="bg-[#111827]/80 backdrop-blur-md border border-emerald-500/30 hover:border-emerald-500/50 rounded-xl p-3.5 flex flex-col justify-between relative shadow-[0_0_20px_rgba(80,255,171,0.05)]">
           <div className="absolute top-2 right-2 text-emerald-400/30">
             <IndianRupee className="w-5 h-5" />
@@ -194,7 +194,7 @@ export default function OwnerDashboard30s({
 
           <div>
             <div className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider mb-1 font-mono flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-emerald-400" /> SECTION 3 • PAISA & LOSS IMPACT
+              <Zap className="w-3.5 h-3.5 text-emerald-400" /> SECTION 3 • DAILY LOSS & SAVINGS
             </div>
 
             <div className="grid grid-cols-2 gap-2 my-1">
@@ -241,7 +241,7 @@ export default function OwnerDashboard30s({
       <div className="bg-[#111827]/80 backdrop-blur-md border border-slate-800/90 rounded-xl p-3 relative z-10">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-1.5 font-mono">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-400" /> TOP BREAKDOWN MACHINES FOR SUBAH (MORNING) MEETING
+            <AlertCircle className="w-3.5 h-3.5 text-amber-400" /> TOP MACHINES NEEDING ATTENTION THIS MORNING
           </h3>
           {onDrilldown && (
             <button 

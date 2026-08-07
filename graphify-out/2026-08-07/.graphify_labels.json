@@ -492,6 +492,9 @@
   "490": "Integration Checklist",
   "491": "Files Created",
   "492": "Known Limitations & Future Work",
+  "493": "Testing Checklist",
+  "494": "6. CSS Enhancements ✅",
+  "495": "5. Live Machine Status ✅",
   "496": "11. localStorage Structure Optimization",
   "497": "12. Web Vitals Targets",
   "498": "15. Testing Checklist",
@@ -509,8 +512,11 @@
   "510": "Resources",
   "511": "DeviceViewportSwitcher.jsx",
   "512": "Notification.jsx",
+  "513": "Known Limitations & Future Work",
   "514": "3. Activity Feed ✅",
+  "515": "Integration Checklist",
   "516": "badge.jsx",
   "517": "Known Limitations & Future Enhancements",
-  "518": "button.jsx"
+  "518": "button.jsx",
+  "519": "9. WebSocket Connection Setup"
 }

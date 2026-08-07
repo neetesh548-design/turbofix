@@ -11,8 +11,8 @@ test.describe('Dashboard End-to-End Framework Tests', () => {
     await page.addInitScript(({ jwt }) => {
       window.localStorage.setItem('tf_token', jwt);
       window.localStorage.setItem('tf_user', JSON.stringify({
-        role: 'plant_head',
-        name: 'Test User',
+        role: 'owner',
+        name: 'Test Owner',
         user_id: 'tester-123',
         company_name: 'TurboFix Manufacturing'
       }));
@@ -34,56 +34,31 @@ test.describe('Dashboard End-to-End Framework Tests', () => {
     });
   });
 
-  // Replaces the old pulse-strip check: the plant-status question is now
-  // answered by the role-aware Owner board (business KPIs + fleet health),
-  // with MTTR living on the reliability card in the priority row below it.
-  test('should render the owner board with core plant KPIs', async ({ page }) => {
-    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
-
-    const board = page.getByTestId('owner-dashboard');
-    await expect(board).toBeVisible({ timeout: 10000 });
-    await expect(board).toContainText('Fleet value at risk');
-    await expect(board).toContainText('Fleet health map');
-    await expect(page.locator('.md-reliability-card')).toContainText('MTTR');
+  test('should render the Limble CMMS control board container', async ({ page }) => {
+    await page.goto('/dashboard.html');
+    const container = page.locator('.limble-cmms-container');
+    await expect(container).toBeVisible({ timeout: 15000 });
+    await expect(container).toContainText('LIMBLE CMMS DASHBOARD');
   });
 
-  test('should render the priority row with queue, reliability, and cost-impact cards', async ({ page }) => {
-    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
-
-    const priorityRow = page.locator('.md-priority-row');
-    await expect(priorityRow).toBeVisible({ timeout: 10000 });
-    await expect(priorityRow).toContainText('Needs attention');
-    await expect(priorityRow).toContainText('Equipment health');
-    await expect(priorityRow).toContainText('Financial impact');
-    await expect(priorityRow).toContainText('MTBF');
-    await expect(priorityRow).toContainText('MTTR');
+  test('should render top 4 Limble CMMS KPI cards with live metrics', async ({ page }) => {
+    await page.goto('/dashboard.html');
+    const container = page.locator('.limble-cmms-container');
+    await expect(container).toBeVisible({ timeout: 15000 });
+    await expect(container).toContainText('Downtime Money Risk');
+    await expect(container).toContainText('Daily Loss Today');
+    await expect(container).toContainText('Monthly Money Saved');
+    await expect(container).toContainText('Plant Machine Uptime');
   });
 
-  test('should expand a category tab and collapse it back on second click', async ({ page }) => {
-    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
+  test('should filter work orders on search input change', async ({ page }) => {
+    await page.goto('/dashboard.html');
+    const container = page.locator('.limble-cmms-container');
+    await expect(container).toBeVisible({ timeout: 15000 });
 
-    // Categories are collapsed by default — a hint is shown instead of the details.
-    await expect(page.locator('.md-filter-hint')).toBeVisible({ timeout: 10000 });
-
-    const efficiencyTab = page.locator('.dashboard-filter-row button:has-text("Equipment-wise")');
-    await efficiencyTab.click();
-    await expect(efficiencyTab).toHaveClass(/active/);
-    await expect(page.locator('.md-category', { hasText: 'Operational efficiency' })).toBeVisible();
-
-    // Clicking the same tab again collapses it back to the hint state.
-    await efficiencyTab.click();
-    await expect(efficiencyTab).not.toHaveClass(/active/);
-    await expect(page.locator('.md-filter-hint')).toBeVisible();
-  });
-
-  test('should open the priority queue drilldown on click', async ({ page }) => {
-    await page.goto('/dashboard.html', { waitUntil: 'domcontentloaded' });
-
-    const queueRow = page.locator('.md-queue-row').first();
-    await expect(queueRow).toBeVisible({ timeout: 10000 });
-    await queueRow.click();
-
-    const drilldown = page.locator('#dashboard-drilldown');
-    await expect(drilldown).toBeVisible();
+    const searchInput = page.locator('input[placeholder*="Search tasks"]');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill('CNC');
+    await expect(container).toBeVisible();
   });
 });

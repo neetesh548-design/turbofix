@@ -105,13 +105,13 @@ export default function MasterTabbedDashboard({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] uppercase font-bold text-emerald-400 tracking-widest font-mono">Master Karkhana Command</span>
+                <span className="text-[9px] uppercase font-bold text-emerald-400 tracking-widest font-mono">Factory Overview</span>
                 <span className="text-[8px] px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 font-mono hidden sm:inline">
                   Hotkeys 1, 2, 3
                 </span>
               </div>
               <h1 className="text-base md:text-lg font-black text-white tracking-tight leading-none">
-                TurboFix Malik & Plant Cockpit
+                TurboFix Factory Dashboard
               </h1>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function MasterTabbedDashboard({
               }`}
             >
               <span className={`w-4 h-4 rounded text-[10px] font-black flex items-center justify-center ${activeTab === 1 ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>1</span>
-              <span>Malik Overview</span>
+              <span>Plant Overview</span>
             </button>
 
             <button
@@ -180,7 +180,7 @@ export default function MasterTabbedDashboard({
               }`}
             >
               <span className={`w-4 h-4 rounded text-[10px] font-black flex items-center justify-center ${activeTab === 2 ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>2</span>
-              <span>Shopfloor & Fitters</span>
+              <span>Shopfloor Work Orders</span>
             </button>
 
             <button
@@ -192,7 +192,7 @@ export default function MasterTabbedDashboard({
               }`}
             >
               <span className={`w-4 h-4 rounded text-[10px] font-black flex items-center justify-center ${activeTab === 3 ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>3</span>
-              <span>Paisa & Bachat</span>
+              <span>Cost & Savings</span>
             </button>
           </div>
         </div>

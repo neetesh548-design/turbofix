@@ -775,13 +775,13 @@
     "semantic_hash": "822d28f4dd469dfa12264fe250a45d53"
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1786032599.3869255,
-    "ast_hash": "49daede4731a7ec85f9ff13c8fb75ff8",
+    "mtime": 1786059602.0647116,
+    "ast_hash": "56b0b7fbbb4148bb668eafe1b113d1e2",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1786045014.9650075,
-    "ast_hash": "d533ead0c1949a2157821b35d0226c44",
+    "mtime": 1786060285.068432,
+    "ast_hash": "898b3a814516189441b895860a7acb65",
     "semantic_hash": ""
   },
   "src/pages/Inventory.jsx": {
@@ -1369,11 +1369,6 @@
     "ast_hash": "9960a24288958394ac50e57ff638b036",
     "semantic_hash": "9960a24288958394ac50e57ff638b036"
   },
-  "public/demo.mp4": {
-    "mtime": 1784197167.2133937,
-    "ast_hash": "f497ab4932e94fd9620d25ca8efe0249",
-    "semantic_hash": "f497ab4932e94fd9620d25ca8efe0249"
-  },
   ".github/workflows/backend-ci.yml": {
     "mtime": 1785387903.8488126,
     "ast_hash": "d82308de7c2b2d1170c82fecc786b234",
@@ -1480,7 +1475,7 @@
     "semantic_hash": "0998dca10f178014933075186353648f"
   },
   "index.html": {
-    "mtime": 1786032506.3125412,
+    "mtime": 1786059313.0009727,
     "ast_hash": "3ea3e1029c8d0939033947ed191ec284",
     "semantic_hash": ""
   },
@@ -3955,18 +3950,18 @@
     "semantic_hash": ""
   },
   "src/components/dashboard/MasterTabbedDashboard.jsx": {
-    "mtime": 1786032519.154103,
-    "ast_hash": "5713155bb2fe80ef06718e23dc720567",
+    "mtime": 1786059655.3605464,
+    "ast_hash": "120732907e2e54b1451af53d2de05384",
     "semantic_hash": ""
   },
   "src/components/dashboard/OwnerDashboard30s.jsx": {
-    "mtime": 1786032519.1729207,
-    "ast_hash": "60ed772a3a20baa9d7046e70f4808c7a",
+    "mtime": 1786059638.826268,
+    "ast_hash": "e29100f4a7310f1f84a55ee30474c0b8",
     "semantic_hash": ""
   },
   "src/components/dashboard/WhatsAppMalikDigestModal.jsx": {
-    "mtime": 1785877490.910924,
-    "ast_hash": "07088532cbd839822fc3053298e7c9d0",
+    "mtime": 1786059601.5506556,
+    "ast_hash": "b31b73883901fc4cfac3bb3c9728c70b",
     "semantic_hash": ""
   },
   "src/components/marketing/DowntimeCalculator.jsx": {
@@ -4040,8 +4035,8 @@
     "semantic_hash": ""
   },
   "public/turbofix-hero-banner.png": {
-    "mtime": 1786038005.4729047,
-    "ast_hash": "18982befedd378182dff555642db860c",
+    "mtime": 1786060281.8802583,
+    "ast_hash": "33afd6306e0e9e3365e80a01905c08e2",
     "semantic_hash": ""
   },
   "public/turbofix-linkedin-avatar.png": {
