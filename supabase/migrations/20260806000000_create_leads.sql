@@ -1,6 +1,6 @@
 -- Create leads table for marketing contact forms
 CREATE TABLE IF NOT EXISTS leads (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT,
     phone TEXT,
     company TEXT,

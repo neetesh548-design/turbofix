@@ -9,24 +9,29 @@ export default function HeroLeadForm() {
   const [form, setForm] = useState({ plant: '', city: '', machines: '', time: '' });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    try {
-      await supabase.from('leads').insert([{
-        company: form.plant,
-        city: form.city,
-        machines: form.machines,
-        preferred_time: form.time,
-        source: 'hero-form',
-        created_at: new Date().toISOString()
-      }]);
-    } catch (error) {
-      console.error('Error inserting lead:', error);
+    setError(false);
+
+    const { error: insertError } = await supabase.from('leads').insert([{
+      company: form.plant,
+      city: form.city,
+      machines: form.machines,
+      preferred_time: form.time,
+      source: 'hero-form',
+      created_at: new Date().toISOString()
+    }]);
+
+    if (insertError) {
+      console.error('Error inserting lead:', insertError);
+      setLoading(false);
+      setError(true);
+      return;
     }
 
     // Redirect to contact page with query params pre-filled
@@ -117,6 +122,12 @@ export default function HeroLeadForm() {
               </div>
             </div>
           </div>
+
+          {error ? (
+            <p className="hero-lead-error" role="alert" style={{ color: '#f87171', fontSize: '0.8rem', margin: 0 }}>
+              Something went wrong sending your request. Please try again, or WhatsApp us directly.
+            </p>
+          ) : null}
 
           <button
             type="submit"

@@ -11,7 +11,7 @@ export default function PricingCalculator() {
   const discountFactor = isAnnual ? 0.85 : 1;
   const liteUnitPrice = Math.round(499 * discountFactor);
   const growthUnitPrice = Math.round(699 * discountFactor);
-  const enterpriseUnitPrice = Math.round(499 * discountFactor);
+  const enterpriseUnitPrice = Math.round(399 * discountFactor);
 
   const liteMonthly = machineCount * liteUnitPrice;
   const growthMonthly = machineCount * growthUnitPrice;

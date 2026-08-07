@@ -1285,9 +1285,9 @@
     "semantic_hash": "d202ab48a3148602ee1784186515a63d"
   },
   "tests/lay-owner-dashboard.spec.js": {
-    "mtime": 1785023258.4435167,
-    "ast_hash": "8a7097fc6f498a836ffdb2ce4b86d23b",
-    "semantic_hash": "8a7097fc6f498a836ffdb2ce4b86d23b"
+    "mtime": 1786062315.0277383,
+    "ast_hash": "43f2c7d607ba7326daaca35637dfed5d",
+    "semantic_hash": ""
   },
   "tests/machine-card.spec.js": {
     "mtime": 1785743421.7257833,

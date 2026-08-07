@@ -4,25 +4,6 @@ export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   const handleToggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    // #region agent log
-    fetch('http://127.0.0.1:7301/ingest/17a095ee-d2f1-472e-988e-145f532e93e3', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '4431f1',
-      },
-      body: JSON.stringify({
-        sessionId: '4431f1',
-        runId: 'pre-fix',
-        hypothesisId: 'H3',
-        location: 'ThemeToggle.jsx:click',
-        message: 'theme toggle clicked',
-        data: { from: theme, to: next, pathname: window.location.pathname },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     toggleTheme();
   };
 
