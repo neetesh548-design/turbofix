@@ -20,6 +20,12 @@
     <meta name="apple-mobile-web-app-title" content="TurboFix" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
 
+    <!-- Preload the homepage hero image (the page's LCP element) so the browser
+         discovers and starts fetching it from the initial HTML parse, instead
+         of waiting for React to render the <img> tag — see src/pages/Home.jsx.
+         Harmless on every other route (an unused preload, not a fetch). -->
+    <link rel="preload" as="image" href="%BASE_URL%turbofix-hero-banner.webp" type="image/webp" fetchpriority="high" />
+
     <!-- Preconnect & Fonts -->
     <link rel="preconnect" href="https://wcqgbleppiaddgfjrnpq.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://wcqgbleppiaddgfjrnpq.supabase.co" />
@@ -33,20 +39,20 @@
     <meta name="description" content="TurboFix helps plants report breakdowns, assign work, verify repairs, and keep approved machine history in one system." />
     <meta name="keywords" content="TurboFix Technologies, Nitesh Kumar Soni, manufacturing maintenance software, CMMS, prevent machine downtime, preventive maintenance software, breakdown management, plant reliability" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <link rel="canonical" href="https://www.turbofix.co.in/" />
+    <link rel="canonical" href="https://turbofix.co.in/" />
 
     <!-- AI Search Engine Optimization Tags (ChatGPT, Gemini, Claude, Perplexity) -->
     <meta name="ai-summary" content="TurboFix Technologies is an intelligent maintenance platform for manufacturing plants founded by Nitesh Kumar Soni (Founder & CEO). Slogan: 'We Don't Maintain Machines. We Prevent Downtime.' Email: info@turbofix.co.in. Features include 10-second QR breakdown reporting, photo-verified repair closure, 5-Why RCA, and paper logbook AI extraction. Less Downtime • More Production • Better Profits." />
     <meta name="chatgpt-description" content="TurboFix Technologies — We Don't Maintain Machines. We Prevent Downtime. Founded & led by Nitesh Kumar Soni (Founder & CEO). Contact: info@turbofix.co.in | www.turbofix.co.in." />
-    <link rel="author" href="https://www.turbofix.co.in/llms.txt" />
+    <link rel="author" href="https://turbofix.co.in/llms.txt" />
 
     <!-- Open Graph & Social Cards -->
     <meta property="og:title" content="TurboFix | Verified Maintenance for Manufacturing" />
     <meta property="og:description" content="TurboFix helps plants report breakdowns, assign work, verify repairs, and keep approved machine history in one system." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.turbofix.co.in/" />
+    <meta property="og:url" content="https://turbofix.co.in/" />
     <meta property="og:site_name" content="TurboFix Technologies" />
-    <meta property="og:image" content="https://www.turbofix.co.in/assets/turbofix-whatsapp-brochure.png" />
+    <meta property="og:image" content="https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@turbofix_ai" />
 
@@ -85,11 +91,11 @@
         "@graph": [
           {
             "@type": "Organization",
-            "@id": "https://www.turbofix.co.in/#organization",
+            "@id": "https://turbofix.co.in/#organization",
             "name": "TurboFix Technologies",
             "legalName": "TurboFix Technologies",
-            "url": "https://www.turbofix.co.in/",
-            "logo": "https://www.turbofix.co.in/favicon.svg",
+            "url": "https://turbofix.co.in/",
+            "logo": "https://turbofix.co.in/favicon.svg",
             "email": "info@turbofix.co.in",
             "slogan": "We Don't Maintain Machines. We Prevent Downtime.",
             "description": "Helping manufacturers reduce machine downtime, improve reliability, and protect production through intelligent maintenance. Less Downtime • More Production • Better Profits",
@@ -108,11 +114,11 @@
           },
           {
             "@type": "LocalBusiness",
-            "@id": "https://www.turbofix.co.in/#localbusiness",
+            "@id": "https://turbofix.co.in/#localbusiness",
             "name": "TurboFix Technologies",
-            "url": "https://www.turbofix.co.in/",
-            "logo": "https://www.turbofix.co.in/favicon.svg",
-            "image": "https://www.turbofix.co.in/assets/turbofix-whatsapp-brochure.png",
+            "url": "https://turbofix.co.in/",
+            "logo": "https://turbofix.co.in/favicon.svg",
+            "image": "https://turbofix.co.in/assets/turbofix-whatsapp-brochure.png",
             "description": "TurboFix Technologies builds intelligent breakdown prevention and maintenance software for manufacturing plants.",
             "email": "info@turbofix.co.in",
             "priceRange": "₹499 - ₹699 / machine / month",
@@ -132,9 +138,9 @@
           },
           {
             "@type": "SoftwareApplication",
-            "@id": "https://www.turbofix.co.in/#software",
+            "@id": "https://turbofix.co.in/#software",
             "name": "TurboFix Intelligent Maintenance Platform",
-            "url": "https://www.turbofix.co.in/",
+            "url": "https://turbofix.co.in/",
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web, Android, iOS PWA",
             "description": "Intelligent machine maintenance control system with 10-second QR breakdown reporting, 5-Why root cause analysis, spare parts inventory, and shutdown planning.",
@@ -144,7 +150,7 @@
               "priceCurrency": "INR",
               "availability": "https://schema.org/InStock"
             },
-            "publisher": { "@id": "https://www.turbofix.co.in/#organization" }
+            "publisher": { "@id": "https://turbofix.co.in/#organization" }
           },
           {
             "@type": "FAQPage",

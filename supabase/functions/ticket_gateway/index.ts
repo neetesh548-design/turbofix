@@ -104,7 +104,9 @@ serve(async (req) => {
       if (isUuid) {
         mQuery = mQuery.eq('id', machine_id);
       } else {
-        mQuery = mQuery.or(`id.eq.${machine_id},asset_code.eq.${machine_id},name.eq.${machine_id}`);
+        // Deliberately not matching on `name` (free-text, easy to enumerate/
+        // guess) — a real QR tag encodes an id or asset_code, never a name.
+        mQuery = mQuery.eq('asset_code', machine_id);
       }
 
       const { data: mDataArr, error: mErr } = await mQuery.limit(1);
@@ -154,23 +156,18 @@ serve(async (req) => {
       
       const { data: mDataArr } = await mQuery.limit(1);
       const mRow = mDataArr?.[0];
-      if (mRow) {
-        payload.machine_id = mRow.id; 
-        if (mRow.factory_id) {
-          payload.factory_id = mRow.factory_id;
-          admin.from('tickets').update({ factory_id: mRow.factory_id }).eq('machine_id', mRow.id).then(() => {}).catch(() => {});
-        }
-      } else {
-        const { data: defaultM } = await admin.from('machines').select('id, factory_id').order('created_at', { ascending: true }).limit(1).maybeSingle();
-        if (defaultM) {
-          payload.machine_id = defaultM.id;
-          if (defaultM.factory_id) payload.factory_id = defaultM.factory_id;
-        }
+      if (!mRow) {
+        // Previously fell back to "the first machine in the whole table" (and,
+        // failing that, "the first factory in the whole table") when the
+        // scanned/entered machine couldn't be resolved — silently attaching
+        // the ticket to an arbitrary machine that could belong to any company
+        // on the platform. Reject instead of guessing.
+        return reply(req, { error: 'Machine not found. Please re-scan the QR code or check the machine ID.' }, 404)
       }
-
-      if (!payload.factory_id) {
-        const { data: fRow } = await admin.from('factories').select('id').order('created_at', { ascending: true }).limit(1).maybeSingle();
-        if (fRow) payload.factory_id = fRow.id;
+      payload.machine_id = mRow.id
+      if (mRow.factory_id) {
+        payload.factory_id = mRow.factory_id
+        admin.from('tickets').update({ factory_id: mRow.factory_id }).eq('machine_id', mRow.id).then(() => {}).catch(() => {});
       }
 
       if (payload.ai_summary?.photo_base64) {
@@ -320,16 +317,42 @@ serve(async (req) => {
       return reply(req, { data })
     }
 
+    // Fields a QR-gateway session may legitimately patch on an existing
+    // ticket (appending detail to a duplicate report). Previously accepted
+    // and applied `patches` verbatim from the request body — any field on
+    // `tickets`, including status/urgency/assignment — with no allow-list.
+    const UPDATE_TICKET_ALLOWED_FIELDS = new Set(['issue_text', 'ai_summary'])
+
     if (action === 'update_ticket') {
-      const { ticket_id, patches } = body
-      if (!ticket_id || !patches) return reply(req, { error: 'Invalid payload.' }, 400)
-      patches.reporter_phone = qrSession.phone
-      patches.reporter_user_id = qrSession.user_id
-      patches.qr_session_id = qrSession.id
-      patches.source = 'qr_gateway'
+      const { ticket_id, machine_id, patches } = body
+      if (!ticket_id || !machine_id || !patches) return reply(req, { error: 'Invalid payload.' }, 400)
+
+      const { data: existing, error: fetchErr } = await admin
+        .from('tickets')
+        .select('id, machine_id')
+        .eq('id', ticket_id)
+        .maybeSingle()
+      if (fetchErr || !existing) return reply(req, { error: 'Ticket not found.' }, 404)
+      // A QR session only has legitimate context for the machine it just
+      // scanned/looked up (see check_duplicate/get_machine_details above) —
+      // without this, any valid session token from any company could read
+      // or rewrite any ticket on the platform by guessing/incrementing its id.
+      if (existing.machine_id !== machine_id) {
+        return reply(req, { error: 'This ticket does not belong to the specified machine.' }, 403)
+      }
+
+      const safePatches: Record<string, unknown> = {}
+      for (const key of Object.keys(patches)) {
+        if (UPDATE_TICKET_ALLOWED_FIELDS.has(key)) safePatches[key] = patches[key]
+      }
+      safePatches.reporter_phone = qrSession.phone
+      safePatches.reporter_user_id = qrSession.user_id
+      safePatches.qr_session_id = qrSession.id
+      safePatches.source = 'qr_gateway'
+
       const { data, error } = await admin
         .from('tickets')
-        .update(patches)
+        .update(safePatches)
         .eq('id', ticket_id)
         .select('id, wo_number, created_at, lifecycle_stage, urgency')
         .single()
@@ -370,27 +393,20 @@ serve(async (req) => {
     }
 
     if (action === 'get_ticket') {
-      const { ticket_id } = body
-      if (!ticket_id) return reply(req, { error: 'Invalid ticket ID.' }, 400)
+      const { ticket_id, machine_id } = body
+      if (!ticket_id || !machine_id) return reply(req, { error: 'Invalid payload.' }, 400)
       const { data, error } = await admin
         .from('tickets')
-        .select('ai_summary')
+        .select('ai_summary, machine_id')
         .eq('id', ticket_id)
-        .single()
-      return reply(req, { data })
-    }
-
-    if (action === 'get_factory_id') {
-      const { data, error } = await admin
-        .from('factories')
-        .select('id')
-        .limit(1)
         .maybeSingle()
-      if (error) {
-        console.error('Error fetching default factory:', error)
-        return reply(req, { error: error.message }, 500)
+      if (error || !data) return reply(req, { error: 'Ticket not found.' }, 404)
+      // Same ownership boundary as update_ticket above — a session only has
+      // legitimate context for the machine it scanned, not any ticket id.
+      if (data.machine_id !== machine_id) {
+        return reply(req, { error: 'This ticket does not belong to the specified machine.' }, 403)
       }
-      return reply(req, { factory_id: data?.id || null })
+      return reply(req, { data: { ai_summary: data.ai_summary } })
     }
 
     return reply(req, { error: 'Invalid action for ticket_gateway.' }, 400)

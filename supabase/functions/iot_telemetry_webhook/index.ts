@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { requireServiceRole } from '../_shared/security.ts'
 
 // Edge function to ingest IoT telemetry data and generate Preventive tickets based on power signatures.
 // Poka-Yoke Overlay: If amperage exceeds normal bounds, alert the primary technician.
@@ -8,6 +9,14 @@ serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
   }
+
+  // Previously had no authentication at all — anyone on the internet could
+  // spam ticket creation for any machine_id belonging to any company. IoT
+  // gateways are configured with the service-role key as their bearer
+  // token, matching the pattern already used by ai_diagnostics/
+  // verify_repair_photo for other internal/webhook-only functions.
+  const authError = requireServiceRole(req)
+  if (authError) return authError
 
   try {
     const payload = await req.json();

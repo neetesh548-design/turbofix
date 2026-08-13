@@ -6,6 +6,13 @@ import { safeRedirectPath } from '../utils/auth';
 import { apiFetch } from '../lib/api';
 import { Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck, Building2, AlertCircle } from 'lucide-react';
 
+const humanizeAuthFailure = (err, fallback) => {
+  if (!err) return fallback;
+  if (err.status === 401) return 'Invalid credentials. Check your phone/email and password, or use Quick Demo Access.';
+  if (err.status === 403) return err.message || 'Your company is pending approval before sign-in.';
+  return err.message || fallback;
+};
+
 export default function Login() {
   const [view, setView] = useState('login'); // 'login' or 'register'
   const [loading, setLoading] = useState(false);
@@ -128,7 +135,7 @@ export default function Login() {
       const loginEmail = toLoginEmail(identifier);
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
       if (signInError || !data?.user || !data.session?.access_token) {
-        throw new Error('Invalid credentials. Check your phone/email and password, or use Quick Demo Access.');
+        throw new Error(humanizeAuthFailure(signInError, 'Login failed. Please try again in a moment.'));
       }
       const authUser = data.user;
       const meta = authUser.user_metadata || {};
@@ -148,12 +155,20 @@ export default function Login() {
       
       performPostLoginRedirect();
     } catch (err) {
-      setError(err.message || 'Invalid credentials.');
+      setError(humanizeAuthFailure(err, 'Login failed. Please try again in a moment.'));
     } finally {
       setLoading(false);
     }
   };
 
+  // Registration goes through the backend's own POST /auth/register (rate-
+  // limited, real password-strength + duplicate email/phone checks, writes
+  // via the backend's UserRepository) instead of writing to Supabase
+  // directly from the browser. The direct-write version silently failed on
+  // every real attempt — public.companies has RLS enabled with no INSERT
+  // policy for anonymous self-registration, so the insert was always denied,
+  // the error was only console.warn'd, and this form told every prospect
+  // their signup succeeded regardless. See LESSONS_LEARNED.md.
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -172,69 +187,29 @@ export default function Login() {
         throw new Error('All registration fields are required.');
       }
 
-      // Check duplicate company domain code in Supabase
-      const { data: existingComp } = await supabase
-        .from('companies')
-        .select('id, status')
-        .eq('domain', cleanCode)
-        .maybeSingle();
-
-      if (existingComp) {
-        setSuccess(`Company code "${cleanCode}" is already registered. Your request has been logged. Please contact support at turbofixsolution@gmail.com for fast workspace review & activation.`);
-        setError(null);
-        setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
-        return;
-      }
-
-      const compId = crypto.randomUUID();
-      const { error: insErr } = await supabase.from('companies').insert({
-        id: compId,
-        domain: cleanCode,
-        name: cleanName,
-        owner_name: cleanOwner,
-        owner_email: cleanEmail,
-        admin_contact_phone: cleanPhone,
-        machine_quota: 5,
-        user_quota: 10,
-        status: 'pending',
+      const apiResp = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          company_code: cleanCode,
+          company_name: cleanName,
+          admin_contact_phone: cleanPhone,
+          owner_name: cleanOwner,
+          owner_email: cleanEmail,
+          owner_password: regPassword,
+        }),
       });
 
-      if (insErr) {
-        console.warn('Company insert notice:', insErr);
+      const resData = await apiResp.json().catch(() => ({}));
+
+      // apiFetch only throws for 401/403/404/429/5xx — /auth/register's own
+      // validation/conflict responses (400 bad password, 409 duplicate
+      // company/email/phone) come back here as an ordinary non-ok response,
+      // so they must be checked explicitly rather than relying on a throw.
+      if (!apiResp.ok) {
+        throw new Error(resData.detail || 'Registration failed. Please try again or contact support at turbofixsolution@gmail.com');
       }
 
-      // Create owner user record in Supabase users table (non-fatal)
-      try {
-        await supabase.from('users').insert({
-          id: crypto.randomUUID(),
-          company_id: compId,
-          name: cleanOwner,
-          email: cleanEmail,
-          phone: cleanPhone,
-          role: 'owner',
-        });
-      } catch (uErr) {
-        console.warn('User profile insert note:', uErr);
-      }
-
-      // Create Supabase Auth User (non-fatal)
-      try {
-        await supabase.auth.signUp({
-          email: cleanEmail,
-          password: regPassword,
-          options: {
-            data: {
-              company_code: cleanCode,
-              name: cleanOwner,
-              role: 'owner',
-            },
-          },
-        });
-      } catch (aErr) {
-        console.warn('Auth signup note:', aErr);
-      }
-
-      setSuccess(`Your company registration request for "${cleanName}" (${cleanCode}) has been submitted to the admin for approval! Please contact turbofixsolution@gmail.com for fast workspace review & activation.`);
+      setSuccess(resData.message || `Your company registration request for "${cleanName}" (${cleanCode}) has been submitted to the admin for approval!`);
       setError(null);
       setCompanyCode(''); setCompanyName(''); setPhone(''); setOwnerName(''); setEmail(''); setRegPassword('');
     } catch (err) {

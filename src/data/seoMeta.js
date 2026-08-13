@@ -4,7 +4,10 @@
 // files so non-JS crawlers see correct title/description/canonical too —
 // the client-side update alone only reaches crawlers that render JS).
 
-export const SITE_URL = 'https://www.turbofix.co.in';
+// turbofix.co.in (no www) is the real serving host — www.turbofix.co.in
+// 301-redirects to it (confirmed live). Canonical/OG URLs must point at the
+// host that actually serves content, not the one that only redirects away.
+export const SITE_URL = 'https://turbofix.co.in';
 
 export const PAGE_META = {
   '/': {

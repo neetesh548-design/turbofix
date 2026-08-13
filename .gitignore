@@ -54,3 +54,6 @@ test-results.xml
 # Graphify runtime coordination files
 graphify-out/.rebuild.lock
 graphify-out/.pending_changes
+
+# Local Lighthouse/SEO audit output (scratch, not source)
+audit-seo/

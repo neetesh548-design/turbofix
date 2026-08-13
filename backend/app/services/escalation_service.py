@@ -350,34 +350,5 @@ async def run_escalation_sweep() -> None:
               parts_checked=len(part_requests))
 
 
-def initialize_part_request_escalation(machine_id: str = "", factory_id: str = "", part_id: str = "", urgency: str = "", **kwargs) -> dict:
-    return {"status": "success", "part_id": part_id, "machine_id": machine_id}
-
-
 def _ticket_created_timestamp(ticket_id: str = ""):
     return datetime.now(timezone.utc) - timedelta(hours=6)
-
-
-def check_repeat_failure(machine_id: str, issue: str = "", factory_id: str = "", days: int = 30, threshold: int = 2, **kwargs) -> bool:
-    from app.services.intelligence_service import check_repeat_failure as crf
-    return crf(machine_id=machine_id, issue=issue, factory_id=factory_id, days=days, threshold=threshold, **kwargs)
-
-
-async def approve_ticket_closure(ticket_id: str, phone: str = "", **kwargs) -> bool:
-    return True
-
-
-async def reject_ticket_closure(ticket_id: str, phone: str = "", reason: str = "", **kwargs) -> bool:
-    return True
-
-
-def delegate_to_colleague(ticket_id: str, from_phone: str = "", to_phone: str = "", **kwargs) -> bool:
-    return True
-
-
-def mark_outsourced(ticket_id: str, phone: str = "", reason: str = "", vendor: str = "", **kwargs) -> bool:
-    return True
-
-
-async def submit_closure(ticket_id: str, phone: str = "", notes: str = "", media_ids: list = None, **kwargs) -> bool:
-    return True

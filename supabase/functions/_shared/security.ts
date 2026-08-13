@@ -35,3 +35,41 @@ export async function verifyHmacSha256(
   );
   return crypto.subtle.verify('HMAC', key, signatureBytes, encoder.encode(payload));
 }
+
+function bytesToHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// Signs a payload for tokens this project mints itself (e.g. the admin
+// session token) — the counterpart to verifyHmacSha256 above, which only
+// verifies signatures produced by an external sender (Meta/WaCRM webhooks).
+export async function signHmacSha256(payload: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return bytesToHex(signature);
+}
+
+// Constant-time string comparison for secrets (passwords, tokens) compared
+// directly rather than via HMAC — SHA-256 both operands first so the
+// comparison itself is fixed-length and doesn't leak input length either.
+export async function timingSafeEqualString(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [digestA, digestB] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(a)),
+    crypto.subtle.digest('SHA-256', encoder.encode(b)),
+  ]);
+  const bytesA = new Uint8Array(digestA);
+  const bytesB = new Uint8Array(digestB);
+  let diff = 0;
+  for (let i = 0; i < bytesA.length; i++) diff |= bytesA[i] ^ bytesB[i];
+  return diff === 0;
+}

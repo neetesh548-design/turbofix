@@ -140,104 +140,71 @@ async def test_extract_normalizes_conflicting_data():
 # Repeat Failure Detection Tests
 # ============================================================================
 
+# NOTE: check_repeat_failure(factory_id, machine_id, days=30, threshold=2) -> dict
+# used to be shadowed by a second, later same-named def in this module that took
+# different keyword args (machine_id, issue, factory_id, ...) and returned a bool —
+# Python silently let the later def win, so these tests were actually exercising
+# the shadow (which did semantic issue-text matching against a broken repo call
+# that always fell back to an empty ticket list) rather than the real, simpler,
+# count-based implementation that's actually wired into production via
+# check_and_flag_on_creation. Rewritten below to test the real function's actual
+# contract: scoped by factory_id+machine_id, counts tickets in the last `days`
+# days, flags repeat when count exceeds `threshold`, returns a dict — it does not
+# do issue-text/semantic matching, so tests claiming that behavior were never
+# testing anything real and have been corrected rather than preserved as-is.
+
 def test_check_repeat_failure_first_occurrence():
-    """Test first occurrence of an issue (no repeat yet)."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
+    """No tickets in the window -> not a repeat failure."""
+    with patch('app.repositories.supabase_repo._client') as mock_client:
+        mock_client.select.return_value = []
 
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,
-        threshold=2
-    )
+        result = check_repeat_failure('F001', 'M042', days=30, threshold=2)
 
-    assert result is False  # No previous occurrences
+        assert result['is_repeat_failure'] is False
+        assert result['ticket_count_in_period'] == 0
 
 
 def test_check_repeat_failure_within_threshold():
-    """Test detecting repeat failure within threshold window."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
-
-    with patch('app.repositories.base.get_tickets') as mock_tickets:
-        mock_tickets.return_value = [
-            {'machine_id': 'M042', 'issue': 'Bearing overheating'},
-            {'machine_id': 'M042', 'issue': 'Bearing overheating'},
+    """Ticket count exceeding threshold -> repeat failure detected."""
+    with patch('app.repositories.supabase_repo._client') as mock_client:
+        mock_client.select.return_value = [
+            {'id': '1'}, {'id': '2'}, {'id': '3'},
         ]
-        result = check_repeat_failure(
-            machine_id=machine_id,
-            issue=issue,
-            factory_id=factory_id,
-            days=30,
-            threshold=2
-        )
 
-        assert result is True
+        result = check_repeat_failure('F001', 'M042', days=30, threshold=2)
+
+        assert result['is_repeat_failure'] is True
+        assert result['ticket_count_in_period'] == 3
 
 
-def test_check_repeat_failure_outside_threshold():
-    """Test repeat failure is NOT detected if outside time window."""
-    machine_id = 'M042'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
+def test_check_repeat_failure_queries_scoped_by_factory_machine_and_days_window():
+    """The time-window/scoping logic lives in the query itself (factory_id,
+    machine_id, and a created_at >= cutoff filter derived from `days`) — verify
+    check_repeat_failure actually builds that query rather than filtering
+    client-side after an unscoped fetch."""
+    with patch('app.repositories.supabase_repo._client') as mock_client:
+        mock_client.select.return_value = []
 
-    # First occurrence 60 days ago
-    # Second occurrence today
-    # With days=30 threshold, should NOT detect repeat
+        check_repeat_failure('F001', 'M042', days=30, threshold=2)
 
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,  # Only look back 30 days
-        threshold=2
-    )
-
-    assert result is False
-
-
-def test_check_repeat_failure_similar_issues():
-    """Test that similar issues (not exact match) are grouped."""
-    machine_id = 'M042'
-    factory_id = 'F001'
-
-    # Ticket 1: "Bearing making noise"
-    # Ticket 2: "Bearing squeaking sound"
-    # Should detect as repeat (semantic similarity)
-
-    result = check_repeat_failure(
-        machine_id=machine_id,
-        issue="Bearing squeaking sound",
-        factory_id=factory_id,
-        days=30,
-        threshold=2
-    )
-
-    assert result is True  # Semantic match to "bearing noise"
+        mock_client.select.assert_called_once()
+        table, query = mock_client.select.call_args[0]
+        assert table == 'tickets'
+        assert query['factory_id'] == 'eq.F001'
+        assert query['machine_id'] == 'eq.M042'
+        assert query['created_at'].startswith('gte.')
 
 
 def test_check_repeat_failure_different_machines_not_grouped():
-    """Test that issues on different machines are NOT grouped."""
-    machine_id_1 = 'M042'
-    machine_id_2 = 'M043'
-    issue = 'Bearing overheating'
-    factory_id = 'F001'
+    """machine_id is a real query parameter, not a client-side filter — a
+    different machine's tickets never reach this machine's count."""
+    with patch('app.repositories.supabase_repo._client') as mock_client:
+        mock_client.select.return_value = []
 
-    # Both machines have bearing issues, but should not cross-correlate
-    result = check_repeat_failure(
-        machine_id=machine_id_1,
-        issue=issue,
-        factory_id=factory_id,
-        days=30,
-        threshold=2
-    )
+        check_repeat_failure('F001', 'M042', days=30, threshold=2)
 
-    # Should be False (no history on M042 yet)
-    assert result is False
+        _, query = mock_client.select.call_args[0]
+        assert query['machine_id'] == 'eq.M042'
 
 
 # ============================================================================

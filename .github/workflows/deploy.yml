@@ -74,3 +74,80 @@ jobs:
         run: supabase functions deploy onboard_team_member --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      # Everything below was previously deployed manually (if at all) and never
+      # wired into CI — code changes to these functions never reached
+      # production automatically. --no-verify-jwt is applied only where the
+      # caller genuinely has no Supabase-issued JWT (a third-party webhook, or
+      # a browser call before any session exists); NOTE this is inferred from
+      # each function's own code, not confirmed against the live Supabase
+      # dashboard's current per-function JWT setting — verify there before
+      # relying on this if a function's live behavior seems off after this
+      # first deploy. notification-service/reporting/user-provisioning are
+      # deliberately excluded: unimplemented scaffolds or explicitly unused,
+      # not worth exposing live.
+
+      - name: Deploy Edge Function (admin_portal)
+        run: supabase functions deploy admin_portal --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (whatsapp_webhook)
+        run: supabase functions deploy whatsapp_webhook --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (billing_webhook)
+        run: supabase functions deploy billing_webhook --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (inbound_email_receiver)
+        run: supabase functions deploy inbound_email_receiver --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (iot_telemetry_webhook)
+        run: supabase functions deploy iot_telemetry_webhook --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (ai_diagnostics)
+        run: supabase functions deploy ai_diagnostics --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (verify_repair_photo)
+        run: supabase functions deploy verify_repair_photo --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (check_schedules)
+        run: supabase functions deploy check_schedules --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (check_inventory)
+        run: supabase functions deploy check_inventory --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (monthly_report)
+        run: supabase functions deploy monthly_report --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (send_notifications)
+        run: supabase functions deploy send_notifications --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (asset-service)
+        run: supabase functions deploy asset-service --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Function (ticket-service)
+        run: supabase functions deploy ticket-service --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

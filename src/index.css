@@ -273,13 +273,6 @@
 [data-theme="light"] .bg-slate-950\/80,
 [data-theme="light"] .bg-slate-950\/85,
 [data-theme="light"] .bg-slate-950\/90,
-[data-theme="light"] .bg-[#0b0f17],
-[data-theme="light"] .bg-[#0a0f1d],
-[data-theme="light"] .bg-[#080d1a],
-[data-theme="light"] .bg-[#0e121a],
-[data-theme="light"] .bg-[#0f172a],
-[data-theme="light"] .bg-[#141e33],
-[data-theme="light"] .bg-[#12161e],
 [data-theme="light"] .bg-zinc-900,
 [data-theme="light"] .bg-zinc-950 {
   background-color: #ffffff !important;
@@ -289,8 +282,7 @@
 }
 
 [data-theme="light"] .dreamz-cmms-suite div[class*="bg-slate-900"],
-[data-theme="light"] .dreamz-cmms-suite div[class*="bg-slate-950"],
-[data-theme="light"] .dreamz-cmms-suite div[class*="bg-[#080d1a]"] {
+[data-theme="light"] .dreamz-cmms-suite div[class*="bg-slate-950"] {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;

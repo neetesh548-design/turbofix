@@ -16,7 +16,6 @@ import {
   Activity,
   Filter,
   Check,
-  Edit3,
   Sliders,
   Pause,
   Play,
@@ -24,10 +23,19 @@ import {
   Mail,
   Phone,
   User,
+  Key,
 } from 'lucide-react';
 
 const ADMIN_EDGE_URL = 'https://wcqgbleppiaddgfjrnpq.supabase.co/functions/v1/admin_portal';
 const TOKEN_KEY = 'tf_supabase_admin_token';
+const readJsonDetail = async (response, fallbackMessage) => {
+  try {
+    const payload = await response.json();
+    return payload?.detail || payload?.error || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+};
 
 export default function AdminPortal() {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || '');
@@ -35,10 +43,7 @@ export default function AdminPortal() {
   const [loginErr, setLoginErr] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
-  // Check if already authenticated
-  const isAuthorizedPath = useMemo(() => {
-    return !!token;
-  }, [token]);
+  const isAuthorizedPath = useMemo(() => Boolean(token), [token]);
 
   // Honeypot trap state
   const [honeypotPassword, setHoneypotPassword] = useState('');
@@ -120,7 +125,11 @@ export default function AdminPortal() {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        throw new Error('Invalid platform password. Access denied.');
+        const fallback =
+          res.status === 401 || res.status === 403
+            ? 'Invalid platform password. Access denied.'
+            : 'Failed to reach Supabase Edge Control Gateway';
+        throw new Error(await readJsonDetail(res, fallback));
       }
       const data = await res.json();
       sessionStorage.setItem(TOKEN_KEY, data.access_token);
@@ -461,8 +470,6 @@ export default function AdminPortal() {
   const quotaExceededCompanies = companies.filter(
     (c) => (c.machines_count || 0) > (c.machine_quota || 5) || (c.users_count || 0) > (c.user_quota || 10)
   );
-  const totalAiTokens = companies.reduce((acc, c) => acc + (c.ai_tokens_used || 0), 0);
-
   if (!token) {
     if (!isAuthorizedPath) {
       // Honeypot Decoy Page (Option 3)

@@ -46,6 +46,8 @@ function MachineDetailDrawer({
   onQuickEditChange,
   onQuickEditCancel,
   onQuickEditSave,
+  onOpenPersonnelMatrix,
+  onOpenCapexEscalation,
 }) {
   const panelRef = useRef(null);
 

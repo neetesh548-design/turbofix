@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { timingSafeEqualString } from '../_shared/security.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +15,20 @@ const reply = (body: Record<string, unknown>, status = 200) => new Response(
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return reply({ error: 'Method not allowed' }, 405)
+
+  // Inbound-parse providers (SendGrid/Mailgun) don't share a single
+  // signature scheme, so this uses a shared secret configured as a query
+  // param on the webhook URL itself (e.g. .../inbound_email_receiver?token=…)
+  // — the same value both this function and the provider's dashboard are
+  // configured with. Previously had no verification at all: authorization
+  // was based purely on the email's spoofable `From:` header. Fails closed
+  // if the secret isn't configured.
+  const webhookSecret = Deno.env.get('INBOUND_EMAIL_WEBHOOK_SECRET') ?? ''
+  if (!webhookSecret) return reply({ error: 'Inbound email webhook is not configured' }, 503)
+  const providedToken = new URL(req.url).searchParams.get('token') ?? ''
+  if (!providedToken || !(await timingSafeEqualString(providedToken, webhookSecret))) {
+    return reply({ error: 'Unauthorized' }, 401)
+  }
 
   const url = Deno.env.get('SUPABASE_URL') ?? ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -50,7 +65,7 @@ serve(async (req) => {
     // Look up the reporter user in Supabase directory
     const { data: user, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('id, name, phone, role')
+      .select('id, name, phone, role, company_id')
       .ilike('email', cleanEmail)
       .maybeSingle()
 
@@ -59,7 +74,10 @@ serve(async (req) => {
       return reply({ error: 'Sender not authorized' }, 403)
     }
 
-    // Parse the subject line to resolve machine
+    // Parse the subject line to resolve machine — scoped to the sender's own
+    // company throughout. Previously searched every machine on the platform
+    // with no company filter, so a sender at Company A could get a ticket
+    // filed against Company B's machine on a name/id collision.
     let resolvedMachineId = ''
     let resolvedFactoryId = ''
     let resolvedMachineName = ''
@@ -73,6 +91,7 @@ serve(async (req) => {
         .from('machines')
         .select('id, name, factory_id')
         .eq('id', machineIdCandidate)
+        .eq('company_id', user.company_id)
         .maybeSingle()
       if (mach) {
         resolvedMachineId = mach.id
@@ -81,11 +100,14 @@ serve(async (req) => {
       }
     }
 
-    // 2. Fallback: Search all machines in the factory to see if any name matches or is referenced
+    // 2. Fallback: search machines within the sender's own company only
     if (!resolvedMachineId) {
-      const { data: allMachines } = await supabaseAdmin.from('machines').select('id, name, factory_id')
-      if (allMachines) {
-        for (const m of allMachines) {
+      const { data: companyMachines } = await supabaseAdmin
+        .from('machines')
+        .select('id, name, factory_id')
+        .eq('company_id', user.company_id)
+      if (companyMachines) {
+        for (const m of companyMachines) {
           const cleanName = m.name.toLowerCase()
           const cleanSubject = subject.toLowerCase()
           if (cleanSubject.includes(cleanName) || cleanSubject.includes(m.id.toLowerCase())) {

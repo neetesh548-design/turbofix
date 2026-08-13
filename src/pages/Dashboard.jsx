@@ -28,12 +28,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppShell from '../components/AppShell';
 import QuickReportDialog from '../components/QuickReportDialog';
-import OwnerDashboard from '../components/dashboard/OwnerDashboard.jsx';
-import MasterTabbedDashboard from '../components/dashboard/MasterTabbedDashboard.jsx';
-import TechnicianDashboard from '../components/dashboard/TechnicianDashboard.jsx';
-import SupervisorDashboard from '../components/dashboard/SupervisorDashboard.jsx';
-import EngineerDashboard from '../components/dashboard/EngineerDashboard.jsx';
-import OperatorDashboard from '../components/dashboard/OperatorDashboard.jsx';
 import LimbleCmmsDashboard from '../components/dashboard/LimbleCmmsDashboard.jsx';
 import { fetchDashboardData, fallback } from '../lib/dashboardData';
 import {
@@ -51,8 +45,6 @@ import {
   buildDemoPmSchedules,
   buildDemoParts,
   shouldUseDemoFleet,
-  shouldUseDemoTeam,
-  shouldUseDemoReliability,
 } from '../utils/demoDashboard.js';
 import { supabase } from '@/supabaseClient';
 import { filterRowsToVisibleMachines, isShiftScopedRole, visibleMachineIdSet, visibleMachinesForUser } from '../utils/machineVisibility';
@@ -212,7 +204,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quickReportOpen, setQuickReportOpen] = useState(false);
-  const [dashboardView, setDashboardView] = useState('overview');
 
   // One cache per mount. Recomputing the fleet on every render is wasteful;
   // a 5-minute TTL is well inside how fast a maintenance board needs to move.
@@ -235,8 +226,6 @@ export default function Dashboard() {
   // Operators and technicians already get a single-queue, "your next job"
   // board — the cross-fleet action board is for the roles that otherwise
   // have to jump into Tickets to see what needs a decision.
-  const canSeeActionBoard = appRole !== 'operator' && can(user?.role, CAPABILITIES.VIEW_ALL_TICKETS);
-
   useEffect(() => {
     document.title = 'Dashboard | TurboFix';
   }, []);
@@ -296,10 +285,6 @@ export default function Dashboard() {
   // A board on real data never falls back; the banner only appears when it does.
   const noFleetData = !loading && shouldUseDemoFleet(sources.machines, sources.tickets, user);
   const demoSession = user?.inventory_mode === 'demo' || user?.company_code === 'TFDEMO';
-  const usingDemoTeam = demoSession && role === DASHBOARD_ROLES.SUPERVISOR
-    && (noFleetData || shouldUseDemoTeam(sources.team));
-  const usingDemoReliability = demoSession && role === DASHBOARD_ROLES.ENGINEER
-    && (noFleetData || shouldUseDemoReliability(sources.tickets));
   const isDemo = !loading && demoSession;
 
   const metrics = useMemo(() => {
@@ -398,16 +383,8 @@ export default function Dashboard() {
     safety_officer: { kicker: 'Safety control', lead: 'Unsafe conditions, restart checks and missing safety evidence.' },
   };
   const heading = specialistHeadings[specialistRole] || ROLE_HEADINGS[role] || ROLE_HEADINGS[DASHBOARD_ROLES.OWNER];
-  const hero = ROLE_HEROES[specialistRole] || ROLE_HEROES[role] || ROLE_HEROES[DASHBOARD_ROLES.OWNER];
   const companyName = legacyData.company_name || 'TurboFix';
   const openQuickReport = useCallback(() => setQuickReportOpen(true), []);
-  const roleSummaryLine = role === DASHBOARD_ROLES.TECHNICIAN
-    ? 'Your active workload, SLA pressure, and assigned machines are summarized below. Open a job and get moving.'
-    : role === DASHBOARD_ROLES.SUPERVISOR
-      ? 'Your team load, fleet exposure, and active breaches are summarized below. Use this to redirect effort early.'
-      : role === DASHBOARD_ROLES.ENGINEER
-        ? 'Reliability exposure, open work, and fleet health are summarized below. Use this to prioritize technical improvement.'
-        : 'Key plant metrics are summarized below. Select any section to dig deep.';
 
   // Global Cmd/Ctrl+N shortcut (see accessibility.js) dispatches this instead
   // of AppShell owning the dialog, since only this page has the machine list.

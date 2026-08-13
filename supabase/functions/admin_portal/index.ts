@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { signHmacSha256, verifyHmacSha256, timingSafeEqualString } from '../_shared/security.ts'
 
 const allowedOrigins = new Set([
   'https://turbofix.co.in', 'https://www.turbofix.co.in',
@@ -33,31 +34,63 @@ const getSupabaseClient = () => {
   return createClient(url, key)
 }
 
-const ADMIN_PASSWORD = Deno.env.get('ADMIN_PASSWORD') || Deno.env.get('ADMIN_JWT_SECRET_KEY') || 'TurboFixAdmin2026!'
+// ADMIN_PASSWORD gates login; ADMIN_JWT_SECRET_KEY signs the session token
+// issued after login. These are deliberately two separate secrets — neither
+// has a hardcoded fallback. If either is unset, auth fails closed (no
+// backdoor), matching the pattern backend/app/routers/webhook_router.py
+// already uses correctly for its own signature checks.
+const ADMIN_PASSWORD = Deno.env.get('ADMIN_PASSWORD') || ''
+const ADMIN_JWT_SECRET_KEY = Deno.env.get('ADMIN_JWT_SECRET_KEY') || ''
+const ADMIN_TOKEN_TTL_SECONDS = 8 * 60 * 60 // 8 hours
 
-// Simple HMAC / Token signature for Edge Function Admin session
-const verifyToken = (authHeader: string | null): boolean => {
+const base64UrlEncode = (input: string): string =>
+  btoa(input).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+const base64UrlDecode = (input: string): string => {
+  let base64 = input.replace(/-/g, '+').replace(/_/g, '/')
+  while (base64.length % 4) base64 += '='
+  return atob(base64)
+}
+
+// Real signed, expiring admin session token — the payload is signed with
+// ADMIN_JWT_SECRET_KEY via HMAC-SHA256 (crypto.subtle, constant-time
+// verified) so it can't be forged or replayed past its expiry. Replaces the
+// prior scheme, which accepted a literal "demo:admin" string, any token
+// merely prefixed "tf_admin_session_" with no lookup, or any JWT-shaped
+// string whose payload was trusted without ever checking a signature.
+const createAdminToken = async (): Promise<string> => {
+  const now = Math.floor(Date.now() / 1000)
+  const payload = JSON.stringify({
+    sub: 'tf-admin-operator',
+    role: 'platform_admin',
+    iat: now,
+    exp: now + ADMIN_TOKEN_TTL_SECONDS,
+  })
+  const encodedPayload = base64UrlEncode(payload)
+  const signature = await signHmacSha256(encodedPayload, ADMIN_JWT_SECRET_KEY)
+  return `${encodedPayload}.${signature}`
+}
+
+const verifyToken = async (authHeader: string | null): Promise<boolean> => {
+  if (!ADMIN_JWT_SECRET_KEY) return false // fail closed if the signing secret isn't configured
   if (!authHeader) return false
   const token = authHeader.replace(/^Bearer\s+/i, '').trim()
   if (!token) return false
-  if (token === 'demo:admin') return true
-  if (token.startsWith('tf_admin_session_')) return true
+  const dotIndex = token.indexOf('.')
+  if (dotIndex <= 0) return false
+  const encodedPayload = token.slice(0, dotIndex)
+  const signature = token.slice(dotIndex + 1)
+  if (!signature) return false
+  const validSignature = await verifyHmacSha256(encodedPayload, signature, ADMIN_JWT_SECRET_KEY)
+  if (!validSignature) return false
   try {
-    const parts = token.split('.')
-    if (parts.length === 3) {
-      let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-      while (base64.length % 4) base64 += '='
-      const payload = JSON.parse(atob(base64))
-      if (payload.role === 'platform_admin' || payload.sub === 'tf-admin-operator') return true
-    }
+    const payload = JSON.parse(base64UrlDecode(encodedPayload))
+    const now = Math.floor(Date.now() / 1000)
+    if (typeof payload.exp !== 'number' || now >= payload.exp) return false
+    return payload.role === 'platform_admin' && payload.sub === 'tf-admin-operator'
   } catch {
-    // fallback
+    return false
   }
-  return false
-}
-
-const createAdminToken = (): string => {
-  return `tf_admin_session_${Date.now()}_${Math.random().toString(36).substring(2)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -320,7 +353,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method === 'GET' && pathname === '/app') {
-    if (!verifyToken(authHeader)) {
+    if (!(await verifyToken(authHeader))) {
       return reply(req, { detail: 'Unauthorized' }, 401)
     }
     return htmlReply(req, ADMIN_APP_HTML)
@@ -329,10 +362,15 @@ Deno.serve(async (req: Request) => {
   // API Route: Login (handles both /login and POST / with password payload)
   if (req.method === 'POST' && (pathname === '/login' || pathname === '/')) {
     try {
+      if (!ADMIN_PASSWORD || !ADMIN_JWT_SECRET_KEY) {
+        // Fail closed — no hardcoded fallback password. Both secrets must
+        // be set in the Supabase project's function env for login to work.
+        return reply(req, { detail: 'Admin login is not configured' }, 503)
+      }
       const body = await req.json()
       const providedPw = String(body.password || body.admin_password || '').trim()
-      if (providedPw && (providedPw === ADMIN_PASSWORD || providedPw === 'TurboFixAdmin2026!')) {
-        const token = createAdminToken()
+      if (providedPw && (await timingSafeEqualString(providedPw, ADMIN_PASSWORD))) {
+        const token = await createAdminToken()
         return reply(req, { access_token: token, token_type: 'bearer', status: 'success' })
       }
       return reply(req, { detail: 'Invalid password' }, 401)
@@ -342,7 +380,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Auth Guard for subsequent API endpoints
-  if (!verifyToken(authHeader)) {
+  if (!(await verifyToken(authHeader))) {
     return reply(req, { detail: 'Unauthorized' }, 401)
   }
 

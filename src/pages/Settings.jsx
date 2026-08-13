@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import AuditLog from '../components/AuditLog';
 import {
-  AlertCircle,
   BellRing,
   BrainCircuit,
   Building2,
@@ -91,7 +90,6 @@ export default function Settings() {
   const [companyInfo, setCompanyInfo] = useState(null);
   const [escalationPath, setEscalationPath] = useState([]);
   const [customRoles, setCustomRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -116,7 +114,6 @@ export default function Settings() {
   }, [success]);
 
   const fetchSettings = useCallback(async (showLoader = true) => {
-    if (showLoader) setLoading(true);
     setError('');
     try {
       // Both queries below used to run with no company filter at all —
@@ -168,8 +165,6 @@ export default function Settings() {
       });
     } catch (requestError) {
       setError(requestError.message || 'Settings could not be loaded.');
-    } finally {
-      if (showLoader) setLoading(false);
     }
   }, [currentUser]);
 

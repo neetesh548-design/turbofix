@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, CheckCircle2, ClipboardCheck, Download, FileText, ImagePlus, Mic, Package, Play, Square, ShieldCheck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { getRoleLabel } from '../lib/roles';
-import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
 import { StitchDonutChart } from '../components/ui/StitchVisualCharts';
 import { supabase } from '@/supabaseClient';
 import { generateChecklist } from '@/lib/dynamicChecklist';
@@ -111,7 +110,7 @@ export default function Technician() {
       } catch (err) { setError(err.message); }
       finally { setLoading(false); }
     })();
-  }, [user?.role, user?.user_id]);
+  }, [user]);
 
   const selectedTicket = tickets.find((ticket) => ticket.ticket_id === selectedId) || null;
   const selectedWork = selectedTicket ? { ...defaultWork, ...(work[selectedId] || {}) } : defaultWork;

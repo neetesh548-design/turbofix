@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   ArchiveRestore,
-  CheckCircle2,
   ClipboardCheck,
   Factory,
   MessageCircle,
   QrCode,
   ShieldCheck,
-  TrendingDown,
   UserCheck,
   Wrench,
-  Zap,
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import ProductPreviewPanel from '../components/marketing/ProductPreviewPanel';
@@ -94,13 +91,29 @@ export default function Home() {
       {/* ── 1. HERO ─────────────────────────────────────────────── */}
       <section style={{ background: '#0d1520', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
-        {/* Full-bleed banner image — matches screenshot banner with dashboard visual */}
+        {/* Full-bleed banner image — matches screenshot banner with dashboard visual.
+            Was a single 4096x1364 (~3MB) PNG with no fetchpriority/eager hint and no
+            width/height — Lighthouse measured a 21.7s LCP driven almost entirely by
+            this one image (resourceLoadDelay + resourceLoadDuration made up ~3.2s of
+            it, on top of render-blocking font/CSS requests). Resized to 2400x799 and
+            re-encoded as WebP (~130KB) with a JPEG fallback (~400KB) for browsers
+            without WebP support; explicit width/height prevents the layout shift
+            Lighthouse flagged (CLS 0.153), and fetchpriority="high" plus eager
+            loading make it discoverable immediately instead of after JS hydration. */}
         <div style={{ width: '100%', overflow: 'hidden', background: '#080d14' }}>
-          <img
-            src={`${import.meta.env.BASE_URL}turbofix-hero-banner.png?v=3`}
-            alt="TurboFix — Less Downtime. Better Profits."
-            style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-          />
+          <picture>
+            <source srcSet={`${import.meta.env.BASE_URL}turbofix-hero-banner.webp`} type="image/webp" />
+            <img
+              src={`${import.meta.env.BASE_URL}turbofix-hero-banner.jpg`}
+              alt="TurboFix — Less Downtime. Better Profits."
+              width={2400}
+              height={799}
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
+              style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+            />
+          </picture>
         </div>
 
         {/* 2-Column: Headline left · Form right */}

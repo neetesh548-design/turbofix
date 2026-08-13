@@ -50,9 +50,9 @@
  *   - Session-based rate limiting (20 tickets/hour/technician)
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import { Mic, CheckCircle2, Volume2, VolumeX, Camera, Trash2, MessageCircle, Sparkles } from 'lucide-react';
+import { Mic, CheckCircle2, Volume2, Camera, Trash2, MessageCircle, Sparkles } from 'lucide-react';
 import { decryptUrlParams } from '../utils/urlEncryption';
 import { microphoneErrorMessage } from '../utils/mediaErrors';
 
@@ -304,7 +304,6 @@ export default function QRGateway() {
   const [machine, setMachine] = useState({ id: '', name: '', loc: '', tag: '' });
   const [lang, setLang] = useState(() => localStorage.getItem('tf_lang') || 'hi-IN'); // hi-IN, en-US, mr-IN
   const [isListening, setIsListening] = useState(false);
-  const [speakFeedback, setSpeakFeedback] = useState(false);
   const [assistantPrompt, setAssistantPrompt] = useState('');
   const [workflowStage, setWorkflowStage] = useState('capture');
   const [voiceError, setVoiceError] = useState('');
@@ -329,7 +328,6 @@ export default function QRGateway() {
   // Photo capture and upload state
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submittedTicketInfo, setSubmittedTicketInfo] = useState(null);
   const [pendingAudioBlob, setPendingAudioBlob] = useState(null);
   const [pendingAudioUrl, setPendingAudioUrl] = useState('');
@@ -406,7 +404,6 @@ export default function QRGateway() {
 
   // Offline queue state
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
-  const [offlineQueued, setOfflineQueued] = useState(false);
 
 
   const t = (key) => (GATEWAY_I18N[lang] || GATEWAY_I18N['hi-IN'])[key] || key;
@@ -624,7 +621,7 @@ export default function QRGateway() {
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [lang, phoneGate]);
+  }, [greetUser, lang, phoneGate]);
 
   // Audio completely removed from QR Gateway per user request
   const speak = () => {};
@@ -636,7 +633,7 @@ export default function QRGateway() {
     return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', loadVoices);
   }, []);
 
-  const greetUser = () => {
+  const greetUser = useCallback(() => {
     let greetingText = '';
     if (phoneGate) {
       if (lang === 'hi-IN') {
@@ -662,7 +659,7 @@ export default function QRGateway() {
     setAssistantPrompt(greetingText);
     speak(greetingText);
     setWorkflowStage(phoneGate ? 'phone' : 'capture');
-  };
+  }, [lang, machine.loc, machine.name, phoneGate]);
 
   const normalizeTranscriptForApproval = ({ rawText = '', language = lang, machineName = '', machineLocation = '' }) => {
     const original = String(rawText || '').trim();
@@ -1004,7 +1001,6 @@ export default function QRGateway() {
     setShowTextFallback(false);
     setManualCondition('running');
     setCheckingDuplicate(false);
-    setUploadingPhoto(false);
     setWorkflowStage('capture');
     try {
       localStorage.removeItem(draftKey);
@@ -1049,7 +1045,7 @@ export default function QRGateway() {
 
   const stopVoiceInput = () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      try { recorderRef.current.stop(); } catch (e) {}
+      try { recorderRef.current.stop(); } catch {}
     }
   };
 
@@ -1137,7 +1133,6 @@ export default function QRGateway() {
     if (!extractedInfo || isSubmittingTicket) return;
     setIsSubmittingTicket(true);
     setCheckingDuplicate(true);
-    setUploadingPhoto(true);
     setWorkflowStage('submitting');
 
     try {
@@ -1147,7 +1142,6 @@ export default function QRGateway() {
         setOtpError(lang === 'hi-IN' ? 'टिकट दर्ज करने के लिए पहले व्हाट्सएप ओटीपी सत्यापित करें।' : lang === 'mr-IN' ? 'तक्रार नोंदवण्यासाठी आधी व्हॉट्सअॅप ओटीपी पडताळा.' : 'Please verify WhatsApp OTP first to authorize this breakdown ticket.');
         setIsSubmittingTicket(false);
         setCheckingDuplicate(false);
-        setUploadingPhoto(false);
         return;
       }
 
@@ -1158,7 +1152,6 @@ export default function QRGateway() {
         const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
         queue.push(buildTicketPayload({ offline: true }));
         localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-        setOfflineQueued(true);
 
         const successText = t('offlineSavedText');
         setAssistantPrompt(successText);
@@ -1169,7 +1162,7 @@ export default function QRGateway() {
         setWorkflowStage('done');
         try {
           localStorage.removeItem(draftKey);
-        } catch (err) {}
+        } catch {}
         return;
       }
 
@@ -1182,7 +1175,7 @@ export default function QRGateway() {
           if (!dupErr && dupData && dupData.duplicate) {
             dupTicket = dupData.duplicate;
           }
-        } catch (_edgeErr) {
+        } catch {
           // Direct DB fallback for duplicate check
           const { data: dbDup } = await supabase
             .from('tickets')
@@ -1202,7 +1195,6 @@ export default function QRGateway() {
           setAssistantPrompt(alertMsg);
           speak(alertMsg);
           setCheckingDuplicate(false);
-          setUploadingPhoto(false);
           return;
         }
       }
@@ -1216,7 +1208,7 @@ export default function QRGateway() {
             .or(`phone.eq.${reporterPhone},phone.eq.+91${reporterPhone}`)
             .limit(1);
           if (matchedUser && matchedUser.length > 0) verified = true;
-        } catch (_vErr) {
+        } catch {
           // Fallback user verification notice handled silently
         }
       }
@@ -1224,8 +1216,8 @@ export default function QRGateway() {
       let uploadedUrl = null;
       try {
         uploadedUrl = await uploadIssuePhoto();
-      } catch (_pErr) {
-        console.warn('Photo upload exception handled silently:', _pErr);
+      } catch (photoError) {
+        console.warn('Photo upload exception handled silently:', photoError);
       }
 
       const payload = buildTicketPayload({ uploadedUrl, verified });
@@ -1255,7 +1247,7 @@ export default function QRGateway() {
       setVoiceArtifacts(null);
       try {
         localStorage.removeItem(draftKey);
-      } catch (err) {}
+      } catch {}
     } catch (err) {
       console.error('Error logging ticket:', err);
       const errMsg = t('submissionProblemText');
@@ -1266,20 +1258,18 @@ export default function QRGateway() {
     } finally {
       setIsSubmittingTicket(false);
       setCheckingDuplicate(false);
-      setUploadingPhoto(false);
     }
   };
 
   const appendTicket = async () => {
     if (!duplicateTicket || !extractedInfo) return;
     setCheckingDuplicate(true);
-    setUploadingPhoto(true);
     setWorkflowStage('submitting');
     try {
       const uploadedUrl = await uploadIssuePhoto();
 
       const { data: fetchResult, error: fetchErr } = await invokeWithRetry('ticket_gateway', {
-        body: { action: 'get_ticket', ticket_id: duplicateTicket.id }
+        body: { action: 'get_ticket', ticket_id: duplicateTicket.id, machine_id: machine.id }
       });
       if (fetchErr || !fetchResult || fetchResult.error) {
         throw new Error(fetchResult?.error || fetchErr?.message || 'Could not fetch existing ticket details.');
@@ -1299,6 +1289,7 @@ export default function QRGateway() {
         body: {
           action: 'update_ticket',
           ticket_id: duplicateTicket.id,
+          machine_id: machine.id,
           patches: {
             issue_text: mergedText,
             ai_summary: mergedSummary
@@ -1319,13 +1310,12 @@ export default function QRGateway() {
       setVoiceArtifacts(null);
       try {
         localStorage.removeItem(draftKey);
-      } catch (err) {}
+      } catch {}
     } catch (err) {
       alert('Error appending: ' + err.message);
       setWorkflowStage('review');
     } finally {
       setCheckingDuplicate(false);
-      setUploadingPhoto(false);
     }
   };
 
@@ -2244,7 +2234,13 @@ export default function QRGateway() {
             type="button" 
             onClick={() => {
               const base = import.meta.env.BASE_URL || '/';
-              const targetMachineId = machine?.id || machine?.machine_id || searchParams.get('machine') || '';
+              // `searchParams` was referenced here but never declared anywhere in
+              // this file — a guaranteed ReferenceError in the one case both
+              // machine?.id/machine?.machine_id are falsy. machine.id is already
+              // populated from the URL via decryptUrlParams() at mount (see the
+              // effect above), so this third fallback was dead weight, not real
+              // coverage — removed rather than wired to a second URL-parsing path.
+              const targetMachineId = machine?.id || machine?.machine_id || '';
               const targetUrl = `${base}machines.html?machine=${encodeURIComponent(targetMachineId)}`;
               const isAuth = Boolean(localStorage.getItem('tf_token'));
               if (isAuth) {

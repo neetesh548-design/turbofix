@@ -79,59 +79,81 @@ def resolve_registered_user(phone: str) -> Optional[Dict[str, Any]]:
   return None
 
 
-def _build_role_context(user: Dict[str, Any]) -> str:
-  """Fetch live snapshot of company machines, open tickets, and metrics for AI context."""
+def _fetch_company_snapshot(user: Dict[str, Any]) -> Dict[str, Any]:
+  """Fetch live company machines/tickets and derive headline metrics — the single
+  source both the AI prompt context and the offline fallback response draw from,
+  so the fallback can never show numbers unrelated to what the AI context saw.
+
+  get_company_tickets/get_company_machines are the real TicketRepository/
+  MachineRepository methods (see repositories/base.py). This used to call
+  get_open_by_company()/list(), neither of which exists on either interface,
+  so every call raised AttributeError, was swallowed with no logging, and
+  silently left every count at 0 for every company — and the offline
+  fallback separately showed fabricated numbers instead of these real ones.
+  """
   from app.dependencies import get_tickets, get_machines
-  company_id = user.get("company_id")
   company_code = user.get("company_code") or ""
-  role = user.get("role", "technician").lower()
-  
-  # Fetch open tickets
+
   tickets_repo = get_tickets()
   machines_repo = get_machines()
 
-  
-  open_tickets = []
+  open_tickets: list = []
+  fetch_ok = True
   try:
-    if hasattr(tickets_repo, "get_open_by_company"):
-      open_tickets = tickets_repo.get_open_by_company(company_id or company_code)
-    else:
-      open_tickets = tickets_repo.list(status="open")
-  except Exception:
-    open_tickets = []
+    company_tickets = tickets_repo.get_company_tickets(company_code)
+    open_tickets = [t for t in company_tickets if t.get("status") in ("open", "in_progress")]
+  except Exception as exc:
+    fetch_ok = False
+    log.error("whatsapp_chat.tickets_fetch_failed", company_code=company_code, error=str(exc))
 
-  # Fetch machines
-  machines = []
+  machines: list = []
   try:
-    machines = machines_repo.list()
-  except Exception:
-    machines = []
+    machines = machines_repo.get_company_machines(company_code)
+  except Exception as exc:
+    fetch_ok = False
+    log.error("whatsapp_chat.machines_fetch_failed", company_code=company_code, error=str(exc))
 
-  # Calculate high level metrics
-  total_machines = len(machines)
-  active_breakdowns = len([t for t in open_tickets if t.get("status") in ("open", "in_progress")])
-  urgent_count = len([t for t in open_tickets if t.get("urgency") in ("high", "urgent") or t.get("priority") == "high"])
+  urgent_tickets = [
+    t for t in open_tickets
+    if t.get("urgency") in ("high", "urgent") or t.get("priority") == "high"
+  ]
 
-  context_str = f"""
-COMPANY CONTEXT ({company_code}):
-- Total Onboarded Fleet: {total_machines} machines
-- Active Breakdowns: {active_breakdowns}
-- Urgent Breakdown Alerts: {urgent_count}
+  return {
+    "company_code": company_code,
+    "fetch_ok": fetch_ok,
+    "open_tickets": open_tickets,
+    "machines": machines,
+    "total_machines": len(machines),
+    "active_breakdowns": len(open_tickets),
+    "urgent_count": len(urgent_tickets),
+    "top_urgent_ticket": urgent_tickets[0] if urgent_tickets else None,
+  }
+
+
+def _build_role_context(user: Dict[str, Any], snapshot: Dict[str, Any]) -> str:
+  """Format a fetched company snapshot into the AI prompt's context block."""
+  role = user.get("role", "technician").lower()
+
+  return f"""
+COMPANY CONTEXT ({snapshot['company_code']}):
+- Total Onboarded Fleet: {snapshot['total_machines']} machines
+- Active Breakdowns: {snapshot['active_breakdowns']}
+- Urgent Breakdown Alerts: {snapshot['urgent_count']}
 - Requester Name: {user.get('name')}
 - Requester Role: {role.upper()}
 
 LIVE OPEN TICKETS:
-{open_tickets[:10]}
+{snapshot['open_tickets'][:10]}
 
 MACHINES FLEET:
-{machines[:10]}
+{snapshot['machines'][:10]}
 """
-  return context_str
 
 
 def generate_ai_chat_response(user: Dict[str, Any], message_text: str) -> str:
   """Use Gemini 2.5 Flash to generate a role-appropriate WhatsApp response."""
-  context_info = _build_role_context(user)
+  snapshot = _fetch_company_snapshot(user)
+  context_info = _build_role_context(user, snapshot)
   role = user.get("role", "technician").lower()
   name = user.get("name", "User")
   
@@ -164,29 +186,49 @@ SECURITY RULES:
     log.warning("whatsapp_chat.gemini_call_failed", error=str(exc))
 
   # Fallback rule-based response if AI key unavailable or offline
-  return _fallback_role_response(user, message_text)
+  return _fallback_role_response(user, message_text, snapshot)
 
 
-def _fallback_role_response(user: Dict[str, Any], query: str) -> str:
-  """Structured fallback response when LLM service is offline."""
+def _fallback_role_response(user: Dict[str, Any], query: str, snapshot: Dict[str, Any]) -> str:
+  """Structured fallback response when the LLM service is offline.
+
+  Uses the same live `snapshot` the AI prompt itself was built from — this
+  used to return hardcoded fabricated numbers (a fixed "₹12,500", "95.8%",
+  named machines/technicians that don't exist for this company) to any real
+  customer whenever Gemini was unavailable. Financial figures like downtime
+  cost / fleet availability % aren't computed by this snapshot (that lives
+  in the dashboard's own cost model), so the fallback reports the real
+  counts it does have rather than inventing the ones it doesn't.
+  """
   role = user.get("role", "technician").lower()
   q = query.lower()
-  
+
+  if not snapshot.get("fetch_ok"):
+    return (
+      f"⚠️ *TurboFix Assistant — data temporarily unavailable*\n\n"
+      "I couldn't reach your company's live machine/ticket data just now. "
+      "Please try again shortly, or check the TurboFix Admin Portal directly."
+    )
+
   if "loss" in q or "cost" in q or "downtime" in q:
     return (
-      f"📊 *TurboFix Financial Overview for {user.get('name')}*\n\n"
-      "• Estimated Downtime Cost Today: ₹12,500\n"
-      "• Fleet Availability Rate: 95.8%\n"
-      "• Active Breakdowns: 2 machines\n\n"
-      "💡 _Log in to the TurboFix Admin Portal for full financial analytics._"
+      f"📊 *TurboFix Plant Overview for {user.get('name')}*\n\n"
+      f"• Total Fleet: {snapshot['total_machines']} machines\n"
+      f"• Active Breakdowns: {snapshot['active_breakdowns']}\n"
+      f"• Urgent Alerts: {snapshot['urgent_count']}\n\n"
+      "💡 _Log in to the TurboFix Admin Portal for downtime-cost and fleet-availability analytics._"
     )
   elif "breakdown" in q or "ticket" in q or "status" in q:
+    top_urgent = snapshot.get("top_urgent_ticket")
+    urgent_line = (
+      f"• High Priority Alert: {top_urgent.get('machine_name') or top_urgent.get('machine_id', 'unknown machine')}\n"
+      if top_urgent else "• No high-priority alerts right now\n"
+    )
     return (
       f"🛠️ *TurboFix Live Plant Overview*\n\n"
-      "• Active Open Breakdowns: 2\n"
-      "• High Priority Alerts: 1 (CNC Milling Machine #4)\n"
-      "• Assigned Technicians: Ramesh K., Suresh M.\n\n"
-      "Reply with a machine ID for detailed repair guidance."
+      f"• Active Open Breakdowns: {snapshot['active_breakdowns']}\n"
+      f"{urgent_line}"
+      "\nReply with a machine ID for detailed repair guidance."
     )
   else:
     return (

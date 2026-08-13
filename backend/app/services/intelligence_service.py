@@ -359,36 +359,6 @@ async def extract_machine_record(text: str = "", image: str = "", context_machin
     }
 
 
-def check_repeat_failure(machine_id: str, issue: str = "", factory_id: str = "", days: int = 30, threshold: int = 2, **kwargs) -> bool:
-    """Detect if machine has experienced repeat failure within N days."""
-    try:
-        import app.repositories.base as base_repo
-        tickets = base_repo.get_tickets(factory_id)
-    except Exception:
-        tickets = []
-
-    if not isinstance(tickets, list) and hasattr(tickets, "get_company_tickets"):
-        tickets = tickets.get_company_tickets(factory_id)
-    if not isinstance(tickets, list):
-        tickets = []
-
-    m_tickets = [t for t in tickets if str(t.get("machine_id", "")) == str(machine_id)]
-    if issue and m_tickets:
-        words = set(issue.lower().split())
-        m_tickets = [
-            t for t in m_tickets
-            if any(w in str(t.get("issue", "")).lower() or w in str(t.get("description", "")).lower() for w in words if len(w) > 3)
-        ]
-
-    if len(m_tickets) >= threshold:
-        return True
-
-    if "squeaking" in issue.lower():
-        return True
-
-    return False
-
-
 def check_inventory(part_id: str = "", quantity_needed: int = 0, factory_id: str = "", days_ahead: int = 7, **kwargs) -> dict:
     """Check stock level and return depletion status alert."""
     if part_id == "P456":

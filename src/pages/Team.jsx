@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
 import AdvancedFeaturesDrilldown from '../components/AdvancedFeaturesDrilldown';
-import ContactReveal from '../components/ContactReveal';
 import EmptyState from '../components/EmptyState';
 import { BellRing, ShieldCheck, UserPlus2, Users } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
@@ -32,17 +31,7 @@ export default function Team() {
   const [shift, setShift] = useState('');
   const [portalAccess, setPortalAccess] = useState(true);
 
-
-  useEffect(() => {
-    document.title = 'Team Management | TurboFix';
-    try {
-      const u = JSON.parse(localStorage.getItem('tf_user') || 'null');
-      setCurrentUser(u);
-    } catch {}
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -98,7 +87,19 @@ export default function Team() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    document.title = 'Team Management | TurboFix';
+    try {
+      const u = JSON.parse(localStorage.getItem('tf_user') || 'null');
+      setCurrentUser(u);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -175,7 +176,6 @@ export default function Team() {
     } catch (err) { setError(err.message); }
   };
 
-  const isOwner = currentUser && currentUser.role === 'owner';
   const canManageTeam = ['owner', 'director', 'maintenance_head'].includes(currentUser?.role);
   const techniciansCount = team.filter((member) => member.role === 'maintenance_technician').length;
   const portalCount = team.filter((member) => member.portal_access).length;
@@ -186,10 +186,10 @@ export default function Team() {
     || (activeFilter === 'alerts' && member.can_receive_alerts));
 
   // Combine default and custom roles for select dropdown
-  const allAvailableRoles = [
+  const allAvailableRoles = useMemo(() => ([
     ...defaultRoles,
     ...customRoles.map((r) => ({ value: r.role_name, label: r.role_label }))
-  ];
+  ]), [customRoles]);
   // Anyone who can manage the team can hand out any role except another
   // owner (matches the backend's own rule — auth_router.py's add_supervisor
   // rejects role === "owner"), and only an owner/director can grant
