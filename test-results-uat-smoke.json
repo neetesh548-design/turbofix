@@ -1,0 +1,489 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.smoke.config.ts",
+      "--list"
+    ],
+    "configFile": "/Users/nkumarsoni/TurboFix/playwright.smoke.config.ts",
+    "rootDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "smoke-chromium",
+        "name": "smoke-chromium",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "smoke-mobile",
+        "name": "smoke-mobile",
+        "testDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report-uat-smoke"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results-uat-smoke.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 4,
+    "webServer": {
+      "command": "npx vite --host 127.0.0.1 --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "admin.smoke.spec.ts",
+      "file": "admin.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UAT smoke: admin entry",
+          "file": "admin.smoke.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "admin portal login shell renders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "34ddc733cafe7a633aa5-c36515f2f7499cf83edb",
+              "file": "admin.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "admin portal login shell renders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "34ddc733cafe7a633aa5-66ea50052375f35e32d2",
+              "file": "admin.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth.smoke.spec.ts",
+      "file": "auth.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UAT smoke: auth entry",
+          "file": "auth.smoke.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login and register entry points render cleanly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6d5c41464ee763695a58-9f6906328efea704f1c5",
+              "file": "auth.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "login and register entry points render cleanly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6d5c41464ee763695a58-b3e6614e3dd5380cef8e",
+              "file": "auth.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "machines.smoke.spec.ts",
+      "file": "machines.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UAT smoke: machines journey",
+          "file": "machines.smoke.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "owner can open machine drawer and machine workspace",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a90cc866bf734c87eb72-8bf14d60c7a2bc74c23f",
+              "file": "machines.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "owner can open machine drawer and machine workspace",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a90cc866bf734c87eb72-d4cf70262d6e1b631ecd",
+              "file": "machines.smoke.spec.ts",
+              "line": 5,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "workspace.smoke.spec.ts",
+      "file": "workspace.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UAT smoke: core workspaces",
+          "file": "workspace.smoke.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/dashboard.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-151da8abddca3be11c18",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/tickets.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-d28867497358a8fec14b",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/team.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-18fde2d76fb2b2659617",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/settings.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-cef2e104a147521de834",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/support.html opens for support demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-chromium",
+                  "projectName": "smoke-chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-73142635e6f112ccbf94",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/dashboard.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-5175e998216f8e5f1a86",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/tickets.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-d276ca9af609d14e463c",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/team.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-f6dde99204a63d86db24",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/settings.html opens for owner demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-3b8fc326d41c2a010b15",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "/support.html opens for support demo session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "smoke-mobile",
+                  "projectName": "smoke-mobile",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "70b439f0d67452e74c7e-350466b1e6cba6e5d22c",
+              "file": "workspace.smoke.spec.ts",
+              "line": 14,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-13T18:12:48.764Z",
+    "duration": 167.46899999999982,
+    "expected": 0,
+    "skipped": 16,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
