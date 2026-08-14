@@ -118,7 +118,14 @@ const ROLE_NAV = {
   maintenance_technician: ['overview', 'tickets', 'technician', 'machines', 'inventory', 'records', 'assistant', 'kaizen', 'rca', 'report'],
   maintenance_engineer: ['overview', 'tickets', 'machines', 'inventory', 'records', 'shutdown', 'assistant', 'kaizen', 'rca', 'report'],
   supervisor: ['overview', 'tickets', 'machines', 'inventory', 'shutdown', 'team', 'kaizen', 'rca', 'records', 'settings', 'report'],
-  maintenance_head: ['overview', 'tickets', 'machines', 'inventory', 'records', 'shutdown', 'team', 'settings', 'kaizen', 'rca', 'assistant', 'report'],
+  // 'support' was missing here — every other escalation/exception-handling
+  // role (owner, quality_inspector, safety_officer, vendor, operator) has
+  // it, and maintenance_head's own description below ("Resolve safety,
+  // technical and high-impact exceptions") is literally what the Support &
+  // Decisions page is for. A real UAT smoke test caught this: a
+  // maintenance_head demo session hit AppShell's "not part of your role
+  // view" block on /support.html.
+  maintenance_head: ['overview', 'tickets', 'machines', 'inventory', 'records', 'shutdown', 'team', 'settings', 'kaizen', 'rca', 'assistant', 'support', 'report'],
   owner: ['overview', 'support', 'machines', 'tickets', 'inventory', 'records', 'shutdown', 'team', 'settings', 'kaizen', 'rca', 'assistant', 'report'],
   quality_inspector: ['overview', 'machines', 'records', 'tickets', 'kaizen', 'rca', 'support', 'report'],
   safety_officer: ['overview', 'machines', 'records', 'tickets', 'support', 'kaizen', 'rca', 'report'],

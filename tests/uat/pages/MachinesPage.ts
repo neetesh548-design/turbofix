@@ -15,7 +15,12 @@ export class MachinesPage {
   }
 
   async openFirstMachine() {
-    await this.page.locator('[data-testid="machine-view-details"]').first().click();
+    // machine-view-details (inside the card) jumps straight to the full
+    // workspace, bypassing the drawer entirely — see MachineCard.jsx's
+    // onClick, which calls onViewDetails (not onOpen) when present. The
+    // card itself is what opens the lightweight drawer this test actually
+    // wants first.
+    await this.cards.first().click();
   }
 
   async expectDrawerOpen() {

@@ -288,11 +288,12 @@ export default function Login() {
 
                 <form onSubmit={handleLogin} className="space-y-3.5 sm:space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Phone or Email</label>
+                    <label htmlFor="login-identifier" className="block text-sm font-medium text-slate-300 mb-1">Phone or Email</label>
                     <div className="relative">
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                      <input 
-                        type="text" 
+                      <input
+                        id="login-identifier"
+                        type="text"
                         required
                         placeholder="e.g. owner@turbofix.co.in or 9876543210"
                         value={identifier}
@@ -304,13 +305,14 @@ export default function Login() {
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="block text-sm font-medium text-slate-300">Password</label>
+                      <label htmlFor="login-password" className="block text-sm font-medium text-slate-300">Password</label>
                       <a href="/reset-password.html" className="text-xs text-emerald-400 hover:underline">Forgot password?</a>
                     </div>
                     <div className="relative">
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                      <input 
-                        type={showPassword ? 'text' : 'password'} 
+                      <input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
                         required
                         placeholder="Enter password"
                         value={password}
@@ -396,34 +398,34 @@ export default function Login() {
                 <form onSubmit={handleRegister} className="space-y-3.5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Company Code</label>
-                      <input type="text" required placeholder="e.g. ACME" value={companyCode} onChange={(e) => setCompanyCode(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm uppercase text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                      <label htmlFor="reg-company-code" className="block text-xs font-medium text-slate-300 mb-1">Company Code</label>
+                      <input id="reg-company-code" type="text" required placeholder="e.g. ACME" value={companyCode} onChange={(e) => setCompanyCode(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm uppercase text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Company Name</label>
-                      <input type="text" required placeholder="Acme Auto Ltd." value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                      <label htmlFor="reg-company-name" className="block text-xs font-medium text-slate-300 mb-1">Company Name</label>
+                      <input id="reg-company-name" type="text" required placeholder="Acme Auto Ltd." value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                     </div>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Owner / Plant Lead Name</label>
-                    <input type="text" required placeholder="e.g. Rajesh Sharma" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <label htmlFor="reg-owner-name" className="block text-xs font-medium text-slate-300 mb-1">Owner / Plant Lead Name</label>
+                    <input id="reg-owner-name" type="text" required placeholder="e.g. Rajesh Sharma" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Email</label>
-                      <input type="email" required placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                      <label htmlFor="reg-email" className="block text-xs font-medium text-slate-300 mb-1">Email</label>
+                      <input id="reg-email" type="email" required placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
-                      <input type="tel" required placeholder="9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                      <label htmlFor="reg-phone" className="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+                      <input id="reg-phone" type="tel" required placeholder="9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Account Password</label>
-                    <input type="password" required minLength={8} placeholder="At least 8 characters" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <label htmlFor="reg-password" className="block text-xs font-medium text-slate-300 mb-1">Account Password</label>
+                    <input id="reg-password" type="password" required minLength={8} placeholder="At least 8 characters" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none" />
                   </div>
 
                   <button 

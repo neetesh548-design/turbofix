@@ -5,8 +5,7 @@
       "/Users/nkumarsoni/TurboFix/node_modules/.bin/playwright",
       "test",
       "-c",
-      "playwright.smoke.config.ts",
-      "--list"
+      "playwright.smoke.config.ts"
     ],
     "configFile": "/Users/nkumarsoni/TurboFix/playwright.smoke.config.ts",
     "rootDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
@@ -19,14 +18,18 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 4
+    },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 4
+        },
         "id": "smoke-chromium",
         "name": "smoke-chromium",
         "testDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
@@ -40,7 +43,9 @@
         "outputDir": "/Users/nkumarsoni/TurboFix/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 4
+        },
         "id": "smoke-mobile",
         "name": "smoke-mobile",
         "testDir": "/Users/nkumarsoni/TurboFix/tests/uat/smoke",
@@ -80,12 +85,7 @@
     "updateSourceMethod": "patch",
     "version": "1.61.1",
     "workers": 4,
-    "webServer": {
-      "command": "npx vite --host 127.0.0.1 --port 4173",
-      "url": "http://127.0.0.1:4173",
-      "reuseExistingServer": true,
-      "timeout": 120000
-    }
+    "webServer": null
   },
   "suites": [
     {
@@ -112,8 +112,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3567,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:36.779Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "34ddc733cafe7a633aa5-c36515f2f7499cf83edb",
@@ -132,8 +146,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2881,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:47.705Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "34ddc733cafe7a633aa5-66ea50052375f35e32d2",
@@ -169,8 +197,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4265,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:36.792Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "6d5c41464ee763695a58-9f6906328efea704f1c5",
@@ -189,8 +231,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3385,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:47.765Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "6d5c41464ee763695a58-b3e6614e3dd5380cef8e",
@@ -226,8 +282,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 8957,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:36.784Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "a90cc866bf734c87eb72-8bf14d60c7a2bc74c23f",
@@ -246,8 +316,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5890,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:47.736Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "a90cc866bf734c87eb72-d4cf70262d6e1b631ecd",
@@ -283,8 +367,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3857,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:36.797Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-151da8abddca3be11c18",
@@ -303,8 +401,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5802,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:40.940Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-d28867497358a8fec14b",
@@ -323,8 +435,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5879,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:41.098Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-18fde2d76fb2b2659617",
@@ -343,8 +469,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5624,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:41.335Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-cef2e104a147521de834",
@@ -363,8 +503,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-chromium",
                   "projectName": "smoke-chromium",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 2916,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:46.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-73142635e6f112ccbf94",
@@ -383,8 +537,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3364,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:50.218Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-5175e998216f8e5f1a86",
@@ -403,8 +571,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3637,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:50.890Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-d276ca9af609d14e463c",
@@ -423,8 +605,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4762,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:51.502Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-f6dde99204a63d86db24",
@@ -443,8 +639,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3045,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:53.748Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-3b8fc326d41c2a010b15",
@@ -463,8 +673,22 @@
                   "expectedStatus": "passed",
                   "projectId": "smoke-mobile",
                   "projectName": "smoke-mobile",
-                  "results": [],
-                  "status": "skipped"
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2600,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-14T08:03:53.915Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
                 }
               ],
               "id": "70b439f0d67452e74c7e-350466b1e6cba6e5d22c",
@@ -479,10 +703,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-13T18:12:48.764Z",
-    "duration": 167.46899999999982,
-    "expected": 0,
-    "skipped": 16,
+    "startTime": "2026-08-14T08:03:36.195Z",
+    "duration": 20644.434,
+    "expected": 16,
+    "skipped": 0,
     "unexpected": 0,
     "flaky": 0
   }
