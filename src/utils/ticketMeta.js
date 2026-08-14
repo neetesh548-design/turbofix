@@ -5,6 +5,7 @@
  * copy of the lifecycle map and urgency palette. One source keeps the control
  * board, the cards and the drill-down panel visually consistent.
  */
+import { URGENCY_LEVELS } from './urgencyLevels.js';
 
 /** Canonical 10-state work-order lifecycle (roadmap §3.4). */
 export const LIFECYCLE = Object.freeze({
@@ -30,12 +31,14 @@ export function stageInfo(ticket) {
 }
 
 /** Urgency badge palette: Critical=red, High=orange, Medium=blue, Low=grey. */
-export const URGENCY_META = Object.freeze({
-  critical: { label: 'Critical', color: '#F87171', rgb: '239,68,68', rank: 0 },
-  high: { label: 'High', color: '#FBBF24', rgb: '245,158,11', rank: 1 },
-  medium: { label: 'Medium', color: '#60A5FA', rgb: '96,165,250', rank: 2 },
-  low: { label: 'Low', color: '#94a3b8', rgb: '148,163,184', rank: 3 },
-});
+export const URGENCY_META = Object.freeze(
+  Object.fromEntries(
+    Object.entries(URGENCY_LEVELS).map(([key, level]) => [
+      key,
+      { label: level.label, color: level.color, rgb: level.rgb, rank: level.rank },
+    ]),
+  ),
+);
 
 const UNRATED_URGENCY = { label: 'Unrated', color: '#94a3b8', rgb: '148,163,184', rank: 4 };
 

@@ -12,6 +12,17 @@ from app.services.dashboard_service import build_custom_kpi_values, compute_auto
 
 router = APIRouter(prefix="/vault/kpis")
 
+# Include-based, like WRITE_ROLES in app/auth.py — same rot risk (a role
+# added later, e.g. quality_inspector/safety_officer, is silently locked
+# out rather than reviewed), but unlike ai_assistant's equivalent fix this
+# session, there's no equally strong internal precedent here for what the
+# correct wider set should be (business-KPI configuration is a more
+# management-level decision than an informational AI query) — left as an
+# include-list with this one shared constant rather than guessing at an
+# exclude-based scope, so there's a single place to update if that's
+# revisited.
+KPI_CONFIG_ROLES = ("owner", "supervisor", "maintenance_head")
+
 
 class KpiConfigIn(BaseModel):
     kpi_name: str
@@ -75,7 +86,7 @@ def add_custom_kpi(
     kpi_repo: CustomKpiRepository = Depends(get_custom_kpis),
 ):
     """Add a new custom KPI config for the owner's company."""
-    if user.role not in ("owner", "supervisor", "maintenance_head"):
+    if user.role not in KPI_CONFIG_ROLES:
         raise HTTPException(status_code=403, detail="only owner/supervisor can configure KPIs")
 
     existing = kpi_repo.list_kpis(user.company_code)
@@ -108,7 +119,7 @@ def update_custom_kpi(
     kpi_repo: CustomKpiRepository = Depends(get_custom_kpis),
 ):
     """Update an existing custom KPI config."""
-    if user.role not in ("owner", "supervisor", "maintenance_head"):
+    if user.role not in KPI_CONFIG_ROLES:
         raise HTTPException(status_code=403, detail="only owner/supervisor can configure KPIs")
 
     kpi = kpi_repo.get_kpi(kpi_id)

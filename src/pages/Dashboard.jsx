@@ -260,7 +260,17 @@ export default function Dashboard() {
       return;
     }
 
-    Promise.all([fetchRoleSources(user), fetchDashboardData().catch(() => fallback)])
+    // fetchDashboardData() used to be wrapped in .catch(() => fallback) here,
+    // which silently substituted a hardcoded fake KPI object (machines_down:
+    // 6, urgent_open: 111, plant_health_pct: 14, etc.) for ANY real fetch
+    // failure — network error, a typo, a missing import — with no logging,
+    // so a real signed-in user saw fabricated numbers with no indication
+    // anything was wrong. Letting the rejection propagate to the outer
+    // .catch() below is the fix: it already does the right thing (logs via
+    // setError, and the UI already renders "Showing a safe empty-state until
+    // the API is available" when error is set) — this call just needs to
+    // stop intercepting the failure before that path can run.
+    Promise.all([fetchRoleSources(user), fetchDashboardData()])
       .then(([nextSources, nextLegacy]) => {
         if (!mounted) return;
         cacheRef.current.clear();
@@ -272,7 +282,10 @@ export default function Dashboard() {
           auto_insights: { ...fallback.auto_insights, ...nextLegacy?.auto_insights },
         });
       })
-      .catch((err) => { if (mounted) setError(err?.message || 'Could not load dashboard data'); })
+      .catch((err) => {
+        console.error('Dashboard data fetch failed:', err);
+        if (mounted) setError(err?.message || 'Could not load dashboard data');
+      })
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };

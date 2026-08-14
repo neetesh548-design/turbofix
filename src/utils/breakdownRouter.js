@@ -33,6 +33,7 @@
    =========================================================== */
 
 import { asArray, asNumber } from './dashboardMetrics.js';
+import { URGENCY_LEVELS } from './urgencyLevels.js';
 
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -110,24 +111,16 @@ export const URGENCY = Object.freeze({
  * `responseMinutes` is a promise made to the person reporting, so it
  * is deliberately conservative — the confirmation screen quotes it.
  */
-export const URGENCY_META = Object.freeze({
-  [URGENCY.CRITICAL]: {
-    value: URGENCY.CRITICAL, rank: 0, label: 'Critical', tone: 'danger',
-    responseMinutes: 15, hint: 'Safety or a full line stop — someone comes now.',
-  },
-  [URGENCY.HIGH]: {
-    value: URGENCY.HIGH, rank: 1, label: 'High', tone: 'danger',
-    responseMinutes: 30, hint: 'Machine is down or unsafe to run.',
-  },
-  [URGENCY.MEDIUM]: {
-    value: URGENCY.MEDIUM, rank: 2, label: 'Medium', tone: 'warning',
-    responseMinutes: 240, hint: 'Still running, but not right.',
-  },
-  [URGENCY.LOW]: {
-    value: URGENCY.LOW, rank: 3, label: 'Low', tone: 'ok',
-    responseMinutes: 1440, hint: 'Worth fixing at the next stoppage.',
-  },
-});
+export const URGENCY_META = Object.freeze(
+  Object.fromEntries(
+    Object.values(URGENCY).map((value) => [
+      value,
+      { value, rank: URGENCY_LEVELS[value].rank, label: URGENCY_LEVELS[value].label,
+        tone: URGENCY_LEVELS[value].tone, responseMinutes: URGENCY_LEVELS[value].responseMinutes,
+        hint: URGENCY_LEVELS[value].hint },
+    ]),
+  ),
+);
 
 export const URGENCY_ORDER = Object.freeze([
   URGENCY.CRITICAL, URGENCY.HIGH, URGENCY.MEDIUM, URGENCY.LOW,

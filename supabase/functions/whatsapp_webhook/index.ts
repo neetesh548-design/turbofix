@@ -797,6 +797,11 @@ async function alertSupervisors(
 ) {
   if (!waConfigured()) return;
 
+    // NOTE: profiles.role is the legacy user_role ENUM (owner/supervisor/
+    // technician only) — a maintenance_head user's profile row already has
+    // role='supervisor' (collapsed at write time in onboard_team_member),
+    // so 'supervisor' here already reaches them. Adding 'maintenance_head'
+    // to this filter would be a no-op, not a fix.
   const { data: supervisors } = await supabase
     .from('profiles')
     .select('phone_e164')
@@ -839,20 +844,28 @@ serve(async (req) => {
   // ── Verify webhook signature ──
   const bodyText = await req.text();
 
-  if (WHATSAPP_APP_SECRET) {
-    const signatureHeader = req.headers.get('x-hub-signature-256') || '';
-    if (!signatureHeader.startsWith('sha256=')) {
-      return new Response('Missing signature', { status: 401 });
-    }
-    const valid = await verifyHmacSha256(
-      bodyText,
-      signatureHeader.slice('sha256='.length),
-      WHATSAPP_APP_SECRET,
-    );
-    if (!valid) {
-      console.warn('webhook.invalid_signature');
-      return new Response('Invalid signature', { status: 401 });
-    }
+  // Previously skipped verification entirely (fail OPEN, accepting unsigned
+  // payloads) whenever WHATSAPP_APP_SECRET was unset — a misconfigured or
+  // rotated-but-not-redeployed secret silently turned this into an
+  // unauthenticated endpoint that creates tickets and fans out WhatsApp
+  // messages. Fails closed now, matching backend/app/routers/webhook_router.py's
+  // already-correct handling of the same scenario.
+  if (!WHATSAPP_APP_SECRET) {
+    console.error('webhook.signature_secret_missing');
+    return new Response('Webhook is not configured', { status: 503 });
+  }
+  const signatureHeader = req.headers.get('x-hub-signature-256') || '';
+  if (!signatureHeader.startsWith('sha256=')) {
+    return new Response('Missing signature', { status: 401 });
+  }
+  const valid = await verifyHmacSha256(
+    bodyText,
+    signatureHeader.slice('sha256='.length),
+    WHATSAPP_APP_SECRET,
+  );
+  if (!valid) {
+    console.warn('webhook.invalid_signature');
+    return new Response('Invalid signature', { status: 401 });
   }
 
   // ── Parse and dispatch ──

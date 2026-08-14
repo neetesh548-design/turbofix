@@ -13,7 +13,7 @@ import pytest
 from app import config
 from app.repositories.local.ticket_repo import LocalMachineRepository, LocalTicketRepository
 
-TRACKER_SOURCE = Path(__file__).resolve().parent.parent.parent / "TurboFix-Tracker.xlsx"
+TRACKER_SOURCE = Path(__file__).resolve().parent.parent / "TurboFix-Tracker.xlsx"
 
 
 @pytest.fixture

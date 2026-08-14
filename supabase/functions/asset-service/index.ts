@@ -39,16 +39,34 @@ export default {
       } else if (req.method === "POST") {
         // Asset creation
         const body = await req.json();
-        
-        if (!body.name || !body.organization_id) {
-           return Response.json({ error: "name and organization_id are required" }, { status: 400, headers: corsHeaders });
+
+        if (!body.name) {
+           return Response.json({ error: "name is required" }, { status: 400, headers: corsHeaders });
+        }
+
+        // Previously inserted a client-supplied `organization_id` directly —
+        // besides trusting a value the caller could set to any company
+        // (RLS's WITH CHECK would reject a mismatch, but the app layer
+        // shouldn't ask for it at all), `machines` doesn't even have an
+        // organization_id column (it's company_id — see
+        // supabase/migrations/20260711131850_init_schema.sql), so every call
+        // to this endpoint failed outright before this fix. Resolved from
+        // the caller's own session instead of trusted client input.
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const { data: callerRow, error: callerErr } = await supabase
+          .from("users")
+          .select("company_id")
+          .eq("id", authUser?.id)
+          .maybeSingle();
+        if (callerErr || !callerRow?.company_id) {
+          return Response.json({ error: "Could not resolve your company from this session." }, { status: 403, headers: corsHeaders });
         }
 
         const { data, error } = await supabase
           .from("machines")
           .insert({
             name: body.name,
-            organization_id: body.organization_id,
+            company_id: callerRow.company_id,
             location: body.location,
             status: body.status || "healthy"
           })

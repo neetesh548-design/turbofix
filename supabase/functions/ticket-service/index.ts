@@ -7,6 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// PATCH previously applied the raw request body to .update() with no field
+// allow-list — any caller who could touch a ticket at all (RLS-permitted)
+// could set any column on it, including identity/structural fields like
+// machine_id/factory_id that should never change via a status-update API.
+const PATCHABLE_TICKET_FIELDS = new Set([
+  "status", "urgency", "issue_text", "root_cause", "repair_action", "ai_summary",
+]);
+
 export default {
   fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
     if (req.method === "OPTIONS") {
@@ -93,9 +101,14 @@ export default {
           }
         }
 
+        const safeUpdate: Record<string, unknown> = {};
+        for (const key of Object.keys(body)) {
+          if (PATCHABLE_TICKET_FIELDS.has(key)) safeUpdate[key] = body[key];
+        }
+
         const { data, error } = await supabase
           .from("tickets")
-          .update(body)
+          .update(safeUpdate)
           .eq("id", id)
           .select()
           .single();

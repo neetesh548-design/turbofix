@@ -1,10 +1,54 @@
 """Dashboard service — compute per-company KPIs from live ticket/machine data."""
 
+import ast
+import operator
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Union
 
 from app.repositories.base import CustomKpiRepository, MachineRepository, TicketRepository
+
+# Safe arithmetic evaluator for custom-KPI formulas — replaces a bare eval()
+# that was gated only by {"__builtins__": None}, a well-known-bypassable
+# sandbox (object-graph traversal like ().__class__.__base__.__subclasses__()
+# reaches arbitrary code without needing any builtin name in scope). This
+# path is currently unreachable (no schema/endpoint ever produces a
+# "formula" key on a KPI config today), but the kpi_type field already
+# exists as a placeholder for exactly this kind of extension, so it's worth
+# closing properly rather than leaving the landmine for whoever wires up
+# formula-based KPIs next. Parses to an AST and only walks a fixed
+# allow-list of node types (numbers, names, +-*/, unary +-, parentheses) —
+# there is no code path from a formula string to executing a function call,
+# attribute access, or subscript, so this cannot be escaped the way eval()
+# with a builtins dict can be.
+_SAFE_BINOPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub,
+    ast.Mult: operator.mul, ast.Div: operator.truediv,
+    ast.Pow: operator.pow, ast.Mod: operator.mod,
+}
+_SAFE_UNARYOPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+
+
+def _safe_eval_formula(formula: str, scope: dict) -> float:
+    def _eval(node):
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError("Only numeric constants are allowed in KPI formulas.")
+        if isinstance(node, ast.Name):
+            if node.id in scope:
+                return scope[node.id]
+            raise ValueError(f"Unknown variable '{node.id}' in KPI formula.")
+        if isinstance(node, ast.BinOp) and type(node.op) in _SAFE_BINOPS:
+            return _SAFE_BINOPS[type(node.op)](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _SAFE_UNARYOPS:
+            return _SAFE_UNARYOPS[type(node.op)](_eval(node.operand))
+        raise ValueError("KPI formula contains an unsupported expression.")
+
+    parsed = ast.parse(formula, mode="eval")
+    return _eval(parsed)
 
 
 def _machine_status_bucket(machine: dict) -> str | None:
@@ -194,7 +238,7 @@ def build_custom_kpi_values(
             data = {}
         try:
             eval_scope = {k: float(v) for k, v in data.items() if isinstance(v, (int, float, str))}
-            val = eval(formula, {"__builtins__": None}, eval_scope)
+            val = _safe_eval_formula(formula, eval_scope)
             return float(val) if val is not None else 0.0
         except Exception:
             return 0.0

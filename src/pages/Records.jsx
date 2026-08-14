@@ -578,17 +578,27 @@ export default function Records() {
       setError('');
     } catch (err) {
       if (requestId === loadRequest.current) {
-        // Safe fallback to sample demo records if API call is unauthenticated or fails
-        console.error('Records.jsx load() failed, falling back to demo data:', err);
-        const demoMachinesList = DEMO_MACHINES.map((m) => ({
-          machine_id: m.machine_id,
-          machine_name: m.machine_name,
-          location: m.location,
-        }));
-        setMachines(demoMachinesList);
-        setRecords(DEMO_RECORDS);
-        setSelectedBackupMachines(demoMachinesList.map((m) => m.machine_id));
-        setError('');
+        console.error('Records.jsx load() failed:', err);
+        // This used to fall back to demo data for ANY failure here, not just
+        // an actual demo/signed-out session — a real company whose fetch
+        // failed for an unrelated reason (network blip, RLS misconfig, etc.)
+        // saw fabricated sample records with no error shown, indistinguishable
+        // from their own real (possibly genuinely empty) data. Only show demo
+        // data when there's no real signed-in company to report an honest
+        // error for.
+        if (!user?.company_code) {
+          const demoMachinesList = DEMO_MACHINES.map((m) => ({
+            machine_id: m.machine_id,
+            machine_name: m.machine_name,
+            location: m.location,
+          }));
+          setMachines(demoMachinesList);
+          setRecords(DEMO_RECORDS);
+          setSelectedBackupMachines(demoMachinesList.map((m) => m.machine_id));
+          setError('');
+        } else {
+          setError(err?.message || 'Machine records could not be loaded.');
+        }
       }
     } finally {
       if (requestId === loadRequest.current) setLoading(false);

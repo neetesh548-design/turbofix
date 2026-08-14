@@ -331,6 +331,19 @@ serve(async (req) => {
   const { data: ownerProfile } = await admin
     .from('profiles').select('factory_id').eq('user_id', owner.id).maybeSingle()
   const ownerFactoryId = ownerProfile?.factory_id ?? null
+  // profiles.role is a Postgres ENUM (user_role: owner/supervisor/technician
+  // only — see supabase/migrations/20260711171614_add_tenancy_and_roles.sql,
+  // never widened since) that get_auth_factory_id()-based RLS policies key
+  // off of, so any value outside those three is a hard INSERT/UPSERT error,
+  // not just an app-level choice — this mapping is a required workaround,
+  // not the root cause. It does mean every role added since (quality_
+  // inspector, safety_officer, operator, vendor, any custom role) silently
+  // collapses to 'technician' here specifically, under-scoping their RLS
+  // access rather than rejecting the invite outright. A real fix needs a
+  // schema migration (ALTER TYPE user_role ADD VALUE ..., or moving
+  // get_auth_factory_id()'s policies off the enum entirely) verified in
+  // staging — flagged, not attempted here, since it touches every RLS
+  // policy that compares against get_auth_role()'s return type.
   const profileRole = role === 'maintenance_technician' ? 'technician'
     : role === 'maintenance_head' ? 'supervisor'
     : (['owner', 'supervisor', 'technician'].includes(role) ? role : 'technician')

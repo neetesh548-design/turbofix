@@ -931,7 +931,12 @@ export default function Machines() {
       setSuccess('Machine picture updated successfully.');
       return publicUrl;
     } catch (err) {
-      // Local fallback
+      // Local fallback — syncLocalMachinePhotos() (below) reconciles this
+      // with cloud storage once it succeeds, so this isn't silent data loss
+      // the way it looked in isolation; it was, however, silent about *why*
+      // the cloud upload failed in the first place, which made failures
+      // undebuggable.
+      console.error('Machine photo cloud upload failed, falling back to local storage:', err);
       return new Promise((resolve) => {
         const fileReader = new FileReader();
         fileReader.onload = () => {
@@ -1488,11 +1493,12 @@ export default function Machines() {
       setKznProposal('');
       setShowKznForm(false);
     } catch (err) {
-      // Local fallback
-      setMachineKaizens([newKzn, ...machineKaizens]);
-      setKznTitle('');
-      setKznProposal('');
-      setShowKznForm(false);
+      // Previously fell back to adding `newKzn` (no real id, never actually
+      // saved) straight into local state and closed the form as if it had
+      // succeeded — the idea silently vanished on the next real fetch, with
+      // no error logged and nothing telling the reporter it was ever lost.
+      console.error('Failed to submit Kaizen opportunity:', err);
+      setError(err?.message || 'Could not submit Kaizen opportunity. Please try again.');
     } finally {
       setRelSaving(false);
     }
@@ -1501,10 +1507,19 @@ export default function Machines() {
   const handleDeleteKaizen = async (id) => {
     if (!window.confirm('Delete this Kaizen opportunity?')) return;
     try {
-      await supabase.from('kaizen_opportunities').delete().eq('id', id);
+      // Supabase's delete() doesn't throw on an RLS-denied/failed delete —
+      // it resolves with an `error` field. The empty catch here only ever
+      // caught actual network exceptions, so a denied delete previously
+      // still removed the row from local state and showed "deleted"
+      // regardless of whether anything was actually deleted server-side.
+      const { error: err } = await supabase.from('kaizen_opportunities').delete().eq('id', id);
+      if (err) throw err;
       setMachineKaizens(machineKaizens.filter(k => k.id !== id));
       setSuccess('Kaizen Opportunity deleted.');
-    } catch {}
+    } catch (err) {
+      console.error('Failed to delete Kaizen opportunity:', err);
+      setError(err?.message || 'Could not delete Kaizen opportunity. Please try again.');
+    }
   };
 
   const handleAddCapa = async (rca) => {

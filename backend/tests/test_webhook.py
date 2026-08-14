@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 
 from app import config
 
-TRACKER_SOURCE = Path(__file__).resolve().parent.parent.parent / "TurboFix-Tracker.xlsx"
+TRACKER_SOURCE = Path(__file__).resolve().parent.parent / "TurboFix-Tracker.xlsx"
 
 
 def _text_payload(phone: str, body: str) -> dict:

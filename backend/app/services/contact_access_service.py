@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Iterable
 
+MANAGER_CONTACT_REVEAL_ROLES = {"supervisor", "maintenance_engineer"}
+
 
 def mask_phone(phone: str | None) -> str:
     value = str(phone or "").strip()
@@ -92,7 +94,17 @@ def can_reveal_contact(viewer: dict, target: dict, users: Iterable[dict]) -> boo
     target_managers = _manager_chain(target_row, by_id)
     if target_id in viewer_managers:
         return True
-    if viewer_row.get("role") in {"supervisor", "maintenance_engineer"}:
+    # Include-based, same rot risk noted elsewhere this session (a role
+    # added later — quality_inspector, safety_officer, a custom "shift
+    # lead" — who genuinely manages people via manager_user_id still can't
+    # reveal their own reports' contact info). Fails closed (safer
+    # direction than the historical incidents), and unlike the upward
+    # check above (anyone can always see their own manager), there's no
+    # clear internal precedent for whether "reveals reports' contacts"
+    # should be tied to a role allow-list at all versus purely to the
+    # manager_user_id relationship already verified above — left as-is
+    # rather than guessing which one is intended.
+    if viewer_row.get("role") in MANAGER_CONTACT_REVEAL_ROLES:
         return viewer_id in target_managers
     return False
 

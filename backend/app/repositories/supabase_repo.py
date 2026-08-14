@@ -688,6 +688,16 @@ class SupabaseMachineRepository(MachineRepository):
         return result
 
     def get(self, machine_id: str) -> Optional[dict]:
+        # Fetches by bare id with no company/factory filter at the query
+        # level — every caller is individually responsible for checking the
+        # returned row's company_code/company_id against the requesting
+        # user before using or returning it. All current call sites do this,
+        # but there's no query-level backstop if a future one forgets (this
+        # is the exact shape that caused three real cross-tenant leaks
+        # elsewhere in this codebase — see LESSONS_LEARNED.md §1). Widening
+        # this method's signature to require a company_code and scope the
+        # query itself would close the gap properly but touches every call
+        # site across routers/services — flagged rather than done blind here.
         row = _client.select_one("machines", {"id": f"eq.{machine_id}"})
         if not row:
             return None
@@ -807,6 +817,9 @@ class SupabaseTicketRepository(TicketRepository):
         })
 
     def get(self, ticket_id: str) -> Optional[dict]:
+        # Same caveat as MachineRepository.get() above: no company/factory
+        # filter at the query level, caller must verify ownership of the
+        # returned row before using it. See that method's comment for detail.
         row = _client.select_one("tickets", {"id": f"eq.{ticket_id}"})
         if not row:
             return None

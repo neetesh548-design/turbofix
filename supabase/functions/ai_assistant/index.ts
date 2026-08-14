@@ -51,9 +51,18 @@ type GraphEdge = { from: string; to: string; type: string }
 const MAX_QUESTION_LENGTH = 2000
 const RATE_LIMIT_USER_PER_HOUR = 20
 const RATE_LIMIT_COMPANY_PER_DAY = 100
-const ALLOWED_AI_ROLES = new Set([
-  'owner', 'maintenance_head', 'supervisor', 'maintenance_engineer',
-])
+// Exclude-based, not include-based: an include-list silently 403s every role
+// added after it was written — this one locked out technician/maintenance_
+// technician/quality_inspector/safety_officer/operator, none of whom were
+// ever meant to be excluded (the WhatsApp AI Assistant, the same feature on
+// a different channel — backend/app/services/whatsapp_chat_service.py — has
+// always treated technician as a first-class supported role: "Focus on
+// assigned work orders, step-by-step repair manuals"). Only 'vendor' (an
+// external OEM contractor, per src/lib/roles.js's roleContribution) is
+// excluded — matches this codebase's other role-boundary decisions (Team.jsx
+// /onboard_team_member exclude everyone from owner-only actions, not from
+// this kind of informational feature).
+const EXCLUDED_AI_ROLES = new Set(['vendor'])
 
 // ---------------------------------------------------------------------------
 // AI Firewall — input sanitization
@@ -434,7 +443,7 @@ serve(async (req) => {
     // AI FIREWALL — Role-based access control
     // -----------------------------------------------------------------------
     const userRole = String(directoryUser.role || '').toLowerCase()
-    if (!ALLOWED_AI_ROLES.has(userRole)) {
+    if (!userRole || EXCLUDED_AI_ROLES.has(userRole)) {
       await logUsage(admin, {
         userId: directoryUser.id, companyId: directoryUser.company_id,
         action: 'blocked', status: 'blocked',
@@ -442,7 +451,7 @@ serve(async (req) => {
         ipAddress: clientIp,
       })
       return reply(req, {
-        error: 'AI Assistant is available to Supervisors, Engineers, Maintenance Heads, and Owners. Contact your supervisor for access.',
+        error: 'AI Assistant is not available for external/vendor accounts. Contact your supervisor for access.',
       }, 403)
     }
 

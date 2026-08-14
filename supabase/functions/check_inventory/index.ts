@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireServiceRole } from "../_shared/security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,13 +21,16 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Auth check if invoked manually, otherwise allowed via cron
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader && req.headers.get('x-forwarded-for')) {
-      // Basic protection: Require service key or auth if not local cron
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
-    }
+
+    // Previously only rejected requests with NO Authorization header AND an
+    // x-forwarded-for header present — it never checked what the header's
+    // value actually was, so any request supplying literally any bearer
+    // token (or none, when x-forwarded-for was absent) reached the service-
+    // role client below and could generate real purchase orders. Requires
+    // the actual service-role key now, matching the pattern used for every
+    // other cron/internal-only function in this codebase.
+    const authError = requireServiceRole(req);
+    if (authError) return authError;
 
     let generatedCount = 0;
 

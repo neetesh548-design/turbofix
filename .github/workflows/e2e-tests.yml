@@ -45,6 +45,19 @@ jobs:
         env:
           CI: true
 
+      # Previously the only 2 of 46 Playwright spec files that ever ran in CI
+      # were the two above (matched by the "qr-gateway" substring filter).
+      # Adding the specs confirmed passing against current app behavior
+      # during this audit's follow-up — see progress.md's "e2e test
+      # investigation" section for how the rest of the suite was triaged
+      # (role-dashboards.spec.js retired as dead-architecture coverage
+      # duplicate; most others not yet verified and intentionally left out
+      # of CI rather than added unverified).
+      - name: Run verified functional/security specs
+        run: npx playwright test settings-role-boundary.spec.js dashboard-framework.spec.js lay-owner-dashboard.spec.js --project=${{ matrix.browser }}
+        env:
+          CI: true
+
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
         if: always()

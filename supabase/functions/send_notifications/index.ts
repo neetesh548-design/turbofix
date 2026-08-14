@@ -198,6 +198,11 @@ serve(async (req) => {
         }
 
         // Alert all owners and supervisors in the factory
+    // NOTE: profiles.role is the legacy user_role ENUM (owner/supervisor/
+    // technician only) — a maintenance_head user's profile row already has
+    // role='supervisor' (collapsed at write time in onboard_team_member),
+    // so 'supervisor' here already reaches them. Adding 'maintenance_head'
+    // to this filter would be a no-op, not a fix.
         const { data: managers } = await supabase
           .from('profiles')
           .select('phone_e164')
