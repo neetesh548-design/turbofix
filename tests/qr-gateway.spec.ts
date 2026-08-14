@@ -1,5 +1,16 @@
 import { test, expect, Page, BrowserContext } from '@playwright/test';
 
+// The QR Gateway phone gate now requires a real WhatsApp OTP round-trip
+// (see handleSendOTP/handleVerifyOTP in src/pages/QRGateway.jsx) instead of
+// the old single "Proceed" button. Most of the scenarios below exercise the
+// post-gate reporting flow (voice/text capture, offline queueing, photo
+// upload, etc.) and don't care about OTP mechanics, so their beforeEach
+// bypasses the gate the same way the app itself does for a returning user
+// with a valid session (QR_SESSION_KEY / tf_qr_session_expiry). OTP mechanics
+// themselves have dedicated coverage in tests/whatsapp-otp-edgecases.spec.js
+// and tests/qr-session-30day.spec.js. The few tests that actually exercise
+// gate mechanics live in the second describe block below, without the bypass.
+
 test.describe('QRGateway - Worst Case Scenarios', () => {
   let page: Page;
 
@@ -9,6 +20,9 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
     await page.addInitScript(() => {
       window.localStorage.setItem('tf_lang', 'en-US');
+      window.localStorage.setItem('tf_qr_session_token', 'test-session-token');
+      window.localStorage.setItem('tf_qr_session_expiry', String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+      window.localStorage.setItem('tf_reporter_phone', '9876543210');
     });
 
     // Setup: Navigate to QR Gateway
@@ -16,6 +30,8 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
+    // greetUser() flips workflowStage to 'capture' 800ms after mount.
+    await page.waitForTimeout(900);
   });
 
   test.afterEach(async () => {
@@ -27,11 +43,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   test('Should handle offline submission and queue ticket locally', async () => {
     // Simulate offline condition
     await page.context().setOffline(true);
-
-    // Phone gate
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
 
     // Go to text input mode
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
@@ -63,10 +74,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
       }
     });
 
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Should eventually succeed after retries
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -84,10 +91,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     await page.context().route('**/functions/v1/*', route => {
       setTimeout(() => route.continue(), 15000); // Simulate 15s timeout
     });
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
 
     // Try to submit
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
@@ -113,10 +116,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     });
     await page.reload();
     await page.waitForLoadState('networkidle');
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(900);
 
     await page.locator('button#voice-mic-button').click({ force: true });
     await page.waitForTimeout(500);
@@ -126,10 +126,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle camera permission denied for photo upload', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -183,6 +179,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     });
     await page.reload();
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(900);
 
     await page.context().route('**/functions/v1/*', route => {
       if (route.request().postDataJSON()?.action === 'transcribe') {
@@ -195,10 +192,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
         route.continue();
       }
     });
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
 
     // Start voice input
     await page.locator('button#voice-mic-button').click({ force: true });
@@ -249,6 +242,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     });
     await page.reload();
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(900);
 
     // Mock transcription endpoint to fail
     await page.context().route('**/functions/v1/*', route => {
@@ -258,10 +252,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
         route.continue();
       }
     });
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
 
     // Try voice input
     await page.locator('button#voice-mic-button').click({ force: true });
@@ -283,10 +273,9 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
       (window as any).SpeechRecognition = undefined;
       (window as any).webkitSpeechRecognition = undefined;
     });
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(900);
 
     // Should still allow text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
@@ -296,43 +285,12 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     // Should be able to submit text
     await textarea.fill('Machine issue via text');
     await page.getByRole('button', { name: /Review & confirm|समीक्षा|पुष्टि/ }).click();
-    expect(page.locator('h4:has-text("Review")')).toBeVisible();
+    await expect(page.locator('.qr-gateway-review textarea').first()).toBeVisible();
   });
 
   // ========== INVALID INPUT SCENARIOS ==========
 
-  test('Should validate phone number format on phone gate', async () => {
-    // Try invalid phone numbers
-    const testCases = [
-      { input: 'abcdefghij', shouldPass: false },
-      { input: '123', shouldPass: false },
-      { input: '123456789', shouldPass: false }, // Too short
-      { input: '9876543210', shouldPass: true },
-    ];
-
-    for (const testCase of testCases) {
-      await page.fill('input[type="tel"]', testCase.input);
-      await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-
-      if (testCase.shouldPass) {
-        await page.waitForTimeout(500);
-        // Should proceed to voice input
-        expect(await page.locator('button#voice-mic-button').isVisible()).toBeTruthy();
-      } else {
-        // Invalid input should keep the gate active.
-        await expect(page.locator('input[type="tel"]')).toBeVisible();
-      }
-
-      // Reset for next test
-      await page.reload();
-    }
-  });
-
   test('Should handle very long issue descriptions', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
 
@@ -351,10 +309,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle special characters in input', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-      await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
 
@@ -370,10 +324,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle empty/whitespace-only submission', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
 
@@ -389,10 +339,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   // ========== PHOTO UPLOAD FAILURES ==========
 
   test('Should handle corrupted image file', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -408,10 +354,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle very large image file (>50MB)', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
 
@@ -438,10 +380,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
       route.abort('failed');
     });
 
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input with photo
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Issue with photo');
@@ -463,10 +401,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   // ========== CONCURRENT & RACE CONDITIONS ==========
 
   test('Should handle rapid form submissions', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -485,10 +419,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle language change during submission', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go to text input
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -520,11 +450,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
       // Expected to fail at some point
     }
 
-    // Try to submit ticket (should queue offline)
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Go offline to force queue
     await page.context().setOffline(true);
 
@@ -549,44 +474,15 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     await page.addInitScript(() => {
       (window as any).speechSynthesis = null;
     });
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(900);
 
-    // Should still work without audio feedback
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
-    // Should proceed normally
+    // Should still work without audio feedback, already past the gate
     expect(await page.locator('button#voice-mic-button').isVisible()).toBeTruthy();
   });
 
   // ========== EDGE CASES & STATE MANAGEMENT ==========
-
-  test('Should handle back button during phone gate', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
-    // Go back in browser history
-    await page.goBack();
-    await page.waitForTimeout(500);
-
-    // Current flow lands back on the initial browser state.
-    await expect(page).toHaveURL('about:blank');
-  });
-
-  test('Should persist reporter phone across page reload', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
-    // Reload page
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    // Should remember phone across reload
-    const savedPhone = await page.evaluate(() => localStorage.getItem('tf_reporter_phone'));
-    expect(savedPhone).toBe('9876543210');
-  });
 
   test('Should handle machine details fetch failure', async () => {
     // Mock machine details endpoint to fail
@@ -599,7 +495,7 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     });
 
     // Should still load with fallback machine name
-    expect(await page.locator('text=CNC Lathe 1').isVisible()).toBeTruthy();
+    expect(await page.locator('text=CNC Lathe 1').first().isVisible()).toBeTruthy();
   });
 
   test('Should handle duplicate check failure gracefully', async () => {
@@ -614,10 +510,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
 
     // Should still allow offline submission
     await page.context().setOffline(true);
-
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
 
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Test issue');
@@ -634,10 +526,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     // First ticket log fails, but should queue offline
     await page.context().setOffline(true);
 
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     await page.getByRole('button', { name: /Trouble speaking|बोलने में समस्या/ }).click();
     await page.fill('textarea', 'Critical issue');
     await page.getByRole('button', { name: /Review & confirm|समीक्षा|पुष्टि/ }).click();
@@ -653,10 +541,6 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
   });
 
   test('Should handle rapid language switches without state corruption', async () => {
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-    await page.waitForTimeout(500);
-
     // Rapidly switch languages
     const select = page.locator('select').first();
     const languages = ['hi-IN', 'mr-IN', 'en-US', 'hi-IN', 'mr-IN'];
@@ -675,11 +559,98 @@ test.describe('QRGateway - Worst Case Scenarios', () => {
     await page.setViewportSize({ width: 300, height: 800 });
     await page.waitForTimeout(500);
 
-    // Should still be usable
-    await page.fill('input[type="tel"]', '9876543210');
-    await page.getByRole('button', { name: /Proceed|आगे बढ़ें/ }).click();
-
-    // All buttons should be accessible
+    // Should still be usable, already past the gate
     expect(await page.locator('button#voice-mic-button').isVisible()).toBeTruthy();
+  });
+});
+
+// The tests below exercise the phone gate / OTP mechanics themselves, so
+// they run with a fresh (unverified) session — no bypass.
+test.describe('QRGateway - Phone Gate (OTP)', () => {
+  let page: Page;
+
+  test.beforeEach(async ({ browser }) => {
+    const context = await browser.newContext();
+    page = await context.newPage();
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tf_lang', 'en-US');
+    });
+
+    await page.goto('/qr-gateway.html?id=machine-001&name=CNC%20Lathe%201&loc=Shop%20Floor%20A');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test.afterEach(async () => {
+    await page?.close().catch(() => {});
+  });
+
+  test('Should validate phone number format on phone gate', async () => {
+    // Invalid formats must be rejected client-side, before any OTP network call.
+    const invalidCases = ['abcdefghij', '123', '123456789'];
+
+    for (const input of invalidCases) {
+      await page.fill('input[type="tel"]', input);
+      await page.getByRole('button', { name: /Send WhatsApp OTP/i }).click();
+      await expect(page.getByText(/Please enter a valid 10-digit mobile number/i)).toBeVisible();
+      await expect(page.locator('input[type="tel"]')).toBeVisible();
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+    }
+
+    // A valid 10-digit number should pass client-side validation and not
+    // show the format error, regardless of whether the OTP network call
+    // itself succeeds in this environment.
+    await page.fill('input[type="tel"]', '9876543210');
+    await page.getByRole('button', { name: /Send WhatsApp OTP/i }).click();
+    await expect(page.getByText(/Please enter a valid 10-digit mobile number/i)).not.toBeVisible();
+  });
+
+  test('Should handle back button during phone gate', async () => {
+    await page.fill('input[type="tel"]', '9876543210');
+    await page.getByRole('button', { name: /Send WhatsApp OTP/i }).click();
+    await page.waitForTimeout(500);
+
+    // Go back in browser history
+    await page.goBack();
+    await page.waitForTimeout(500);
+
+    // Current flow lands back on the initial browser state.
+    await expect(page).toHaveURL('about:blank');
+  });
+
+  test('Should persist reporter phone across page reload', async () => {
+    // Mock the OTP gateway so persistence can be verified deterministically,
+    // without depending on a live WhatsApp OTP round-trip (already covered
+    // by tests/whatsapp-otp-edgecases.spec.js).
+    await page.context().route('**/functions/v1/otp_gateway', route => {
+      const action = route.request().postDataJSON()?.action;
+      if (action === 'send') {
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ otp_debug: '123456' }) });
+      } else if (action === 'verify') {
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ session_token: 'mock-session-token' }) });
+      } else {
+        route.continue();
+      }
+    });
+
+    await page.fill('input[type="tel"]', '9876543210');
+    await page.getByRole('button', { name: /Send WhatsApp OTP/i }).click();
+    await expect(page.locator('#qr-otp-box-0')).toBeVisible();
+
+    const otp = '123456';
+    for (let i = 0; i < otp.length; i++) {
+      await page.locator(`#qr-otp-box-${i}`).fill(otp[i]);
+    }
+    await page.getByRole('button', { name: /Verify OTP/i }).click();
+    await page.waitForTimeout(500);
+
+    // Reload page
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // Should remember phone across reload
+    const savedPhone = await page.evaluate(() => localStorage.getItem('tf_reporter_phone'));
+    expect(savedPhone).toBe('9876543210');
   });
 });

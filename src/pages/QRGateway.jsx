@@ -567,6 +567,48 @@ export default function QRGateway() {
     }
   }, [machine.id, draftKey, transcript, extractedInfo, voiceArtifacts, manualCondition, phoneInput, technicianName, reporterName]);
 
+  // Audio completely removed from QR Gateway per user request
+  const speak = () => {};
+
+  // Must be declared before the effect below, which references greetUser
+  // both inside its body and in its own dependency array — greetUser used
+  // to be declared ~65 lines further down in this file, after that effect,
+  // which is a genuine ReferenceError in JS (const bindings are not
+  // initialized until their declaration line runs, "temporal dead zone"),
+  // not just a style issue: it crashed the whole QRGateway page on mount
+  // with "Cannot access 'greetUser' before initialization" — no error
+  // boundary wraps this route, so this took down every QR-scan-to-report
+  // session, and was the root cause of all 27 previously-failing
+  // tests/qr-gateway.spec.ts / qr-gateway-tickets.spec.js scenarios (they
+  // all fail identically at the first interaction after page load).
+  const greetUser = useCallback(() => {
+    let greetingText = '';
+    if (phoneGate) {
+      if (lang === 'hi-IN') {
+        greetingText = 'नमस्ते! शिकायत दर्ज करने के लिए अपना मोबाइल नंबर दर्ज करें।';
+      } else if (lang === 'mr-IN') {
+        greetingText = 'नमस्कार! तक्रार नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका.';
+      } else {
+        greetingText = 'Welcome to TurboFix. This is the guided reporting flow while analytics works underneath. Please enter your 10 digit mobile number to proceed.';
+      }
+    } else {
+      if (lang === 'hi-IN') {
+        greetingText = 'नमस्ते! मैं आपका टर्बोफिक्स सहायक हूँ। माइक दबाकर समस्या बताएं।';
+      } else if (lang === 'mr-IN') {
+        greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
+      } else {
+        greetingText = 'I am your TurboFix assistant. This is the guided reporting flow while analytics works underneath. Tap the big button to speak your problem.';
+      }
+    }
+    if (!phoneGate) {
+      greetingText += ` ${machine.name ? `For ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.` : 'For the selected machine.'}`;
+    }
+
+    setAssistantPrompt(greetingText);
+    speak(greetingText);
+    setWorkflowStage(phoneGate ? 'phone' : 'capture');
+  }, [lang, machine.loc, machine.name, phoneGate]);
+
   useEffect(() => {
     document.title = 'TurboFix — Voice Assistant';
     const parsed = decryptUrlParams(window.location.search);
@@ -623,43 +665,12 @@ export default function QRGateway() {
     };
   }, [greetUser, lang, phoneGate]);
 
-  // Audio completely removed from QR Gateway per user request
-  const speak = () => {};
-
   useEffect(() => {
     const loadVoices = () => window.speechSynthesis?.getVoices();
     loadVoices();
     window.speechSynthesis?.addEventListener?.('voiceschanged', loadVoices);
     return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', loadVoices);
   }, []);
-
-  const greetUser = useCallback(() => {
-    let greetingText = '';
-    if (phoneGate) {
-      if (lang === 'hi-IN') {
-        greetingText = 'नमस्ते! शिकायत दर्ज करने के लिए अपना मोबाइल नंबर दर्ज करें।';
-      } else if (lang === 'mr-IN') {
-        greetingText = 'नमस्कार! तक्रार नोंदवण्यासाठी कृपया आपला मोबाईल नंबर टाका.';
-      } else {
-        greetingText = 'Welcome to TurboFix. This is the guided reporting flow while analytics works underneath. Please enter your 10 digit mobile number to proceed.';
-      }
-    } else {
-      if (lang === 'hi-IN') {
-        greetingText = 'नमस्ते! मैं आपका टर्बोफिक्स सहायक हूँ। माइक दबाकर समस्या बताएं।';
-      } else if (lang === 'mr-IN') {
-        greetingText = 'नमस्कार! मी आपला टर्बोफिक्स सहाय्यक आहे. समस्येचे वर्णन करण्यासाठी माइक दाबा.';
-      } else {
-        greetingText = 'I am your TurboFix assistant. This is the guided reporting flow while analytics works underneath. Tap the big button to speak your problem.';
-      }
-    }
-    if (!phoneGate) {
-      greetingText += ` ${machine.name ? `For ${machine.name}${machine.loc ? ` at ${machine.loc}` : ''}.` : 'For the selected machine.'}`;
-    }
-    
-    setAssistantPrompt(greetingText);
-    speak(greetingText);
-    setWorkflowStage(phoneGate ? 'phone' : 'capture');
-  }, [lang, machine.loc, machine.name, phoneGate]);
 
   const normalizeTranscriptForApproval = ({ rawText = '', language = lang, machineName = '', machineLocation = '' }) => {
     const original = String(rawText || '').trim();
