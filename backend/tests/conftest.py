@@ -47,10 +47,24 @@ def anyio_backend():
 
 @pytest.fixture(autouse=True)
 def isolated_machine_data_store(tmp_path, monkeypatch):
-    """Prevent generated MachineData files from leaking across tests or into source data."""
+    """Prevent generated MachineData files from leaking across tests or into source data,
+    and give every test — not just ones that explicitly request the `vault_client` fixture
+    below — an isolated tracker copy. Several test files (test_vault_kpis.py,
+    test_fast2sms_otp.py, test_live_demo_onboarding_flow.py, test_worst_case_robustness.py)
+    build their own module-level `TestClient(app)` instead of using `vault_client`, so
+    without this they hit whatever TRACKER_XLSX_PATH is set in the environment (CI sets it
+    to a path — /tmp/test-tracker.xlsx — that's never actually created) and fail with
+    FileNotFoundError the moment any code path touches the local ticket/machine store,
+    even in tests that only care about an unrelated endpoint."""
     document_store = tmp_path / "isolated_document_store"
     document_store.mkdir()
     monkeypatch.setattr(config, "DOCUMENT_STORE_DIR", document_store)
+
+    tracker_dest = tmp_path / "TurboFix-Tracker-autouse.xlsx"
+    shutil.copy(TRACKER_SOURCE, tracker_dest)
+    monkeypatch.setattr(config, "TRACKER_XLSX_PATH", str(tracker_dest))
+    _clear_di_caches()
+
     from app.main import app
     if hasattr(app.state, "limiter"):
         app.state.limiter.enabled = False
