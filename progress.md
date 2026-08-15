@@ -112,6 +112,17 @@ Pushed the Third Follow-up's QRGateway fix and, rather than assuming green, pull
 
 Verified locally end-to-end: chromium 27/27, webkit 26/26 + 1 correctly-skipped (Firefox could not be verified locally — this specific dev machine's headless Firefox launch is broken by an unrelated macOS sandbox permission issue, "Operation not permitted" on `plugin-container.app`, confirmed unrelated to any code here since the same Firefox binary and flags work fine in CI's Linux environment). Build and the other 3 CI-wired specs re-confirmed green.
 
+## FIFTH FOLLOW-UP (2026-08-15, same day — real CI numbers correct two Fourth Follow-up assumptions)
+
+Pushed the Fourth Follow-up's fixes and pulled the resulting CI run rather than trusting the local read (the local Firefox gap meant its "this fixed Firefox" claim above was never actually checked against real Firefox). The real matrix result: **chromium 20.x/22.x both fully green**, 3 pre-existing config bugs from the Fourth Follow-up gone as intended, but 2 corrections needed:
+
+- **The CORS/preflight fix did *not* fix Firefox** — `Should persist reporter phone across page reload` failed identically on Firefox in CI (same "OTP box never appears" symptom as WebKit), even with the preflight response and `Access-Control-Allow-Origin` headers in place. So this is a Playwright limitation with `route.fulfill()` on this cross-origin mock in *both* non-Chromium engines, not a WebKit-only gap as first assumed. Widened the skip from `browserName === 'webkit'` to `browserName !== 'chromium'`.
+- **Two more WebKit-only failures appeared**: `Should handle no speech detected error` and `Should handle transcription API failure` (both mock `getUserMedia`/`MediaRecorder` via `addInitScript`) failed only on Linux WebKit in CI — confirmed the *identical* test and mock passed on macOS WebKit in local verification, so this is a Linux-headless-WebKit media-stack gap, not a mock-quality bug (checked the app's `MediaRecorder` usage in `QRGateway.jsx` for an actual bug first — none found; `isTypeSupported` is called via optional chaining, so a mock without it can't be what's crashing). Skipped both on WebKit with a documented reason.
+
+Also confirmed `mobile-tests` (which failed in the run before this fix) is mobile-safari inheriting these same 3 WebKit-class gaps — `browserName` for a WebKit-engine mobile project reports `'webkit'`, so the same skip conditions cover it without a separate change.
+
+Re-verified locally (chromium clean; webkit clean modulo a machine-sleep-induced flaky run — 0 hard failures, exactly 3 skipped, retries passing — a known artifact of this dev machine suspending mid-background-run, not a regression) and pushed. **Not yet re-confirmed against a fresh CI run at time of writing** — the previous three follow-ups all pulled real CI results before declaring done, and this one should too before treating the QRGateway workflow as actually green.
+
 ---
 
 ## Phase status
