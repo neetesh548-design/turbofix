@@ -17,12 +17,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    launchOptions: {
-      args: [
-        '--use-fake-ui-for-media-stream',
-        '--use-fake-device-for-media-stream',
-      ],
-    },
   },
 
   webServer: {
@@ -32,10 +26,21 @@ export default defineConfig({
     timeout: 120000,
   },
 
+  // --use-fake-ui-for-media-stream/--use-fake-device-for-media-stream are
+  // Chromium-only CLI switches. They used to live in the top-level `use`
+  // block above, which applies to every project - Firefox and WebKit's
+  // launchers reject unrecognized arguments outright ("Cannot parse
+  // arguments: Unknown option"), so both browsers failed to launch at all.
+  // Scoped to the Chromium-based projects only.
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+        },
+      },
     },
     {
       name: 'firefox',
@@ -47,7 +52,12 @@ export default defineConfig({
     },
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+        },
+      },
     },
     {
       name: 'mobile-safari',
