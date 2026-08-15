@@ -121,7 +121,7 @@ Pushed the Fourth Follow-up's fixes and pulled the resulting CI run rather than 
 
 Also confirmed `mobile-tests` (which failed in the run before this fix) is mobile-safari inheriting these same 3 WebKit-class gaps — `browserName` for a WebKit-engine mobile project reports `'webkit'`, so the same skip conditions cover it without a separate change.
 
-Re-verified locally (chromium clean; webkit clean modulo a machine-sleep-induced flaky run — 0 hard failures, exactly 3 skipped, retries passing — a known artifact of this dev machine suspending mid-background-run, not a regression) and pushed. **Not yet re-confirmed against a fresh CI run at time of writing** — the previous three follow-ups all pulled real CI results before declaring done, and this one should too before treating the QRGateway workflow as actually green.
+Re-verified locally (chromium clean; webkit clean modulo a machine-sleep-induced flaky run — 0 hard failures, exactly 3 skipped, retries passing — a known artifact of this dev machine suspending mid-background-run, not a regression), pushed, and **confirmed via the actual GitHub Actions run for this commit: every job green** — `test` across all 6 node/browser combinations (20.x/22.x × chromium/firefox/webkit), `mobile-tests`, `deploy-edge-functions`, `deploy`, `test-and-build`, and the aggregate `Test Summary` gate. The "QRGateway E2E Tests" workflow, which had been red on every commit for at least a week before this audit, is genuinely green for the first time in that span.
 
 ---
 
