@@ -27,10 +27,15 @@
  * - urgencyOverridden (bool)
  * - onTranscribe (fn(blob) => Promise<string>)  page-supplied, may reject
  * - disabled (bool)
+ * - similarFixes (array)       from findSimilarFixes() — past resolved
+ *   tickets whose issue text matches what's been typed so far, closest
+ *   match first. Distinct from the machine-level HistorySuggestion shown
+ *   earlier in the flow: this reacts to the live sentence, not just the
+ *   machine picked.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Loader2, Mic, Sparkles, Square, Wrench } from 'lucide-react';
+import { AlertTriangle, History, Loader2, Mic, Sparkles, Square, Wrench } from 'lucide-react';
 import { URGENCY_ORDER, urgencyMeta } from '../../utils/breakdownRouter.js';
 
 const ISSUE_LIMIT = 400;
@@ -53,6 +58,7 @@ export default function IssueCapture({
   urgencyOverridden = false,
   onTranscribe,
   disabled = false,
+  similarFixes = [],
 }) {
   const [listening, setListening] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -230,6 +236,19 @@ export default function IssueCapture({
                 : ''}
             </strong>
             <small><Wrench size={11} aria-hidden="true" /> {classification.hint}</small>
+          </div>
+        </div>
+      )}
+
+      {similarFixes.length > 0 && (
+        <div className="brk-suggestion" data-testid="breakdown-similar-fix" role="status">
+          <span className="brk-suggestion-icon" aria-hidden="true"><History size={14} /></span>
+          <div className="brk-suggestion-text">
+            <strong>
+              {similarFixes[0].sameMachine ? 'This machine had a similar issue before' : 'A similar issue was fixed before'}
+            </strong>
+            <small>“{similarFixes[0].issueText}”</small>
+            <small><Wrench size={11} aria-hidden="true" /> {similarFixes[0].repairAction || similarFixes[0].rootCause}</small>
           </div>
         </div>
       )}

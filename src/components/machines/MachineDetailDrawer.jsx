@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X, MapPin, Upload, Pencil, ChevronRight, TriangleAlert,
-  CalendarClock, User, Wrench, CheckCircle2,
+  CalendarClock, User, Wrench, CheckCircle2, Gauge,
 } from 'lucide-react';
 import MachineHealthIndicator from './MachineHealthIndicator';
 import { machineDisplayStatus, formatDate, describeDayOffset, daysSince } from '@/utils/machineHealth';
@@ -29,6 +29,9 @@ const URGENCY_TONE = { low: 'low', medium: 'medium', high: 'high', critical: 'cr
  * - quickEditSaving (bool)
  * - onClose, onReportIssue, onViewDetails, onOpenTickets, onUploadPhoto
  * - onQuickEditOpen, onQuickEditChange(patch), onQuickEditCancel, onQuickEditSave
+ * - onLogProduction(machine, { good_count, reject_count }): optional, async.
+ *   Self-contained (its own open/saving state below) rather than routed
+ *   through quickEdit — this is a shift-count entry, not a profile edit.
  */
 function MachineDetailDrawer({
   machine,
@@ -48,8 +51,14 @@ function MachineDetailDrawer({
   onQuickEditSave,
   onOpenPersonnelMatrix,
   onOpenCapexEscalation,
+  onLogProduction,
 }) {
   const panelRef = useRef(null);
+  const [logProductionOpen, setLogProductionOpen] = useState(false);
+  const [goodCount, setGoodCount] = useState('');
+  const [rejectCount, setRejectCount] = useState('');
+  const [logSaving, setLogSaving] = useState(false);
+  const [logError, setLogError] = useState('');
 
   // Move focus into the panel so keyboard and screen-reader users land here
   // rather than staying behind on the card they just activated. `preventScroll`
@@ -58,6 +67,36 @@ function MachineDetailDrawer({
   useEffect(() => {
     panelRef.current?.focus({ preventScroll: true });
   }, [machine?.machine_id]);
+
+  // Switching machines mid-drawer (or reopening later) should never leave a
+  // stale count sitting in the form waiting to be submitted against the
+  // wrong machine.
+  useEffect(() => {
+    setLogProductionOpen(false);
+    setGoodCount('');
+    setRejectCount('');
+    setLogError('');
+  }, [machine?.machine_id]);
+
+  const handleLogProductionSubmit = async (event) => {
+    event.preventDefault();
+    setLogError('');
+    if (!onLogProduction) return;
+    setLogSaving(true);
+    try {
+      await onLogProduction(machine, {
+        good_count: Math.max(0, Number(goodCount) || 0),
+        reject_count: Math.max(0, Number(rejectCount) || 0),
+      });
+      setLogProductionOpen(false);
+      setGoodCount('');
+      setRejectCount('');
+    } catch (err) {
+      setLogError(err?.message || 'Could not save production count.');
+    } finally {
+      setLogSaving(false);
+    }
+  };
 
   // Freeze the board while the drawer is over it, otherwise a scroll gesture
   // that runs past the end of the panel starts moving the page underneath.
@@ -259,6 +298,49 @@ function MachineDetailDrawer({
                 {machine.assignments?.supervisor?.name && <span>Supervisor: {machine.assignments.supervisor.name}</span>}
               </div>
             </div>
+          </section>
+
+          {/* ---- OEE (Overall Equipment Effectiveness) ---- */}
+          <section className="machine-drawer-section">
+            <h3><Gauge size={15} aria-hidden="true" />OEE today</h3>
+            {machine.oee?.hasProductionData ? (
+              <div className="machine-drawer-stat tone-ok" style={{ marginBottom: '10px' }}>
+                <div>
+                  <strong>{machine.oee.oeePct != null ? `${machine.oee.oeePct}%` : 'Not tracked yet'}</strong>
+                  <span>
+                    Availability {machine.oee.availabilityPct}% · Performance {machine.oee.performancePct ?? '—'}% · Quality {machine.oee.qualityPct}%
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="machine-drawer-empty">
+                {machine.ideal_cycle_time_seconds
+                  ? 'No production logged yet today.'
+                  : 'Set an ideal cycle time in the full workspace to enable OEE, then log production below.'}
+              </p>
+            )}
+
+            {onLogProduction && (logProductionOpen ? (
+              <form onSubmit={handleLogProductionSubmit} className="machine-quick-edit" data-testid="machine-log-production-form">
+                {logError && <p style={{ color: '#F87171', fontSize: '0.78rem', margin: '0 0 6px' }}>{logError}</p>}
+                <label>
+                  <span>Good units this shift</span>
+                  <input type="number" min="0" inputMode="numeric" value={goodCount} onChange={(event) => setGoodCount(event.target.value)} required />
+                </label>
+                <label>
+                  <span>Rejected units this shift</span>
+                  <input type="number" min="0" inputMode="numeric" value={rejectCount} onChange={(event) => setRejectCount(event.target.value)} />
+                </label>
+                <div className="machine-quick-edit-actions">
+                  <button type="button" onClick={() => { setLogProductionOpen(false); setLogError(''); }} disabled={logSaving}>Cancel</button>
+                  <button type="submit" className="primary" disabled={logSaving}>{logSaving ? 'Saving…' : 'Save'}</button>
+                </div>
+              </form>
+            ) : (
+              <button type="button" className="machine-drawer-edit" onClick={() => setLogProductionOpen(true)} data-testid="machine-log-production-open">
+                <Gauge size={14} aria-hidden="true" /> Log production for this shift
+              </button>
+            ))}
           </section>
 
           {/* ---- Shift Roster Matrix & CapEx Management Escalation ---- */}

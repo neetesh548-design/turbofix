@@ -37,6 +37,8 @@ import {
   readStoredUser,
   resolveDashboardRole,
 } from '../utils/dashboardMetrics.js';
+import { computeOperationalHealth } from '../utils/operationalHealth.js';
+import { fetchTrend, persistTodaySnapshot } from '../lib/operationalHealthSnapshot.js';
 import {
   DEMO_TEAM,
   DEMO_MACHINES,
@@ -204,6 +206,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quickReportOpen, setQuickReportOpen] = useState(false);
+  const [healthTrend, setHealthTrend] = useState(null);
 
   // One cache per mount. Recomputing the fleet on every render is wasteful;
   // a 5-minute TTL is well inside how fast a maintenance board needs to move.
@@ -350,10 +353,18 @@ export default function Dashboard() {
       const uptimePercent = total ? Math.round((running / total) * 1000) / 10 : 0;
       const criticalDown = fleet.grid?.critical?.down || 0;
 
-      // Health score: weighted composite of uptime, PM discipline, and SLA
-      const slaPct = raw.sla?.pct ?? 100;
-      const pmPct = raw.month?.pmCompletionPct ?? 100;
-      const healthScore = Math.round(uptimePercent * 0.5 + slaPct * 0.25 + pmPct * 0.25);
+      // Operational Health Score — the 4-driver blend (machine health, PM
+      // on time, parts availability, ticket/SLA pressure) documented in
+      // utils/operationalHealth.js. Replaces the old 3-signal
+      // uptime/SLA/PM composite that used to compute healthScore here.
+      const operationalHealth = computeOperationalHealth({
+        machines: input.machines,
+        tickets: input.tickets,
+        pmSchedules: sources.pmSchedules,
+        parts: sources.parts,
+        now: new Date(),
+      });
+      const healthScore = operationalHealth.score;
 
       // Production risk label
       const productionRisk = criticalDown > 0
@@ -375,7 +386,12 @@ export default function Dashboard() {
         ...raw,
         // Flat fields for MasterTabbedDashboard / OwnerDashboard30s
         healthScore,
-        healthTrend: 0, // requires historical data; honest zero
+        // Real month-over-month delta is fetched async (see healthTrendState
+        // below, and operationalHealthSnapshot.js) and merged in at render —
+        // a useMemo can't await a Supabase call. 0 here is just the
+        // pre-fetch default, not a claim that nothing changed.
+        healthTrend: 0,
+        operationalHealth,
         productionRisk,
         downtimeHours: raw.downtime?.hours || 0,
         productionLoss: raw.downtime?.cost || 0,
@@ -389,6 +405,29 @@ export default function Dashboard() {
       };
     });
   }, [role, sources, user, isDemo, noFleetData, demoSession]);
+
+  // Persist today's score and fetch the real month-over-month delta. Skipped
+  // for demo/no-company sessions — there is nothing real to compare a demo
+  // number against, and writing demo scores into a real company's history
+  // would corrupt it the moment someone toggles inventory_mode.
+  const healthScoreForTrend = metrics.healthScore;
+  const operationalHealthDrivers = metrics.operationalHealth?.drivers;
+  useEffect(() => {
+    if (isDemo || !user?.company_id || typeof healthScoreForTrend !== 'number') {
+      setHealthTrend(null);
+      return;
+    }
+    let mounted = true;
+    persistTodaySnapshot({
+      companyId: user.company_id,
+      score: healthScoreForTrend,
+      drivers: operationalHealthDrivers,
+    });
+    fetchTrend({ companyId: user.company_id, currentScore: healthScoreForTrend }).then((trend) => {
+      if (mounted) setHealthTrend(trend);
+    });
+    return () => { mounted = false; };
+  }, [isDemo, user?.company_id, healthScoreForTrend, operationalHealthDrivers]);
 
   const specialistHeadings = {
     maintenance_head: { kicker: 'Exceptions', lead: 'Safety, technical and high-impact decisions requiring your authority.' },
@@ -450,6 +489,8 @@ export default function Dashboard() {
             onQuickReport={openQuickReport}
             user={user}
             role={role}
+            operationalHealth={metrics.operationalHealth}
+            healthTrend={healthTrend}
           />
         )}
 

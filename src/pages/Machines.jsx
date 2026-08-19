@@ -23,6 +23,8 @@ import { microphoneErrorMessage } from '../utils/mediaErrors';
 import { downloadMachinesCSV } from '../utils/machineExport';
 import { visibleMachinesForUser } from '../utils/machineVisibility';
 import { applyCurrentShiftAssignments } from '../utils/shiftAssignments';
+import { computeOee } from '../utils/oee';
+import { parseMachinesCSV, downloadMachineImportTemplateCSV } from '../utils/machineImport';
 import { formatSupabaseError } from '../utils/errorFormatting';
 import { filterRowsForUserCompany } from '../utils/tenant';
 import { readAuth } from '../utils/auth';
@@ -99,6 +101,12 @@ export default function Machines() {
   const [success, setSuccess] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [companyQuota, setCompanyQuota] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importParsed, setImportParsed] = useState(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importSaving, setImportSaving] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState('');
 
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [machineEdit, setMachineEdit] = useState(null);
@@ -363,12 +371,16 @@ export default function Machines() {
       // Firing it as one of five concurrent requests appears to race the
       // supabase-js client's session/token handling; awaiting it
       // separately avoids that entirely.
-      const [machinesRes, ticketsRes, shiftRosterRes, shiftAssignmentRes] = await Promise.all([
+      const [machinesRes, ticketsRes, shiftRosterRes, shiftAssignmentRes, productionLogsRes] = await Promise.all([
         machinesQuery,
         supabase.from('tickets').select('id,machine_id,status,lifecycle_stage,type,issue_text,created_at,urgency,downtime_minutes'),
         supabase.from('shift_rosters').select('*'),
         supabase.from('machine_shift_assignments').select('*'),
+        // Today only — computeOee's default window (utils/oee.js) never
+        // looks further back, so there's no reason to pull more here.
+        supabase.from('production_logs').select('machine_id,good_count,reject_count,log_date').gte('log_date', new Date().toISOString().slice(0, 10)),
       ]);
+      const rawProductionLogs = productionLogsRes.data || [];
       const directoryRes = await supabase.functions.invoke('onboard_team_member', { body: { action: 'list' } });
 
       if (machinesRes.error) throw new Error(`Machines could not be loaded: ${machinesRes.error.message}`);
@@ -500,6 +512,10 @@ export default function Machines() {
         amc_expiry: m.amc_expiry,
         operating_hours: m.operating_hours,
         replacement_cost: m.replacement_cost,
+        ideal_cycle_time_seconds: m.ideal_cycle_time_seconds,
+        planned_minutes_per_shift: m.planned_minutes_per_shift,
+        company_id: m.company_id,
+        oee: computeOee({ machine: m, tickets: rawTickets, productionLogs: rawProductionLogs }),
         technician_user_id: technicianUserId,
         engineer_user_id: engineerUserId,
         maintenance_head_user_id: maintenanceHeadUserId,
@@ -659,6 +675,8 @@ export default function Machines() {
           supervisor_id: drawerMachine.supervisor_id || '',
           engineer_user_id: drawerMachine.engineer_user_id || '',
           maintenance_head_user_id: drawerMachine.maintenance_head_user_id || '',
+          ideal_cycle_time_seconds: drawerMachine.ideal_cycle_time_seconds ?? '',
+          planned_minutes_per_shift: drawerMachine.planned_minutes_per_shift ?? '',
         },
       });
       if (updateError || data?.error || !data?.machine) {
@@ -686,6 +704,26 @@ export default function Machines() {
     } finally {
       setQuickEditSaving(false);
     }
+  };
+
+  // Writes one production_logs row (see migration 20260818000000_oee_tracking
+  // and utils/oee.js). Append-only by design — one row per shift entry, not
+  // an upsert — so a plant running 2-3 shifts a day gets one row each,
+  // summed together by computeOee for the day's OEE reading.
+  const handleLogProduction = async (targetMachine, { good_count, reject_count }) => {
+    if (!targetMachine?.company_id) {
+      throw new Error('This machine has no company on record — cannot log production.');
+    }
+    const { error: insertError } = await supabase.from('production_logs').insert({
+      machine_id: targetMachine.machine_id,
+      company_id: targetMachine.company_id,
+      good_count,
+      reject_count,
+      logged_by: signedInUser?.name || signedInUser?.user_id || null,
+    });
+    if (insertError) throw new Error(insertError.message || 'Could not save production count.');
+    setSuccess('Production logged for this shift.');
+    fetchData();
   };
 
   // Suggest an urgency from the spoken words so the confirmation step is pre-filled.
@@ -1006,6 +1044,8 @@ export default function Machines() {
       amc_expiry: selectedMachine.amc_expiry?.slice(0, 10) || '',
       operating_hours: selectedMachine.operating_hours ?? '',
       replacement_cost: selectedMachine.replacement_cost ?? '',
+      ideal_cycle_time_seconds: selectedMachine.ideal_cycle_time_seconds ?? '',
+      planned_minutes_per_shift: selectedMachine.planned_minutes_per_shift ?? '',
       technician_user_id: selectedMachine.technician_user_id || '',
       supervisor_id: selectedMachine.supervisor_id || '',
       engineer_user_id: selectedMachine.engineer_user_id || '',
@@ -1048,6 +1088,8 @@ export default function Machines() {
         amc_expiry: data.machine.amc_expiry,
         operating_hours: data.machine.operating_hours,
         replacement_cost: data.machine.replacement_cost,
+        ideal_cycle_time_seconds: data.machine.ideal_cycle_time_seconds,
+        planned_minutes_per_shift: data.machine.planned_minutes_per_shift,
         technician_user_id: data.machine.technician_user_id,
         supervisor_id: data.machine.supervisor_id,
         engineer_user_id: data.machine.engineer_user_id,
@@ -1131,6 +1173,71 @@ export default function Machines() {
       setError(formatSupabaseError(err, 'Machine could not be onboarded.', { current: currentCount, quota }));
     }
 
+  };
+
+  // Bulk CSV import (utils/machineImport.js) — the self-serve onboarding path
+  // for a plant coming off spreadsheets. Parsing happens client-side on
+  // file select; this handler only runs once the user has reviewed the
+  // preview and confirmed.
+  const handleImportFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportResult(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImportParsed(parseMachinesCSV(String(reader.result || '')));
+    };
+    reader.onerror = () => {
+      setImportParsed({ valid: [], errors: [{ rowNumber: 0, message: 'Could not read that file.' }] });
+    };
+    reader.readAsText(file);
+  };
+
+  const closeImportModal = () => {
+    setShowImportModal(false);
+    setImportParsed(null);
+    setImportFileName('');
+    setImportResult(null);
+    setImportError('');
+  };
+
+  const handleImportConfirm = async () => {
+    if (!importParsed?.valid?.length) return;
+    setImportSaving(true);
+    setImportError('');
+    try {
+      const compRes = signedInUser?.company_code
+        ? await supabase.from('companies').select('id').ilike('domain', signedInUser.company_code).maybeSingle()
+        : { data: null };
+      const companyId = compRes.data?.id || null;
+      if (!companyId) throw new Error('No company found for your account. Please contact your administrator.');
+
+      const quota = companyQuota || 5;
+      const currentCount = (machines || []).length;
+      const remaining = showingDemo ? importParsed.valid.length : Math.max(0, quota - currentCount);
+      const rowsToInsert = importParsed.valid.slice(0, remaining);
+      const skippedForQuota = importParsed.valid.length - rowsToInsert.length;
+
+      if (rowsToInsert.length === 0) {
+        throw new Error(`Machine limit reached: your account is permitted up to ${quota} machines (${currentCount} currently registered).`);
+      }
+
+      const { data: inserted, error: insertErr } = await supabase.from('machines')
+        .insert(rowsToInsert.map((row) => ({ ...row, company_id: companyId })))
+        .select('id');
+      if (insertErr) throw new Error(formatSupabaseError(insertErr, 'Bulk import failed.', { current: currentCount, quota }));
+
+      setImportResult({
+        insertedCount: inserted?.length || 0,
+        skippedForQuota,
+      });
+      fetchData();
+    } catch (err) {
+      setImportError(formatSupabaseError(err, 'Bulk import failed.'));
+    } finally {
+      setImportSaving(false);
+    }
   };
 
   const getAssignment = (machine, key) => machine?.assignments?.[key] || null;
@@ -1899,6 +2006,8 @@ export default function Machines() {
             supervisor_id: m.supervisor_id || '',
             engineer_user_id: m.engineer_user_id || '',
             maintenance_head_user_id: m.maintenance_head_user_id || '',
+            ideal_cycle_time_seconds: m.ideal_cycle_time_seconds ?? '',
+            planned_minutes_per_shift: m.planned_minutes_per_shift ?? '',
           },
         })
       )
@@ -2102,10 +2211,100 @@ export default function Machines() {
                 <h1>Machines</h1>
                 <p>Find a machine, see what needs attention, and take the next action without leaving this page.</p>
               </div>
-              <button type="button" className="machines-add-btn" data-testid="machine-add" onClick={() => setShowAddForm(!showAddForm)}>
-                {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine {!showingDemo && companyQuota && <span style={{ marginLeft: '6px', fontSize: '11px', background: machines.length >= companyQuota ? '#dc2626' : 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>{machines.length}/{companyQuota}</span>}</>}
-              </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" className="machines-add-btn" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.18)' }} data-testid="machine-import-open" onClick={() => setShowImportModal(true)}>
+                  <Upload size={16} aria-hidden="true" /> Import CSV
+                </button>
+                <button type="button" className="machines-add-btn" data-testid="machine-add" onClick={() => setShowAddForm(!showAddForm)}>
+                  {showAddForm ? 'Close onboarding' : <><Plus size={16} aria-hidden="true" /> Add machine {!showingDemo && companyQuota && <span style={{ marginLeft: '6px', fontSize: '11px', background: machines.length >= companyQuota ? '#dc2626' : 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>{machines.length}/{companyQuota}</span>}</>}
+                </button>
+              </div>
             </div>
+
+            {showImportModal && (
+              <div className="machine-drawer-scrim" onClick={closeImportModal} data-testid="machine-import-scrim">
+                <div
+                  className="vault-card"
+                  style={{ maxWidth: '640px', margin: '48px auto', maxHeight: '85vh', overflowY: 'auto' }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Import machines from CSV</h2>
+                    <button type="button" onClick={closeImportModal} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+                  </div>
+
+                  {!importResult ? (
+                    <>
+                      <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '14px' }}>
+                        Fill in the spreadsheet you already have, or start from our template. Machine name is the only required column.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => downloadMachineImportTemplateCSV()}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: '#e5edf6', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '16px' }}
+                      >
+                        <Download size={14} aria-hidden="true" /> Download blank template
+                      </button>
+
+                      <label style={{ display: 'block', border: '1px dashed rgba(255,255,255,0.25)', borderRadius: '10px', padding: '18px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
+                        <Upload size={20} style={{ marginBottom: '6px' }} aria-hidden="true" />
+                        <div style={{ fontSize: '0.85rem', color: '#e5edf6' }}>{importFileName || 'Click to choose a CSV file'}</div>
+                        <input type="file" accept=".csv,text/csv" onChange={handleImportFileSelect} style={{ display: 'none' }} data-testid="machine-import-file-input" />
+                      </label>
+
+                      {importParsed && (
+                        <div data-testid="machine-import-preview">
+                          <p style={{ fontSize: '0.85rem', color: '#e5edf6', marginBottom: '8px' }}>
+                            <strong style={{ color: '#25D366' }}>{importParsed.valid.length}</strong> machine{importParsed.valid.length === 1 ? '' : 's'} ready to import
+                            {importParsed.errors.length > 0 && <>, <strong style={{ color: '#F87171' }}>{importParsed.errors.length}</strong> row{importParsed.errors.length === 1 ? '' : 's'} skipped</>}
+                          </p>
+                          {importParsed.errors.length > 0 && (
+                            <ul style={{ fontSize: '0.78rem', color: '#fca5a5', marginBottom: '12px', paddingLeft: '18px' }}>
+                              {importParsed.errors.slice(0, 8).map((e, i) => (
+                                <li key={i}>{e.rowNumber > 0 ? `Row ${e.rowNumber}: ` : ''}{e.message}</li>
+                              ))}
+                              {importParsed.errors.length > 8 && <li>…and {importParsed.errors.length - 8} more.</li>}
+                            </ul>
+                          )}
+                          {importParsed.valid.length > 0 && (
+                            <ul style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '16px', paddingLeft: '18px' }}>
+                              {importParsed.valid.slice(0, 5).map((row, i) => (
+                                <li key={i}>{row.name}{row.location ? ` — ${row.location}` : ''}</li>
+                              ))}
+                              {importParsed.valid.length > 5 && <li>…and {importParsed.valid.length - 5} more.</li>}
+                            </ul>
+                          )}
+                          {importError && (
+                            <div className="vault-error show" style={{ marginBottom: '12px' }} data-testid="machine-import-error">{importError}</div>
+                          )}
+                          <button
+                            type="button"
+                            className="vault-btn vault-btn-primary"
+                            disabled={importSaving || importParsed.valid.length === 0}
+                            onClick={handleImportConfirm}
+                            data-testid="machine-import-confirm"
+                          >
+                            {importSaving ? 'Importing…' : `Import ${importParsed.valid.length} machine${importParsed.valid.length === 1 ? '' : 's'}`}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div data-testid="machine-import-result">
+                      <p style={{ color: '#25D366', fontSize: '0.9rem' }}>
+                        {importResult.insertedCount} machine{importResult.insertedCount === 1 ? '' : 's'} imported.
+                      </p>
+                      {importResult.skippedForQuota > 0 && (
+                        <p style={{ color: '#FBBF24', fontSize: '0.82rem' }}>
+                          {importResult.skippedForQuota} row{importResult.skippedForQuota === 1 ? ' was' : 's were'} skipped — your machine quota was reached. Contact your administrator to raise it, then import the rest.
+                        </p>
+                      )}
+                      <button type="button" className="vault-btn vault-btn-primary" onClick={closeImportModal} style={{ marginTop: '10px' }}>Done</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {showingDemo && (
               <div className="machine-demo-note" data-testid="machine-demo-note">
@@ -2513,6 +2712,8 @@ export default function Machines() {
                         <label><span>Downtime cost per hour (₹)</span><input type="number" min="0" step="0.01" value={machineEdit.hourly_downtime_cost} onChange={(e) => setMachineEdit({ ...machineEdit, hourly_downtime_cost: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} />{Number(machineEdit.hourly_downtime_cost) > 0 && <small style={{ color: '#FBBF24', fontSize: '0.72rem' }}>₹{(Number(machineEdit.hourly_downtime_cost) * 24).toLocaleString('en-IN')}/day downtime exposure risk</small>}</label>
                         <label><span>Maintenance interval (days)</span><input type="number" min="1" value={machineEdit.maintenance_interval_days} onChange={(e) => setMachineEdit({ ...machineEdit, maintenance_interval_days: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
                         <label><span>Last maintenance date</span><input type="date" value={machineEdit.last_maintenance_date} onChange={(e) => setMachineEdit({ ...machineEdit, last_maintenance_date: e.target.value })} style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
+                        <label><span>Ideal cycle time (seconds/unit)</span><input type="number" min="0" step="0.1" value={machineEdit.ideal_cycle_time_seconds} onChange={(e) => setMachineEdit({ ...machineEdit, ideal_cycle_time_seconds: e.target.value })} placeholder="For OEE tracking" style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /><small style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Set this and log shift production to see an OEE score</small></label>
+                        <label><span>Planned minutes per shift</span><input type="number" min="0" step="1" value={machineEdit.planned_minutes_per_shift} onChange={(e) => setMachineEdit({ ...machineEdit, planned_minutes_per_shift: e.target.value })} placeholder="Default: 480 (8 hours)" style={{ height: '48px', fontSize: '1rem', background: '#0b1118', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} /></label>
                       </div>
                     </div>
                   )}
@@ -3672,6 +3873,7 @@ export default function Machines() {
             onQuickEditSave={saveQuickEdit}
             onOpenPersonnelMatrix={(m) => { setMatrixTargetMachine(m); setMatrixModalOpen(true); }}
             onOpenCapexEscalation={(m) => { setCapexTargetMachine(m); setCapexModalOpen(true); }}
+            onLogProduction={handleLogProduction}
           />
         )}
 

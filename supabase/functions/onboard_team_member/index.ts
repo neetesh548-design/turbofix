@@ -140,6 +140,11 @@ serve(async (req) => {
       amc_expiry: body.amc_expiry || null,
       operating_hours: Math.max(0, Number(body.operating_hours) || 0),
       replacement_cost: body.replacement_cost === '' || body.replacement_cost == null ? null : Math.max(0, Number(body.replacement_cost) || 0),
+      // OEE config (src/utils/oee.js): how long a shift is, and how fast the
+      // machine should ideally run. Both optional — a machine with neither
+      // set just reads as "not tracked yet" rather than a fabricated score.
+      ideal_cycle_time_seconds: body.ideal_cycle_time_seconds === '' || body.ideal_cycle_time_seconds == null ? null : Math.max(0, Number(body.ideal_cycle_time_seconds) || 0),
+      planned_minutes_per_shift: body.planned_minutes_per_shift === '' || body.planned_minutes_per_shift == null ? null : Math.max(0, Number(body.planned_minutes_per_shift) || 0),
     }
     const stakeholderFields = {
       technician_user_id: String(body.technician_user_id ?? '').trim() || null,

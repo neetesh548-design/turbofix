@@ -41,6 +41,7 @@ import MachineSelector from '../components/breakdown/MachineSelector.jsx';
 import IssueCapture from '../components/breakdown/IssueCapture.jsx';
 import PhotoCapture from '../components/breakdown/PhotoCapture.jsx';
 import HistorySuggestion from '../components/breakdown/HistorySuggestion.jsx';
+import { findSimilarFixes } from '../utils/similarFixes.js';
 import RoleForm from '../components/breakdown/RoleForm.jsx';
 import {
   BREAKDOWN_ROLES,
@@ -328,6 +329,15 @@ export default function ReportBreakdown() {
   // Local, synchronous, on every keystroke. No debounce and no network:
   // the suggestion has to keep up with typing or it is just a flicker.
   const classification = useMemo(() => classifyIssue(draft.issueText), [draft.issueText]);
+
+  // Distinct from `history` above: that's "this machine has been acting
+  // up" at machine-selection time; this matches the sentence being typed
+  // right now against past repair_action/root_cause, on any machine (see
+  // utils/similarFixes.js for why the two don't overlap).
+  const similarFixes = useMemo(
+    () => findSimilarFixes({ issueText: draft.issueText, machine: draft.machine, tickets: reports }),
+    [draft.issueText, draft.machine, reports]
+  );
   const urgency = urgencyOverride || classification.urgency;
 
   const history = useMemo(
@@ -598,6 +608,7 @@ export default function ReportBreakdown() {
                 onUrgencyChange={setUrgencyOverride}
                 onTranscribe={transcribe}
                 disabled={submitting}
+                similarFixes={similarFixes}
               />
             </section>
 

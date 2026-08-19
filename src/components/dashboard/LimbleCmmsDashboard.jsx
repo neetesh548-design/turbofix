@@ -24,6 +24,7 @@ import {
   Users,
 } from 'lucide-react';
 import { formatInrCompact } from '../../utils/dashboardMetrics.js';
+import { HEALTH_BAND_META, bandForScore } from '../../utils/operationalHealth.js';
 
 /**
  * LimbleCmmsDashboard — Role-Aware Limble CMMS Reference Implementation
@@ -41,6 +42,8 @@ export default function LimbleCmmsDashboard({
   onQuickReport,
   user,
   role = 'owner',
+  operationalHealth,
+  healthTrend,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState('all'); // all | urgent | completed
@@ -144,6 +147,70 @@ export default function LimbleCmmsDashboard({
           )}
         </div>
       </div>
+
+      {/* ── OPERATIONAL HEALTH SCORE ─────────────────────────────
+          One 0-100 number blending machine health, PM on-time, parts
+          availability and ticket/SLA pressure — see utils/operationalHealth.js
+          for the scoring, docs/lessons on why this exists as an explainable,
+          equally-weighted composite rather than a black-box "AI score". */}
+      {!loading && operationalHealth && (
+        <div className="bg-[#131924] border border-slate-800/90 rounded-2xl p-4 shadow-xl">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl border-2 shrink-0"
+                style={{
+                  borderColor: HEALTH_BAND_META[bandForScore(operationalHealth.score)].color,
+                  color: HEALTH_BAND_META[bandForScore(operationalHealth.score)].color,
+                }}
+              >
+                <span className="text-2xl font-black font-mono leading-none">{operationalHealth.score}</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">/100</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Operational Health</span>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border"
+                    style={{
+                      color: HEALTH_BAND_META[bandForScore(operationalHealth.score)].color,
+                      borderColor: `${HEALTH_BAND_META[bandForScore(operationalHealth.score)].color}4d`,
+                      backgroundColor: `${HEALTH_BAND_META[bandForScore(operationalHealth.score)].color}1a`,
+                    }}
+                  >
+                    {HEALTH_BAND_META[bandForScore(operationalHealth.score)].label}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 font-medium mt-1">{operationalHealth.nextAction}</p>
+                <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                  {healthTrend ? healthTrend.label : 'Not enough history yet for a trend'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 min-w-[220px]">
+              {Object.values(operationalHealth.drivers).map((driver) => (
+                <div key={driver.label} className="min-w-[140px]">
+                  <div className="flex items-center justify-between text-[10px] mb-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wide">{driver.label}</span>
+                    <span className="text-slate-300 font-mono font-bold">{driver.pct}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${driver.pct}%`,
+                        backgroundColor: HEALTH_BAND_META[bandForScore(driver.pct)].color,
+                      }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{driver.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 2. TOP 4 MINIMALIST KPI CARDS (100% REAL COMPUTED DATA) ─ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">

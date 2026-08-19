@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, CircleHelp, HeartHandshake, Search, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CircleHelp, HeartHandshake, Search, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { roleContribution } from '@/lib/roles';
 import { supabase } from '@/supabaseClient';
+import { computeVendorPerformance } from '../utils/vendorPerformance';
+import { formatInr } from '../utils/dashboardMetrics.js';
 
 const roleTypes = {
   maintenance_technician: ['technical_help', 'parts'],
@@ -69,6 +71,11 @@ export default function Support() {
   }, [tickets]);
   const resolved = interventions.filter((item) => item.status === 'resolved');
 
+  // Rolled up from data already collected elsewhere (outsourced tickets,
+  // AMC/warranty vendor fields on machines) — see vendorPerformance.js for
+  // why this needed no new data collection, only a rollup nobody had built.
+  const vendorPerformance = useMemo(() => computeVendorPerformance({ tickets, machines }), [tickets, machines]);
+
   const showSummary = (summary) => {
     setActiveSummary(summary);
     window.requestAnimationFrame(() => document.getElementById('support-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -127,6 +134,11 @@ export default function Support() {
         <strong>{resolved.length}</strong>
         <small>Closed decisions and verified support work</small>
       </button>
+      <button type="button" className={activeSummary === 'vendors' ? 'active' : ''} onClick={() => showSummary('vendors')}>
+        <span>Vendor performance</span>
+        <strong>{vendorPerformance.length}</strong>
+        <small>Service vendors with tickets or AMC/warranty coverage</small>
+      </button>
     </section>
 
     <div style={{ maxWidth: '720px', margin: '28px auto 0' }}>
@@ -137,7 +149,7 @@ export default function Support() {
     </div>
 
     <>
-      <section className="support-summary" aria-label="Support summary filters" style={{ marginTop: '20px' }}><button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span><em>View details →</em></button><button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span><em>View machines →</em></button><button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}><ShieldCheck /><strong>{resolved.length}</strong><span>exceptions resolved</span><em>View history →</em></button></section>
+      <section className="support-summary" aria-label="Support summary filters" style={{ marginTop: '20px' }}><button type="button" className={activeSummary === 'needs' ? 'active' : ''} onClick={() => showSummary('needs')}><CircleHelp /><strong>{visible.length}</strong><span>needs contribution</span><em>View details →</em></button><button type="button" className={activeSummary === 'repeat' ? 'active' : ''} onClick={() => showSummary('repeat')}><Search /><strong>{repeated.length}</strong><span>repeat-failure signals</span><em>View machines →</em></button><button type="button" className={activeSummary === 'resolved' ? 'active' : ''} onClick={() => showSummary('resolved')}><ShieldCheck /><strong>{resolved.length}</strong><span>exceptions resolved</span><em>View history →</em></button><button type="button" className={activeSummary === 'vendors' ? 'active' : ''} onClick={() => showSummary('vendors')}><Truck /><strong>{vendorPerformance.length}</strong><span>service vendors</span><em>View performance →</em></button></section>
       <div id="support-details" className="support-details" tabIndex="-1">
       {activeSummary === 'needs' && <><div className="decision-section-label">Needs your contribution</div>
       <section className="support-list">
@@ -155,6 +167,7 @@ export default function Support() {
       </section></>}
       {activeSummary === 'repeat' && <><div className="decision-section-label">Repeat-failure signals</div><section className="support-list">{repeated.length ? repeated.map(({ machineId, count }) => <article className="support-card compact" key={machineId}><div className="support-card-icon"><Search /></div><div className="support-card-main"><span>Pattern detected</span><h2>{machineMap[machineId]?.name || machineId}</h2><p>{count} issues in the last 30 days. Investigate the system cause instead of repeating the repair.</p><small>This is a machine-level signal. It is not attributed to an employee.</small></div><div className="support-card-actions"><a className="primary" href={`assistant.html?machine_id=${encodeURIComponent(machineId)}`}>{['maintenance_engineer', 'maintenance_head'].includes(user?.role) ? 'Start root-cause review' : 'View machine context'}</a></div></article>) : <div className="support-empty"><CheckCircle2 /><strong>No repeat-failure pattern detected</strong><span>Machines with three or more issues in 30 days will appear here.</span></div>}</section></>}
       {activeSummary === 'resolved' && <details className="support-history" open><summary><span>Resolved exceptions</span><em>{resolved.length} in history</em></summary><div className="decision-section-label">Resolved exceptions</div><section className="support-list">{resolved.length ? resolved.map((item) => { const machine = machineMap[item.machine_id]; return <article className="support-card compact" key={item.id}><div className="support-card-icon resolved"><CheckCircle2 /></div><div className="support-card-main"><span>{typeLabel(item.intervention_type)}</span><h2>{machine?.name || item.machine_id}</h2><p>{item.decision === 'approved' ? 'Repair verified and issue closed.' : item.decision || item.reason || 'Exception resolved.'}</p><small>{item.resolved_at ? `Resolved ${new Date(item.resolved_at).toLocaleString()}` : 'Resolution recorded'}</small></div><div className="support-card-actions"><a href={`assistant.html?machine_id=${encodeURIComponent(item.machine_id)}`}>View machine context</a></div></article>; }) : <div className="support-empty"><ShieldCheck /><strong>No resolved exceptions yet</strong><span>Completed support and approval decisions will appear here.</span></div>}</section></details>}
+      {activeSummary === 'vendors' && <><div className="decision-section-label">Service vendor performance</div><section className="support-list">{vendorPerformance.length ? vendorPerformance.map((vendor) => <article className="support-card compact" key={vendor.vendor}><div className="support-card-icon"><Truck /></div><div className="support-card-main"><span>{vendor.machinesCovered > 0 ? `AMC/warranty on ${vendor.machinesCovered} machine${vendor.machinesCovered === 1 ? '' : 's'}` : 'Outsourced repairs'}</span><h2>{vendor.vendor}</h2><p>{vendor.ticketsAssigned} ticket{vendor.ticketsAssigned === 1 ? '' : 's'} assigned, {vendor.resolved} resolved, {vendor.pending} pending{vendor.avgResolutionHours != null ? ` · avg ${vendor.avgResolutionHours}h to resolve` : ''}</p><small>{vendor.totalCost > 0 ? `${formatInr(vendor.totalCost)} in parts/labor/repair cost` : 'No cost recorded yet'}</small></div></article>) : <div className="support-empty"><Truck /><strong>No service vendor activity yet</strong><span>Vendors appear here once a ticket is outsourced, or a machine has an AMC/warranty vendor on record.</span></div>}</section></>}
       </div>
     </>
   </div></AppShell>;

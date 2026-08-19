@@ -29,8 +29,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, SlidersHorizontal, Shield, Package, Wallet, X,
+  Search, SlidersHorizontal, Shield, Package, Wallet, X, Upload, Download,
 } from 'lucide-react';
+import { parsePartsCSV, downloadPartImportTemplateCSV } from '../utils/partsImport.js';
 import AppShell from '../components/AppShell';
 import { getRoleLabel } from '../lib/roles';
 import StoreManagerInventory from '../components/inventory/StoreManagerInventory.jsx';
@@ -174,6 +175,12 @@ export default function Inventory() {
   const [editing, setEditing] = useState(null);
   const [poPreview, setPoPreview] = useState(null);
   const [toast, setToast] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importParsed, setImportParsed] = useState(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importSaving, setImportSaving] = useState(false);
+  const [importError, setImportError] = useState('');
+  const [importDone, setImportDone] = useState(0);
 
   // One cache per mount, same 5-minute TTL as the dashboard. Recomputing
   // 12 months of trends on every keystroke in the search box is wasteful.
@@ -457,6 +464,47 @@ export default function Inventory() {
     }
   }, []);
 
+  // Bulk CSV import (utils/partsImport.js) — same "add first, sync best-effort"
+  // pattern as addItem above, just batched into one insert instead of N.
+  const handleImportFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportDone(0);
+    const reader = new FileReader();
+    reader.onload = () => setImportParsed(parsePartsCSV(String(reader.result || '')));
+    reader.onerror = () => setImportParsed({ valid: [], errors: [{ rowNumber: 0, message: 'Could not read that file.' }] });
+    reader.readAsText(file);
+  };
+
+  const closeImportModal = () => {
+    setShowImportModal(false);
+    setImportParsed(null);
+    setImportFileName('');
+    setImportError('');
+    setImportDone(0);
+  };
+
+  const handleImportConfirm = useCallback(async () => {
+    if (!importParsed?.valid?.length) return;
+    setImportSaving(true);
+    setImportError('');
+    const rows = importParsed.valid.map((payload) => ({ id: `local-part-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, ...payload }));
+    cacheRef.current.clear();
+    setSources((prev) => ({ ...prev, parts: [...rows, ...prev.parts] }));
+
+    try {
+      await supabase.from('parts').insert(rows.map(({ id: _id, ...insert }) => insert));
+      setImportDone(rows.length);
+      setToast(`${rows.length} part${rows.length === 1 ? '' : 's'} added to the store`);
+    } catch (err) {
+      setImportError(`Parts saved locally but not synced: ${err?.message || 'unknown error'}`);
+      setImportDone(rows.length);
+    } finally {
+      setImportSaving(false);
+    }
+  }, [importParsed]);
+
   const heading = ROLE_HEADINGS[role] || ROLE_HEADINGS[INVENTORY_ROLES.STORE];
   const HeadingIcon = heading.icon;
 
@@ -472,6 +520,11 @@ export default function Inventory() {
             <p>{heading.lead}</p>
           </div>
           <div className="decision-actions">
+            {canModifyInventory && (
+              <button type="button" className="btn btn-ghost btn-sm" data-testid="parts-import-open" onClick={() => setShowImportModal(true)}>
+                <Upload size={14} aria-hidden="true" /> Import CSV
+              </button>
+            )}
             <a className="btn btn-ghost btn-sm" href="machines.html">Machines</a>
             <a className="btn btn-primary btn-sm" href="tickets.html">Open work orders</a>
           </div>
@@ -712,6 +765,83 @@ export default function Inventory() {
                   <button type="submit" className="inv-btn primary">Save changes</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ---------- Bulk CSV import (utils/partsImport.js) ---------- */}
+        {showImportModal && (
+          <div className="inv-modal-backdrop" role="presentation" onClick={closeImportModal}>
+            <div className="inv-modal" role="dialog" aria-modal="true" aria-labelledby="inv-import-title" onClick={(event) => event.stopPropagation()}>
+              <header>
+                <h2 id="inv-import-title">Import parts from CSV</h2>
+                <button type="button" className="inv-icon-btn" onClick={closeImportModal} aria-label="Close">
+                  <X size={16} aria-hidden="true" />
+                </button>
+              </header>
+
+              {importDone === 0 ? (
+                <div className="inv-add-form" data-testid="parts-import-body">
+                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+                    Fill in the spreadsheet you already have, or start from our template. Part name is the only required column.
+                  </p>
+                  <button type="button" className="inv-btn ghost" onClick={() => downloadPartImportTemplateCSV()} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Download size={14} aria-hidden="true" /> Download blank template
+                  </button>
+                  <label style={{ display: 'block', border: '1px dashed rgba(255,255,255,0.25)', borderRadius: '10px', padding: '18px', textAlign: 'center', cursor: 'pointer' }}>
+                    <Upload size={20} style={{ marginBottom: '6px' }} aria-hidden="true" />
+                    <div style={{ fontSize: '0.85rem' }}>{importFileName || 'Click to choose a CSV file'}</div>
+                    <input type="file" accept=".csv,text/csv" onChange={handleImportFileSelect} style={{ display: 'none' }} data-testid="parts-import-file-input" />
+                  </label>
+
+                  {importParsed && (
+                    <div data-testid="parts-import-preview">
+                      <p style={{ fontSize: '0.85rem', margin: '4px 0' }}>
+                        <strong style={{ color: '#25D366' }}>{importParsed.valid.length}</strong> part{importParsed.valid.length === 1 ? '' : 's'} ready to import
+                        {importParsed.errors.length > 0 && <>, <strong style={{ color: '#F87171' }}>{importParsed.errors.length}</strong> row{importParsed.errors.length === 1 ? '' : 's'} skipped</>}
+                      </p>
+                      {importParsed.errors.length > 0 && (
+                        <ul style={{ fontSize: '0.78rem', color: '#fca5a5', paddingLeft: '18px' }}>
+                          {importParsed.errors.slice(0, 8).map((e, i) => (
+                            <li key={i}>{e.rowNumber > 0 ? `Row ${e.rowNumber}: ` : ''}{e.message}</li>
+                          ))}
+                          {importParsed.errors.length > 8 && <li>…and {importParsed.errors.length - 8} more.</li>}
+                        </ul>
+                      )}
+                      {importParsed.valid.length > 0 && (
+                        <ul style={{ fontSize: '0.8rem', color: '#94a3b8', paddingLeft: '18px' }}>
+                          {importParsed.valid.slice(0, 5).map((row, i) => <li key={i}>{row.name}{row.associated_machine ? ` — ${row.associated_machine}` : ''}</li>)}
+                          {importParsed.valid.length > 5 && <li>…and {importParsed.valid.length - 5} more.</li>}
+                        </ul>
+                      )}
+                      {importError && (
+                        <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#fca5a5', padding: '10px 12px', borderRadius: '8px', fontSize: '0.8rem', margin: '8px 0' }} data-testid="parts-import-error">
+                          {importError}
+                        </div>
+                      )}
+                      <div className="inv-add-actions">
+                        <button
+                          type="button"
+                          className="inv-btn primary"
+                          disabled={importSaving || importParsed.valid.length === 0}
+                          onClick={handleImportConfirm}
+                          data-testid="parts-import-confirm"
+                        >
+                          {importSaving ? 'Importing…' : `Import ${importParsed.valid.length} part${importParsed.valid.length === 1 ? '' : 's'}`}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div data-testid="parts-import-result">
+                  <p style={{ color: importError ? '#FBBF24' : '#25D366', fontSize: '0.9rem' }}>
+                    {importDone} part{importDone === 1 ? '' : 's'} added{importError ? ' locally (sync issue — see below).' : '.'}
+                  </p>
+                  {importError && <p style={{ color: '#fca5a5', fontSize: '0.8rem' }}>{importError}</p>}
+                  <button type="button" className="inv-btn primary" onClick={closeImportModal}>Done</button>
+                </div>
+              )}
             </div>
           </div>
         )}
